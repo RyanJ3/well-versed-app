@@ -1,0 +1,283 @@
+<div class="max-w-lg mx-auto p-6 bg-white rounded-xl shadow-xl border border-blue-100">
+  <!-- Progress indicator -->
+  <div class="mb-4">
+    <div class="flex justify-between items-center text-sm text-gray-600 mb-1">
+      <span>Progress: {{ completedCards.size }} / {{ cards.length }}</span>
+      <span>
+        <ng-container *ngIf="allCardsCompleted; else nextReview">
+          All cards completed! 🎉
+        </ng-container>
+        <ng-template #nextReview>
+          Next review: {{ formatNextReview(currentCard.nextReview) }}
+        </ng-template>
+      </span>
+    </div>
+    <div class="w-full bg-gray-200 rounded-full h-3">
+      <div
+        class="bg-gradient-to-r from-blue-600 to-blue-400 h-3 rounded-full transition-all duration-500 ease-in-out"
+        [style.width.%]="progressPercentage">
+      </div>
+    </div>
+  </div>
+
+  <!-- Flashcard -->
+  <div
+    class="relative h-64 w-full"
+    [class.opacity-50]="allCardsCompleted"
+  >
+    <div
+      class="w-full h-full transition-all duration-300"
+      [class.hidden]="isFlipped"
+      [class.block]="!isFlipped"
+      (click)="toggleFlip()"
+    >
+      <!-- Front of card -->
+      <div class="w-full h-full bg-gradient-to-br from-white to-blue-50 rounded-xl shadow-md p-6 flex flex-col border border-blue-100">
+        <div class="text-sm text-blue-500 font-medium uppercase tracking-wider mb-1">
+          Reference:
+        </div>
+        <div class="text-2xl font-bold mb-4 text-gray-800">
+          {{ currentCard.reference }}
+        </div>
+
+        <div class="flex-grow text-gray-700 overflow-auto">
+          {{ currentCard.frontText }}
+        </div>
+
+        <div class="mt-auto pt-4 flex justify-between text-xs text-gray-500">
+          <div class="flex gap-1 items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="text-blue-500" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>Current interval: {{ currentCard.intervalDays }} days</span>
+          </div>
+
+          <div class="flex flex-wrap gap-1">
+            <ng-container *ngFor="let tag of currentCard.tags; let i = index">
+              <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full shadow-sm font-medium">
+                {{ tag }}
+              </span>
+            </ng-container>
+          </div>
+        </div>
+
+        <div class="absolute bottom-2 right-2 text-blue-500 text-xs italic">
+          Tap to flip
+        </div>
+      </div>
+    </div>
+
+    <!-- Back of card -->
+    <div
+      class="w-full h-full transition-all duration-300"
+      [class.hidden]="!isFlipped"
+      [class.block]="isFlipped"
+      (click)="toggleFlip()"
+    >
+      <div class="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-md p-6 flex flex-col border border-blue-100">
+        <div class="text-sm text-indigo-500 font-medium uppercase tracking-wider mb-1">
+          Full Verse:
+        </div>
+        <div class="flex-grow text-gray-700 overflow-auto leading-relaxed">
+          "{{ currentCard.backText }}"
+        </div>
+
+        <div class="mt-auto pt-4 flex justify-between text-xs text-gray-500">
+          <div>
+            Next review: {{ formatNextReview(currentCard.nextReview) }}
+          </div>
+          <div class="italic">
+            Tap to flip back
+          </div>
+        </div>
+
+        <!-- Audio recording section -->
+        <div class="mt-4 mb-2">
+          <div class="flex items-center justify-center gap-3">
+            <ng-container *ngIf="!isRecording && !audioURL">
+              <button
+                (click)="startRecording(); $event.stopPropagation()"
+                class="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-all"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                  <line x1="12" y1="19" x2="12" y2="23"></line>
+                  <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+                <span>Record</span>
+              </button>
+            </ng-container>
+
+            <ng-container *ngIf="isRecording">
+              <div class="flex items-center gap-3">
+                <span class="text-red-500 font-medium animate-pulse">{{ formatTime(recordingTime) }}</span>
+                <button
+                  (click)="stopRecording(); $event.stopPropagation()"
+                  class="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-all"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="6" y="6" width="12" height="12"></rect>
+                  </svg>
+                  <span>Stop</span>
+                </button>
+              </div>
+            </ng-container>
+
+            <ng-container *ngIf="audioURL && !isRecording">
+              <div class="flex items-center gap-3">
+                <button
+                  (click)="playRecording(); $event.stopPropagation()"
+                  class="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-600 rounded-full hover:bg-blue-200 transition-all"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                  <span>Play</span>
+                </button>
+                <button
+                  (click)="startRecording(); $event.stopPropagation()"
+                  class="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-all"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                  </svg>
+                  <span>Re-record</span>
+                </button>
+              </div>
+            </ng-container>
+          </div>
+
+          <audio #audioElement [src]="audioURL" class="hidden"></audio>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interval Slider and Controls -->
+  <div class="mt-6" [class.hidden]="allCardsCompleted">
+    <div class="flex justify-between items-center text-sm text-gray-600 mb-2">
+      <span>Next Review Interval:</span>
+      <span class="font-medium">{{ currentInterval }} {{ currentInterval === 1 ? 'day' : 'days' }}</span>
+    </div>
+
+    <div class="flex items-center gap-2 mb-4">
+      <input
+        type="range"
+        min="1"
+        max="2000"
+        [value]="currentInterval"
+        (input)="onIntervalChange($event)"
+        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+        [style.background]="getIntervalSliderStyle()"
+        [disabled]="allCardsCompleted"
+      />
+    </div>
+
+    <!-- Quick interval presets -->
+    <div class="flex justify-between mb-4">
+      <button
+        (click)="setIntervalPreset(1)"
+        [class]="currentInterval === 1 ? 'px-3 py-1 text-xs rounded-full font-medium shadow-sm transition-all bg-blue-100 text-blue-800 border border-blue-200' : 'px-3 py-1 text-xs rounded-full font-medium shadow-sm transition-all bg-gray-100 text-gray-700 hover:bg-gray-200'"
+      >
+        1d
+      </button>
+      <button
+        (click)="setIntervalPreset(7)"
+        [class]="currentInterval === 7 ? 'px-3 py-1 text-xs rounded-full font-medium shadow-sm transition-all bg-blue-100 text-blue-800 border border-blue-200' : 'px-3 py-1 text-xs rounded-full font-medium shadow-sm transition-all bg-gray-100 text-gray-700 hover:bg-gray-200'"
+      >
+        7d
+      </button>
+      <button
+        (click)="setIntervalPreset(30)"
+        [class]="currentInterval === 30 ? 'px-3 py-1 text-xs rounded-full font-medium shadow-sm transition-all bg-blue-100 text-blue-800 border border-blue-200' : 'px-3 py-1 text-xs rounded-full font-medium shadow-sm transition-all bg-gray-100 text-gray-700 hover:bg-gray-200'"
+      >
+        30d
+      </button>
+      <button
+        (click)="setIntervalPreset(90)"
+        [class]="currentInterval === 90 ? 'px-3 py-1 text-xs rounded-full font-medium shadow-sm transition-all bg-blue-100 text-blue-800 border border-blue-200' : 'px-3 py-1 text-xs rounded-full font-medium shadow-sm transition-all bg-gray-100 text-gray-700 hover:bg-gray-200'"
+      >
+        90d
+      </button>
+      <button
+        (click)="setIntervalPreset(365)"
+        [class]="currentInterval === 365 ? 'px-3 py-1 text-xs rounded-full font-medium shadow-sm transition-all bg-blue-100 text-blue-800 border border-blue-200' : 'px-3 py-1 text-xs rounded-full font-medium shadow-sm transition-all bg-gray-100 text-gray-700 hover:bg-gray-200'"
+      >
+        1y
+      </button>
+      <button
+        (click)="setIntervalPreset(730)"
+        [class]="currentInterval === 730 ? 'px-3 py-1 text-xs rounded-full font-medium shadow-sm transition-all bg-blue-100 text-blue-800 border border-blue-200' : 'px-3 py-1 text-xs rounded-full font-medium shadow-sm transition-all bg-gray-100 text-gray-700 hover:bg-gray-200'"
+      >
+        2y
+      </button>
+    </div>
+
+    <!-- Navigation and mark complete button -->
+    <div class="flex justify-between items-center">
+      <button
+        (click)="goToPreviousCard()"
+        class="p-2 text-gray-500 rounded-full hover:bg-gray-200"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+
+      <button
+        (click)="handleCardCompletion()"
+        class="flex items-center gap-1 px-6 py-2 bg-gradient-to-r from-green-600 to-green-500 text-white rounded-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
+      >
+        <span>Mark Complete</span>
+      </button>
+
+      <button
+        (click)="goToNextCard()"
+        class="p-2 text-gray-500 rounded-full hover:bg-gray-200"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="mt-6 flex justify-center">
+    <ng-container *ngIf="allCardsCompleted; else regularActions">
+      <button
+        (click)="resetStudy()"
+        class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 4v6h-6"></path>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        <span class="font-medium">Study Again</span>
+      </button>
+    </ng-container>
+    <ng-template #regularActions>
+      <div class="flex gap-2">
+        <button class="flex items-center gap-1 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"></circle>
+            <circle cx="6" cy="12" r="3"></circle>
+            <circle cx="18" cy="19" r="3"></circle>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+          </svg>
+          <span>Share</span>
+        </button>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Card counter -->
+  <div class="mt-4 text-center text-sm text-gray-500">
+    Card {{ currentCardIndex + 1 }} of {{ cards.length }}
+  </div>
+</div>

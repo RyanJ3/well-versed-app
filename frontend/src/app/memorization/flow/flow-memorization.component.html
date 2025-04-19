@@ -1,0 +1,156 @@
+<!-- flow.component.html -->
+<div class="p-6 max-w-4xl mx-auto bg-gray-50 rounded-lg shadow">
+  <h1 class="text-3xl font-bold mb-6 text-center text-blue-700">FLOW Memorization Helper</h1>
+  <p class="mb-4 text-center">
+    Reduce scripture text to First Letter Of Words (FLOW) format for memorization practice.
+  </p>
+
+  <div class="mb-6">
+    <h3 class="text-lg font-semibold mb-2">Bible Selection</h3>
+    <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      <div>
+        <label class="block mb-2 font-medium">Testament:</label>
+        <select
+          (change)="onTestamentChange()"
+          [(ngModel)]="selectedTestament"
+          class="w-full p-2 border rounded"
+        >
+          <option *ngFor="let testament of testaments" [value]="testament">{{ testament }}</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block mb-2 font-medium">Book Group:</label>
+        <select
+          (change)="onGroupChange()"
+          [(ngModel)]="selectedGroup"
+          class="w-full p-2 border rounded"
+        >
+          <option *ngFor="let group of availableGroups" [value]="group">{{ group }}</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block mb-2 font-medium">Book:</label>
+        <select
+          (change)="onBookChange()"
+          [(ngModel)]="selectedBook"
+          class="w-full p-2 border rounded"
+        >
+          <option *ngFor="let book of availableBooks" [value]="book">{{ book }}</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block mb-2 font-medium">Chapter:</label>
+        <select
+          [(ngModel)]="chapter"
+          class="w-full p-2 border rounded"
+        >
+          <option *ngFor="let chap of availableChapters" [value]="chap">{{ chap }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <div>
+        <label class="block mb-2 font-medium">Original Text:</label>
+        <textarea
+          [(ngModel)]="input"
+          class="w-full h-64 p-4 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Paste or type your Bible passage here... (Include verse numbers)"
+        ></textarea>
+      </div>
+
+      <div>
+        <label class="block mb-2 font-medium">Reduced Text:</label>
+        <textarea
+          [(ngModel)]="output"
+          class="w-full h-64 p-4 border rounded bg-gray-50"
+          placeholder="Reduced text will appear here after formatting..."
+          readonly
+        ></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-center space-x-4 mb-6">
+    <button
+      (click)="handleFormat()"
+      [disabled]="isLoading || !input.trim()"
+      [ngClass]="{'bg-green-500 hover:bg-green-600 text-white': !isLoading, 'bg-gray-300 text-gray-500': isLoading || !input.trim()}"
+      class="px-4 py-2 rounded font-medium"
+    >
+      {{ isLoading ? 'Processing...' : 'Reduce Text' }}
+    </button>
+
+    <button
+      (click)="exportToExcel()"
+      [disabled]="isLoading || !isProcessed"
+      [ngClass]="{'bg-blue-500 hover:bg-blue-600 text-white': !isLoading && isProcessed, 'bg-gray-300 text-gray-500': isLoading || !isProcessed}"
+      class="px-4 py-2 rounded font-medium"
+    >
+      {{ isLoading ? 'Processing...' : 'Export to Excel' }}
+    </button>
+  </div>
+
+  <div *ngIf="isProcessed" class="mt-6">
+    <h3 class="text-xl font-semibold mb-2">Transposed Reduced Text:</h3>
+    <p class="mb-2 text-sm">Copy this grid and paste directly into Excel (Ctrl+C, then Ctrl+V in Excel)</p>
+    <div class="overflow-x-auto bg-white border rounded p-4">
+      <table class="min-w-full table-fixed border-collapse">
+        <ng-container *ngFor="let chunk of getVerseChunks(); let chunkIndex = index">
+          <thead>
+          <tr>
+            <th
+              *ngFor="let verse of chunk; let index = index"
+              [ngClass]="{'bg-blue-100': index === 4}"
+              class="px-2 py-1 text-xs font-medium text-gray-500 text-left border border-gray-300 verse-header"
+              style="width: 20%"
+            >
+              {{ verse.number }}
+            </th>
+            <th
+              *ngFor="let empty of [].constructor(5 - chunk.length); let i = index"
+              [ngClass]="{'bg-blue-100': (chunk.length + i === 4)}"
+              class="px-2 py-1 text-xs font-medium text-gray-500 text-left border border-gray-300 verse-header"
+              style="width: 20%"
+            ></th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td
+              *ngFor="let verse of chunk; let index = index"
+              [ngClass]="{'bg-blue-100': index === 4}"
+              class="px-2 py-2 text-sm text-gray-700 text-center border border-gray-300 whitespace-pre-wrap verse-cell"
+              style="width: 20%; vertical-align: top"
+            >
+              <ng-container *ngFor="let line of verse.text.split('\n'); let lineIndex = index">
+                <span *ngIf="lineIndex > 0"><br></span>
+                {{ line }}
+              </ng-container>
+            </td>
+            <td
+              *ngFor="let empty of [].constructor(5 - chunk.length); let i = index"
+              [ngClass]="{'bg-blue-100': (chunk.length + i === 4)}"
+              class="px-2 py-2 border border-gray-300 verse-cell"
+              style="width: 20%"
+            ></td>
+          </tr>
+          </tbody>
+        </ng-container>
+      </table>
+    </div>
+  </div>
+
+  <div class="mt-8 text-sm text-gray-600">
+    <h3 class="font-semibold mb-1">How it works:</h3>
+    <ul class="list-disc list-inside space-y-1 ml-2">
+      <li>Original text is reduced to just the first letter of each word</li>
+      <li>The verse structure and numbers are preserved</li>
+      <li>In the grid, each column represents a verse, with the verse number at the top</li>
+      <li>This format makes it easier to practice memorization</li>
+    </ul>
+  </div>
+</div>

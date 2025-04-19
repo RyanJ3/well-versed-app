@@ -1,0 +1,38 @@
+# Node.js dependencies
+node_modules/
+
+# Angular build output
+dist/
+out-tsc/
+
+# Environment files
+src/environments/environment*.ts
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Logs and debugging
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Package lock files (optional, if you don't want to commit them)
+package-lock.json
+yarn.lock
+
+# Temporary files
+tmp/
+temp/
+
+# Angular cache
+.angular/
