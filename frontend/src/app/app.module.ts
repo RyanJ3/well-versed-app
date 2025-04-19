@@ -8,18 +8,15 @@ import { AppComponent } from './app.component';
 import { BibleTrackerModule } from './bible-tracker/bible-tracker.module';
 
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
+  declarations: [AppComponent],
   imports: [
     BrowserModule,
     FormsModule,
-    HttpClientModule,  // Make sure this is added
+    HttpClientModule, // Make sure this is added
     BibleTrackerModule,
   ],
-  providers: [
-  ],
+  providers: [],
   bootstrap: [AppComponent],
-  exports: []
+  exports: [],
 })
-export class AppModule { }
+export class AppModule {}

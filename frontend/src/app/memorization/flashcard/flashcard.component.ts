@@ -1,6 +1,12 @@
 // ----- bible-flashcard.component.ts -----
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import {NgForOf, NgIf} from '@angular/common';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
+import { NgForOf, NgIf } from '@angular/common';
 
 interface FlashCard {
   id: number;
@@ -15,41 +21,40 @@ interface FlashCard {
 @Component({
   selector: 'flashcard',
   templateUrl: './flashcard.component.html',
-  imports: [
-    NgIf,
-    NgForOf
-  ],
-  styleUrls: ['./flashcard.component.scss']
+  imports: [NgIf, NgForOf],
+  styleUrls: ['./flashcard.component.scss'],
 })
 export class FlashcardComponent implements OnInit, OnDestroy {
   cards: FlashCard[] = [
     {
       id: 1,
-      reference: "John 3:16",
-      frontText: "For God so loved the world...",
-      backText: "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.",
+      reference: 'John 3:16',
+      frontText: 'For God so loved the world...',
+      backText:
+        'For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.',
       intervalDays: 3,
       nextReview: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
-      tags: ["Gospel", "Salvation"]
+      tags: ['Gospel', 'Salvation'],
     },
     {
       id: 2,
-      reference: "Psalm 23:1",
-      frontText: "The LORD is my shepherd...",
-      backText: "The LORD is my shepherd, I lack nothing.",
+      reference: 'Psalm 23:1',
+      frontText: 'The LORD is my shepherd...',
+      backText: 'The LORD is my shepherd, I lack nothing.',
       intervalDays: 1,
       nextReview: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day from now
-      tags: ["Psalms", "Comfort"]
+      tags: ['Psalms', 'Comfort'],
     },
     {
       id: 3,
-      reference: "Proverbs 3:5-6",
-      frontText: "Trust in the LORD...",
-      backText: "Trust in the LORD with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.",
+      reference: 'Proverbs 3:5-6',
+      frontText: 'Trust in the LORD...',
+      backText:
+        'Trust in the LORD with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.',
       intervalDays: 5,
       nextReview: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
-      tags: ["Wisdom", "Guidance"]
-    }
+      tags: ['Wisdom', 'Guidance'],
+    },
   ];
 
   currentCardIndex = 0;
@@ -104,7 +109,7 @@ export class FlashcardComponent implements OnInit, OnDestroy {
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
     });
   }
 
@@ -127,7 +132,8 @@ export class FlashcardComponent implements OnInit, OnDestroy {
   goToPreviousCard(): void {
     this.isFlipped = false;
     setTimeout(() => {
-      this.currentCardIndex = (this.currentCardIndex - 1 + this.cards.length) % this.cards.length;
+      this.currentCardIndex =
+        (this.currentCardIndex - 1 + this.cards.length) % this.cards.length;
       this.updateCurrentInterval();
       this.resetAudio();
     }, 300);
@@ -142,7 +148,9 @@ export class FlashcardComponent implements OnInit, OnDestroy {
   handleCardCompletion(): void {
     // Update the card's interval and next review date
     this.cards[this.currentCardIndex].intervalDays = this.currentInterval;
-    this.cards[this.currentCardIndex].nextReview = new Date(Date.now() + this.currentInterval * 24 * 60 * 60 * 1000);
+    this.cards[this.currentCardIndex].nextReview = new Date(
+      Date.now() + this.currentInterval * 24 * 60 * 60 * 1000,
+    );
 
     // Add card to completed set
     this.completedCards.add(this.currentCard.id);
@@ -220,7 +228,7 @@ export class FlashcardComponent implements OnInit, OnDestroy {
       clearInterval(this.timerInterval);
 
       // Stop all tracks on the active stream
-      this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      this.mediaRecorder.stream.getTracks().forEach((track) => track.stop());
     }
   }
 
@@ -238,7 +246,7 @@ export class FlashcardComponent implements OnInit, OnDestroy {
 
     if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
       this.mediaRecorder.stop();
-      this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      this.mediaRecorder.stream.getTracks().forEach((track) => track.stop());
     }
 
     if (this.audioURL) {

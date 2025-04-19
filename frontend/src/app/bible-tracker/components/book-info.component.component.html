@@ -1,14 +1,4 @@
-// components/book-info.component.ts
-import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {BIBLE_DATA, BibleBook} from '../models';
-import {ConfirmationModalComponent} from '../../shared/components/notification/confirmation-modal';
-
-@Component({
-  selector: 'app-book-info',
-  standalone: true,
-  imports: [ConfirmationModalComponent],
-  template: `
-    <div class="mb-6 bg-blue-50 p-4 rounded-lg">
+<div class="mb-6 bg-blue-50 p-4 rounded-lg">
       <div class="flex justify-between items-center mb-2">
         <h2 class="text-xl font-bold">{{ currentBook.name }}</h2>
         <div class="text-sm text-gray-600">
@@ -64,34 +54,3 @@ import {ConfirmationModalComponent} from '../../shared/components/notification/c
       (confirm)="confirmReset()"
       (cancel)="cancelReset()"
     ></app-confirmation-modal>
-  `
-})
-export class BookInfoComponent {
-  @Input() currentBook: BibleBook = BIBLE_DATA.getBookByName("Psalms");
-  @Input() memorizedVerses: number = 0;
-  @Input() totalVerses: number = 0;
-  @Input() completedChapters: number = 0;
-  @Input() inProgressChapters: number = 0;
-
-  @Output() resetBook = new EventEmitter<void>();
-
-  isConfirmModalVisible: boolean = false;
-
-  get percentComplete(): number {
-    if (!this.totalVerses) return 0;
-    return Math.round((this.memorizedVerses / this.totalVerses) * 100);
-  }
-
-  showConfirmModal(): void {
-    this.isConfirmModalVisible = true;
-  }
-
-  confirmReset(): void {
-    this.resetBook.emit();
-    this.isConfirmModalVisible = false;
-  }
-
-  cancelReset(): void {
-    this.isConfirmModalVisible = false;
-  }
-}

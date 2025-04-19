@@ -1,13 +1,13 @@
 // src/app/app.component.ts
-import {Component, inject, OnInit} from '@angular/core';
-import {RouterLink, RouterLinkActive, RouterOutlet} from '@angular/router';
-import {CommonModule} from '@angular/common';
+import { Component, inject, OnInit } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, RouterLink, CommonModule, RouterLinkActive],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
   title = 'Well Versed';
@@ -15,12 +15,9 @@ export class AppComponent implements OnInit {
   userMenuActive = false;
   memorizeMenuActive = false;
 
-  constructor() {
-  }
+  constructor() {}
 
-  ngOnInit(): void {
-
-  }
+  ngOnInit(): void {}
 
   toggleMenu(): void {
     this.menuActive = !this.menuActive;
@@ -53,5 +50,4 @@ export class AppComponent implements OnInit {
   closeMemorizeMenu(): void {
     this.memorizeMenuActive = false;
   }
-
 }

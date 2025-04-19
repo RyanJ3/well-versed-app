@@ -1,8 +1,8 @@
 // src/app/flow/flow.component.ts
-import {Component, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {BIBLE_DATA, BibleData} from '../../bible-tracker/models';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { BIBLE_DATA, BibleData } from '../../bible-tracker/models';
 //TODO import excel from Kendo
 
 @Component({
@@ -10,7 +10,7 @@ import {BIBLE_DATA, BibleData} from '../../bible-tracker/models';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './flow-memorization.component.html',
-  styleUrls: ['./flow-memorization.component.scss'] // Updated to .css from .scss
+  styleUrls: ['./flow-memorization.component.scss'], // Updated to .css from .scss
 })
 export class FlowMemorizationComponent implements OnInit {
   input: string = '';
@@ -38,7 +38,9 @@ export class FlowMemorizationComponent implements OnInit {
   // Initialize filter values for Testament, Group, Book, and Chapter selection
   initializeBibleFilters(): void {
     // Get all testaments and manually sort to put Old Testament first
-    const testamentSet = new Set(Object.values(BIBLE_DATA).map(book => book.testament));
+    const testamentSet = new Set(
+      Object.values(BIBLE_DATA).map((book) => book.testament),
+    );
     this.testaments = Array.from(testamentSet).sort((a, b) => {
       // Make sure Old Testament comes before New Testament
       if (a.includes('Old') && b.includes('New')) return -1;
@@ -53,11 +55,13 @@ export class FlowMemorizationComponent implements OnInit {
   // Handle Testament change
   onTestamentChange(): void {
     // Get groups for the selected testament
-    this.availableGroups = [...new Set(
-      Object.values(BIBLE_DATA)
-        .filter(book => book.testament === this.selectedTestament)
-        .map(book => book.group)
-    )].sort();
+    this.availableGroups = [
+      ...new Set(
+        Object.values(BIBLE_DATA)
+          .filter((book) => book.testament === this.selectedTestament)
+          .map((book) => book.group),
+      ),
+    ].sort();
 
     // Set default group if current one isn't available
     if (!this.availableGroups.includes(this.selectedGroup)) {
@@ -71,7 +75,11 @@ export class FlowMemorizationComponent implements OnInit {
   onGroupChange(): void {
     // Get books for the selected group
     this.availableBooks = Object.entries(BIBLE_DATA)
-      .filter(([_, book]) => book.testament === this.selectedTestament && book.group === this.selectedGroup)
+      .filter(
+        ([_, book]) =>
+          book.testament === this.selectedTestament &&
+          book.group === this.selectedGroup,
+      )
       .map(([name, _]) => name)
       .sort();
 
@@ -85,17 +93,21 @@ export class FlowMemorizationComponent implements OnInit {
 
   // Handle Book change
   onBookChange(): void {
-    const bookData =BIBLE_DATA.getBookByName(this.selectedBook);
+    const bookData = BIBLE_DATA.getBookByName(this.selectedBook);
     if (bookData) {
       // Generate available chapters
       this.availableChapters = Array.from(
-        {length: bookData.totalChapters},
-        (_, i) => (i + 1).toString()
+        { length: bookData.totalChapters },
+        (_, i) => (i + 1).toString(),
       );
 
       // Set default chapter if current one isn't available or is out of range
       const chapterNum = parseInt(this.chapter);
-      if (isNaN(chapterNum) || chapterNum < 1 || chapterNum > bookData.totalChapters) {
+      if (
+        isNaN(chapterNum) ||
+        chapterNum < 1 ||
+        chapterNum > bookData.totalChapters
+      ) {
         this.chapter = '1';
       }
 
@@ -126,7 +138,7 @@ export class FlowMemorizationComponent implements OnInit {
     const pattern = /[a-zA-Z]+/g;
 
     for (let i = 0; i < lines.length; i++) {
-      const processed = lines[i].replace(pattern, match => match.charAt(0));
+      const processed = lines[i].replace(pattern, (match) => match.charAt(0));
       processedLines.push(processed);
     }
 
@@ -152,12 +164,12 @@ export class FlowMemorizationComponent implements OnInit {
         if (currentVerse) {
           verses.push({
             number: currentVerseNum,
-            text: currentVerse.trim()
+            text: currentVerse.trim(),
           });
         } else if (headerText && !verses.length) {
           verses.push({
-            number: "Header",
-            text: headerText.trim()
+            number: 'Header',
+            text: headerText.trim(),
           });
         }
 
@@ -174,12 +186,12 @@ export class FlowMemorizationComponent implements OnInit {
     if (currentVerse) {
       verses.push({
         number: currentVerseNum,
-        text: currentVerse.trim()
+        text: currentVerse.trim(),
       });
     } else if (headerText && !verses.length) {
       verses.push({
-        number: "Header",
-        text: headerText.trim()
+        number: 'Header',
+        text: headerText.trim(),
       });
     }
 
@@ -213,5 +225,4 @@ export class FlowMemorizationComponent implements OnInit {
       return;
     }
   }
-
 }

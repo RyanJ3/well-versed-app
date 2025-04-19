@@ -1,0 +1,45 @@
+<div class="mb-6">
+      <h2 class="text-lg font-semibold mb-3">Chapter Progress</h2>
+
+      <div class="bg-white p-4 rounded shadow mb-4">
+        <div class="mb-3">
+          <label for="chapter-select" class="block text-sm font-medium text-gray-700 mb-1">
+            Select Chapter:
+          </label>
+          <select
+            id="chapter-select"
+            [(ngModel)]="selectedChapter"
+            (change)="onChapterSelect()"
+            class="w-full p-2 border rounded"
+          >
+            <option *ngFor="let chapter of currentBookProgress; let i = index" [value]="chapter.chapter">
+              Chapter {{ chapter.chapter }}
+              {{
+                chapter.completed ? ' (Completed)' :
+                  (chapter.inProgress ? ' (In Progress)' : ' (Not Started)')
+              }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Chapter Overview -->
+        <div class="mb-3">
+          <p class="text-sm text-gray-500 mb-2">Quick Overview:</p>
+          <div class="bubbles-container">
+            <button
+              *ngFor="let chapter of currentBookProgress; trackBy: trackByFn"
+              (click)="selectChapter(chapter.chapter)"
+              class="chapter-bubble"
+              [ngClass]="{
+                'not-started': !chapter.inProgress && !chapter.completed,
+                'in-progress': chapter.inProgress && !chapter.completed,
+                'completed': chapter.completed,
+                'selected': chapter.chapter === selectedChapter
+              }"
+            >
+              {{ chapter.chapter }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>

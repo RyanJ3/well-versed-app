@@ -1,6 +1,6 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import {FlowMemorizationComponent} from './flow-memorization.component';
+import { FlowMemorizationComponent } from './flow-memorization.component';
 
 describe('FlowMemorizationComponent', () => {
   let component: FlowMemorizationComponent;
@@ -8,9 +8,8 @@ describe('FlowMemorizationComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FlowMemorizationComponent]
-    })
-      .compileComponents();
+      imports: [FlowMemorizationComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(FlowMemorizationComponent);
     component = fixture.componentInstance;
