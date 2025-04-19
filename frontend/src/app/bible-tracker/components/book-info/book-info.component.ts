@@ -1,7 +1,7 @@
 // components/book-info.component.ts
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { BIBLE_DATA, BibleBook } from '../models';
-import { ConfirmationModalComponent } from '../../shared/components/notification/confirmation-modal';
+import { ConfirmationModalComponent } from '../../../shared/components/notification/confirmation-modal';
+import { BIBLE_DATA, BibleBook } from '../../models';
 
 @Component({
   selector: 'app-book-info',

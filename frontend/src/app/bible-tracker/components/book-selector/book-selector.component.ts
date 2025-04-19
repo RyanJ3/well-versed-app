@@ -1,8 +1,8 @@
 // In book-selector.component.ts - Enhanced version
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { BIBLE_DATA, BibleBook, BibleData } from '../models';
 import { NgClass, NgFor, NgIf } from '@angular/common';
-import { BibleTrackerService } from '../bible-tracker-service';
+import { BIBLE_DATA, BibleBook } from '../../models';
+import { BibleTrackerService } from '../../bible-tracker-service';
 
 @Component({
   selector: 'app-book-selector',

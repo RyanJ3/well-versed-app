@@ -1,9 +1,9 @@
 // components/chapter-progress.component.ts
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { BIBLE_DATA, BibleBook, BibleData, ChapterProgress } from '../models';
 import { CommonModule } from '@angular/common';
-import { VerseSelectorComponent } from './verse-selector.component';
-import { ConfirmationModalComponent } from '../../shared/components/notification/confirmation-modal';
+import { ConfirmationModalComponent } from '../../../shared/components/notification/confirmation-modal';
+import { VerseSelectorComponent } from '../verse-selector/verse-selector.component';
+import { BIBLE_DATA, BibleBook, ChapterProgress } from '../../models';
 
 @Component({
   selector: 'app-chapter-progress',
