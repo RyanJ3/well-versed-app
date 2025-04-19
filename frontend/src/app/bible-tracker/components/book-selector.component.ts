@@ -1,6 +1,6 @@
 // In book-selector.component.ts - Enhanced version
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {BibleBook} from '../models';
+import {BIBLE_DATA, BibleBook, BibleData} from '../models';
 import {NgClass, NgFor, NgIf} from '@angular/common';
 import {BibleTrackerService} from '../bible-tracker-service';
 
@@ -17,7 +17,7 @@ import {BibleTrackerService} from '../bible-tracker-service';
       <h3 class="text-lg font-semibold mb-3">{{ selectedGroup }} Books</h3>
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
         <button
-          *ngFor="let book of orderedBooks"
+          *ngFor="let book of booksInGroup"
           (click)="selectBook(book.name)"
           class="book-card"
           [class.active]="selectedBook === book.name"
@@ -40,7 +40,7 @@ import {BibleTrackerService} from '../bible-tracker-service';
 
             <div class="stats">
               <div class="stat-value">{{ getBookStats(book.name) }}%</div>
-              <div class="chapter-stat">{{ getCompletedChapters(book.name) }}/{{ book.book.totalChapters }}</div>
+              <div class="chapter-stat">{{ getCompletedChapters(book.name) }}/{{ book.totalChapters }}</div>
             </div>
 
             <!-- Status indicator icon -->
@@ -199,7 +199,8 @@ import {BibleTrackerService} from '../bible-tracker-service';
   `]
 })
 export class BookSelectorComponent {
-  @Input() booksInGroup: { [key: string]: BibleBook } = {};
+
+  @Input() booksInGroup: BibleBook[] = [];
   @Input() selectedGroup: string = '';
   @Input() selectedBook: string = '';
 
@@ -208,11 +209,9 @@ export class BookSelectorComponent {
   constructor(private bibleTrackerService: BibleTrackerService) {
   }
 
-  get orderedBooks(): { name: string, book: BibleBook }[] {
-    // Convert the object to an array and sort by canonical order
-    return Object.entries(this.booksInGroup)
-      .map(([name, book]) => ({name, book}))
-      .sort((a, b) => a.book.order - b.book.order);
+  get getBooksInGroup(): BibleBook[] {
+    // Return the books in the original order provided by the input
+    return BIBLE_DATA.getBooksByGroup(this.selectedGroup);
   }
 
   selectBook(bookName: string): void {

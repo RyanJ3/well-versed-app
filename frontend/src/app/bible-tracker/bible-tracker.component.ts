@@ -28,7 +28,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     // Data sources
     testaments: string[] = [];
     availableGroups: string[] = [];
-    booksInGroup: { [key: string]: BibleBook } = {};
+    booksInGroup: BibleBook[] = [];
     progress: BookProgress = {};
 
     // Selection state
@@ -38,7 +38,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     selectedChapter: number = 1;
 
     // Current book data
-    currentBook: BibleBook | null = null;
+    currentBook: BibleBook = BIBLE_DATA.getBookByName("Psalms");
     currentBookProgress: ChapterProgress[] = [];
 
     // Selected chapter data
@@ -136,17 +136,13 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
 
     onGroupChange(group: string): void {
         this.selectedGroup = group;
-
-        // Get books in this group
+    
+        // Get books in this group - already sorted by the updated getBooksByGroup method
         this.booksInGroup = this.bibleTrackerService.getBooksInGroup(group);
-
-        // Select first book in the group by canonical order, not alphabetically
-        const bookNames = Object.entries(this.booksInGroup)
-            .sort((a, b) => a[1].order - b[1].order)
-            .map(([name, _]) => name);
-
-        if (bookNames.length > 0) {
-            this.onBookChange(bookNames[0]);
+    
+        // If we have books, select the first one
+        if (this.booksInGroup.length > 0) {
+            this.onBookChange(this.booksInGroup[0].name);
         }
     }
 
@@ -194,19 +190,15 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
         this.booksInGroup = this.bibleTrackerService.getBooksInGroup(this.selectedGroup);
 
         // Update current book
-        this.currentBook = BIBLE_DATA[this.selectedBook] || null;
+        this.currentBook = BIBLE_DATA.getBookByName(this.selectedBook);
 
         // Update current book progress
         if (this.currentBook && this.progress[this.selectedBook]) {
             this.currentBookProgress = this.progress[this.selectedBook];
         } else if (this.currentBook) {
-            this.currentBookProgress = Array(this.currentBook.totalChapters).fill(null).map((_, i) => ({
-                chapter: i + 1,
-                memorizedVerses: 0,
-                inProgress: false,
-                versesMemorized: [false, true, false, true],
-                completed: false
-            }));
+            this.currentBookProgress = Array(this.currentBook.totalChapters).fill(null).map((_, i) => 
+                new ChapterProgress(i + 1, 0, this.currentBook?.chapters[i] || 0)
+            );
         } else {
             this.currentBookProgress = [];
         }

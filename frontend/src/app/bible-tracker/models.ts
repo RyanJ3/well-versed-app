@@ -28,7 +28,7 @@ export class BibleBook {
         this.canonicalAffiliation = data.canonicalAffiliation;
         this.chapters = data.chapters;
         this.order = data.order;
-        
+
         // Compute derived properties
         this.group = data.bookGroup;
         this.totalChapters = this.getTotalChapters();
@@ -59,6 +59,13 @@ export class BibleBook {
         return this.bookGroup === group;
     }
 
+    getChapterProgress(chapterIndex: number): ChapterProgress {
+        if (chapterIndex < 0 || chapterIndex >= this.chapters.length) {
+            throw new Error(`Chapter index out of bounds: ${chapterIndex}`);
+        }
+        return new ChapterProgress(chapterIndex + 1, this.chapters[chapterIndex]);
+    }
+
     // Static factory method to create from raw data
     public static fromRawData(bookData: any): BibleBook {
         return new BibleBook({
@@ -82,10 +89,10 @@ export class BibleData {
     constructor(data: any) {
         this.bookIndex = data.bookIndex || {};
         this.synonyms = data.synonyms || {};
-        
+
         // Create enhanced book objects
         this.books = (data.books || []).map((book: any) => BibleBook.fromRawData(book));
-        
+
         // Build lookup map for books by name
         this.books.forEach(book => {
             this.booksByName[book.name] = book;
@@ -98,24 +105,24 @@ export class BibleData {
     }
 
     // Methods
-    public getBookByName(name: string): BibleBook | null {
+    public getBookByName(name: string): BibleBook {
         // Try direct lookup first
         if (this.booksByName[name]) {
             return this.booksByName[name];
         }
-        
+
         // Try book index lookup
         const bookIndex = this.bookIndex[name];
         if (bookIndex && bookIndex > 0 && bookIndex <= this.books.length) {
             return this.books[bookIndex - 1];
         }
-        
+
         // Try synonym lookup
         const synonymIndex = this.synonyms[name];
         if (synonymIndex && synonymIndex > 0 && synonymIndex <= this.books.length) {
             return this.books[synonymIndex - 1];
         }
-        
+
         // Case insensitive search as fallback
         const lowerName = name.toLowerCase();
         for (const [key, index] of Object.entries(this.synonyms)) {
@@ -123,8 +130,8 @@ export class BibleData {
                 return this.books[index - 1];
             }
         }
-        
-        return null;
+
+        throw new Error(`Book not found: ${name}`);
     }
 
     public getBooksByTestament(testament: string): BibleBook[] {
@@ -132,7 +139,8 @@ export class BibleData {
     }
 
     public getBooksByGroup(bookGroup: string): BibleBook[] {
-        return this.books.filter(book => book.bookGroup === bookGroup);
+        return this.books.filter(book => book.bookGroup === bookGroup)
+            .sort((a, b) => (a.order || 0) - (b.order || 0));
     }
 
     public getGroupsInTestament(testament: string): string[] {
@@ -156,12 +164,12 @@ export class BibleData {
         if (!book || chapter < 1 || chapter > book.chapters.length) {
             return false;
         }
-        
+
         if (verse !== undefined) {
             const verseCount = book.chapters[chapter - 1];
             return verse >= 1 && verse <= verseCount;
         }
-        
+
         return true;
     }
 }
@@ -186,7 +194,7 @@ export class ChapterProgress {
         this.memorizedVerses = memorizedVerses;
         this.inProgress = inProgress;
         this.completed = completed;
-        
+
         // Initialize versesMemorized array if not provided
         if (versesMemorized && versesMemorized.length === totalVerses) {
             this.versesMemorized = versesMemorized;
@@ -199,7 +207,7 @@ export class ChapterProgress {
             }
         }
     }
-    
+
     public getCompletionPercentage(): number {
         if (!this.versesMemorized || this.versesMemorized.length === 0) {
             return 0;
@@ -207,64 +215,28 @@ export class ChapterProgress {
         const memorizedCount = this.versesMemorized.filter(v => v).length;
         return Math.round((memorizedCount / this.versesMemorized.length) * 100);
     }
-    
+
     public getMemorizedVerseCount(): number {
         if (!this.versesMemorized) {
             return this.memorizedVerses;
         }
         return this.versesMemorized.filter(v => v).length;
     }
-    
+
     public getUnmemorizedVerseCount(): number {
         if (!this.versesMemorized) {
             return 0;
         }
         return this.versesMemorized.filter(v => !v).length;
     }
-    
-    public getFirstUnmemorizedVerse(): number | null {
-        if (!this.versesMemorized) {
-            return null;
-        }
-        
-        const index = this.versesMemorized.findIndex(v => !v);
-        return index === -1 ? null : index + 1;
-    }
-    
-    public getLastMemorizedVerse(): number | null {
-        if (!this.versesMemorized) {
-            return null;
-        }
-        
-        for (let i = this.versesMemorized.length - 1; i >= 0; i--) {
-            if (this.versesMemorized[i]) {
-                return i + 1;
-            }
-        }
-        return null;
-    }
-    
-    public getNextUnmemorizedVerse(afterVerse?: number): number | null {
-        if (!this.versesMemorized) {
-            return null;
-        }
-        
-        const startIndex = afterVerse ? afterVerse : 0;
-        for (let i = startIndex; i < this.versesMemorized.length; i++) {
-            if (!this.versesMemorized[i]) {
-                return i + 1;
-            }
-        }
-        return null;
-    }
-    
+
     public isVerseMemorized(verseNumber: number): boolean {
         if (!this.versesMemorized || verseNumber < 1 || verseNumber > this.versesMemorized.length) {
             return false;
         }
         return this.versesMemorized[verseNumber - 1];
     }
-    
+
     public getRemainingVerses(): number[] {
         if (!this.versesMemorized) {
             return [];
@@ -273,7 +245,7 @@ export class ChapterProgress {
             .map((isMemorized, index) => isMemorized ? -1 : index + 1)
             .filter(index => index !== -1);
     }
-    
+
     public getMemorizedVerses(): number[] {
         if (!this.versesMemorized) {
             return [];
@@ -282,13 +254,13 @@ export class ChapterProgress {
             .map((isMemorized, index) => isMemorized ? index + 1 : -1)
             .filter(index => index !== -1);
     }
-    
+
     // Create from existing data (for migration)
     public static fromExistingData(data: any, totalVerses: number): ChapterProgress {
         if (!data) {
             return new ChapterProgress(1, totalVerses);
         }
-        
+
         return new ChapterProgress(
             data.chapter || 1,
             totalVerses,
@@ -311,12 +283,12 @@ export class GroupStats {
         public percentComplete: number = 0,
         public completedChapters: number = 0,
         public totalChapters: number = 0
-    ) {}
-    
+    ) { }
+
     public getFormattedProgress(): string {
         return `${this.percentComplete}% (${this.completedChapters}/${this.totalChapters} chapters)`;
     }
-    
+
     public isComplete(): boolean {
         return this.percentComplete === 100;
     }
@@ -330,20 +302,20 @@ export class BookStats {
         public totalVerses: number = 0,
         public completedChapters: number = 0,
         public inProgressChapters: number = 0
-    ) {}
-    
+    ) { }
+
     public getFormattedProgress(): string {
         return `${this.percentComplete}% (${this.memorizedVerses}/${this.totalVerses} verses)`;
     }
-    
+
     public getChapterSummary(): string {
         return `${this.completedChapters} completed, ${this.inProgressChapters} in progress`;
     }
-    
+
     public getRemainingVerses(): number {
         return this.totalVerses - this.memorizedVerses;
     }
-    
+
     public isComplete(): boolean {
         return this.percentComplete === 100;
     }
@@ -357,28 +329,28 @@ export class TestamentStats {
         public totalVerses: number = 0,
         public completedChapters: number = 0,
         public totalChapters: number = 0
-    ) {}
-    
+    ) { }
+
     public getFormattedProgress(): string {
         return `${this.percentComplete}%`;
     }
-    
+
     public getVerseSummary(): string {
         return `${this.memorizedVerses} of ${this.totalVerses} verses`;
     }
-    
+
     public getChapterSummary(): string {
         return `${this.completedChapters} of ${this.totalChapters} chapters`;
     }
-    
+
     public isComplete(): boolean {
         return this.percentComplete === 100;
     }
-    
+
     public hasProgress(): boolean {
         return this.memorizedVerses > 0;
     }
-    
+
     public getRemainingVerses(): number {
         return this.totalVerses - this.memorizedVerses;
     }
@@ -391,7 +363,7 @@ export const BIBLE_DATA = new BibleData(bibleData);
 
 // This replaces the old enhanceChapterProgress function
 export function createChapterProgress(
-    progressData: any, 
+    progressData: any,
     totalVerses: number
 ): ChapterProgress {
     return ChapterProgress.fromExistingData(progressData, totalVerses);

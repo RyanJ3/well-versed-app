@@ -212,15 +212,8 @@ export class BibleTrackerService {
         return BIBLE_DATA.getTestaments();
     }
 
-    public getBooksInGroup(group: string): { [key: string]: BibleBook } {
-        const books = BIBLE_DATA.getBooksByGroup(group);
-        const result: { [key: string]: BibleBook } = {};
-        
-        books.forEach(book => {
-            result[book.name] = book;
-        });
-        
-        return result;
+    public getBooksInGroup(group: string): BibleBook[] {
+        return BIBLE_DATA.getBooksByGroup(group);
     }
 
     public getGroupsInTestament(testament: string): string[] {
@@ -232,14 +225,14 @@ export class BibleTrackerService {
         let groupTotalVerses = 0;
         let groupCompletedChapters = 0;
         let groupTotalChapters = 0;
-        
+
         const currentProgress = this.progressSubject.value;
         const booksInGroup = BIBLE_DATA.getBooksByGroup(group);
-        
+
         booksInGroup.forEach(book => {
             groupTotalVerses += book.getTotalVerses();
             groupTotalChapters += book.getTotalChapters();
-            
+
             if (currentProgress[book.name]) {
                 currentProgress[book.name].forEach(chapter => {
                     if (chapter) {
@@ -248,7 +241,7 @@ export class BibleTrackerService {
                         } else {
                             groupMemorizedVerses += chapter.memorizedVerses || 0;
                         }
-                        
+
                         if (chapter.completed) {
                             groupCompletedChapters++;
                         }
@@ -294,7 +287,7 @@ export class BibleTrackerService {
             const bookProgress: ChapterProgress[] | undefined = progress[bookName];
 
             if (bookProgress) {
-                bookProgress.forEach((chapterProgress: ChapterProgress | null) => {
+                bookProgress.forEach((chapterProgress: ChapterProgress) => {
                     if (chapterProgress) {
                         // Count memorized verses using the versesMemorized array
                         if (chapterProgress.versesMemorized && Array.isArray(chapterProgress.versesMemorized)) {
@@ -558,7 +551,7 @@ export class BibleTrackerService {
         Object.entries(updatedProgress).forEach(([bookName, chapters]) => {
             const book = BIBLE_DATA.getBookByName(bookName);
             if (chapters && book) {
-                updatedProgress[bookName] = chapters.map((chapter: ChapterProgress | null, chapterIndex: number) => {
+                updatedProgress[bookName] = chapters.map((chapter: ChapterProgress, chapterIndex: number) => {
                     if (!chapter) {
                         return new ChapterProgress(
                             chapterIndex + 1,
@@ -598,16 +591,15 @@ export class BibleTrackerService {
             }
         );
     }
-    
+
     /**
      * Retrieves a chapter's progress
      */
-    public getChapterProgress(bookName: string, chapterIndex: number): ChapterProgress | null {
+    public getChapterProgress(bookName: string, chapterIndex: number): ChapterProgress {
         const currentProgress = this.progressSubject.value;
         if (!currentProgress[bookName] || !currentProgress[bookName][chapterIndex]) {
-            return null;
+            return new ChapterProgress(chapterIndex + 1, 0, 0, false, false);
         }
-        
         return currentProgress[bookName][chapterIndex];
     }
 }
