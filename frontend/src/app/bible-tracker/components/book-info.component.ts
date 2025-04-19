@@ -1,6 +1,6 @@
 // components/book-info.component.ts
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {BibleBook} from '../models';
+import {BIBLE_DATA, BibleBook} from '../models';
 import {ConfirmationModalComponent} from '../../shared/components/notification/confirmation-modal';
 
 @Component({
@@ -10,9 +10,9 @@ import {ConfirmationModalComponent} from '../../shared/components/notification/c
   template: `
     <div class="mb-6 bg-blue-50 p-4 rounded-lg">
       <div class="flex justify-between items-center mb-2">
-        <h2 class="text-xl font-bold">{{ currentBook?.bookName }}</h2>
+        <h2 class="text-xl font-bold">{{ currentBook.name }}</h2>
         <div class="text-sm text-gray-600">
-          {{ currentBook?.testament }} • {{ currentBook?.group }}
+          {{ currentBook.testament }} • {{ currentBook.group }}
         </div>
       </div>
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -23,11 +23,11 @@ import {ConfirmationModalComponent} from '../../shared/components/notification/c
         </div>
         <div class="bg-white p-3 rounded shadow">
           <p class="text-sm text-gray-500">Chapters</p>
-          <p class="text-xl font-bold">{{ currentBook?.totalChapters }}</p>
+          <p class="text-xl font-bold">{{ currentBook.totalChapters }}</p>
         </div>
         <div class="bg-white p-3 rounded shadow">
           <p class="text-sm text-gray-500">Chapters Completed</p>
-          <p class="text-xl font-bold">{{ completedChapters }} / {{ currentBook?.totalChapters }}</p>
+          <p class="text-xl font-bold">{{ completedChapters }} / {{ currentBook.totalChapters }}</p>
         </div>
         <div class="bg-white p-3 rounded shadow">
           <p class="text-sm text-gray-500">Chapters In Progress</p>
@@ -59,7 +59,7 @@ import {ConfirmationModalComponent} from '../../shared/components/notification/c
     <app-confirmation-modal
       [isVisible]="isConfirmModalVisible"
       [title]="'Reset Book'"
-      [message]="'Are you sure you want to reset all progress for ' + (currentBook?.bookName || '') + '? This action cannot be undone.'"
+      [message]="'Are you sure you want to reset all progress for ' + (currentBook.name || '') + '? This action cannot be undone.'"
       [confirmText]="'Reset'"
       (confirm)="confirmReset()"
       (cancel)="cancelReset()"
@@ -67,7 +67,7 @@ import {ConfirmationModalComponent} from '../../shared/components/notification/c
   `
 })
 export class BookInfoComponent {
-  @Input() currentBook: BibleBook | null = null;
+  @Input() currentBook: BibleBook = BIBLE_DATA.getBookByName("Psalms");
   @Input() memorizedVerses: number = 0;
   @Input() totalVerses: number = 0;
   @Input() completedChapters: number = 0;

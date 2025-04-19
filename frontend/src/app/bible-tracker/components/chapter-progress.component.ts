@@ -1,6 +1,6 @@
 // components/chapter-progress.component.ts
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {BibleBook, ChapterProgress} from '../models';
+import {BIBLE_DATA, BibleBook, BibleData, ChapterProgress} from '../models';
 import {CommonModule} from '@angular/common';
 import {VerseSelectorComponent} from './verse-selector.component';
 import {ConfirmationModalComponent} from '../../shared/components/notification/confirmation-modal';
@@ -18,7 +18,7 @@ import {ConfirmationModalComponent} from '../../shared/components/notification/c
          class="bg-white border rounded p-4 shadow-sm">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-xl font-bold">
-          {{ currentBook.bookName }} {{ selectedChapter }}
+          {{ currentBook.name }} {{ selectedChapter }}
           <span *ngIf="chapterProgress?.completed" class="ml-2 text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
             Completed
           </span>
@@ -49,7 +49,7 @@ import {ConfirmationModalComponent} from '../../shared/components/notification/c
       <!-- Verse Selector Component -->
       <app-verse-selector
         [totalVerses]="totalVerses"
-        [versesMemorized]="chapterProgress?.versesMemorized || []"
+        [versesMemorized]="chapterProgress.versesMemorized || []"
         (versesChange)="onVersesChange($event)"
       ></app-verse-selector>
     </div>
@@ -67,10 +67,10 @@ import {ConfirmationModalComponent} from '../../shared/components/notification/c
   styles: []
 })
 export class ChapterProgressComponent {
-  @Input() currentBook: BibleBook | null = null;
+  @Input() currentBook: BibleBook = BIBLE_DATA.getBookByName("Psalms");
   @Input() selectedChapter: number = 1;
   @Input() selectedChapterIndex: number = 0;
-  @Input() chapterProgress: ChapterProgress | null = null;
+  @Input() chapterProgress: ChapterProgress = this.currentBook.getChapterProgress(this.selectedChapter);
 
   @Output() incrementVersesEvent = new EventEmitter<void>();
   @Output() decrementVersesEvent = new EventEmitter<void>();

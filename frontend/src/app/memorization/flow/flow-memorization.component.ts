@@ -2,7 +2,7 @@
 import {Component, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
-import {BIBLE_DATA} from '../../bible-tracker/models';
+import {BIBLE_DATA, BibleData} from '../../bible-tracker/models';
 //TODO import excel from Kendo
 
 @Component({
@@ -85,7 +85,7 @@ export class FlowMemorizationComponent implements OnInit {
 
   // Handle Book change
   onBookChange(): void {
-    const bookData = BIBLE_DATA[this.selectedBook];
+    const bookData =BIBLE_DATA.getBookByName(this.selectedBook);
     if (bookData) {
       // Generate available chapters
       this.availableChapters = Array.from(
