@@ -1,5 +1,5 @@
 // models.ts - Contains all the data models for the application
-import bibleData from '../../../../bible_data/bible_base_data.json';
+import bibleData from './bible_base_data.json';
 
 // Convert BibleBook from interface to class
 export class BibleBook {

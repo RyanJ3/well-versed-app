@@ -1,42 +1,46 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:14
-    restart: always
-    environment:
-      POSTGRES_USER: wellversed
-      POSTGRES_PASSWORD: devpassword
-      POSTGRES_DB: wellversed_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - ./database:/docker-entrypoint-initdb.d
-      - postgres_data:/var/lib/postgresql/data
-
-  api:
-    build: 
-      context: ./backend
-    restart: always
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db
-    environment:
-      - DATABASE_URL=postgresql://wellversed:devpassword@db:5432/wellversed_db
-    volumes:
-      - ./backend:/app
-
+  
   frontend:
     build:
       context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "4200:4200"
-    depends_on:
-      - api
     volumes:
       - ./frontend:/app
       - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - /mnt/c/configs/.env
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - ENVIRONMENT=development
+    env_file:
+      - /mnt/c/configs/.env
+    depends_on:
+      - database
+
+  database:
+    image: postgres:14  # Using official postgres image instead of custom build
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - /mnt/c/configs/.env
+    ports:
+      - "5432:5432"
 
 volumes:
   postgres_data:

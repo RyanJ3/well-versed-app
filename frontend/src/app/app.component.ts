@@ -1,23 +1,31 @@
-// src/app/app.component.ts
-import { Component, inject, OnInit } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { User } from './models/user';
+import { UserService } from './services/user.service';
 
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, RouterLink, CommonModule, RouterLinkActive],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
+  standalone: true
 })
 export class AppComponent implements OnInit {
   title = 'Well Versed';
   menuActive = false;
   userMenuActive = false;
   memorizeMenuActive = false;
+  currentUser: User | null = null;
 
-  constructor() {}
+  constructor(private userService: UserService) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // Subscribe to user changes
+    this.userService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+    });
+  }
 
   toggleMenu(): void {
     this.menuActive = !this.menuActive;
@@ -49,5 +57,10 @@ export class AppComponent implements OnInit {
 
   closeMemorizeMenu(): void {
     this.memorizeMenuActive = false;
+  }
+
+  logout(): void {
+    this.userService.logout();
+    this.closeUserMenu();
   }
 }

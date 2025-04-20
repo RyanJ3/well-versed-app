@@ -5,6 +5,8 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "yeet": "ng serve --open --watch --poll=2000",
+    "serve": "ng serve --host 0.0.0.0 --disable-host-check --watch --poll=2000",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:frontend": "node dist/frontend/server/server.mjs",

@@ -1,7 +1,7 @@
 // bible-tracker.service.ts - Service for managing Bible memorization data with backend simulation
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { delay, catchError } from 'rxjs/operators';
 import {
   BIBLE_DATA,
   BibleBook,
@@ -11,6 +11,7 @@ import {
   ChapterProgress,
   TestamentStats,
 } from './models';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
@@ -22,9 +23,16 @@ export class BibleTrackerService {
   // Simulated backend latency (in ms)
   private apiLatency = 300;
 
-  constructor() {
-    this.loadProgress();
-  }
+   // Add these property declarations
+   private apiUrl = 'http://localhost:8000/api';
+
+   // Update constructor to include HttpClient
+   constructor(
+     private http: HttpClient
+   ) {
+     this.loadProgress();
+   }
+ 
 
   // Update method to use boolean array tracking
   public updateMemorizedVerses(
@@ -655,4 +663,68 @@ export class BibleTrackerService {
     }
     return currentProgress[bookName][chapterIndex];
   }
+
+  /**
+   * Gets user's verses from the database through the Python backend
+   */
+  getUserVerses(userId: number = 1): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/users/${userId}/verses`).pipe(
+      catchError(error => {
+        console.error('Error fetching verses:', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Adds a verse to the user's collection
+   */
+  addVerse(verseId: string, userId: number = 1): Observable<any> {
+    return this.http.post(`${this.apiUrl}/users/${userId}/verses`, { verse_id: verseId }).pipe(
+      catchError(error => {
+        console.error('Error adding verse:', error);
+        return throwError(() => new Error('Failed to add verse. Please try again.'));
+      })
+    );
+  }
+
+  /**
+   * Removes a verse from the user's collection
+   */
+  removeVerse(verseId: string, userId: number = 1): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/users/${userId}/verses/${verseId}`).pipe(
+      catchError(error => {
+        console.error('Error removing verse:', error);
+        return throwError(() => new Error('Failed to remove verse. Please try again.'));
+      })
+    );
+  }
+
+  /**
+   * Updates a verse's progress level (1-1000)
+   */
+  updateVerseProgress(verseId: string, progressLevel: number, userId: number = 1): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/users/${userId}/verses/${verseId}/progress`, 
+      { progress_level: progressLevel }
+    ).pipe(
+      catchError(error => {
+        console.error('Error updating verse progress:', error);
+        return throwError(() => new Error('Failed to update progress. Please try again.'));
+      })
+    );
+  }
+
+  /**
+   * Gets verse content from external API
+   */
+  getVerseContent(verseId: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/verses/${verseId}`).pipe(
+      catchError(error => {
+        console.error('Error fetching verse content:', error);
+        return throwError(() => new Error('Failed to load verse content. Please try again.'));
+      })
+    );
+  }
+  
 }

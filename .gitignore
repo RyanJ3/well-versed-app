@@ -36,3 +36,4 @@ temp/
 
 # Angular cache
 .angular/
+backend/create_fastapi_backend.py
