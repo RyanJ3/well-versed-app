@@ -1,3 +1,23 @@
+-- This script creates a minimal database for the WellVersed app.
+
+-- get the roles for this database
+SELECT rolname FROM pg_roles
+WHERE rolname NOT IN ('postgres', 'admin')
+  AND rolcanlogin;
+
+-- Create the role
+CREATE ROLE data_editor_limited;
+
+-- Grant only SELECT, INSERT, UPDATE on tables
+GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO data_editor_limited;
+
+-- Ensure the same permissions are applied to future tables
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+GRANT SELECT, INSERT, UPDATE ON TABLES TO data_editor_limited;
+
+-- replace "testuser" and "testpass" with actual values
+CREATE USER testuser WITH PASSWORD 'testpass';
+
 -- Table: public.users
 CREATE TABLE public.users (
     user_id serial4 NOT NULL,
