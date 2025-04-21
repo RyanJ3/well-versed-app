@@ -81,6 +81,13 @@ export class BibleBook {
 
 // Convert BibleData from interface to class
 export class BibleData {
+  getGroupBooks(groupName: string) {
+    return this.books.filter((book) => book.bookGroup === groupName);
+  }
+  getTestamentBooks(testament: string) {
+    return this.books.filter((book) => book.testament === testament);
+  }
+
   public books: BibleBook[];
   public bookIndex: { [key: string]: number };
   public synonyms: { [key: string]: number };
@@ -272,6 +279,10 @@ export class ChapterProgress {
       .filter((index) => index !== -1);
   }
 
+ get totalVerses(): number {
+    return this.versesMemorized.length;
+  }
+
   // Create from existing data (for migration)
   public static fromExistingData(
     data: any,
@@ -297,82 +308,104 @@ export interface BookProgress {
   [bookName: string]: ChapterProgress[];
 }
 
-// Convert GroupStats to class
 export class GroupStats {
+  // Add this as an explicit property rather than just a getter
   constructor(
-    public percentComplete: number = 0,
-    public completedChapters: number = 0,
-    public totalChapters: number = 0,
-  ) {}
-
-  public getFormattedProgress(): string {
-    return `${this.percentComplete}% (${this.completedChapters}/${this.totalChapters} chapters)`;
+    public readonly groupName: string,
+    public readonly books: BibleBook[],
+    public readonly totalChapters: number,
+    public readonly memorizedChapters: number,
+    public readonly inProgressChapters: number,
+    public readonly totalVerses: number,
+    public readonly memorizedVerses: number
+  ) {
+  }
+  
+  get completedChapters(): number {
+    return this.memorizedChapters;
   }
 
-  public isComplete(): boolean {
-    return this.percentComplete === 100;
+  // Keep other getters but remove the completedChapters getter
+  get totalBooks(): number {
+    return this.books.length;
+  }
+  
+  get completedBooks(): number {
+    // Similar to TestamentStats
+    return 0; // Implement based on your data structure
+  }
+  
+  get inProgressBooks(): number {
+    // Similar to TestamentStats
+    return 0; // Implement based on your data structure
+  }
+  
+  get percentComplete(): number {
+    return this.totalVerses > 0 ? (this.memorizedVerses / this.totalVerses) * 100 : 0;
   }
 }
 
-// Convert BookStats to class
 export class BookStats {
   constructor(
-    public percentComplete: number = 0,
-    public memorizedVerses: number = 0,
-    public totalVerses: number = 0,
-    public completedChapters: number = 0,
-    public inProgressChapters: number = 0,
+    public readonly totalChapters: number,
+    public readonly memorizedChapters: number,
+    public readonly inProgressChapters: number,
+    public readonly totalVerses: number,
+    public readonly memorizedVerses: number
   ) {}
-
-  public getFormattedProgress(): string {
-    return `${this.percentComplete}% (${this.memorizedVerses}/${this.totalVerses} verses)`;
+  
+  // Add alias getter for component compatibility
+  get completedChapters(): number {
+    return this.memorizedChapters;
   }
 
-  public getChapterSummary(): string {
-    return `${this.completedChapters} completed, ${this.inProgressChapters} in progress`;
+  // Derived properties as getters
+  get percentComplete(): number {
+    return this.totalVerses > 0 ? (this.memorizedVerses / this.totalVerses) * 100 : 0;
   }
-
-  public getRemainingVerses(): number {
-    return this.totalVerses - this.memorizedVerses;
+  
+  get isComplete(): boolean {
+    return this.totalChapters > 0 && this.memorizedChapters === this.totalChapters;
   }
-
-  public isComplete(): boolean {
-    return this.percentComplete === 100;
+  
+  get isInProgress(): boolean {
+    return this.memorizedVerses > 0 && !this.isComplete;
   }
 }
 
 // Add TestamentStats class
 export class TestamentStats {
   constructor(
-    public percentComplete: number = 0,
-    public memorizedVerses: number = 0,
-    public totalVerses: number = 0,
-    public completedChapters: number = 0,
-    public totalChapters: number = 0,
+    public readonly testament: string,
+    private readonly books: BookStats[],
+    public readonly totalVerses: number = 0,
+    public readonly memorizedVerses: number = 0,
+    public readonly memorizedChapters: number = 0,
+    public readonly totalChapters: number = 0,
+    public readonly inProgressChapters: number = 0
   ) {}
 
-  public getFormattedProgress(): string {
-    return `${this.percentComplete}%`;
+  // Derived properties as getters
+  get totalBooks(): number {
+    return this.books.length;
   }
 
-  public getVerseSummary(): string {
-    return `${this.memorizedVerses} of ${this.totalVerses} verses`;
+  // Add alias getter for component compatibility
+  get completedChapters(): number {
+    return this.memorizedChapters;
   }
 
-  public getChapterSummary(): string {
-    return `${this.completedChapters} of ${this.totalChapters} chapters`;
+  get completedBooks(): number {
+    return this.books.filter(book => book.isComplete).length;
   }
 
-  public isComplete(): boolean {
-    return this.percentComplete === 100;
+  get inProgressBooks(): number {
+    // Books that have at least one verse memorized but aren't complete
+    return this.books.filter(book => book.isInProgress).length;
   }
 
-  public hasProgress(): boolean {
-    return this.memorizedVerses > 0;
-  }
-
-  public getRemainingVerses(): number {
-    return this.totalVerses - this.memorizedVerses;
+  get percentComplete(): number {
+    return this.totalVerses > 0 ? (this.memorizedVerses / this.totalVerses) * 100 : 0;
   }
 }
 
@@ -388,3 +421,4 @@ export function createChapterProgress(
 ): ChapterProgress {
   return ChapterProgress.fromExistingData(progressData, totalVerses);
 }
+

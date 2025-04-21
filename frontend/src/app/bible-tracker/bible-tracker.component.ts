@@ -102,27 +102,6 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     return stats.percentComplete;
   }
 
-  incrementVerses(): void {
-    this.bibleTrackerService.incrementVerses(
-      this.selectedBook,
-      this.selectedChapterIndex,
-    );
-  }
-
-  decrementVerses(): void {
-    this.bibleTrackerService.decrementVerses(
-      this.selectedBook,
-      this.selectedChapterIndex,
-    );
-  }
-
-  updateChapterProgress(newValue: number): void {
-    this.bibleTrackerService.updateChapterProgress(
-      this.selectedBook,
-      this.selectedChapterIndex,
-      newValue,
-    );
-  }
 
   resetChapter(): void {
     this.bibleTrackerService.resetChapter(
@@ -178,7 +157,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   // Update selection methods
   ngOnInit(): void {
     // Get testaments and sort them to put Old Testament first
-    this.testaments = this.bibleTrackerService.getTestaments().sort((a, b) => {
+    this.testaments = this.bibleTrackerService.getTestaments().sort((a: string, b: string) => {
       // Make sure Old Testament comes before New Testament
       if (a.includes('Old') && b.includes('New')) return -1;
       if (a.includes('New') && b.includes('Old')) return 1;

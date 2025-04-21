@@ -1,15 +1,29 @@
+# filename: app/main.py
+# FastAPI application entry point
+
 from fastapi import FastAPI
-from app.config import settings
-from app.api import api_router  # Import the api_router
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.database import engine, Base
+from app.api import router
+
+# Create database tables (comment this out if using migrations)
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Bible Tracker API")
 
-app.include_router(api_router)
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For production, specify frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include API router
+app.include_router(router, prefix="/api")
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to the Bible Tracker API"}
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host=settings.DB_HOST, port=8000)
+    return {"message": "Bible Tracker API is running"}

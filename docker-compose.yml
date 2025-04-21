@@ -1,3 +1,6 @@
+# filename: docker-compose.yml
+# Multi-container Docker setup
+
 version: '3.8'
 
 services:
@@ -28,19 +31,34 @@ services:
       - ./backend:/app
     environment:
       - ENVIRONMENT=development
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
     env_file:
       - /mnt/c/configs/.env
     depends_on:
-      - database
+      database:
+        condition: service_healthy
 
   database:
-    image: postgres:14  # Using official postgres image instead of custom build
+    image: postgres:14
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     env_file:
       - /mnt/c/configs/.env
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

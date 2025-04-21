@@ -36,7 +36,7 @@ export class BookSelectorComponent {
 
   getCompletedChapters(bookName: string): number {
     return this.bibleTrackerService.calculateBookStats(bookName)
-      .completedChapters;
+    .memorizedChapters;
   }
 
   isBookCompleted(bookName: string): boolean {

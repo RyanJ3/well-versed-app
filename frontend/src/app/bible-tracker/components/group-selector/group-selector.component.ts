@@ -1,7 +1,7 @@
 // components/group-selector.component.ts - Enhanced version
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BIBLE_DATA } from '../../models';
+import { BIBLE_DATA, GroupStats } from '../../models';
 import { BibleTrackerService } from '../../bible-tracker-service';
 import { ConfirmationModalComponent } from '../../../shared/components/notification/confirmation-modal';
 
@@ -41,11 +41,7 @@ export class GroupSelectorComponent {
     this.isConfirmModalVisible = false;
   }
 
-  getGroupStats(group: string): {
-    percentComplete: number;
-    completedChapters: number;
-    totalChapters: number;
-  } {
+  getGroupStats(group: string): GroupStats {
     return this.bibleTrackerService.calculateGroupStats(group);
   }
 

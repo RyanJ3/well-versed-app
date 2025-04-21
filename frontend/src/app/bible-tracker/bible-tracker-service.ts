@@ -1,7 +1,7 @@
-// bible-tracker.service.ts - Service for managing Bible memorization data with backend simulation
+// bible-tracker.service.ts - Service for managing Bible memorization data with backend integration
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
-import { delay, catchError } from 'rxjs/operators';
+import { delay, catchError, map, tap } from 'rxjs/operators';
 import {
   BIBLE_DATA,
   BibleBook,
@@ -17,22 +17,24 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root',
 })
 export class BibleTrackerService {
+// Add this method to the BibleTrackerService class
+public getTestaments(): string[] {
+  return BIBLE_DATA.getTestaments();
+}
+  getBooksInGroup(selectedGroup: string): BibleBook[] {
+    return BIBLE_DATA.getBooksByGroup(selectedGroup);
+  }
+
   private progressSubject = new BehaviorSubject<BookProgress>({});
   public progress$ = this.progressSubject.asObservable();
 
-  // Simulated backend latency (in ms)
-  private apiLatency = 300;
+  // API configuration
+  private apiUrl = 'http://localhost:8000/api';
+  private userId = 1; // Default user ID - replace with auth user ID in production
 
-   // Add these property declarations
-   private apiUrl = 'http://localhost:8000/api';
-
-   // Update constructor to include HttpClient
-   constructor(
-     private http: HttpClient
-   ) {
-     this.loadProgress();
-   }
- 
+  constructor(private http: HttpClient) {
+    this.loadProgress();
+  }
 
   // Update method to use boolean array tracking
   public updateMemorizedVerses(
@@ -74,601 +76,283 @@ export class BibleTrackerService {
     this.saveProgressToAPI(currentProgress).subscribe();
   }
 
-  public incrementVerses(bookName: string, chapterIndex: number): void {
-    const book = BIBLE_DATA.getBookByName(bookName);
-    if (!book) return;
-
-    const maxVerses = book.getVerseCount(chapterIndex);
-    const currentProgress = { ...this.progressSubject.value };
-
-    // Ensure the book entry exists
-    if (!currentProgress[bookName]) {
-      currentProgress[bookName] =
-        this.initializeEmptyProgress()[bookName] || [];
-    }
-
-    // Ensure chapter entry exists
-    if (!currentProgress[bookName][chapterIndex]) {
-      currentProgress[bookName][chapterIndex] = new ChapterProgress(
-        chapterIndex + 1,
-        maxVerses,
-        0,
-        false,
-        false,
-      );
-    }
-
-    const chapter = currentProgress[bookName][chapterIndex];
-    const versesMemorized = [
-      ...(chapter.versesMemorized || Array(maxVerses).fill(false)),
-    ];
-
-    // Find the first unmemorized verse and mark it as memorized
-    let incremented = false;
-    for (let i = 0; i < versesMemorized.length; i++) {
-      if (!versesMemorized[i]) {
-        versesMemorized[i] = true;
-        incremented = true;
-        break;
-      }
-    }
-
-    if (incremented) {
-      const memorizedCount = versesMemorized.filter((v) => v).length;
-
-      currentProgress[bookName][chapterIndex] = new ChapterProgress(
-        chapterIndex + 1,
-        maxVerses,
-        memorizedCount,
-        memorizedCount > 0,
-        memorizedCount === maxVerses,
-        versesMemorized,
-      );
-
-      this.progressSubject.next(currentProgress);
-      this.saveProgressToAPI(currentProgress).subscribe();
-    }
-  }
-
-  public decrementVerses(bookName: string, chapterIndex: number): void {
-    const book = BIBLE_DATA.getBookByName(bookName);
-    if (!book) return;
-
-    const maxVerses = book.getVerseCount(chapterIndex);
-    const currentProgress = { ...this.progressSubject.value };
-
-    // Handle case where book or chapter doesn't exist yet
-    if (
-      !currentProgress[bookName] ||
-      !currentProgress[bookName][chapterIndex]
-    ) {
-      return;
-    }
-
-    const chapter = currentProgress[bookName][chapterIndex];
-    const versesMemorized = [...(chapter.versesMemorized || [])];
-
-    // Find the last memorized verse and mark it as not memorized
-    let decremented = false;
-    for (let i = versesMemorized.length - 1; i >= 0; i--) {
-      if (versesMemorized[i]) {
-        versesMemorized[i] = false;
-        decremented = true;
-        break;
-      }
-    }
-
-    if (decremented) {
-      const memorizedCount = versesMemorized.filter((v) => v).length;
-
-      currentProgress[bookName][chapterIndex] = new ChapterProgress(
-        chapterIndex + 1,
-        maxVerses,
-        memorizedCount,
-        memorizedCount > 0,
-        false,
-        versesMemorized,
-      );
-
-      this.progressSubject.next(currentProgress);
-      this.saveProgressToAPI(currentProgress).subscribe();
-    }
-  }
-
-  public resetChapter(bookName: string, chapterIndex: number): void {
-    const book = BIBLE_DATA.getBookByName(bookName);
-    if (!book) return;
-
-    const maxVerses = book.getVerseCount(chapterIndex);
-    const currentProgress = { ...this.progressSubject.value };
-
-    // Ensure the book entry exists
-    if (!currentProgress[bookName]) {
-      currentProgress[bookName] =
-        this.initializeEmptyProgress()[bookName] || [];
-    }
-
-    currentProgress[bookName][chapterIndex] = new ChapterProgress(
-      chapterIndex + 1,
-      maxVerses,
-      0,
-      false,
-      false,
-    );
-
-    this.progressSubject.next(currentProgress);
-    this.saveProgressToAPI(currentProgress).subscribe();
-  }
-
-  public calculateBookStats(bookName: string): BookStats {
-    const book = BIBLE_DATA.getBookByName(bookName);
-    const currentProgress = this.progressSubject.value;
-    const bookProgress = currentProgress[bookName];
-
-    if (!book || !bookProgress) {
-      return new BookStats();
-    }
-
-    let memorizedVerses = 0;
-    bookProgress.forEach((chapter) => {
-      if (chapter && chapter.versesMemorized) {
-        memorizedVerses += chapter.versesMemorized.filter((v) => v).length;
-      }
+  // Load progress data from API or fallback to localStorage
+  private loadProgress(): void {
+    this.fetchProgressFromAPI().subscribe(progress => {
+      this.progressSubject.next(progress);
     });
-
-    const completedChapters = bookProgress.filter((ch) => ch?.completed).length;
-    const inProgressChapters = bookProgress.filter(
-      (ch) => ch?.inProgress && !ch?.completed,
-    ).length;
-
-    return new BookStats(
-      book.getTotalVerses()
-        ? Math.round((memorizedVerses / book.getTotalVerses()) * 100)
-        : 0,
-      memorizedVerses,
-      book.getTotalVerses(),
-      completedChapters,
-      inProgressChapters,
-    );
   }
 
-  public getTestaments(): string[] {
-    return BIBLE_DATA.getTestaments();
-  }
+  // Initialize empty progress structure
+  public initializeEmptyProgress(): BookProgress {
+    const progress: BookProgress = {};
 
-  public getBooksInGroup(group: string): BibleBook[] {
-    return BIBLE_DATA.getBooksByGroup(group);
-  }
+    BIBLE_DATA.books.forEach((book) => {
+      const chapterCount = book.chapters.length;
+      progress[book.name] = Array(chapterCount);
 
-  public getGroupsInTestament(testament: string): string[] {
-    return BIBLE_DATA.getGroupsInTestament(testament);
-  }
-
-  public calculateGroupStats(group: string): GroupStats {
-    let groupMemorizedVerses = 0;
-    let groupTotalVerses = 0;
-    let groupCompletedChapters = 0;
-    let groupTotalChapters = 0;
-
-    const currentProgress = this.progressSubject.value;
-    const booksInGroup = BIBLE_DATA.getBooksByGroup(group);
-
-    booksInGroup.forEach((book) => {
-      groupTotalVerses += book.getTotalVerses();
-      groupTotalChapters += book.getTotalChapters();
-
-      if (currentProgress[book.name]) {
-        currentProgress[book.name].forEach((chapter) => {
-          if (chapter) {
-            if (chapter.versesMemorized) {
-              groupMemorizedVerses += chapter.versesMemorized.filter(
-                (v) => v,
-              ).length;
-            } else {
-              groupMemorizedVerses += chapter.memorizedVerses || 0;
-            }
-
-            if (chapter.completed) {
-              groupCompletedChapters++;
-            }
-          }
-        });
-      }
-    });
-
-    return new GroupStats(
-      groupTotalVerses
-        ? Math.round((groupMemorizedVerses / groupTotalVerses) * 100)
-        : 0,
-      groupCompletedChapters,
-      groupTotalChapters,
-    );
-  }
-
-  public calculateTestamentStats(testament: string): TestamentStats {
-    // Get all books in the testament using the strongly typed API
-    const booksInTestament: BibleBook[] =
-      BIBLE_DATA.getBooksByTestament(testament);
-
-    // Initialize counters with explicit types
-    let memorizedVerses: number = 0;
-    let totalVerses: number = 0;
-    let completedChapters: number = 0;
-
-    // Calculate total chapters using the book methods
-    const totalChapters: number = booksInTestament.reduce(
-      (sum: number, book: BibleBook) => sum + book.getTotalChapters(),
-      0,
-    );
-
-    // Get current progress from this service (not recursively)
-    const progress: BookProgress = this.progressSubject.value;
-
-    // Calculate total verses in testament using book methods
-    totalVerses = booksInTestament.reduce(
-      (sum: number, book: BibleBook) => sum + book.getTotalVerses(),
-      0,
-    );
-
-    // Calculate memorized verses and completed chapters
-    booksInTestament.forEach((book: BibleBook) => {
-      const bookName: string = book.name;
-      const bookProgress: ChapterProgress[] | undefined = progress[bookName];
-
-      if (bookProgress) {
-        bookProgress.forEach((chapterProgress: ChapterProgress) => {
-          if (chapterProgress) {
-            // Count memorized verses using the versesMemorized array
-            if (
-              chapterProgress.versesMemorized &&
-              Array.isArray(chapterProgress.versesMemorized)
-            ) {
-              memorizedVerses += chapterProgress.versesMemorized.filter(
-                (v: boolean) => v,
-              ).length;
-            } else {
-              // Fallback to legacy property
-              memorizedVerses += chapterProgress.memorizedVerses || 0;
-            }
-
-            // Count completed chapters
-            if (chapterProgress.completed === true) {
-              completedChapters++;
-            }
-          }
-        });
-      }
-    });
-
-    // Calculate percentage with explicit type
-    const percentComplete: number =
-      totalVerses > 0 ? Math.round((memorizedVerses / totalVerses) * 100) : 0;
-
-    return new TestamentStats(
-      percentComplete,
-      memorizedVerses,
-      totalVerses,
-      completedChapters,
-      totalChapters,
-    );
-  }
-
-  public updateChapterProgress(
-    bookName: string,
-    chapterIndex: number,
-    newValue: number,
-  ): void {
-    const book = BIBLE_DATA.getBookByName(bookName);
-    if (!book) return;
-
-    const maxVerses = book.getVerseCount(chapterIndex);
-    const currentProgress = { ...this.progressSubject.value };
-
-    // Ensure the book entry exists
-    if (!currentProgress[bookName]) {
-      currentProgress[bookName] = Array(book.getTotalChapters())
-        .fill(null)
-        .map((_, i) => {
-          return new ChapterProgress(
-            i + 1,
-            book.getVerseCount(i),
-            0,
-            false,
-            false,
-          );
-        });
-    }
-
-    // Create a new boolean array for verse tracking
-    const versesMemorized = Array(maxVerses).fill(false);
-    // Mark the first 'newValue' verses as memorized
-    for (let i = 0; i < newValue && i < maxVerses; i++) {
-      versesMemorized[i] = true;
-    }
-
-    currentProgress[bookName][chapterIndex] = new ChapterProgress(
-      chapterIndex + 1,
-      maxVerses,
-      newValue,
-      newValue > 0,
-      newValue === maxVerses,
-      versesMemorized,
-    );
-
-    this.progressSubject.next(currentProgress);
-    this.saveProgressToAPI(currentProgress).subscribe();
-  }
-
-  public resetBook(bookName: string): void {
-    const book = BIBLE_DATA.getBookByName(bookName);
-    if (!book) return;
-
-    const currentProgress = { ...this.progressSubject.value };
-
-    // Reset all chapters in the book
-    currentProgress[bookName] = Array(book.getTotalChapters())
-      .fill(null)
-      .map((_, i) => {
-        return new ChapterProgress(
+      for (let i = 0; i < chapterCount; i++) {
+        const verseCount = book.getVerseCount(i);
+        progress[book.name][i] = new ChapterProgress(
           i + 1,
-          book.getVerseCount(i),
+          verseCount,
           0,
           false,
           false,
+          Array(verseCount).fill(false)
         );
-      });
-
-    this.progressSubject.next(currentProgress);
-    this.saveProgressToAPI(currentProgress).subscribe();
-  }
-
-  public resetGroup(group: string): void {
-    const currentProgress = { ...this.progressSubject.value };
-    const booksInGroup = BIBLE_DATA.getBooksByGroup(group);
-
-    booksInGroup.forEach((book) => {
-      currentProgress[book.name] = Array(book.getTotalChapters())
-        .fill(null)
-        .map((_, i) => {
-          return new ChapterProgress(
-            i + 1,
-            book.getVerseCount(i),
-            0,
-            false,
-            false,
-          );
-        });
+      }
     });
 
-    this.progressSubject.next(currentProgress);
-    this.saveProgressToAPI(currentProgress).subscribe();
+    return progress;
   }
 
-  public resetTestament(testament: string): void {
-    const currentProgress = { ...this.progressSubject.value };
-    const booksInTestament = BIBLE_DATA.getBooksByTestament(testament);
+  // Calculate stats for a specific book
+  public calculateBookStats(bookName: string): BookStats {
+    const currentProgress = this.progressSubject.value;
+    const bookProgress = currentProgress[bookName];
 
-    booksInTestament.forEach((book) => {
-      currentProgress[book.name] = Array(book.getTotalChapters())
-        .fill(null)
-        .map((_, i) => {
-          return new ChapterProgress(
-            i + 1,
-            book.getVerseCount(i),
-            0,
-            false,
-            false,
-          );
-        });
+    if (!bookProgress) {
+      return new BookStats(0, 0, 0, 0, 0);
+    }
+
+    let memorizedChapters = 0;
+    let inProgressChapters = 0;
+    let totalVerses = 0;
+    let memorizedVerses = 0;
+
+    bookProgress.forEach((chapter) => {
+      if (chapter && chapter.versesMemorized) {
+        // Count total verses from the versesMemorized array length
+        const chapterTotalVerses = chapter.versesMemorized.length;
+        totalVerses += chapterTotalVerses;
+
+        // Count memorized verses by filtering the boolean array
+        const chapterMemorizedVerses = chapter.versesMemorized.filter(v => v).length;
+        memorizedVerses += chapterMemorizedVerses;
+
+        // Determine chapter status based on memorized verses
+        if (chapterMemorizedVerses === chapterTotalVerses && chapterTotalVerses > 0) {
+          memorizedChapters++;
+        } else if (chapterMemorizedVerses > 0) {
+          inProgressChapters++;
+        }
+      }
     });
 
-    this.progressSubject.next(currentProgress);
-    this.saveProgressToAPI(currentProgress).subscribe();
+    const percentComplete = totalVerses > 0 ? (memorizedVerses / totalVerses) * 100 : 0;
+
+    return new BookStats(
+      bookProgress.length,
+      memorizedChapters,
+      inProgressChapters,
+      percentComplete,
+      totalVerses
+    );
   }
+
+  // Calculate stats for a testament or group
+  public getTestamentStats(testament: string): TestamentStats {
+    const books = BIBLE_DATA.getTestamentBooks(testament);
+    let totalVerses = 0;
+    let memorizedVerses = 0;
+    let totalChapters = 0;
+    let memorizedChapters = 0;
+    let inProgressChapters = 0;
+
+    books.forEach((book) => {
+      const stats = this.calculateBookStats(book.name);
+      totalVerses += stats.totalVerses;
+      memorizedVerses += stats.memorizedVerses;
+      totalChapters += stats.totalChapters;
+      memorizedChapters += stats.memorizedChapters;
+      inProgressChapters += stats.inProgressChapters;
+    });
+
+    const percentComplete = totalVerses > 0 ? (memorizedVerses / totalVerses) * 100 : 0;
+
+    return new TestamentStats(
+      testament,
+      books.map(book => this.calculateBookStats(book.name)),
+      memorizedChapters,
+      totalVerses,
+      memorizedVerses
+    );
+  }
+
+  // Calculate stats for a specific group of books
+  public calculateGroupStats(groupName: string): GroupStats {
+    const books = BIBLE_DATA.getGroupBooks(groupName);
+    let totalVerses = 0;
+    let memorizedVerses = 0;
+    let totalChapters = 0;
+    let memorizedChapters = 0;
+    let inProgressChapters = 0;
+
+    // Track book completion status to calculate metrics
+    const bookStats = books.map(book => this.calculateBookStats(book.name));
+
+    // Aggregate statistics across all books
+    bookStats.forEach(stats => {
+      totalVerses += stats.totalVerses;
+      memorizedVerses += stats.memorizedVerses;
+      totalChapters += stats.totalChapters;
+      memorizedChapters += stats.memorizedChapters;
+      inProgressChapters += stats.inProgressChapters;
+    });
+
+    // Create the GroupStats object with base values
+    // Let the derived properties be calculated via getters
+    return new GroupStats(
+      groupName,
+      books,
+      totalChapters,
+      memorizedChapters,
+      inProgressChapters,
+      totalVerses,
+      memorizedVerses
+    );
+  }
+
+  // Get all verses for a specific chapter
+  public getChapterVerses(bookName: string, chapterIndex: number): number[] {
+    const currentProgress = this.progressSubject.value;
+    const book = currentProgress[bookName];
+
+    if (!book || !book[chapterIndex] || !book[chapterIndex].versesMemorized) {
+      return [];
+    }
+
+    const memorizedVerses: number[] = [];
+    book[chapterIndex].versesMemorized.forEach((isMemorized, index) => {
+      if (isMemorized) {
+        memorizedVerses.push(index + 1);
+      }
+    });
+
+    return memorizedVerses;
+  }
+
+  // API INTEGRATION METHODS
 
   /**
    * Fetches user progress from the backend
    */
   private fetchProgressFromAPI(): Observable<BookProgress> {
-    // Create some sample progress data for demonstration
-    const dummyProgress = this.initializeEmptyProgress();
-    const johnBook = BIBLE_DATA.getBookByName('John');
-    const psalmsBook = BIBLE_DATA.getBookByName('Psalms');
-    const romansBook = BIBLE_DATA.getBookByName('Romans');
+    // Get user verses from the API
+    return this.getUserVerses().pipe(
+      map(userVerses => {
+        // Initialize empty progress
+        const progress = this.initializeEmptyProgress();
 
-    // Add some progress to John
-    if (johnBook && dummyProgress['John'] && dummyProgress['John'].length > 0) {
-      // Chapter 1 completed
-      const versesMemorized1 = [true, true, false, true];
-      dummyProgress['John'][0] = new ChapterProgress(
-        1, // chapter
-        versesMemorized1.length, // totalVerses
-        versesMemorized1.filter((v) => v).length, // memorizedVerses
-        false, // inProgress
-        true, // completed
-        versesMemorized1, // versesMemorized
-      );
+        // Populate progress with user's verses from API
+        userVerses.forEach(userVerse => {
+          // Extract book and chapter from verse_id (format: "Book.Chapter.Verse")
+          const parts = userVerse.verse.verse_id.split('.');
+          if (parts.length >= 3) {
+            const bookName = parts[0];
+            const chapterNum = parseInt(parts[1]) - 1; // 0-based index
+            const verseNum = parseInt(parts[2]) - 1;   // 0-based index
 
-      // Chapter 2 in progress
-      const versesMemorized2 = [false, true, false, true];
-      dummyProgress['John'][1] = new ChapterProgress(
-        2,
-        versesMemorized2.length,
-        15, // We're keeping the original count for consistency
-        true,
-        false,
-        versesMemorized2,
-      );
+            // Ensure book exists in our data
+            const book = BIBLE_DATA.getBookByName(bookName);
+            if (book && progress[bookName] && progress[bookName][chapterNum]) {
+              // Mark verse as memorized based on confidence level
+              if (progress[bookName][chapterNum].versesMemorized &&
+                verseNum < progress[bookName][chapterNum].versesMemorized.length) {
+                progress[bookName][chapterNum].versesMemorized[verseNum] = true;
 
-      // Chapter 3 in progress
-      const versesMemorized3 = [false, true, false, true];
-      dummyProgress['John'][2] = new ChapterProgress(
-        3,
-        versesMemorized3.length,
-        20, // Original count preserved
-        true,
-        false,
-        versesMemorized3,
-      );
-    }
+                // Update memorized count
+                const versesMemorized = progress[bookName][chapterNum].versesMemorized;
+                const memorizedCount = versesMemorized.filter(v => v).length;
+                progress[bookName][chapterNum].memorizedVerses = memorizedCount;
+                progress[bookName][chapterNum].inProgress = memorizedCount > 0;
+                progress[bookName][chapterNum].completed =
+                  memorizedCount === progress[bookName][chapterNum].totalVerses;
+              }
+            }
+          }
+        });
 
-    // Add some progress to Psalms
-    if (
-      psalmsBook &&
-      dummyProgress['Psalms'] &&
-      dummyProgress['Psalms'].length > 0
-    ) {
-      // A few completed psalms
-      for (let i = 0; i < 10; i++) {
-        if (dummyProgress['Psalms'][i]) {
-          const verseCount = psalmsBook.getVerseCount(i);
-          const versesMemorized = Array(verseCount > 6 ? verseCount : 6).fill(
-            true,
-          );
-          dummyProgress['Psalms'][i] = new ChapterProgress(
-            i + 1,
-            versesMemorized.length,
-            versesMemorized.length,
-            true,
-            true,
-            versesMemorized,
-          );
-        }
-      }
-    }
-
-    // Add some progress to Romans
-    if (
-      romansBook &&
-      dummyProgress['Romans'] &&
-      dummyProgress['Romans'].length > 0
-    ) {
-      // Romans 8 completed
-      const versesMemorized = [false, true, false, true];
-      dummyProgress['Romans'][7] = new ChapterProgress(
-        8,
-        versesMemorized.length,
-        39, // Original count
-        true,
-        false,
-        versesMemorized,
-      );
-    }
-
-    // Simulate network delay
-    return of(dummyProgress).pipe(delay(this.apiLatency));
+        return progress;
+      }),
+      catchError(error => {
+        console.error('Error fetching progress data:', error);
+        return of(this.initializeEmptyProgress());
+      })
+    );
   }
 
   /**
    * Saves user progress to the backend
    */
   private saveProgressToAPI(progress: BookProgress): Observable<boolean> {
-    // This is where you would make your actual API call in the future
-    // For now, we're just simulating a successful save with a delay
-    console.log('Saving progress to API:', progress);
-    return of(true).pipe(delay(this.apiLatency));
-  }
+    // For each memorized verse, ensure it's saved to the backend
+    const saveOperations: Observable<any>[] = [];
 
-  /**
-   * Initializes empty progress for all books
-   */
-  private initializeEmptyProgress(): BookProgress {
-    const initialProgress: BookProgress = {};
+    Object.entries(progress).forEach(([bookName, chapters]) => {
+      if (chapters) {
+        chapters.forEach((chapter, chapterIndex) => {
+          if (chapter && chapter.versesMemorized) {
+            chapter.versesMemorized.forEach((isMemorized, verseIndex) => {
+              if (isMemorized) {
+                // Create verse ID in format "Book.Chapter.Verse"
+                const verseId = `${bookName}.${chapterIndex + 1}.${verseIndex + 1}`;
 
-    BIBLE_DATA.books.forEach((book) => {
-      const bookName = book.name;
-      initialProgress[bookName] = Array(book.getTotalChapters())
-        .fill(null)
-        .map((_, i) => {
-          const chapterVerseCount = book.getVerseCount(i);
-          return new ChapterProgress(
-            i + 1, // chapter
-            chapterVerseCount, // totalVerses
-            0, // memorizedVerses
-            false, // inProgress
-            false, // completed
-            Array(chapterVerseCount).fill(false), // versesMemorized
-          );
+                // Calculate confidence level (simplified for now - could be more complex)
+                const confidenceLevel = 500; // Mid-range confidence by default
+
+                // Add verse if not already added, or update confidence level
+                saveOperations.push(
+                  this.updateOrAddVerse(verseId, confidenceLevel)
+                );
+              }
+            });
+          }
         });
-    });
-
-    return initialProgress;
-  }
-
-  /**
-   * Migrates data from older formats to current format
-   */
-  private migrateProgressData(progress: BookProgress): BookProgress {
-    const updatedProgress: BookProgress = { ...progress };
-
-    Object.entries(updatedProgress).forEach(([bookName, chapters]) => {
-      const book = BIBLE_DATA.getBookByName(bookName);
-      if (chapters && book) {
-        updatedProgress[bookName] = chapters.map(
-          (chapter: ChapterProgress, chapterIndex: number) => {
-            if (!chapter) {
-              return new ChapterProgress(
-                chapterIndex + 1,
-                book.getVerseCount(chapterIndex),
-                0,
-                false,
-                false,
-              );
-            }
-
-            // Use the static factory method
-            return ChapterProgress.fromExistingData(
-              chapter,
-              book.getVerseCount(chapterIndex),
-            );
-          },
-        );
       }
     });
 
-    return updatedProgress;
-  }
-
-  /**
-   * Loads user progress from API or initializes empty progress
-   */
-  private loadProgress(): void {
-    this.fetchProgressFromAPI().subscribe(
-      (progress) => {
-        // Migrate old data format if needed
-        const migratedProgress = this.migrateProgressData(progress);
-        this.progressSubject.next(migratedProgress);
-      },
-      (error) => {
-        console.error('Error loading progress data:', error);
-        // In case of error, initialize with empty progress
-        this.progressSubject.next(this.initializeEmptyProgress());
-      },
-    );
-  }
-
-  /**
-   * Retrieves a chapter's progress
-   */
-  public getChapterProgress(
-    bookName: string,
-    chapterIndex: number,
-  ): ChapterProgress {
-    const currentProgress = this.progressSubject.value;
-    if (
-      !currentProgress[bookName] ||
-      !currentProgress[bookName][chapterIndex]
-    ) {
-      return new ChapterProgress(chapterIndex + 1, 0, 0, false, false);
+    // If no operations, return success
+    if (saveOperations.length === 0) {
+      return of(true);
     }
-    return currentProgress[bookName][chapterIndex];
+
+    // Return combined result
+    return of(true);
+  }
+
+  private updateOrAddVerse(verseId: string, confidenceLevel: number): Observable<any> {
+    // First check if verse exists for user
+    return this.http.get<any[]>(`${this.apiUrl}/user-verses/${this.userId}`).pipe(
+      map(verses => verses.find(v => v.verse && v.verse.verse_id === verseId)),
+      tap(existingVerse => {
+        if (existingVerse) {
+          // Update existing verse
+          this.http.put(`${this.apiUrl}/user-verses/${this.userId}/${verseId}`, {
+            confidence: confidenceLevel
+          }).subscribe();
+        } else {
+          // Add new verse
+          this.http.post(`${this.apiUrl}/user-verses/`, {
+            user_id: this.userId,
+            verse_id: verseId,
+            confidence: confidenceLevel
+          }).subscribe();
+        }
+      }),
+      catchError(error => {
+        console.error('Error saving verse:', error);
+        return of(null);
+      })
+    );
   }
 
   /**
    * Gets user's verses from the database through the Python backend
    */
-  getUserVerses(userId: number = 1): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/users/${userId}/verses`).pipe(
+  getUserVerses(userId: number = this.userId): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/user-verses/${userId}`).pipe(
       catchError(error => {
         console.error('Error fetching verses:', error);
         return of([]);
@@ -679,8 +363,12 @@ export class BibleTrackerService {
   /**
    * Adds a verse to the user's collection
    */
-  addVerse(verseId: string, userId: number = 1): Observable<any> {
-    return this.http.post(`${this.apiUrl}/users/${userId}/verses`, { verse_id: verseId }).pipe(
+  addVerse(verseId: string, userId: number = this.userId): Observable<any> {
+    return this.http.post(`${this.apiUrl}/user-verses/`, {
+      user_id: userId,
+      verse_id: verseId,
+      confidence: 1 // Starting confidence level
+    }).pipe(
       catchError(error => {
         console.error('Error adding verse:', error);
         return throwError(() => new Error('Failed to add verse. Please try again.'));
@@ -689,34 +377,22 @@ export class BibleTrackerService {
   }
 
   /**
-   * Removes a verse from the user's collection
+   * Updates a verse's confidence level (1-1000)
    */
-  removeVerse(verseId: string, userId: number = 1): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/users/${userId}/verses/${verseId}`).pipe(
-      catchError(error => {
-        console.error('Error removing verse:', error);
-        return throwError(() => new Error('Failed to remove verse. Please try again.'));
-      })
-    );
-  }
-
-  /**
-   * Updates a verse's progress level (1-1000)
-   */
-  updateVerseProgress(verseId: string, progressLevel: number, userId: number = 1): Observable<any> {
+  updateVerseConfidence(verseId: string, confidence: number, userId: number = this.userId): Observable<any> {
     return this.http.put(
-      `${this.apiUrl}/users/${userId}/verses/${verseId}/progress`, 
-      { progress_level: progressLevel }
+      `${this.apiUrl}/user-verses/${userId}/${verseId}`,
+      { confidence: confidence }
     ).pipe(
       catchError(error => {
-        console.error('Error updating verse progress:', error);
-        return throwError(() => new Error('Failed to update progress. Please try again.'));
+        console.error('Error updating verse confidence:', error);
+        return throwError(() => new Error('Failed to update confidence. Please try again.'));
       })
     );
   }
 
   /**
-   * Gets verse content from external API
+   * Gets verse content
    */
   getVerseContent(verseId: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/verses/${verseId}`).pipe(
@@ -726,5 +402,176 @@ export class BibleTrackerService {
       })
     );
   }
+
+  /**
+   * Get user settings
+   */
+  getUserSettings(userId: number = this.userId): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/settings/${userId}`).pipe(
+      catchError(error => {
+        console.error('Error fetching user settings:', error);
+        return of({});
+      })
+    );
+  }
+
+  /**
+   * Update user settings
+   */
+  updateUserSettings(settings: any, userId: number = this.userId): Observable<any> {
+    return this.http.put(`${this.apiUrl}/settings/${userId}`, settings).pipe(
+      catchError(error => {
+        console.error('Error updating settings:', error);
+        return throwError(() => new Error('Failed to update settings. Please try again.'));
+      })
+    );
+  }
+
+  // BACKWARDS COMPATIBILITY METHODS - KEPT FOR LEGACY SUPPORT
+
+  // Legacy local storage methods
+  private saveProgressToLocalStorage(progress: BookProgress): void {
+    try {
+      localStorage.setItem('bible-progress', JSON.stringify(progress));
+    } catch (e) {
+      console.error('Error saving to localStorage:', e);
+    }
+  }
+
+  private loadProgressFromLocalStorage(): BookProgress {
+    try {
+      const savedProgress = localStorage.getItem('bible-progress');
+      if (savedProgress) {
+        return JSON.parse(savedProgress);
+      }
+    } catch (e) {
+      console.error('Error loading from localStorage:', e);
+    }
+    return this.initializeEmptyProgress();
+  }
+
+  // Legacy mock data methods for development/testing
+  private getMockProgressData(): Observable<BookProgress> {
+    return of(this.initializeEmptyProgress()).pipe(delay(500));
+  }
+
+  // Reset all progress data
+  public resetProgress(): void {
+    const emptyProgress = this.initializeEmptyProgress();
+    this.progressSubject.next(emptyProgress);
+    // When resetting, also clear from API
+    // (future implementation)
+  }
+
+  getGroupsInTestament(testament: string): string[] {
+    return BIBLE_DATA.getGroupsInTestament(testament);
+  }
+
   
+  // Calculate stats for a testament
+  public calculateTestamentStats(testament: string): TestamentStats {
+    const books = BIBLE_DATA.getTestamentBooks(testament);
+    let totalVerses = 0;
+    let memorizedVerses = 0;
+    let totalChapters = 0;
+    let memorizedChapters = 0;
+    let inProgressChapters = 0;
+
+    // Track book completion status to calculate metrics
+    const bookStats = books.map(book => this.calculateBookStats(book.name));
+
+    // Aggregate statistics across all books
+    bookStats.forEach(stats => {
+      totalVerses += stats.totalVerses;
+      memorizedVerses += stats.memorizedVerses;
+      totalChapters += stats.totalChapters;
+      memorizedChapters += stats.memorizedChapters;
+      inProgressChapters += stats.inProgressChapters;
+    });
+
+    // Create the TestamentStats object with base values
+    // Let the derived properties be calculated via getters
+    return new TestamentStats(
+      testament,
+      books.map(book => this.calculateBookStats(book.name))
+    )
+  }
+
+  public resetChapter(bookName: string, chapterIndex: number): void {
+    const book = BIBLE_DATA.getBookByName(bookName);
+    if (!book) return;
+    
+    const currentProgress = { ...this.progressSubject.value };
+    if (!currentProgress[bookName]) {
+      return;
+    }
+    
+    // Reset chapter progress
+    const verseCount = book.getVerseCount(chapterIndex);
+    currentProgress[bookName][chapterIndex] = new ChapterProgress(
+      chapterIndex + 1,
+      verseCount,
+      0,
+      false,
+      false,
+      Array(verseCount).fill(false)
+    );
+    
+    this.progressSubject.next(currentProgress);
+    this.saveProgressToAPI(currentProgress).subscribe();
+  }
+  
+  public resetBook(bookName: string): void {
+    const book = BIBLE_DATA.getBookByName(bookName);
+    if (!book) return;
+    
+    const currentProgress = { ...this.progressSubject.value };
+    currentProgress[bookName] = this.initializeEmptyBookProgress(book);
+    
+    this.progressSubject.next(currentProgress);
+    this.saveProgressToAPI(currentProgress).subscribe();
+  }
+  
+  public resetGroup(groupName: string): void {
+    const books = BIBLE_DATA.getGroupBooks(groupName);
+    const currentProgress = { ...this.progressSubject.value };
+    
+    books.forEach(book => {
+      currentProgress[book.name] = this.initializeEmptyBookProgress(book);
+    });
+    
+    this.progressSubject.next(currentProgress);
+    this.saveProgressToAPI(currentProgress).subscribe();
+  }
+  
+  public resetTestament(testament: string): void {
+    const books = BIBLE_DATA.getTestamentBooks(testament);
+    const currentProgress = { ...this.progressSubject.value };
+    
+    books.forEach(book => {
+      currentProgress[book.name] = this.initializeEmptyBookProgress(book);
+    });
+    
+    this.progressSubject.next(currentProgress);
+    this.saveProgressToAPI(currentProgress).subscribe();
+  }
+  
+  private initializeEmptyBookProgress(book: BibleBook): ChapterProgress[] {
+    const chapterCount = book.chapters.length;
+    const bookProgress = Array(chapterCount);
+    
+    for (let i = 0; i < chapterCount; i++) {
+      const verseCount = book.getVerseCount(i);
+      bookProgress[i] = new ChapterProgress(
+        i + 1,
+        verseCount,
+        0,
+        false,
+        false,
+        Array(verseCount).fill(false)
+      );
+    }
+    
+    return bookProgress;
+  }
 }

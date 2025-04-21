@@ -45,8 +45,6 @@
 
   <!-- Selected Chapter Details with Verse Selector -->
   <app-chapter-progress
-    (decrementVersesEvent)="decrementVerses()"
-    (incrementVersesEvent)="incrementVerses()"
     (resetChapter)="resetChapter()"
     (updateProgress)="updateMemorizedVerses($event)"
     [chapterProgress]="currentBookProgress[selectedChapterIndex]"
