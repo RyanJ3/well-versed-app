@@ -1,45 +1,37 @@
 <div class="mb-6">
-      <h2 class="text-lg font-semibold mb-3">Chapter Progress</h2>
+  <h2 class="text-lg font-semibold mb-3">Chapter Progress</h2>
 
-      <div class="bg-white p-4 rounded shadow mb-4">
-        <div class="mb-3">
-          <label for="chapter-select" class="block text-sm font-medium text-gray-700 mb-1">
-            Select Chapter:
-          </label>
-          <select
-            id="chapter-select"
-            [(ngModel)]="selectedChapter"
-            (change)="onChapterSelect()"
-            class="w-full p-2 border rounded"
-          >
-            <option *ngFor="let chapter of currentBook?.chapters; let i = index" [value]="chapter.chapterNumber">
-              Chapter {{ chapter.chapterNumber }}
-              {{
-                chapter.isComplete ? ' (Completed)' :
-                  (chapter.isInProgress ? ' (In Progress)' : ' (Not Started)')
-              }}
-            </option>
-          </select>
-        </div>
+  <div class="bg-white p-4 rounded shadow mb-4">
+    <div class="mb-3">
+      <label for="chapter-select" class="block text-sm font-medium text-gray-700 mb-1">
+        Select Chapter:
+      </label>
+      <select id="chapter-select" [(ngModel)]="selectedChapter" (change)="onChapterSelect()"
+        class="w-full p-2 border rounded">
+        <option *ngFor="let chapter of currentBook?.chapters; let i = index" [value]="chapter.chapterNumber">
+          Chapter {{ chapter.chapterNumber }}
+          {{
+          chapter.isComplete ? ' (Completed)' :
+          (chapter.isInProgress ? ' (In Progress)' : ' (Not Started)')
+          }}
+        </option>
+      </select>
+    </div>
 
-        <!-- Chapter Overview -->
-        <div class="mb-3">
-          <p class="text-sm text-gray-500 mb-2">Quick Overview:</p>
-          <div class="bubbles-container">
-            <button
-              *ngFor="let chapter of currentBook?.chapters"
-              (click)="selectChapter(chapter)"
-              class="chapter-bubble"
-              [ngClass]="{
+    <!-- Chapter Overview -->
+    <div class="mb-3">
+      <p class="text-sm text-gray-500 mb-2">Quick Overview:</p>
+      <div class="bubbles-container">
+        <button *ngFor="let chapter of currentBook?.chapters" (click)="selectChapter(chapter)" class="chapter-bubble"
+          [ngClass]="{
                 'not-started': chapter.isInProgress && !chapter.isComplete,
                 'in-progress': chapter.isInProgress && !chapter.isComplete,
                 'completed': chapter.isComplete,
                 'selected': chapter.chapterNumber === selectedChapter?.chapterNumber
-              }"
-            >
-              {{ chapter.chapterNumber }}
-            </button>
-          </div>
-        </div>
+              }">
+          {{ chapter.chapterNumber }}
+        </button>
       </div>
     </div>
+  </div>
+</div>

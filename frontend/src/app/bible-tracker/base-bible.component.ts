@@ -1,13 +1,13 @@
-import { BibleData, TestamentType, BookGroupType, BibleBook, BibleTestament, BibleChapter } from '../models/bible.model';
+import { BibleData, TestamentType, BookGroupType, BibleBook, BibleTestament, BibleChapter, BibleGroup } from '../models/bible.model';
 import { Directive, OnInit, OnDestroy } from '@angular/core';
 import { BibleService } from '../services/bible.service';
 
 @Directive()
 export abstract class BaseBibleComponent implements OnInit, OnDestroy {
-  protected bibleData: BibleData;
 
-  constructor(protected bibleService: BibleService) {
-    this.bibleData = new BibleData();
+  protected bibleData: BibleData = new BibleData();
+
+  constructor() {
   }
 
   ngOnInit(): void {
@@ -33,6 +33,13 @@ export abstract class BaseBibleComponent implements OnInit, OnDestroy {
     return this.getTestament(TestamentType.NEW);
   }
 
+  getDefaultTestament(): BibleTestament | undefined{
+    return this.getOldTestament();
+  }
+
+  getDefaultGroup(): BibleGroup | undefined{
+    return this.getDefaultBook()?.group;
+  }
   getBook(bookName: string): BibleBook | undefined {
     return this.bibleData?.getBook(bookName);
   }

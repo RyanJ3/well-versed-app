@@ -11,23 +11,14 @@ import { BaseBibleComponent } from '../../base-bible.component';
   templateUrl: './book-info.component.html',
 })
 export class BookInfoComponent extends BaseBibleComponent {
-  @Input() currentBook: BibleBook | undefined = undefined;
-  @Input() memorizedVerses: number = 0;
-  @Input() totalVerses: number = 0;
-  @Input() completedChapters: number = 0;
-  @Input() inProgressChapters: number = 0;
 
-  @Output() resetBook = new EventEmitter<void>();
+  @Input() selectedBook: BibleBook | undefined;
+  @Input() selectedChapter: number | undefined;
 
   isConfirmModalVisible: boolean = false;
 
-  constructor(bibleService: BibleService) {
-    super(bibleService)
-  }
-
-  get percentComplete(): number {
-    if (!this.totalVerses) return 0;
-    return Math.round((this.memorizedVerses / this.totalVerses) * 100);
+  constructor() {
+    super()
   }
 
   showConfirmModal(): void {
@@ -35,7 +26,7 @@ export class BookInfoComponent extends BaseBibleComponent {
   }
 
   confirmReset(): void {
-    this.resetBook.emit();
+    this.selectedBook?.reset();
     this.isConfirmModalVisible = false;
   }
 

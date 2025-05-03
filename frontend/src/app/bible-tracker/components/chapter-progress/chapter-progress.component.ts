@@ -16,11 +16,12 @@ import { BibleBook, BibleChapter } from '../../../models/bible.model';
   ]
 })
 export class ChapterProgressComponent extends BaseBibleComponent implements OnInit {
+
   @Input() selectedChapter?: BibleChapter | undefined;
   @Input() selectedBook?: BibleBook | undefined;
   
-  constructor(protected override bibleService: BibleService) {
-    super(bibleService);
+  constructor() {
+    super();
   }
   
   override ngOnInit(): void {

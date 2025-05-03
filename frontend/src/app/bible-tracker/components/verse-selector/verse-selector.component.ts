@@ -15,8 +15,6 @@ export class VerseSelectorComponent extends BaseBibleComponent {
 
   @Input() selectedChapter: BibleChapter | undefined;
 
-  @Output() versesChange = new EventEmitter<number[]>();
-
   get versesArray(): BibleVerse[] {
     return this.selectedChapter?.verses || [];
   }

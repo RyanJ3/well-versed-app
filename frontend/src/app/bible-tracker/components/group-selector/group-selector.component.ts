@@ -12,20 +12,20 @@ import { CommonModule } from '@angular/common';
 })
 export class GroupSelectorComponent extends BaseBibleComponent implements OnInit {
 
-@Input() testament: string = '';
+  @Input() selectedTestament: BibleTestament | undefined;
   @Output() groupChange = new EventEmitter<string>();
-  
+
   availableGroups: BibleGroup[] = [];
   selectedGroup: BibleGroup | null = null;
-  
-  constructor(protected override bibleService: BibleService) {
-    super(bibleService);
+
+  constructor() {
+    super();
   }
-  
+
   override ngOnInit(): void {
     super.ngOnInit(); // Important! This initializes bibleData
   }
-  
+
   // Override this method from BaseBibleComponent to safely use bibleData
   protected override onBibleDataLoaded(): void {
     // Only now is it safe to use bibleData
@@ -40,7 +40,7 @@ export class GroupSelectorComponent extends BaseBibleComponent implements OnInit
     //   }
     // }
   }
-  
+
   onGroupSelected(group: string): void {
     this.groupChange.emit(group);
   }

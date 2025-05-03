@@ -4,36 +4,23 @@
 
   <!-- Testament Selector -->
   <app-testament-selector
-    (resetTestament)="resetTestament()"
-    (testamentChange)="onTestamentChange($event)"
     [selectedTestament]="selectedTestament"
-    [testaments]="testaments"
   ></app-testament-selector>
 
   <!-- Group Selector -->
   <!-- (groupChange)="onGroupChange($event)" -->
 
-  <app-group-selector
-    (resetGroup)="resetGroup()"
-  ></app-group-selector>
+  <app-group-selector></app-group-selector>
 
   <!-- Book Selector -->
   <app-book-selector
     (bookChange)="onBookChange($event)"
     [booksInGroup]="booksInGroup"
     [selectedBook]="selectedBook"
-    [selectedGroup]="selectedGroup"
   ></app-book-selector>
 
   <!-- Book Information -->
-  <app-book-info
-    (resetBook)="resetBook()"
-    [completedChapters]="completedChapters"
-    [currentBook]="currentBook"
-    [inProgressChapters]="inProgressChapters"
-    [memorizedVerses]="memorizedVerses"
-    [totalVerses]="totalVerses"
-  ></app-book-info>
+  <app-book-info></app-book-info>
 
   <!-- Chapter Selection -->
   <app-chapter-selector
@@ -44,6 +31,5 @@
   <!-- Selected Chapter Details with Verse Selector -->
   <app-chapter-progress
     [selectedChapter]="selectedChapter"
-    (resetChapter)="resetChapter()"
   ></app-chapter-progress>
 </div>

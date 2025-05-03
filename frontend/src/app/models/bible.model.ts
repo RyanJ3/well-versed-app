@@ -108,8 +108,8 @@ export class BibleBook {
 
   constructor(
     public readonly name: string,
-    public readonly testament: TestamentType,
-    public readonly group: BookGroupType,
+    public readonly testament: BibleTestament,
+    public readonly group: BibleGroup,
     versesPerChapter: number[],
     memorizedData: Record<number, number[]> = {},
     public readonly canonicalAffiliation: string = 'Canonical',
@@ -130,8 +130,8 @@ export class BibleBook {
   public static fromRawData(bookData: any): BibleBook {
     return new BibleBook(
       bookData.name,
-      bookData.testament as TestamentType,
-      bookData.group as BookGroupType,
+      bookData.testament,
+      bookData.group,
       bookData.chapters,
       {}, // No progress data for new books
       bookData.canonicalAffiliation,
@@ -151,6 +151,10 @@ export class BibleBook {
     return this.chapters.reduce((sum, chapter) => sum + chapter.memorizedVerses, 0);
   }
 
+  get isCompleted(): boolean {
+    return this.chapters.every(chapter => chapter.isComplete);
+  }
+
   get percentComplete(): number {
     return this.totalVerses > 0
       ? Math.round((this.memorizedVerses / this.totalVerses) * 100)
@@ -159,6 +163,10 @@ export class BibleBook {
 
   get completedChapters(): number {
     return this.chapters.filter(chapter => chapter.isComplete).length;
+  }
+
+  get isInProgress(): boolean {
+    return this.chapters.some(chapter => chapter.isInProgress);
   }
 
   get inProgressChapters(): number {
@@ -244,6 +252,7 @@ export class BibleTestament {
   public readonly groups: BibleGroup[] = [];
   public readonly bookMap: Map<string, BibleBook> = new Map();
   public readonly _books;
+  getGroups: any;
 
   constructor(
     public readonly name: TestamentType,
@@ -329,8 +338,8 @@ export class BibleData {
     BIBLE_DATA.books.forEach((bookData: any) => {
       const book = new BibleBook(
         bookData.name,
-        bookData.testament as TestamentType,
-        bookData.group as BookGroupType,
+        bookData.testament,
+        bookData.group,
         bookData.chapters,
         progressData[bookData.name] || {},
         bookData.canonicalAffiliation,
@@ -339,9 +348,10 @@ export class BibleData {
 
       // Add to bookMap for direct access
       this.bookMap.set(book.name, book);
+      this.books.push(book);
 
       // Add to appropriate testament array
-      if (book.testament === TestamentType.OLD) {
+      if (book.testament.name === TestamentType.OLD) {
         oldTestamentBooks.push(book);
       } else {
         newTestamentBooks.push(book);
@@ -351,6 +361,10 @@ export class BibleData {
     // Create testament objects
     this.testamentMap.set(TestamentType.OLD, new BibleTestament(TestamentType.OLD, oldTestamentBooks));
     this.testamentMap.set(TestamentType.NEW, new BibleTestament(TestamentType.NEW, newTestamentBooks));
+  }
+
+  get totalChpaters(): number {
+    return this.books.reduce((sum, book) => sum + book.totalChapters, 0);
   }
 
   get testaments(): BibleTestament[] {
@@ -465,21 +479,7 @@ export class BibleData {
     });
   }
 
-  getProgressData(): Record<string, Record<number, number[]>> {
-    const result: Record<string, Record<number, number[]>> = {};
-
-    this.books.forEach(book => {
-      const bookProgress = book.getProgressData();
-      if (Object.keys(bookProgress).length > 0) {
-        result[book.name] = bookProgress;
-      }
-    });
-
-    return result;
-  }
-
-
-  getGroupByName(groupName : string): BibleGroup | undefined {
+  getGroupByName(groupName: string): BibleGroup | undefined {
     for (const testament of this.testaments) {
       const group = testament.getGroup(groupName as BookGroupType);
       if (group) {
