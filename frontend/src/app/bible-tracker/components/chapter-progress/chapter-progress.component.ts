@@ -3,7 +3,8 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfirmationModalComponent } from '../../../shared/components/notification/confirmation-modal';
 import { VerseSelectorComponent } from '../verse-selector/verse-selector.component';
-import { BIBLE_DATA, BibleBook, ChapterProgress } from '../../models';
+import { BibleBook, BibleChapter } from '../../../models/bible.model';
+import { BibleService } from '../../../services/bible.service';
 
 @Component({
   selector: 'app-chapter-progress',
@@ -13,32 +14,29 @@ import { BIBLE_DATA, BibleBook, ChapterProgress } from '../../models';
   styleUrls: ['./chapter-progress.component.scss'],
 })
 export class ChapterProgressComponent {
-  @Input() currentBook: BibleBook = BIBLE_DATA.getBookByName('Psalms');
   @Input() selectedChapter: number = 1;
   @Input() selectedChapterIndex: number = 0;
-  @Input() chapterProgress: ChapterProgress =
-    this.currentBook.getChapterProgress(this.selectedChapter);
+  @Input() chapter: BibleChapter | undefined = undefined;
 
-  @Output() incrementVersesEvent = new EventEmitter<void>();
-  @Output() decrementVersesEvent = new EventEmitter<void>();
+  // @Output() incrementVersesEvent = new EventEmitter<void>();
+  // @Output() decrementVersesEvent = new EventEmitter<void>();
   @Output() updateProgress = new EventEmitter<number[]>();
   @Output() resetChapter = new EventEmitter<void>();
 
   isConfirmModalVisible: boolean = false;
+  currentBook: BibleBook | undefined = undefined;
+
+  constructor(private bibleService: BibleService) {
+    this.chapter = this.bibleService.getBible().getBook("Psalms")?.chapters[22]; // Default to first chapter of Psalms or fallback
+    this.currentBook = this.bibleService.getBible().getBook("Psalms"); // Default to first chapter of Psalms or fallback
+  }
 
   get totalVerses(): number {
-    if (
-      !this.currentBook ||
-      this.selectedChapterIndex < 0 ||
-      this.selectedChapterIndex >= this.currentBook.chapters.length
-    ) {
-      return 0;
-    }
-    return this.currentBook.chapters[this.selectedChapterIndex];
+    return this.chapter?.totalVerses || 0;
   }
 
   get memorizedCount(): number {
-    return this.chapterProgress?.versesMemorized?.filter((v) => v).length || 0;
+    return this.chapter?.memorizedVerses || 0;
   }
 
   get progressPercent(): number {

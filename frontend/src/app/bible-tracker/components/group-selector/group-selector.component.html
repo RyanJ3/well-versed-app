@@ -1,93 +1,81 @@
 <div class="bg-white p-4 rounded shadow mb-6">
-      <h3 class="text-lg font-semibold mb-3">Select Book Group</h3>
+  <h3 class="text-lg font-semibold mb-3">Select Book Group</h3>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-        <button
-          *ngFor="let group of availableGroups"
-          (click)="selectGroup(group)"
-          class="group-card"
-          [class.active]="selectedGroup === group"
-          [ngClass]="{
-              'testament-old': selectedTestament === 'Old Testament',
-              'testament-new': selectedTestament === 'New Testament'
-            }"
-        >
-          <div class="card-content">
-            <div class="flex justify-between items-center mb-2">
-              <h4 class="group-name">{{ group }}</h4>
-              <span class="group-badge"
-                    [ngClass]="{
-                      'bg-amber-100 text-amber-800': selectedTestament === 'Old Testament',
-                      'bg-indigo-100 text-indigo-800': selectedTestament === 'New Testament'
-                    }">
-                {{ getGroupStats(group).percentComplete }}%
-              </span>
-            </div>
-
-            <div class="progress-container">
-              <div
-                class="progress-bar"
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+    <button
+      *ngFor="let group of availableGroups"
+      (click)="selectGroup(group)"
+      class="group-card"
+      [class.active]="group === selectedGroup"
+      [ngClass]="{
+          'testament-old': selectedTestament === 'Old Testament',
+          'testament-new': selectedTestament === 'New Testament'
+        }"
+    >
+      <div class="card-content">
+        <div class="flex justify-between items-center mb-2">
+          <h4 class="group-name">{{ group }}</h4>
+          <span class="group-badge"
                 [ngClass]="{
-                    'bg-amber-500': selectedTestament === 'Old Testament',
-                    'bg-indigo-500': selectedTestament === 'New Testament'
-                  }"
-                [style.width.%]="getGroupStats(group).percentComplete"
-              ></div>
-            </div>
+                  'bg-amber-100 text-amber-800': selectedTestament === 'Old Testament',
+                  'bg-indigo-100 text-indigo-800': selectedTestament === 'New Testament'
+                }">
+            {{ group.percentComplete }}%
+          </span>
+        </div>
 
-            <!-- <div class="flex justify-between items-center mt-3">
-              <div class="book-count">
-                <span class="text-xs font-medium">{{ getGroupBookCount(group) }} Books</span>
-              </div>
-              <div class="stats-text text-xs">
-                <span>{{ getGroupStats(group).completedChapters }}/{{ getGroupStats(group).totalChapters }}
-                  Chapters</span>
-                <span class="mx-1">•</span>
-                <span>{{ getGroupTotalVerses(group) }} Verses</span>
-              </div>
-            </div> -->
+        <div class="progress-container">
+          <div
+            class="progress-bar"
+            [ngClass]="{
+                'bg-amber-500': selectedTestament === 'Old Testament',
+                'bg-indigo-500': selectedTestament === 'New Testament'
+              }"
+            [style.width.%]=" group.percentComplete"
+          ></div>
+        </div>
 
-            <!-- Book preview -->
-            <div class="book-preview mt-3">
-              <div class="flex flex-wrap gap-1">
-                <span *ngFor="let book of getTopBooksInGroup(group, 5)"
-                      class="book-chip"
-                      [ngClass]="{
-                        'bg-amber-50 text-amber-900': selectedTestament === 'Old Testament',
-                        'bg-indigo-50 text-indigo-900': selectedTestament === 'New Testament'
-                      }">
-                  {{ getShortBookName(book) }}
-                </span>
-                <span *ngIf="getGroupBookCount(group) > 5"
-                      class="book-chip more-chip"
-                      [ngClass]="{
-                        'bg-amber-50 text-amber-900': selectedTestament === 'Old Testament',
-                        'bg-indigo-50 text-indigo-900': selectedTestament === 'New Testament'
-                      }">
-                  +{{ getGroupBookCount(group) - 5 }}
-                </span>
-              </div>
-            </div>
+        <!-- Book preview -->
+        <div class="book-preview mt-3">
+          <div class="flex flex-wrap gap-1">
+            <span *ngFor="let bookName of group.books"
+                  class="book-chip"
+                  [ngClass]="{
+                    'bg-amber-50 text-amber-900': selectedTestament === 'Old Testament',
+                    'bg-indigo-50 text-indigo-900': selectedTestament === 'New Testament'
+                  }">
+              {{ bookName }}
+            </span>
+            <span *ngIf="group.totalBooks > 5"
+                  class="book-chip more-chip"
+                  [ngClass]="{
+                    'bg-amber-50 text-amber-900': selectedTestament === 'Old Testament',
+                    'bg-indigo-50 text-indigo-900': selectedTestament === 'New Testament'
+                  }">
+              +{{ group.totalBooks - 5 }}
+            </span>
           </div>
-        </button>
+        </div>
       </div>
+    </button>
+  </div>
 
-      <div class="mt-4 text-right">
-        <button
-          (click)="showConfirmModal()"
-          class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors duration-200"
-        >
-          Reset {{ selectedGroup }}
-        </button>
-      </div>
-    </div>
+  <div class="mt-4 text-right">
+    <button
+      (click)="showConfirmModal()"
+      class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors duration-200"
+    >
+      Reset {{ selectedGroup }}
+    </button>
+  </div>
+</div>
 
-    <!-- Confirmation Modal -->
-    <app-confirmation-modal
-      [isVisible]="isConfirmModalVisible"
-      [title]="'Reset Book Group'"
-      [message]="'Are you sure you want to reset all progress for ' + selectedGroup + ' books? This action cannot be undone.'"
-      [confirmText]="'Reset'"
-      (confirm)="confirmReset()"
-      (cancel)="cancelReset()"
-    ></app-confirmation-modal>
+<!-- Confirmation Modal -->
+<app-confirmation-modal
+  [isVisible]="isConfirmModalVisible"
+  [title]="'Reset Book Group'"
+  [message]="'Are you sure you want to reset all progress for ' + selectedGroup + ' books? This action cannot be undone.'"
+  [confirmText]="'Reset'"
+  (confirm)="confirmReset()"
+  (cancel)="cancelReset()"
+></app-confirmation-modal>

@@ -1,9 +1,8 @@
-// components/group-selector.component.ts - Enhanced version
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BIBLE_DATA, GroupStats } from '../../models';
-import { BibleTrackerService } from '../../bible-tracker-service';
 import { ConfirmationModalComponent } from '../../../shared/components/notification/confirmation-modal';
+import { BibleService } from '../../../services/bible.service';
+import { BibleBook, BibleGroup, BibleTestament, BookGroupType, TestamentType } from '../../../models/bible.model';
 
 @Component({
   selector: 'app-group-selector',
@@ -13,71 +12,58 @@ import { ConfirmationModalComponent } from '../../../shared/components/notificat
   styleUrls: ['./group-selector.component.scss'],
 })
 export class GroupSelectorComponent {
-  @Input() availableGroups: string[] = [];
-  @Input() selectedGroup: string = '';
-  @Input() selectedTestament: string = '';
-
-  @Output() groupChange = new EventEmitter<string>();
+  // Inputs & Outputs
+  @Input() availableGroups: BibleGroup[] = [];
+  @Input() selectedGroup: BibleGroup;
+  @Input() selectedTestament: string | undefined;
+  @Output() groupChange = new EventEmitter<BibleGroup>();
   @Output() resetGroup = new EventEmitter<void>();
 
+  // UI state
   isConfirmModalVisible: boolean = false;
 
-  constructor(private bibleTrackerService: BibleTrackerService) {}
+  constructor(private bibleService: BibleService) {
+    this.selectedGroup = this.bibleService.getBible().getDefaultGroup(); // Default to first group or fallback
+    this.selectedTestament = this.bibleService.getTestament(TestamentType.OLD)?.name; // Default to Old Testament or fallback
+  }
 
-  selectGroup(group: string): void {
+  // Group selection handling
+  selectGroup(group: BibleGroup): void {
     this.groupChange.emit(group);
   }
 
-  showConfirmModal(): void {
-    this.isConfirmModalVisible = true;
-  }
+  // Group stats and data
 
-  confirmReset(): void {
-    this.resetGroup.emit();
-    this.isConfirmModalVisible = false;
-  }
-
-  cancelReset(): void {
-    this.isConfirmModalVisible = false;
-  }
-
-  getGroupStats(group: string): GroupStats {
-    return this.bibleTrackerService.calculateGroupStats(group);
+  getBooksInGroup(group: string): BibleBook[] {
+    return this.bibleService?.getBooksInGroup(group as BookGroupType);
   }
 
   getGroupBookCount(group: string): number {
-    return Object.values(BIBLE_DATA).filter((book) => book.group === group)
-      .length;
+    return this.getBooksInGroup(group).length;
   }
 
   getGroupTotalVerses(group: string): number {
-    return Object.values(BIBLE_DATA)
-      .filter((book) => book.group === group)
-      .reduce((sum, book) => sum + book.totalVerses, 0);
+    return this.bibleService.getGroupByName(group)?.totalVerses || 0;
   }
 
   getTopBooksInGroup(group: string, count: number): string[] {
-    return Object.entries(BIBLE_DATA)
-      .filter(([_, book]) => book.group === group)
-      .sort((a, b) => a[1].order - b[1].order)
+    return this.getBooksInGroup(group)
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
       .slice(0, count)
-      .map(([name, _]) => name);
+      .map(book => book.name);
   }
 
-  // Shorten book names for chips display
+  // Book name formatting
   getShortBookName(bookName: string): string {
-    // Handle special cases
-    if (bookName.startsWith('1 '))
-      return '1' + bookName.split(' ')[1].substring(0, 3);
-    if (bookName.startsWith('2 '))
-      return '2' + bookName.split(' ')[1].substring(0, 3);
-    if (bookName.startsWith('3 '))
-      return '3' + bookName.split(' ')[1].substring(0, 3);
-
-    // For Song of Solomon and other long names
+    if (bookName.startsWith('1 ')) return '1' + bookName.split(' ')[1].substring(0, 3);
+    if (bookName.startsWith('2 ')) return '2' + bookName.split(' ')[1].substring(0, 3);
+    if (bookName.startsWith('3 ')) return '3' + bookName.split(' ')[1].substring(0, 3);
     if (bookName === 'Song of Solomon') return 'Song';
-
-    // For normal books, just use the first 5 characters or the whole name if shorter
     return bookName.length > 5 ? bookName.substring(0, 5) : bookName;
   }
+
+  // Modal handling
+  showConfirmModal = () => this.isConfirmModalVisible = true;
+  confirmReset = () => { this.resetGroup.emit(); this.isConfirmModalVisible = false; };
+  cancelReset = () => this.isConfirmModalVisible = false;
 }

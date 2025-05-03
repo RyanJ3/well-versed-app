@@ -12,11 +12,11 @@
             (change)="onChapterSelect()"
             class="w-full p-2 border rounded"
           >
-            <option *ngFor="let chapter of currentBookProgress; let i = index" [value]="chapter.chapter">
-              Chapter {{ chapter.chapter }}
+            <option *ngFor="let chapter of currentBookProgress; let i = index" [value]="chapter.chapterNumber">
+              Chapter {{ chapter.chapterNumber }}
               {{
-                chapter.completed ? ' (Completed)' :
-                  (chapter.inProgress ? ' (In Progress)' : ' (Not Started)')
+                chapter.isComplete ? ' (Completed)' :
+                  (chapter.isInProgress ? ' (In Progress)' : ' (Not Started)')
               }}
             </option>
           </select>
@@ -27,17 +27,17 @@
           <p class="text-sm text-gray-500 mb-2">Quick Overview:</p>
           <div class="bubbles-container">
             <button
-              *ngFor="let chapter of currentBookProgress; trackBy: trackByFn"
-              (click)="selectChapter(chapter.chapter)"
+              *ngFor="let chapter of currentBookProgress"
+              (click)="selectChapter(chapter.chapterNumber)"
               class="chapter-bubble"
               [ngClass]="{
-                'not-started': !chapter.inProgress && !chapter.completed,
-                'in-progress': chapter.inProgress && !chapter.completed,
-                'completed': chapter.completed,
-                'selected': chapter.chapter === selectedChapter
+                'not-started': chapter.isInProgress && !chapter.isComplete,
+                'in-progress': chapter.isInProgress && !chapter.isComplete,
+                'completed': chapter.isComplete,
+                'selected': chapter.chapterNumber === selectedChapter
               }"
             >
-              {{ chapter.chapter }}
+              {{ chapter.chapterNumber }}
             </button>
           </div>
         </div>

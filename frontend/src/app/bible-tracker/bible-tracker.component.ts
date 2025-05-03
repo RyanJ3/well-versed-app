@@ -2,14 +2,14 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { BIBLE_DATA, BibleBook, BookProgress, ChapterProgress } from './models';
-import { BibleTrackerService } from './bible-tracker-service';
 import { TestamentSelectorComponent } from './components/testament-selector/testament-selector.component';
 import { GroupSelectorComponent } from './components/group-selector/group-selector.component';
 import { BookSelectorComponent } from './components/book-selector/book-selector.component';
 import { ChapterSelectorComponent } from './components/chapter-selector/chapter-selector.component';
 import { ChapterProgressComponent } from './components/chapter-progress/chapter-progress.component';
 import { BookInfoComponent } from './components/book-info/book-info.component';
+import { BibleService } from '../services/bible.service';
+import { BibleBook, BookGroupType, TestamentType } from '../models/bible.model';
 
 @Component({
   selector: 'app-bible-tracker',
@@ -26,20 +26,18 @@ import { BookInfoComponent } from './components/book-info/book-info.component';
 })
 export class BibleTrackerComponent implements OnInit, OnDestroy {
   // Data sources
-  testaments: string[] = [];
-  availableGroups: string[] = [];
+  testaments: TestamentType[] = [];
+  availableGroups: BookGroupType[] = [];
   booksInGroup: BibleBook[] = [];
-  progress: BookProgress = {};
 
   // Selection state
-  selectedTestament: string = 'Old Testament';
-  selectedGroup: string = 'Wisdom';
+  selectedTestament: TestamentType = TestamentType.OLD;
+  selectedGroup: BookGroupType = BookGroupType.WISDOM;
   selectedBook: string = 'Psalms';
   selectedChapter: number = 1;
 
   // Current book data
-  currentBook: BibleBook = BIBLE_DATA.getBookByName('Psalms');
-  currentBookProgress: ChapterProgress[] = [];
+  currentBook?: BibleBook;
 
   // Selected chapter data
   selectedChapterIndex: number = 0;
@@ -54,19 +52,18 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  constructor(private bibleTrackerService: BibleTrackerService) {}
+  constructor(private bibleService: BibleService) {}
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  onTestamentChange(testament: string): void {
+  onTestamentChange(testament: TestamentType): void {
     this.selectedTestament = testament;
 
     // Get available groups for this testament
-    this.availableGroups =
-      this.bibleTrackerService.getGroupsInTestament(testament);
+    this.availableGroups = this.bibleService.getGroupsInTestament(testament);
 
     // Select first group in the testament
     if (this.availableGroups.length > 0) {
@@ -85,41 +82,54 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     this.updateSelections();
   }
 
-  getGroupStats(group: string): {
+  getGroupStats(group: BookGroupType): {
     percentComplete: number;
-    completedChapters: number;
-    totalChapters: number;
+    memorizedVerses: number;
+    totalVerses: number;
   } {
-    return this.bibleTrackerService.calculateGroupStats(group);
+    const groupObj = this.bibleService.getBible()?.testaments
+      .flatMap(t => t.groups)
+      .find(g => g.name === group);
+      
+    return {
+      percentComplete: groupObj?.percentComplete || 0,
+      memorizedVerses: groupObj?.memorizedVerses || 0,
+      totalVerses: groupObj?.totalVerses || 0
+    };
   }
 
-  getTestamentStats(testament: string): { percentComplete: number } {
-    return this.bibleTrackerService.calculateTestamentStats(testament);
+  getTestamentStats(testament: TestamentType): { percentComplete: number } {
+    return this.bibleService.calculateTestamentStats(testament);
   }
 
   getBookStats(bookName: string): number {
-    const stats = this.bibleTrackerService.calculateBookStats(bookName);
-    return stats.percentComplete;
+    const book = this.bibleService.getBook(bookName);
+    return book?.percentComplete || 0;
   }
 
-
   resetChapter(): void {
-    this.bibleTrackerService.resetChapter(
-      this.selectedBook,
-      this.selectedChapterIndex,
-    );
+    const book = this.bibleService.getBook(this.selectedBook);
+    const chapter = book?.getChapter(this.selectedChapter);
+    if (chapter) {
+      chapter.reset();
+      this.bibleService.saveProgress();
+      this.updateBookStatistics();
+    }
   }
 
   resetBook(): void {
-    this.bibleTrackerService.resetBook(this.selectedBook);
+    this.bibleService.resetBook(this.selectedBook);
+    this.updateBookStatistics();
   }
 
   resetGroup(): void {
-    this.bibleTrackerService.resetGroup(this.selectedGroup);
+    this.bibleService.resetGroup(this.selectedGroup);
+    this.updateBookStatistics();
   }
 
   resetTestament(): void {
-    this.bibleTrackerService.resetTestament(this.selectedTestament);
+    this.bibleService.resetTestament(this.selectedTestament);
+    this.updateBookStatistics();
   }
 
   createArray(length: number): any[] {
@@ -130,11 +140,11 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     return index;
   }
 
-  onGroupChange(group: string): void {
+  onGroupChange(group: BookGroupType): void {
     this.selectedGroup = group;
 
-    // Get books in this group - already sorted by the updated getBooksByGroup method
-    this.booksInGroup = this.bibleTrackerService.getBooksInGroup(group);
+    // Get books in this group
+    this.booksInGroup = this.bibleService.getBooksInGroup(group);
 
     // If we have books, select the first one
     if (this.booksInGroup.length > 0) {
@@ -142,113 +152,89 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Add to bible-tracker.component.ts
   updateMemorizedVerses(selectedVerses: number[]): void {
-    this.bibleTrackerService.updateMemorizedVerses(
-      this.selectedBook,
-      this.selectedChapterIndex,
-      selectedVerses,
-    );
+    selectedVerses.forEach(verse => {
+      this.bibleService.markVerseAsMemorized(
+        this.selectedBook,
+        this.selectedChapter,
+        verse
+      );
+    });
 
     // Force an immediate update of book statistics
     this.updateBookStatistics();
   }
 
-  // Update selection methods
   ngOnInit(): void {
-    // Get testaments and sort them to put Old Testament first
-    this.testaments = this.bibleTrackerService.getTestaments().sort((a: string, b: string) => {
-      // Make sure Old Testament comes before New Testament
-      if (a.includes('Old') && b.includes('New')) return -1;
-      if (a.includes('New') && b.includes('Old')) return 1;
-      return a.localeCompare(b);
-    });
-
-    // Subscribe to progress changes
-    this.bibleTrackerService.progress$
+    // Subscribe to Bible data changes
+    this.bibleService.bible$
       .pipe(takeUntil(this.destroy$))
-      .subscribe((progress) => {
-        this.progress = progress;
-        this.updateSelections();
-        this.updateBookStatistics();
+      .subscribe((bible) => {
+        if (bible) {
+          // Get testaments and ensure they're in the right order
+          this.testaments = bible.getTestamentNames().sort((a, b) => {
+            // Make sure Old Testament comes before New Testament
+            if (a === TestamentType.OLD && b === TestamentType.NEW) return -1;
+            if (a === TestamentType.NEW && b === TestamentType.OLD) return 1;
+            return 0;
+          });
+          
+          this.updateSelections();
+          this.updateBookStatistics();
+        }
       });
 
-    // Set initial selections
-    this.onTestamentChange(this.selectedTestament);
+    // Set initial selections once Bible is loaded
+    this.bibleService.bible$.subscribe(bible => {
+      if (bible) {
+        this.onTestamentChange(this.selectedTestament);
+      }
+    });
   }
 
   private updateSelections(): void {
     // Update available groups
-    this.availableGroups = this.bibleTrackerService.getGroupsInTestament(
-      this.selectedTestament,
+    this.availableGroups = this.bibleService.getGroupsInTestament(
+      this.selectedTestament
     );
 
     // Update books in selected group
-    this.booksInGroup = this.bibleTrackerService.getBooksInGroup(
-      this.selectedGroup,
+    this.booksInGroup = this.bibleService.getBooksInGroup(
+      this.selectedGroup
     );
 
     // Update current book
-    this.currentBook = BIBLE_DATA.getBookByName(this.selectedBook);
+    this.currentBook = this.bibleService.getBook(this.selectedBook);
 
-    // Update current book progress
-    if (this.currentBook && this.progress[this.selectedBook]) {
-      this.currentBookProgress = this.progress[this.selectedBook];
-    } else if (this.currentBook) {
-      this.currentBookProgress = Array(this.currentBook.totalChapters)
-        .fill(null)
-        .map(
-          (_, i) =>
-            new ChapterProgress(i + 1, 0, this.currentBook?.chapters[i] || 0),
-        );
-    } else {
-      this.currentBookProgress = [];
-    }
-
-    // Update selected chapter
+    // Update selected chapter data
     this.selectedChapterIndex = this.selectedChapter - 1;
-    if (
-      this.currentBook &&
-      this.selectedChapterIndex >= 0 &&
-      this.selectedChapterIndex < this.currentBook.chapters.length
-    ) {
-      this.selectedChapterVerses =
-        this.currentBook.chapters[this.selectedChapterIndex];
-      this.selectedChapterMemorized =
-        this.currentBookProgress[this.selectedChapterIndex]?.memorizedVerses ||
-        0;
+    
+    if (this.currentBook) {
+      const chapter = this.currentBook.getChapter(this.selectedChapter);
+      if (chapter) {
+        this.selectedChapterVerses = chapter.totalVerses;
+        this.selectedChapterMemorized = chapter.memorizedVerses;
+      } else {
+        this.selectedChapterVerses = 0;
+        this.selectedChapterMemorized = 0;
+      }
     } else {
       this.selectedChapterVerses = 0;
       this.selectedChapterMemorized = 0;
     }
+  }
 
-    // Update book statistics
+  private updateBookStatistics(): void {
     if (this.currentBook) {
-      const stats = this.bibleTrackerService.calculateBookStats(
-        this.selectedBook,
-      );
-      this.memorizedVerses = stats.memorizedVerses;
-      this.totalVerses = stats.totalVerses;
-      this.completedChapters = stats.completedChapters;
-      this.inProgressChapters = stats.inProgressChapters;
+      this.memorizedVerses = this.currentBook.memorizedVerses;
+      this.totalVerses = this.currentBook.totalVerses;
+      this.completedChapters = this.currentBook.completedChapters;
+      this.inProgressChapters = this.currentBook.inProgressChapters;
     } else {
       this.memorizedVerses = 0;
       this.totalVerses = 0;
       this.completedChapters = 0;
       this.inProgressChapters = 0;
-    }
-  }
-
-  // Add helper method to update book statistics
-  private updateBookStatistics(): void {
-    if (this.currentBook) {
-      const stats = this.bibleTrackerService.calculateBookStats(
-        this.selectedBook,
-      );
-      this.memorizedVerses = stats.memorizedVerses;
-      this.totalVerses = stats.totalVerses;
-      this.completedChapters = stats.completedChapters;
-      this.inProgressChapters = stats.inProgressChapters;
     }
   }
 }

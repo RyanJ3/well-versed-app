@@ -11,11 +11,10 @@
   ></app-testament-selector>
 
   <!-- Group Selector -->
+  <!-- (groupChange)="onGroupChange($event)" -->
+
   <app-group-selector
-    (groupChange)="onGroupChange($event)"
     (resetGroup)="resetGroup()"
-    [availableGroups]="availableGroups"
-    [selectedGroup]="selectedGroup"
   ></app-group-selector>
 
   <!-- Book Selector -->
@@ -39,7 +38,6 @@
   <!-- Chapter Selection -->
   <app-chapter-selector
     (chapterSelect)="onChapterSelect($event)"
-    [currentBookProgress]="currentBookProgress"
     [selectedChapter]="selectedChapter"
   ></app-chapter-selector>
 
@@ -47,8 +45,6 @@
   <app-chapter-progress
     (resetChapter)="resetChapter()"
     (updateProgress)="updateMemorizedVerses($event)"
-    [chapterProgress]="currentBookProgress[selectedChapterIndex]"
-    [currentBook]="currentBook"
     [selectedChapterIndex]="selectedChapterIndex"
     [selectedChapter]="selectedChapter"
   ></app-chapter-progress>

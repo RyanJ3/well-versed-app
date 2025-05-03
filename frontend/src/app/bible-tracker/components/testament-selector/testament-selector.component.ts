@@ -2,8 +2,8 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfirmationModalComponent } from '../../../shared/components/notification/confirmation-modal';
-import { BibleTrackerService } from '../../bible-tracker-service';
-import { BIBLE_DATA } from '../../models';
+import { BibleService } from '../../../services/bible.service';
+import { TestamentType, BookGroupType, BibleTestament } from '../../../models/bible.model';
 
 @Component({
   selector: 'app-testament-selector',
@@ -13,18 +13,18 @@ import { BIBLE_DATA } from '../../models';
   styleUrls: ['./testament-selector.component.scss'],
 })
 export class TestamentSelectorComponent {
-  @Input() testaments: string[] = [];
-  @Input() selectedTestament: string = '';
-  @Input() selectedGroup: string = '';
+  @Input() testaments: TestamentType[] = [];
+  @Input() selectedTestament: TestamentType = TestamentType.OLD;
+  @Input() selectedGroup: BookGroupType = BookGroupType.LAW;
 
-  @Output() testamentChange = new EventEmitter<string>();
+  @Output() testamentChange = new EventEmitter<TestamentType>();
   @Output() resetTestament = new EventEmitter<void>();
 
   isConfirmModalVisible: boolean = false;
 
-  constructor(private bibleTrackerService: BibleTrackerService) {}
+  constructor(private bibleService: BibleService) {}
 
-  selectTestament(testament: string): void {
+  selectTestament(testament: TestamentType): void {
     this.testamentChange.emit(testament);
   }
 
@@ -41,29 +41,29 @@ export class TestamentSelectorComponent {
     this.isConfirmModalVisible = false;
   }
 
-  getTestamentStats(testament: string): { percentComplete: number } {
-    return this.bibleTrackerService.calculateTestamentStats(testament);
+  getTestamentStats(testament: TestamentType): { percentComplete: number } {
+    return this.bibleService.calculateTestamentStats(testament);
   }
 
-  getTestamentBookCount(testament: string): number {
-    return Object.values(BIBLE_DATA).filter(
-      (book) => book.testament === testament,
-    ).length;
+  getTestamentBookCount(testament: TestamentType): number {
+    return this.bibleService.getTestamentBookCount(testament);
   }
 
-  getTestamentChapterCount(testament: string): number {
-    return Object.values(BIBLE_DATA)
-      .filter((book) => book.testament === testament)
-      .reduce((sum, book) => sum + book.totalChapters, 0);
+  getTestamentChapterCount(testament: TestamentType): number {
+    return this.bibleService.getTestamentChapterCount(testament);
   }
 
-  getTestamentVerseCount(testament: string): number {
-    return Object.values(BIBLE_DATA)
-      .filter((book) => book.testament === testament)
-      .reduce((sum, book) => sum + book.totalVerses, 0);
+  getTestamentVerseCount(testament: TestamentType): number {
+    const testamentObj = this.bibleService.getTestament(testament);
+    return testamentObj?.totalVerses || 0;
   }
 
-  getTestamentGroups(testament: string): string[] {
-    return this.bibleTrackerService.getGroupsInTestament(testament);
+  getTestamentMemorizedVerseCount(testament: TestamentType): number {
+    const testamentObj = this.bibleService.getTestament(testament);
+    return testamentObj?.memorizedVerses || 0;
+  }
+
+  getTestamentGroups(testament: TestamentType): BookGroupType[] {
+    return this.bibleService.getGroupsInTestament(testament);
   }
 }

@@ -1,5 +1,5 @@
 // components/verse-selector.component.ts
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 import { NgClass, NgFor } from '@angular/common';
 
 @Component({
@@ -9,11 +9,14 @@ import { NgClass, NgFor } from '@angular/common';
   templateUrl: './verse-selector.component.html',
   styleUrls: ['./verse-selector.component.scss'],
 })
-export class VerseSelectorComponent {
+export class VerseSelectorComponent implements OnChanges {
   @Input() totalVerses: number = 0;
-  @Input() versesMemorized: boolean[] = [];
+  @Input() versesMemorized: number[] = []; // Array of verse numbers that are memorized
 
-  @Output() versesChange = new EventEmitter<boolean[]>();
+  @Output() versesChange = new EventEmitter<number[]>();
+
+  // Internal array to track verse state
+  private selectedVerses: Set<number> = new Set<number>();
 
   get versesArray(): number[] {
     return Array.from({ length: this.totalVerses }, (_, i) => i + 1);
@@ -21,43 +24,46 @@ export class VerseSelectorComponent {
 
   get progressPercent(): number {
     if (!this.totalVerses) return 0;
-    const memorizedCount = this.versesMemorized.filter((v) => v).length;
-    return Math.round((memorizedCount / this.totalVerses) * 100);
+    return Math.round((this.selectedVerses.size / this.totalVerses) * 100);
   }
 
   ngOnChanges(): void {
-    // Make sure versesMemorized is always the right length
-    if (
-      !this.versesMemorized ||
-      this.versesMemorized.length !== this.totalVerses
-    ) {
-      this.versesMemorized = Array(this.totalVerses).fill(false);
-    }
+    // Initialize the set of selected verses based on input
+    this.selectedVerses = new Set<number>(this.versesMemorized || []);
   }
 
   isVerseSelected(verseNumber: number): boolean {
-    return this.versesMemorized[verseNumber - 1];
+    return this.selectedVerses.has(verseNumber);
   }
 
   toggleVerse(verseNumber: number): void {
     if (verseNumber < 1 || verseNumber > this.totalVerses) return;
 
-    // Create a new array to ensure change detection
-    const updatedVerses = [...this.versesMemorized];
-    updatedVerses[verseNumber - 1] = !updatedVerses[verseNumber - 1];
+    // Toggle the verse in our set
+    if (this.selectedVerses.has(verseNumber)) {
+      this.selectedVerses.delete(verseNumber);
+    } else {
+      this.selectedVerses.add(verseNumber);
+    }
 
-    this.versesMemorized = updatedVerses;
-    this.versesChange.emit(updatedVerses);
+    // Emit the updated array of selected verse numbers
+    this.emitChanges();
   }
 
   selectAll(): void {
-    this.versesMemorized = Array(this.totalVerses).fill(true);
-    this.versesChange.emit(this.versesMemorized);
+    this.selectedVerses = new Set<number>(this.versesArray);
+    this.emitChanges();
   }
 
   clearAll(): void {
-    this.versesMemorized = Array(this.totalVerses).fill(false);
-    this.versesChange.emit(this.versesMemorized);
+    this.selectedVerses.clear();
+    this.emitChanges();
+  }
+
+  private emitChanges(): void {
+    // Convert Set to Array for emission
+    const selectedArray = Array.from(this.selectedVerses);
+    this.versesChange.emit(selectedArray);
   }
 
   trackByFn(index: number): number {
