@@ -3,14 +3,14 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ConfirmationModalComponent } from '../../../shared/components/notification/confirmation-modal';
 import { BibleService } from '../../../services/bible.service';
 import { BibleBook } from '../../../models/bible.model';
+import { BaseBibleComponent } from '../../base-bible.component';
 
 @Component({
   selector: 'app-book-info',
   standalone: true,
-  imports: [ConfirmationModalComponent],
   templateUrl: './book-info.component.html',
 })
-export class BookInfoComponent {
+export class BookInfoComponent extends BaseBibleComponent {
   @Input() currentBook: BibleBook | undefined = undefined;
   @Input() memorizedVerses: number = 0;
   @Input() totalVerses: number = 0;
@@ -21,9 +21,8 @@ export class BookInfoComponent {
 
   isConfirmModalVisible: boolean = false;
 
-  constructor(private bibleService: BibleService) {
-    // Default to first chapter of Psalms
-    this.currentBook = this.bibleService.getBible().getBook("Psalms");
+  constructor(bibleService: BibleService) {
+    super(bibleService)
   }
 
   get percentComplete(): number {

@@ -166,30 +166,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Subscribe to Bible data changes
-    this.bibleService.bible$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((bible) => {
-        if (bible) {
-          // Get testaments and ensure they're in the right order
-          this.testaments = bible.getTestamentNames().sort((a, b) => {
-            // Make sure Old Testament comes before New Testament
-            if (a === TestamentType.OLD && b === TestamentType.NEW) return -1;
-            if (a === TestamentType.NEW && b === TestamentType.OLD) return 1;
-            return 0;
-          });
-          
-          this.updateSelections();
-          this.updateBookStatistics();
-        }
-      });
-
-    // Set initial selections once Bible is loaded
-    this.bibleService.bible$.subscribe(bible => {
-      if (bible) {
-        this.onTestamentChange(this.selectedTestament);
-      }
-    });
+   //todo implement
   }
 
   private updateSelections(): void {

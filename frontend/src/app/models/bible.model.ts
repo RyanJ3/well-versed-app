@@ -474,12 +474,6 @@ export class BibleData {
     return result;
   }
 
-  getDefaultGroup(): BibleGroup {
-    // todo customize later
-    // Return the first group from the first testament as default
-    const firstTestament = this.testaments[0];
-    return firstTestament ? firstTestament.groups[0] : new BibleGroup(BookGroupType.LAW);
-  }
 
   getGroupByName(groupName : string): BibleGroup | undefined {
     for (const testament of this.testaments) {

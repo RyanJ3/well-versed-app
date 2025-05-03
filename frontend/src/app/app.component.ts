@@ -3,22 +3,22 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { User } from './models/user';
 import { UserService } from './services/user.service';
+import { RouterModule } from '@angular/router'; // Make sure this is imported
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, CommonModule, RouterLinkActive],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  standalone: true
+  imports: [CommonModule, RouterModule, RouterOutlet, RouterLink, RouterLinkActive],
 })
 export class AppComponent implements OnInit {
   title = 'Well Versed';
   menuActive = false;
   userMenuActive = false;
   memorizeMenuActive = false;
-  currentUser: User | null = null;
+  currentUser: User | undefined;
 
-  constructor(private userService: UserService) {}
+  constructor(private userService: UserService) { }
 
   ngOnInit(): void {
     // Subscribe to user changes

@@ -8,7 +8,7 @@ import { TestamentType, BookGroupType, BibleTestament } from '../../../models/bi
 @Component({
   selector: 'app-testament-selector',
   standalone: true,
-  imports: [CommonModule, ConfirmationModalComponent],
+  imports: [CommonModule],
   templateUrl: './testament-selector.component.html',
   styleUrls: ['./testament-selector.component.scss'],
 })

@@ -1,22 +1,27 @@
 // src/app/app.module.ts
 import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
-import { AppComponent } from './app.component';
 import { BibleTrackerModule } from './bible-tracker/bible-tracker.module';
+import { RouterModule } from '@angular/router';
+import { AppComponent } from './app.component';
+import { BrowserModule } from '@angular/platform-browser';
+
 
 @NgModule({
-  declarations: [AppComponent],
+  declarations: [],
   imports: [
-    BrowserModule,
+    AppComponent,
     FormsModule,
-    HttpClientModule, // Make sure this is added
     BibleTrackerModule,
+    BrowserModule,
+    RouterModule 
   ],
-  providers: [],
-  bootstrap: [AppComponent],
+  providers: [
+    provideHttpClient(withInterceptorsFromDi())
+  ],
+  bootstrap: [],
   exports: [],
 })
 export class AppModule {}

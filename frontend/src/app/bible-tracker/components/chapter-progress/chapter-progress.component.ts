@@ -5,15 +5,17 @@ import { ConfirmationModalComponent } from '../../../shared/components/notificat
 import { VerseSelectorComponent } from '../verse-selector/verse-selector.component';
 import { BibleBook, BibleChapter } from '../../../models/bible.model';
 import { BibleService } from '../../../services/bible.service';
+import { BaseBibleComponent } from '../../base-bible.component';
 
 @Component({
   selector: 'app-chapter-progress',
   standalone: true,
-  imports: [CommonModule, VerseSelectorComponent, ConfirmationModalComponent],
+  imports: [CommonModule, VerseSelectorComponent],
   templateUrl: './chapter-progress.component.html',
   styleUrls: ['./chapter-progress.component.scss'],
 })
-export class ChapterProgressComponent {
+export class ChapterProgressComponent extends BaseBibleComponent{
+
   @Input() selectedChapter: number = 1;
   @Input() selectedChapterIndex: number = 0;
   @Input() chapter: BibleChapter | undefined = undefined;
@@ -26,10 +28,13 @@ export class ChapterProgressComponent {
   isConfirmModalVisible: boolean = false;
   currentBook: BibleBook | undefined = undefined;
 
-  constructor(private bibleService: BibleService) {
-    this.chapter = this.bibleService.getBible().getBook("Psalms")?.chapters[22]; // Default to first chapter of Psalms or fallback
-    this.currentBook = this.bibleService.getBible().getBook("Psalms"); // Default to first chapter of Psalms or fallback
+  constructor(bibleService: BibleService) {
+    super(bibleService);
+
+    this.chapter = this.getDefaultChapter(); // Default to first chapter of Psalms or fallback
+    this.currentBook = this.getDefaultBook(); // Default to first chapter of Psalms or fallback
   }
+
 
   get totalVerses(): number {
     return this.chapter?.totalVerses || 0;

@@ -9,8 +9,6 @@ import { TestamentType, BookGroupType, BibleBook, BibleGroup, BibleData, BibleTe
 export class BibleService {
 
     private bible!: BibleData;
-  private bibleSubject = new BehaviorSubject<BibleData | null>(null);
-  public bible$ = this.bibleSubject.asObservable();
   
   private apiUrl = 'http://localhost:8000/api';
   private userId = 1;
@@ -20,21 +18,7 @@ export class BibleService {
   }
 
   private initializeBible(): void {
-    // Load progress from API or localStorage
-    this.http.get<Record<string, Record<number, number[]>>>(`${this.apiUrl}/user-progress/${this.userId}`)
-      .subscribe({
-        next: (progressData) => {
-          this.bible = new BibleData(progressData);
-          this.bibleSubject.next(this.bible);
-        },
-        error: () => {
-          // If API fails, try localStorage or create with empty progress
-          const savedProgress = localStorage.getItem('bibleProgress');
-          const progressData = savedProgress ? JSON.parse(savedProgress) : {};
-          this.bible = new BibleData(progressData);
-          this.bibleSubject.next(this.bible);
-        }
-      });
+   // todo initialize bible data
   }
 
   // Core data access methods
@@ -130,19 +114,7 @@ export class BibleService {
 
   saveProgress(): void {
     // First, update the observable
-    this.bibleSubject.next(this.bible);
-    
-    // Then save to API and localStorage as backup
-    const progressData = this.bible.getProgressData();
-    
-    // Save to localStorage first (as backup)
-    localStorage.setItem('bibleProgress', JSON.stringify(progressData));
-    
-    // Then save to API
-    this.http.post(`${this.apiUrl}/user-progress/${this.userId}`, progressData)
-      .subscribe({
-        error: (err) => console.error('Failed to save progress to API:', err)
-      });
+    //todo save bible data
   }
 
   getGroupByName(group: string) : BibleGroup | undefined {
