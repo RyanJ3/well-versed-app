@@ -3,22 +3,22 @@
       <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
         <div
           class="h-2 rounded-full bg-blue-500"
-          [style.width.%]="progressPercent"
+          [style.width.%]="selectedChapter?.percentComplete"
         ></div>
       </div>
 
       <!-- Verse bubbles -->
       <div class="bubbles-container scrollable">
         <button
-          *ngFor="let i of versesArray; trackBy: trackByFn"
-          (click)="toggleVerse(i)"
+          *ngFor="let verse of versesArray"
+          (click)="verse.toggle()"
           class="bubble verse-bubble"
           [ngClass]="{
-            'not-selected': !isVerseSelected(i),
-            'selected': isVerseSelected(i)
+            'not-selected': !verse?.memorized,
+            'selected': verse?.memorized
           }"
         >
-          {{ i }}
+          {{ verse?.verseNumber }}
         </button>
       </div>
 

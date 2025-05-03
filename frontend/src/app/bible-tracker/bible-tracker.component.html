@@ -43,9 +43,7 @@
 
   <!-- Selected Chapter Details with Verse Selector -->
   <app-chapter-progress
-    (resetChapter)="resetChapter()"
-    (updateProgress)="updateMemorizedVerses($event)"
-    [selectedChapterIndex]="selectedChapterIndex"
     [selectedChapter]="selectedChapter"
+    (resetChapter)="resetChapter()"
   ></app-chapter-progress>
 </div>

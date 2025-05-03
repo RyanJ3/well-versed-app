@@ -14,7 +14,7 @@ import { BibleBook, BookGroupType } from '../../../models/bible.model';
 export class BookSelectorComponent {
   @Input() booksInGroup: BibleBook[] = [];
   @Input() selectedGroup: BookGroupType = BookGroupType.LAW; 
-  @Input() selectedBook: string = '';
+  @Input() selectedBook: BibleBook | undefined;
 
   @Output() bookChange = new EventEmitter<string>();
 

@@ -94,6 +94,10 @@ export class BibleChapter {
       .map(verse => verse.verseNumber);
   }
 
+  markAllVersesAsMemorized(): void {
+    this.verses.forEach(verse => verse.memorized = true);
+  }
+
   reset(): void {
     this.verses.forEach(verse => verse.memorized = false);
   }

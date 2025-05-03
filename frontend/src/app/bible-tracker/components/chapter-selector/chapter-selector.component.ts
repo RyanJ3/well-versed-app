@@ -2,7 +2,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgClass, NgForOf } from '@angular/common';
-import { BibleChapter } from '../../../models/bible.model';
+import { BibleBook, BibleChapter } from '../../../models/bible.model';
 
 @Component({
   selector: 'app-chapter-selector',
@@ -12,21 +12,18 @@ import { BibleChapter } from '../../../models/bible.model';
   styleUrls: ['./chapter-selector.component.scss'],
 })
 export class ChapterSelectorComponent {
-  @Input() currentBookProgress: BibleChapter[] = [];
-  @Input() selectedChapter: number = 1;
+  @Input() selectedChapter: BibleChapter | undefined;
 
-  @Output() chapterSelect = new EventEmitter<number>();
+  @Output() chapterSelect = new EventEmitter<BibleChapter>();
+  @Input() currentBook: BibleBook | undefined;
 
   onChapterSelect(): void {
     this.chapterSelect.emit(this.selectedChapter);
   }
 
-  selectChapter(chapterNumber: number): void {
+  selectChapter(chapterNumber: BibleChapter): void {
     this.selectedChapter = chapterNumber;
     this.chapterSelect.emit(chapterNumber);
   }
 
-  get currentBookProgressCount(): number {
-    return this.currentBookProgress.length;
-  }
 }

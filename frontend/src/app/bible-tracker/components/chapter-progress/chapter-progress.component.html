@@ -1,39 +1,38 @@
-<div *ngIf="currentBook && selectedChapterIndex >= 0 && selectedChapterIndex < currentBook.chapters.length"
+<div *ngIf="selectedChapter && selectedBook"
   class="bg-white border rounded p-4 shadow-sm">
   <div class="flex justify-between items-center mb-4">
       <h3 class="text-xl font-bold">
-          {{ currentBook.name }} {{ selectedChapter }}
-          <span *ngIf="chapter?.isComplete" class="ml-2 text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
+          {{ selectedBook?.name }} {{ selectedChapter }}
+          <span *ngIf="selectedChapter?.isComplete" class="ml-2 text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
               Completed
           </span>
-          <span *ngIf="!chapter?.isComplete && chapter?.isInProgress"
+          <span *ngIf="!selectedChapter?.isComplete && selectedChapter?.isInProgress"
                 class="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
               In Progress
           </span>
       </h3>
       <span class="text-gray-600">
-          {{ chapter?.memorizedVerses }} / {{ chapter?.totalVerses }} verses
+          {{ selectedChapter?.memorizedVerses }} / {{ selectedChapter?.totalVerses }} verses
       </span>
   </div>
 
   <!-- Progress Details -->
   <div class="mb-4">
       <div class="flex flex-col space-y-1">
-          <p class="text-sm text-gray-600">Total verses: {{ chapter?.totalVerses }}</p>
-          <p class="text-sm text-gray-600">Memorized: {{ chapter?.memorizedVerses }}</p>
+          <p class="text-sm text-gray-600">Total verses: {{ selectedChapter?.totalVerses }}</p>
+          <p class="text-sm text-gray-600">Memorized: {{ selectedChapter?.memorizedVerses }}</p>
           <p class="text-sm text-gray-600">
-              Remaining: {{ chapter?.remainingVerses }}
+              Remaining: {{ selectedChapter?.remainingVerses }}
           </p>
           <p class="text-sm text-gray-600">
-              Progress: {{ chapter?.percentComplete }}%
+              Progress: {{ selectedChapter?.percentComplete }}%
           </p>
       </div>
   </div>
 
   <!-- Verse Selector Component -->
   <app-verse-selector
-      [totalVerses]="chapter?.totalVerses || 0"
-      [versesMemorized]="chapter?.getMemorizedVerseNumbers() || []"
+        [selectedChapter]="selectedChapter"
   ></app-verse-selector>
   <!-- remainingVerses -->
   <!-- Reset Button -->

@@ -1,49 +1,40 @@
 <div class="bg-white p-4 rounded shadow mb-6">
-      <h3 class="text-lg font-semibold mb-3">{{ selectedGroup }} Books</h3>
-      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-        <button
-          *ngFor="let book of booksInGroup"
-          (click)="selectBook(book.name)"
-          class="book-card"
-          [class.active]="selectedBook === book.name"
-          [class.completed]="isBookCompleted(book.name)"
-          [class.in-progress]="isBookInProgress(book.name)"
-        >
-          <div class="card-content">
-            <div class="book-name">{{ book.name }}</div>
+  <h3 class="text-lg font-semibold mb-3">{{ selectedGroup }} Books</h3>
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+    <button *ngFor="let book of booksInGroup" (click)="selectBook(book.name)" class="book-card"
+      [class.active]="selectedBook?.name === book.name" [class.completed]="isBookCompleted(book.name)"
+      [class.in-progress]="isBookInProgress(book.name)">
+      <div class="card-content">
+        <div class="book-name">{{ book.name }}</div>
 
-            <div class="progress-container">
-              <div
-                class="progress-bar"
-                [ngClass]="{
+        <div class="progress-container">
+          <div class="progress-bar" [ngClass]="{
                   'completed-bar': isBookCompleted(book.name),
                   'progress-bar-default': !isBookCompleted(book.name)
-                }"
-                [style.width.%]="getBookStats(book.name)"
-              ></div>
-            </div>
+                }" [style.width.%]="getBookStats(book.name)"></div>
+        </div>
 
-            <div class="stats">
-              <div class="stat-value">{{ getBookStats(book.name) }}%</div>
-              <div class="chapter-stat">{{ getCompletedChapters(book.name) }}/{{ book.totalChapters }}</div>
-            </div>
+        <div class="stats">
+          <div class="stat-value">{{ getBookStats(book.name) }}%</div>
+          <div class="chapter-stat">{{ getCompletedChapters(book.name) }}/{{ book.totalChapters }}</div>
+        </div>
 
-            <!-- Status indicator icon -->
-            <div class="status-icon" *ngIf="isBookCompleted(book.name) || isBookInProgress(book.name)">
-              <svg *ngIf="isBookCompleted(book.name)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                   fill="currentColor" class="completed-icon">
-                <path fill-rule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clip-rule="evenodd"/>
-              </svg>
-              <svg *ngIf="!isBookCompleted(book.name) && isBookInProgress(book.name)" xmlns="http://www.w3.org/2000/svg"
-                   viewBox="0 0 20 20" fill="currentColor" class="progress-icon">
-                <path fill-rule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
-                      clip-rule="evenodd"/>
-              </svg>
-            </div>
-          </div>
-        </button>
+        <!-- Status indicator icon -->
+        <div class="status-icon" *ngIf="isBookCompleted(book.name) || isBookInProgress(book.name)">
+          <svg *ngIf="isBookCompleted(book.name)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+            fill="currentColor" class="completed-icon">
+            <path fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clip-rule="evenodd" />
+          </svg>
+          <svg *ngIf="!isBookCompleted(book.name) && isBookInProgress(book.name)" xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20" fill="currentColor" class="progress-icon">
+            <path fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+              clip-rule="evenodd" />
+          </svg>
+        </div>
       </div>
-    </div>
+    </button>
+  </div>
+</div>
