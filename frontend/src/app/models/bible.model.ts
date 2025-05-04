@@ -208,6 +208,10 @@ export class BibleBook {
 
     return result;
   }
+
+  get memorizedChapters(): number {
+    return this.chapters.filter(chapter => chapter.isComplete).length;
+  }
 }
 
 export class BibleGroup {

@@ -8,7 +8,14 @@ import { CommonModule } from '@angular/common';
   templateUrl: './bible-tracker.component.html',
   imports: [CommonModule],
   styleUrls: [
-    './bible-tracker.component.scss', 
+    './bible-tracker.component.scss',
+    './style-sheets/book-selector.scss',
+    './style-sheets/chapter-selector.scss',
+    './style-sheets/verse-selector.scss',
+    './style-sheets/group-selector.scss',
+    './style-sheets/testament-selector.scss',
+    './style-sheets/shared-bubble.scss',
+    './bible-tracker.component.scss'
   ],
 })
 export class BibleTrackerComponent {

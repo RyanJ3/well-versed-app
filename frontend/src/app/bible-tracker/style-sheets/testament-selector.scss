@@ -1,101 +1,54 @@
+/* ---- TESTAMENT SELECTOR STYLES ---- */
 .testament-card {
-      width: 100%;
-      padding: 16px 20px;
-      border-radius: 12px;
-      transition: all 0.3s ease;
-      border: 1px solid #e5e7eb;
-      position: relative;
-      overflow: hidden;
-      text-align: left;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-    }
+  background-color: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
 
-    .testament-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.08);
-    }
+.testament-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
 
-    .testament-card.active {
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
-    }
+.testament-card.active {
+  border-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.05);
+}
 
-    .old-testament {
-      background: linear-gradient(120deg, rgba(251, 247, 237, 0.8) 0%, rgba(254, 249, 231, 0.6) 100%);
-      border-left: 4px solid #f59e0b;
-    }
+/* Testament-specific styles */
+.testament-old.active {
+  border-color: #f59e0b;
+  background-color: rgba(254, 243, 199, 0.2);
+}
 
-    .old-testament.active {
-      background: linear-gradient(120deg, rgba(254, 243, 199, 0.5) 0%, rgba(253, 230, 138, 0.3) 100%);
-      border-color: #d97706;
-      box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.15);
-    }
+.testament-old.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: linear-gradient(to bottom, #f59e0b, #fbbf24);
+}
 
-    .new-testament {
-      background: linear-gradient(120deg, rgba(238, 242, 255, 0.8) 0%, rgba(224, 231, 255, 0.6) 100%);
-      border-left: 4px solid #6366f1;
-    }
+.testament-new.active {
+  border-color: #6366f1;
+  background-color: rgba(224, 231, 255, 0.2);
+}
 
-    .new-testament.active {
-      background: linear-gradient(120deg, rgba(224, 231, 255, 0.5) 0%, rgba(199, 210, 254, 0.3) 100%);
-      border-color: #4f46e5;
-      box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.15);
-    }
+.testament-new.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: linear-gradient(to bottom, #6366f1, #818cf8);
+}
 
-    .card-content {
-      position: relative;
-      z-index: 2;
-    }
-
-    .transition-width {
-      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    /* Progress Bar Shimmer Effect */
-    .progress-shimmer {
-      background: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.3) 50%,
-        rgba(255, 255, 255, 0) 100%
-      );
-      background-size: 200% 100%;
-      animation: shimmer 2s infinite;
-    }
-
-    @keyframes shimmer {
-      0% {
-        background-position: 200% 0;
-      }
-      100% {
-        background-position: -200% 0;
-      }
-    }
-
-    /* Book Group Chips */
-    .group-chip {
-      font-size: 0.75rem;
-      font-weight: 500;
-      padding: 0.25rem 0.5rem;
-      border-radius: 999px;
-      border: 1px solid transparent;
-      white-space: nowrap;
-    }
-
-    /* Add a subtle decoration to the active testament */
-    .testament-card.active::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 120px;
-      height: 120px;
-      background-image: radial-gradient(circle at top right, rgba(255, 255, 255, 0.8) 10%, transparent 70%);
-      z-index: 1;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 640px) {
-      .testament-card {
-        padding: 12px 16px;
-      }
-    }
