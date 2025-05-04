@@ -21,10 +21,12 @@ export class BookSelectorComponent extends BaseBibleComponent {
   showConfirmModal(): void {
     this.isConfirmModalVisible = true;
   }
+  
   confirmReset(): void {
     this.selectedBook.reset();
     this.isConfirmModalVisible = false;
   }
+  
   cancelReset(): void {
     this.isConfirmModalVisible = false;
   }

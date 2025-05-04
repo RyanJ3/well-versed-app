@@ -1,19 +1,20 @@
+<!-- Group Books Section -->
 <div class="bg-white p-4 rounded shadow mb-6" *ngIf="selectedGroup">
-  <h3 class="text-lg font-semibold mb-3">{{ selectedGroup?.name }} Books</h3>
+  <h3 class="text-lg font-semibold mb-3">{{ selectedGroup.name }} Books</h3>
   <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-    <button *ngFor="let book of selectedGroup?.books" (click)="bookChange.emit(book)" class="book-card"
-      [class.active]="selectedBook?.name === book.name">
+    <button *ngFor="let book of selectedGroup.books" (click)="bookChange.emit(book)" class="book-card"
+      [class.active]="selectedBook.name === book.name">
       <div class="book-name">{{ book.name }}</div>
     </button>
   </div>
 </div>
 
 <!-- Book Info Section -->
-<div class="mb-6 bg-blue-50 p-4 rounded-lg" *ngIf="selectedBook">
+<div class="mb-6 bg-blue-50 p-4 rounded-lg" *ngIf="selectedBook && selectedGroup">
   <div class="flex justify-between items-center mb-2">
     <h2 class="text-xl font-bold">{{ selectedBook.name }}</h2>
     <div class="text-sm text-gray-600">
-      {{ selectedBook?.testament }} • {{ selectedGroup?.name }}
+      {{ selectedBook.testament }} • {{ selectedGroup.name }}
     </div>
   </div>
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -39,5 +40,21 @@
     <button (click)="showConfirmModal()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm">
       Reset Book
     </button>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div *ngIf="isConfirmModalVisible" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+    <h3 class="text-lg font-bold mb-4">Confirm Reset</h3>
+    <p class="mb-6">Are you sure you want to reset all progress for {{ selectedBook.name }}? This action cannot be undone.</p>
+    <div class="flex justify-end space-x-3">
+      <button (click)="cancelReset()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded">
+        Cancel
+      </button>
+      <button (click)="confirmReset()" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded">
+        Reset
+      </button>
+    </div>
   </div>
 </div>
