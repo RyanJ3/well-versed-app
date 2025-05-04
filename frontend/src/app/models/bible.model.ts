@@ -173,8 +173,11 @@ export class BibleBook {
     return this.chapters.filter(chapter => chapter.isInProgress).length;
   }
 
-  getChapter(chapterNumber: number): BibleChapter | undefined {
-    return this.chapters.find(c => c.chapterNumber === chapterNumber);
+  getChapter(chapterNumber: number): BibleChapter {
+    if (chapterNumber < 1 || chapterNumber > this.totalChapters) {
+      throw new Error(`Chapter ${chapterNumber} not found in book ${this.name}`);
+    }
+    return this.chapters[chapterNumber - 1];
   }
 
   markVerseAsMemorized(chapterNumber: number, verseNumber: number): void {
@@ -239,8 +242,12 @@ export class BibleGroup {
     return this.books.filter(book => book.percentComplete === 100).length;
   }
 
-  getBook(name: string): BibleBook | undefined {
-    return this.books.find(book => book.name === name);
+  getBookByName(name: string): BibleBook {
+    const book = this.books.find(book => book.name === name);
+    if (!book) {
+      throw new Error(`Book ${name} not found in group ${this.name}`);
+    }
+    return book;
   }
 
   reset(): void {
@@ -267,6 +274,14 @@ export class BibleTestament {
       this.groups.push(new BibleGroup(groupName, groupBooks));
     });
   }
+
+  get isOld(): boolean {
+    return this.name === TestamentType.OLD;
+  };
+
+  get isNew(): boolean {
+    return this.name === TestamentType.NEW;
+  };
 
   get books(): BibleBook[] {
     return this._books;
@@ -298,17 +313,21 @@ export class BibleTestament {
     return this.groups.map(group => group.name);
   }
 
-  getGroup(name: BookGroupType): BibleGroup | undefined {
-    return this.groups.find(group => group.name === name);
+  //todo consolidate with getGroup
+  getGroup(name: string): BibleGroup {
+    const group = this.groups.find(g => g.name === name);
+    if (!group) {
+      throw new Error(`Group ${name} not found in testament ${this.name}`);
+    }
+    return group;
   }
 
-  getBook(name: string): BibleBook | undefined {
-    return this.bookMap.get(name);
-  }
-
-  getBooksInGroup(groupName: BookGroupType): BibleBook[] {
-    const group = this.getGroup(groupName);
-    return group ? group.books : [];
+  getBook(name: string): BibleBook {
+    const book = this.books.find(b => b.name === name);
+    if (!book) {
+      throw new Error(`Book ${name} not found in testament ${this.name}`);
+    }
+    return book;
   }
 
   reset(): void {
@@ -318,7 +337,7 @@ export class BibleTestament {
 
 export class BibleData {
 
-  private readonly testamentMap: Map<TestamentType, BibleTestament> = new Map();
+  private readonly testamentMap: Map<string, BibleTestament> = new Map();
   private readonly bookMap: Map<string, BibleBook> = new Map();
   private readonly synonyms: Record<string, string> = {};
   private readonly bookIndex: Record<string, number> = {};
@@ -371,8 +390,12 @@ export class BibleData {
     return Array.from(this.testamentMap.values());
   }
 
-  getTestamentByName(name: TestamentType): BibleTestament | undefined {
-    return this.testamentMap.get(name);
+  getTestamentByName(name: string): BibleTestament {
+    let testament = this.testamentMap.get(name);
+    if (testament) {
+      return testament;
+    }
+    throw new Error(`Testament ${name} not found`);
   }
 
 
@@ -398,41 +421,20 @@ export class BibleData {
       : 0;
   }
 
-  getTestamentNames(): TestamentType[] {
-    return Array.from(this.testamentMap.keys());
+  getTestament(name: string): BibleTestament {
+    const testament = this.testamentMap.get(name);
+    if (!testament) {
+      throw new Error(`Testament ${name} not found`);
+    }
+    return testament;
   }
 
-  getTestament(name: TestamentType): BibleTestament | undefined {
-    return this.testamentMap.get(name);
-  }
-
-  getBook(name: string): BibleBook | undefined {
-    // Direct lookup first (fastest)
+  getBookByName(name: string): BibleBook {
     const book = this.bookMap.get(name);
-    if (book) return book;
-
-    // Try case insensitive lookup
-    const lowercaseName = name.toLowerCase();
-    for (const [bookName, book] of this.bookMap.entries()) {
-      if (bookName.toLowerCase() === lowercaseName) {
-        return book;
-      }
+    if (!book) {
+      throw new Error(`Book ${name} not found`);
     }
-
-    // Try synonyms
-    if (this.synonyms[name]) {
-      const synonymBook = this.getBook(this.synonyms[name]);
-      if (synonymBook) return synonymBook;
-    }
-
-    // Try bookIndex
-    const bookIndex = this.bookIndex[name];
-    if (bookIndex !== undefined) {
-      const bookByIndex = this.books.find(b => b.order === bookIndex);
-      if (bookByIndex) return bookByIndex;
-    }
-
-    return undefined;
+    return book;
   }
 
   getGroupsInTestament(testamentName: TestamentType): BookGroupType[] {
@@ -441,14 +443,14 @@ export class BibleData {
   }
 
   markVerseAsMemorized(bookName: string, chapterNumber: number, verseNumber: number): void {
-    const book = this.getBook(bookName);
+    const book = this.getBookByName(bookName);
     if (book) {
       book.markVerseAsMemorized(chapterNumber, verseNumber);
     }
   }
 
   toggleVerse(bookName: string, chapterNumber: number, verseNumber: number): boolean {
-    const book = this.getBook(bookName);
+    const book = this.getBookByName(bookName);
     return book ? book.toggleVerse(chapterNumber, verseNumber) : false;
   }
 
@@ -457,7 +459,7 @@ export class BibleData {
   }
 
   resetBook(bookName: string): void {
-    const book = this.getBook(bookName);
+    const book = this.getBookByName(bookName);
     if (book) {
       book.reset();
     }
@@ -479,14 +481,14 @@ export class BibleData {
     });
   }
 
-  getGroupByName(groupName: string): BibleGroup | undefined {
+  getGroupByName(groupName: string): BibleGroup {
     for (const testament of this.testaments) {
       const group = testament.getGroup(groupName as BookGroupType);
       if (group) {
         return group;
       }
     }
-    return undefined;
+    throw new Error(`Group ${groupName} not found`);
   }
 
 }

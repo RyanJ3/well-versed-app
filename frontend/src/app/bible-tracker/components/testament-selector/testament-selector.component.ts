@@ -13,13 +13,13 @@ import { BaseBibleComponent } from '../../base-bible.component';
   templateUrl: './testament-selector.component.html',
   styleUrls: ['./testament-selector.component.scss'],
 })
-export class TestamentSelectorComponent extends BaseBibleComponent{
+export class TestamentSelectorComponent extends BaseBibleComponent {
 
   @Input() testaments: BibleTestament[] = [];
-  @Input() selectedTestament: BibleTestament | undefined;;
-  @Input() selectedGroup: BibleGroup | undefined;
+  @Input() selectedTestament: BibleTestament ;;
+  @Input() selectedGroup: BibleGroup ;
 
-  @Output() testamentChange = new EventEmitter<TestamentType>();
+  @Output() testamentChange = new EventEmitter<BibleTestament>();
   @Output() resetTestament = new EventEmitter<void>();
 
   isConfirmModalVisible: boolean = false;
@@ -29,9 +29,10 @@ export class TestamentSelectorComponent extends BaseBibleComponent{
 
     this.selectedTestament = this.getDefaultTestament();
     this.selectedGroup = this.getDefaultGroup();
+    this.testaments = this.testaments;
   }
 
-  selectTestament(testament: TestamentType): void {
+  selectTestament(testament: BibleTestament): void {
     this.testamentChange.emit(testament);
   }
 
@@ -46,6 +47,10 @@ export class TestamentSelectorComponent extends BaseBibleComponent{
 
   cancelReset(): void {
     this.isConfirmModalVisible = false;
+  }
+
+  filterBookGroups(bibleTestament: BibleTestament) {
+    this.testamentChange.emit(bibleTestament);
   }
 
 }

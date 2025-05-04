@@ -29,16 +29,20 @@ export class BibleTrackerComponent extends BaseBibleComponent implements OnDestr
   booksInGroup: BibleBook[] = [];
 
   // Selection state - only maintain one reference to each 
-  selectedTestament: BibleTestament | undefined;;
-  selectedGroup: BibleGroup | undefined;
+  selectedTestament: BibleTestament;
+  selectedGroup: BibleGroup;
   
   // Main model objects - these contain all the stats
-  selectedBook?: BibleBook;
-  selectedChapter?: BibleChapter;
-  currentBook: BibleBook|undefined;
+  selectedBook: BibleBook;
+  selectedChapter: BibleChapter;
 
   constructor() {
     super();
+
+    this.selectedBook = this.getDefaultBook();
+    this.selectedChapter = this.getDefaultChapter();
+    this.selectedTestament = this.getDefaultTestament();
+    this.selectedGroup = this.getDefaultGroup();
   }
 
   // override ngOnInit(): void {
@@ -48,17 +52,21 @@ export class BibleTrackerComponent extends BaseBibleComponent implements OnDestr
   //   this.onTestamentChange(this.selectedTestament);
   // }
 
-  onBookChange(bookName: string): void {
-    this.selectedBook = this.getBook(bookName);
-    
-    // Select first chapter of the book
-    if (this.selectedBook && this.selectedBook.chapters.length > 0) {
-      this.onChapterSelect(this.selectedBook.chapters[0]);
-    }
+  onBookChange(bibleBook: BibleBook): void {
+    this.selectedBook = bibleBook;
   }
 
   onChapterSelect(chapter: BibleChapter): void {
     this.selectedChapter = chapter;
+  }
+
+  onGroupChange(group: BibleGroup): void {
+    this.selectedGroup = group;
+  }
+
+  onTestamentChange(testament: BibleTestament): void {
+    this.selectedTestament = testament;
+    this.booksInGroup = this.getBooksInGroup(this.selectedGroup);
   }
 
 }

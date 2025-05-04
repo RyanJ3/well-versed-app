@@ -4,7 +4,7 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
     <button
       *ngFor="let group of availableGroups"
-      (click)="onGroupSelected(group.name)"
+      (click)="onGroupSelected(group)"
       class="group-card"
       [class.active]="group === selectedGroup"
       

@@ -13,15 +13,18 @@
     </button>
 
     <nav class="app-nav" [class.active]="menuActive">
-      <a routerLink="/tracker" class="nav-link" routerLinkActive="active"
-         (click)="closeMenu()">Tracker</a>
+      <a routerLink="/tracker" class="nav-link" routerLinkActive="active" (click)="closeMenu()">Tracker</a>
 
       <!-- Memorize dropdown menu -->
       <div class="nav-dropdown">
-        <button class="nav-link dropdown-toggle" [class.active]="memorizeMenuActive" (click)="toggleMemorizeMenu($event)">
+        <button class="nav-link dropdown-toggle" [class.active]="memorizeMenuActive"
+          (click)="toggleMemorizeMenu($event)">
           Memorize
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="dropdown-icon" [class.rotate]="memorizeMenuActive">
-            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="dropdown-icon"
+            [class.rotate]="memorizeMenuActive">
+            <path fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clip-rule="evenodd" />
           </svg>
         </button>
 
@@ -31,27 +34,30 @@
           <!-- Add other memorization tools here in the future -->
         </div>
       </div>
-      
+
       <!-- User profile menu -->
       <div class="user-profile-container" *ngIf="currentUser">
         <button class="user-profile-button" (click)="toggleUserMenu()">
           <div class="user-avatar">
-            <span>{{ currentUser?.name }}</span>
+            <span>{{ currentUser.name }}</span>
           </div>
-          <span class="user-name">{{ currentUser?.name }}</span>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="dropdown-icon" [class.rotate]="userMenuActive">
-            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          <span class="user-name">{{ currentUser.name }}</span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="dropdown-icon"
+            [class.rotate]="userMenuActive">
+            <path fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clip-rule="evenodd" />
           </svg>
         </button>
-        
+
         <div class="user-menu-dropdown" [class.active]="userMenuActive">
           <div class="user-menu-header">
             <div class="user-menu-avatar">
-              <span>{{ currentUser?.name }}</span>
+              <span>{{ currentUser.name }}</span>
             </div>
             <div class="user-menu-info">
-              <div class="user-menu-name">{{ currentUser?.name }}</div>
-              <div class="user-menu-email">{{ currentUser?.email }}</div>
+              <div class="user-menu-name">{{ currentUser.name }}</div>
+              <div class="user-menu-email">{{ currentUser.email }}</div>
             </div>
           </div>
           <div class="user-menu-items">

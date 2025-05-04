@@ -21,39 +21,47 @@ export abstract class BaseBibleComponent implements OnInit, OnDestroy {
   protected onBibleDataLoaded(): void {}
 
   // Convenience methods for accessing Bible data
-  getTestament(testament: TestamentType): BibleTestament | undefined {
-    return this.bibleData?.getTestamentByName(testament);
+  getTestament(testament: TestamentType): BibleTestament  {
+    return this.bibleData.getTestamentByName(testament);
   }
 
-  getOldTestament(): BibleTestament | undefined {
+  getOldTestament(): BibleTestament {
     return this.getTestament(TestamentType.OLD);
   }
 
-  getNewTestament(): BibleTestament | undefined {
+  getNewTestament(): BibleTestament  {
     return this.getTestament(TestamentType.NEW);
   }
 
-  getDefaultTestament(): BibleTestament | undefined{
+  getDefaultTestament(): BibleTestament {
     return this.getOldTestament();
   }
 
-  getDefaultGroup(): BibleGroup | undefined{
-    return this.getDefaultBook()?.group;
+  getDefaultGroup(): BibleGroup {
+    return this.getDefaultBook().group;
   }
-  getBook(bookName: string): BibleBook | undefined {
-    return this.bibleData?.getBook(bookName);
-  }
-
-  getGroup(groupName: BookGroupType): BibleBook[] | undefined {
-    return this.bibleData?.getGroupByName(groupName)?.books;
+  getBook(bookName: string): BibleBook  {
+    return this.bibleData.getBookByName(bookName);
   }
 
-  getDefaultBook(): BibleBook | undefined{
+  getGroup(groupName: BookGroupType): BibleBook[]  {
+    return this.bibleData.getGroupByName(groupName).books;
+  }
+
+  getDefaultBook(): BibleBook {
     return this.getBook("Psalms");
   }
 
-  getDefaultChapter(): BibleChapter | undefined {
-    return this.getBook("Psalms")?.chapters[22];
+  getDefaultChapter(): BibleChapter  {
+    return this.getBook("Psalms").chapters[22];
+  }
+
+  getBooksInGroup(selectedGroup: BibleGroup): BibleBook[] {
+    if (!selectedGroup) {
+      console.warn('Selected group is undefined.');
+      return [];
+    }
+    return this.bibleData.getGroupByName(selectedGroup.name).books || [];
   }
 
 }

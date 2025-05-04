@@ -9,23 +9,22 @@ import { BibleBook, BibleChapter } from '../../../models/bible.model';
   selector: 'app-chapter-progress',
   templateUrl: './chapter-progress.component.html',
   styleUrls: ['./chapter-progress.component.scss'],
-  standalone: true,  // If using standalone component approach
+  standalone: true,
   imports: [
     CommonModule,
-    VerseSelectorComponent  // Make sure this component is also properly configured
+    VerseSelectorComponent
   ]
 })
 export class ChapterProgressComponent extends BaseBibleComponent implements OnInit {
 
-  @Input() selectedChapter?: BibleChapter | undefined;
-  @Input() selectedBook?: BibleBook | undefined;
+  @Input() selectedChapter: BibleChapter ;
+  @Input() selectedBook: BibleBook ;
   
   constructor() {
     super();
-  }
-  
-  override ngOnInit(): void {
-    super.ngOnInit();
+
+    this.selectedChapter = this.getDefaultChapter();
+    this.selectedBook = this.getDefaultBook();
   }
   
 }

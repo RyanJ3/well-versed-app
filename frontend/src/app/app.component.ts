@@ -16,9 +16,11 @@ export class AppComponent implements OnInit {
   menuActive = false;
   userMenuActive = false;
   memorizeMenuActive = false;
-  currentUser: User | undefined;
+  currentUser: User ;
 
-  constructor(private userService: UserService) { }
+  constructor(private userService: UserService) {
+    this.currentUser = this.userService.getCurrentUser() || { id: '', name: '', email: '' };
+  }
 
   ngOnInit(): void {
     // Subscribe to user changes

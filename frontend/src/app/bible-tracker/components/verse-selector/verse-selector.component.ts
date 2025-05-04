@@ -13,18 +13,25 @@ import { BaseBibleComponent } from '../../base-bible.component';
 })
 export class VerseSelectorComponent extends BaseBibleComponent {
 
-  @Input() selectedChapter: BibleChapter | undefined;
+  @Input() selectedChapter: BibleChapter ;
+  // @Output() verseSelect = new EventEmitter<BibleVerse>();
+
+  constructor() {
+    super();
+
+    this.selectedChapter = this.getDefaultChapter();
+  }
 
   get versesArray(): BibleVerse[] {
-    return this.selectedChapter?.verses || [];
+    return this.selectedChapter.verses || [];
   }
 
   selectAll(): void {
-    this.selectedChapter?.markAllVersesAsMemorized();
+    this.selectedChapter.markAllVersesAsMemorized();
   }
 
   clearAll(): void {
-    this.selectedChapter?.markAllVersesAsMemorized();
+    this.selectedChapter.markAllVersesAsMemorized();
   }
 
 }

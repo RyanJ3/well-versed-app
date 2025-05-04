@@ -1,92 +1,9 @@
-<div class="bg-white p-6 rounded-lg shadow mb-6">
-  <!-- Overall Bible Progress -->
-  <div class="mb-6">
-    <div class="flex justify-between items-center mb-2">
-      <h3 class="text-xl font-bold text-gray-800">Bible Memorization Progress</h3>
-      <div class="text-right">
-        <span class="text-lg font-medium">{{ bibleData?.memorizedVerses || 0 }} / {{ bibleData?.totalVerses || 0
-          }}</span>
-        <span class="text-sm text-gray-500 ml-1">verses</span>
-      </div>
-    </div>
+<div>
 
-    <!-- Overall progress bar -->
-    <div class="h-3 bg-gray-100 rounded-full overflow-hidden">
-      <div class="h-full bg-gradient-to-r from-blue-600 to-purple-600 transition-width duration-500"
-        [style.width.%]="bibleData?.percentComplete || 0">
-        <div class="progress-shimmer absolute inset-0"></div>
-      </div>
-    </div>
-
-    <div class="flex justify-between mt-1 text-xs text-gray-500">
-      <span>{{ bibleData?.percentComplete || 0 }}% Complete</span>
-      <span>{{ bibleData?.totalBooks || 0 }} Books • {{ bibleData?.totalChpaters }} Chapters</span>
-    </div>
-  </div>
-
-  <!-- Testament Selection -->
-  <h4 class="text-base font-semibold mb-3 text-gray-700">Select Testament</h4>
-
-  <div class="grid grid-cols-2 gap-4">
-    <!-- Testament Button (consolidated for both Old and New) -->
-    <button *ngFor="let testament of testaments" (click)="selectTestament(testament.name)"
-      class="testament-button relative overflow-hidden rounded-lg border-2 transition duration-200">
-      <!-- [class.border-amber-400]="selectedTestament === testament.name && testament.name === 'Old Testament'"
-      [class.border-indigo-400]="selectedTestament === testament.name && testament.name === 'New Testament'"
-      [class.border-gray-200]="selectedTestament !== testament.name"
-      [class.shadow-md]="selectedTestament === testament.name" -->
-
-      <div class="p-4">
-        <div class="flex justify-between items-center">
-          <h5 class="text-lg font-semibold" [class.text-amber-700]="testament.name === 'Old Testament'"
-            [class.text-indigo-700]="testament.name === 'New Testament'">
-            {{ testament.name }}
-          </h5>
-          <span class="text-sm font-medium" [class.text-amber-600]="testament.name === 'Old Testament'"
-            [class.text-indigo-600]="testament.name === 'New Testament'">
-            {{ testament.percentComplete }}%
-          </span>
-        </div>
-
-        <!-- Testament progress bar -->
-        <div class="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div class="h-full transition-width duration-500" [class.bg-gradient-to-r]="true"
-            [class.from-amber-500]="testament.name === 'Old Testament'"
-            [class.to-amber-300]="testament.name === 'Old Testament'"
-            [class.from-indigo-600]="testament.name === 'New Testament'"
-            [class.to-indigo-400]="testament.name === 'New Testament'" [style.width.%]="testament.percentComplete">
-            <div class="progress-shimmer absolute inset-0"></div>
-          </div>
-        </div>
-
-        <div class="mt-3 flex justify-between text-xs">
-          <span class="text-gray-600">{{ testament.books.length }} Books</span>
-          <span class="text-gray-500">{{ testament.totalVerses }} Verses</span>
-        </div>
-
-        <!-- Book groups preview -->
-        <div class="mt-4 flex flex-wrap gap-2">
-          <div *ngFor="let group of testament.groups" class="group-chip px-2 py-1 rounded text-xs"
-            [class.bg-amber-100]="testament.name === 'Old Testament'"
-            [class.text-amber-800]="testament.name === 'Old Testament'"
-            [class.bg-indigo-100]="testament.name === 'New Testament'"
-            [class.text-indigo-800]="testament.name === 'New Testament'">
-            {{ group.name }}
-          </div>
-        </div>
-      </div>
-
-      <div class="absolute bottom-0 left-0 w-full h-1"
-        [class.bg-amber-500]="testament.name === 'Old Testament'"
-        [class.bg-indigo-500]="testament.name === 'New Testament'"></div>
-    </button>
-  </div>
-
-  <!-- Reset button -->
-  <div class="mt-6 text-right">
-    <button *ngIf="selectedTestament" (click)="showConfirmModal()"
-      class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm transition-colors duration-200">
-      Reset {{ selectedTestament }}
-    </button>
+  <div>
+    <h4>Filtered Book Groups:</h4>
+    <ul>
+      <li *ngFor="let book of ">{{ book }}</li>
+    </ul>
   </div>
 </div>

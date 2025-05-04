@@ -2,7 +2,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ConfirmationModalComponent } from '../../../shared/components/notification/confirmation-modal';
 import { BibleService } from '../../../services/bible.service';
-import { BibleBook } from '../../../models/bible.model';
+import { BibleBook, BibleChapter } from '../../../models/bible.model';
 import { BaseBibleComponent } from '../../base-bible.component';
 
 @Component({
@@ -12,13 +12,16 @@ import { BaseBibleComponent } from '../../base-bible.component';
 })
 export class BookInfoComponent extends BaseBibleComponent {
 
-  @Input() selectedBook: BibleBook | undefined;
-  @Input() selectedChapter: number | undefined;
+  @Input() selectedBook: BibleBook ;
+  @Input() selectedChapter: BibleChapter ;
 
   isConfirmModalVisible: boolean = false;
 
   constructor() {
     super()
+
+    this.selectedBook = this.getDefaultBook();
+    this.selectedChapter = this.getDefaultChapter();
   }
 
   showConfirmModal(): void {
@@ -26,7 +29,7 @@ export class BookInfoComponent extends BaseBibleComponent {
   }
 
   confirmReset(): void {
-    this.selectedBook?.reset();
+    this.selectedBook.reset();
     this.isConfirmModalVisible = false;
   }
 

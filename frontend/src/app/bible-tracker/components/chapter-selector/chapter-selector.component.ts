@@ -3,6 +3,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgClass, NgForOf } from '@angular/common';
 import { BibleBook, BibleChapter } from '../../../models/bible.model';
+import { BaseBibleComponent } from '../../base-bible.component';
 
 @Component({
   selector: 'app-chapter-selector',
@@ -11,11 +12,19 @@ import { BibleBook, BibleChapter } from '../../../models/bible.model';
   templateUrl: './chapter-selector.component.html',
   styleUrls: ['./chapter-selector.component.scss'],
 })
-export class ChapterSelectorComponent {
-  @Input() selectedChapter: BibleChapter | undefined;
+export class ChapterSelectorComponent extends BaseBibleComponent {
+  @Input() selectedChapter: BibleChapter;
 
   @Output() chapterSelect = new EventEmitter<BibleChapter>();
-  @Input() currentBook: BibleBook | undefined;
+  @Input() currentBook: BibleBook;
+
+  constructor() {
+    super();
+
+    this.selectedChapter = this.getDefaultChapter();
+    this.currentBook = this.getDefaultBook();
+  }
+
 
   onChapterSelect(): void {
     this.chapterSelect.emit(this.selectedChapter);

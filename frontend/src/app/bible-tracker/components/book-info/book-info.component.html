@@ -1,34 +1,34 @@
 <div class="mb-6 bg-blue-50 p-4 rounded-lg">
   <div class="flex justify-between items-center mb-2">
-    <h2 class="text-xl font-bold">{{ selectedBook?.name }}</h2>
+    <h2 class="text-xl font-bold">{{ selectedBook.name }}</h2>
     <div class="text-sm text-gray-600">
-      {{ selectedBook?.testament }} • {{ selectedBook?.group }}
+      {{ selectedBook.testament }} • {{ selectedBook.group }}
     </div>
   </div>
   <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
     <div class="bg-white p-3 rounded shadow">
       <p class="text-sm text-gray-500">Verses Memorized</p>
-      <p class="text-xl font-bold">{{ selectedBook?.memorizedVerses }} / {{ selectedBook?.totalVerses }}</p>
-      <p class="text-sm text-blue-600">{{ selectedBook?.percentComplete }}%</p>
+      <p class="text-xl font-bold">{{ selectedBook.memorizedVerses }} / {{ selectedBook.totalVerses }}</p>
+      <p class="text-sm text-blue-600">{{ selectedBook.percentComplete }}%</p>
     </div>
     <div class="bg-white p-3 rounded shadow">
       <p class="text-sm text-gray-500">Chapters</p>
-      <p class="text-xl font-bold">{{ selectedBook?.totalChapters }}</p>
+      <p class="text-xl font-bold">{{ selectedBook.totalChapters }}</p>
     </div>
     <div class="bg-white p-3 rounded shadow">
       <p class="text-sm text-gray-500">Chapters Completed</p>
-      <p class="text-xl font-bold">{{ selectedBook }} / {{ selectedBook?.totalChapters }}</p>
+      <p class="text-xl font-bold">{{ selectedBook }} / {{ selectedBook.totalChapters }}</p>
     </div>
     <div class="bg-white p-3 rounded shadow">
       <p class="text-sm text-gray-500">Chapters In Progress</p>
-      <p class="text-xl font-bold">{{ selectedBook?.inProgressChapters }}</p>
+      <p class="text-xl font-bold">{{ selectedBook.inProgressChapters }}</p>
     </div>
   </div>
 
   <!-- Book progress bar -->
   <div class="mt-4">
     <div class="w-full bg-gray-200 rounded-full h-4">
-      <div class="bg-blue-600 h-4 rounded-full" [style.width.%]="selectedBook?.percentComplete"></div>
+      <div class="bg-blue-600 h-4 rounded-full" [style.width.%]="selectedBook.percentComplete"></div>
     </div>
   </div>
 
@@ -41,5 +41,5 @@
 
 <!-- Confirmation Modal -->
 <!-- <app-confirmation-modal [isVisible]="isConfirmModalVisible" [title]="'Reset Book'"
-  [message]="'Are you sure you want to reset all progress for ' + (currentBook?.name || '') + '? This action cannot be undone.'"
+  [message]="'Are you sure you want to reset all progress for ' + (currentBook.name || '') + ' This action cannot be undone.'"
   [confirmText]="'Reset'" (confirm)="confirmReset()" (cancel)="cancelReset()"></app-confirmation-modal> -->

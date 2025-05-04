@@ -2,7 +2,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BibleService } from '../../../services/bible.service';
-import { BibleBook, BookGroupType } from '../../../models/bible.model';
+import { BibleBook, BibleGroup, BookGroupType } from '../../../models/bible.model';
 import { BaseBibleComponent } from '../../base-bible.component';
 
 @Component({
@@ -14,17 +14,21 @@ import { BaseBibleComponent } from '../../base-bible.component';
 })
 export class BookSelectorComponent extends BaseBibleComponent {
   @Input() booksInGroup: BibleBook[] = [];
-  @Input() selectedGroup: BookGroupType = BookGroupType.LAW; 
-  @Input() selectedBook: BibleBook | undefined;;
+  @Input() selectedGroup: BibleGroup; 
+  @Input() selectedBook: BibleBook;
 
-  @Output() bookChange = new EventEmitter<string>();
+  @Output() bookChange = new EventEmitter<BibleBook>();
 
   constructor() {
     super();
+
+    this.selectedBook = this.getDefaultBook();
+    this.selectedGroup = this.getDefaultGroup();
+    this.booksInGroup = this.getBooksInGroup(this.selectedGroup);
   }
 
-  selectBook(bookName: string): void {
-    this.bookChange.emit(bookName);
+  selectBook(bibleBook: BibleBook): void {
+    this.bookChange.emit(bibleBook);
   }
 
 }
