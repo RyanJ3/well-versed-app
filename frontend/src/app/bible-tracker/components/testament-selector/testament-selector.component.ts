@@ -15,8 +15,8 @@ import { BaseBibleComponent } from '../../base-bible.component';
 })
 export class TestamentSelectorComponent extends BaseBibleComponent {
 
-  @Input() testaments: BibleTestament[] = [];
-  @Input() selectedTestament: BibleTestament ;;
+  @Input() selectedTestament: BibleTestament ;
+;
   @Input() selectedGroup: BibleGroup ;
 
   @Output() testamentChange = new EventEmitter<BibleTestament>();
@@ -29,7 +29,6 @@ export class TestamentSelectorComponent extends BaseBibleComponent {
 
     this.selectedTestament = this.getDefaultTestament();
     this.selectedGroup = this.getDefaultGroup();
-    this.testaments = this.testaments;
   }
 
   selectTestament(testament: BibleTestament): void {
@@ -52,5 +51,12 @@ export class TestamentSelectorComponent extends BaseBibleComponent {
   filterBookGroups(bibleTestament: BibleTestament) {
     this.testamentChange.emit(bibleTestament);
   }
-
+  
+  filterTestament(type: 'OLD' | 'NEW'): void {
+    if (!this.selectedTestament) {
+      throw new Error(`Testament of type ${type} not found.`);
+    }
+    this.selectedTestament = this.selectedTestament;
+    this.testamentChange.emit(this.selectedTestament);
+  }
 }

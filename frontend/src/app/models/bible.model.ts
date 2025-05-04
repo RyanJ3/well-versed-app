@@ -256,35 +256,39 @@ export class BibleGroup {
 }
 
 export class BibleTestament {
-  public readonly groups: BibleGroup[] = [];
-  public readonly bookMap: Map<string, BibleBook> = new Map();
-  public readonly _books;
-  getGroups: any;
+
+  public readonly books: BibleBook[];
 
   constructor(
-    public readonly name: TestamentType,
+    public readonly name: 'Old Testament' | 'New Testament',
     public readonly testamentBooks: BibleBook[]
   ) {
-    this._books = testamentBooks;
-    // Organize books into groups
-    const groupMap = new Map<BookGroupType, BibleBook[]>();
+    this.books = testamentBooks;
+  }
 
-    // Create group objects
-    groupMap.forEach((groupBooks, groupName) => {
-      this.groups.push(new BibleGroup(groupName, groupBooks));
+  get groups(): BibleGroup[] {
+    const groupMap = new Map<string, BibleGroup>();
+
+    this.books.forEach(book => {
+      if (!groupMap.has(book.group.name)) {
+        groupMap.set(book.group.name, book.group);
+      }
+      groupMap.get(book.group.name)?.books.push(book);
     });
+
+    return Array.from(groupMap.values());
+  }
+
+  get bookMap(): Map<string, BibleBook> {
+    return new Map(this.books.map(book => [book.name, book]));
   }
 
   get isOld(): boolean {
     return this.name === TestamentType.OLD;
-  };
+  }
 
   get isNew(): boolean {
     return this.name === TestamentType.NEW;
-  };
-
-  get books(): BibleBook[] {
-    return this._books;
   }
 
   get totalBooks(): number {
@@ -309,11 +313,6 @@ export class BibleTestament {
       : 0;
   }
 
-  getGroupNames(): BookGroupType[] {
-    return this.groups.map(group => group.name);
-  }
-
-  //todo consolidate with getGroup
   getGroup(name: string): BibleGroup {
     const group = this.groups.find(g => g.name === name);
     if (!group) {
@@ -323,7 +322,7 @@ export class BibleTestament {
   }
 
   getBook(name: string): BibleBook {
-    const book = this.books.find(b => b.name === name);
+    const book = this.bookMap.get(name);
     if (!book) {
       throw new Error(`Book ${name} not found in testament ${this.name}`);
     }
@@ -378,8 +377,8 @@ export class BibleData {
     });
 
     // Create testament objects
-    this.testamentMap.set(TestamentType.OLD, new BibleTestament(TestamentType.OLD, oldTestamentBooks));
-    this.testamentMap.set(TestamentType.NEW, new BibleTestament(TestamentType.NEW, newTestamentBooks));
+    this.testamentMap.set('OLD', new BibleTestament(TestamentType.OLD, oldTestamentBooks));
+    this.testamentMap.set('NEW', new BibleTestament(TestamentType.NEW, newTestamentBooks));
   }
 
   get totalChpaters(): number {
@@ -435,11 +434,6 @@ export class BibleData {
       throw new Error(`Book ${name} not found`);
     }
     return book;
-  }
-
-  getGroupsInTestament(testamentName: TestamentType): BookGroupType[] {
-    const testament = this.getTestament(testamentName);
-    return testament ? testament.getGroupNames() : [];
   }
 
   markVerseAsMemorized(bookName: string, chapterNumber: number, verseNumber: number): void {

@@ -1,9 +1,44 @@
-<div>
+<div class="testament-selector-container">
+  <h3 class="selector-title">Select Testament</h3>
 
-  <div>
-    <h4>Filtered Book Groups:</h4>
+  <div class="testament-cards">
+    <div 
+      class="testament-card" 
+      [class.active]="selectedTestament.isOld" 
+      (click)="filterTestament('OLD')">
+      <h4 class="testament-title">Old Testament</h4>
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div 
+            class="progress-fill" 
+            [style.width.%]="oldTestament.percentComplete">
+          </div>
+        </div>
+        <span class="progress-text">{{ oldTestament.percentComplete }}% Complete</span>
+      </div>
+    </div>
+
+    <div 
+      class="testament-card" 
+      [class.active]="selectedTestament.isNew" 
+      (click)="filterTestament('NEW')">
+      <h4 class="testament-title">New Testament</h4>
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div 
+            class="progress-fill" 
+            [style.width.%]="newTestament.percentComplete">
+          </div>
+        </div>
+        <span class="progress-text">{{ newTestament.percentComplete }}% Complete</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="filtered-books">
+    <h4>Books in {{ selectedTestament.name || 'Selected Testament' }}</h4>
     <ul>
-      <li *ngFor="let book of ">{{ book }}</li>
+      <li *ngFor="let book of selectedTestament.books">{{ book.name }}</li>
     </ul>
   </div>
 </div>

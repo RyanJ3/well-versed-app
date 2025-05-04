@@ -18,33 +18,41 @@ export abstract class BaseBibleComponent implements OnInit, OnDestroy {
   }
 
   // Hook for child components to react to Bible data being loaded
-  protected onBibleDataLoaded(): void {}
+  protected onBibleDataLoaded(): void { }
 
   // Convenience methods for accessing Bible data
-  getTestament(testament: TestamentType): BibleTestament  {
-    return this.bibleData.getTestamentByName(testament);
+  getTestamentByName(testamentName: string): BibleTestament {
+    return this.bibleData.getTestamentByName(testamentName);
   }
 
-  getOldTestament(): BibleTestament {
-    return this.getTestament(TestamentType.OLD);
+  get oldTestament(): BibleTestament {
+    return this.getTestamentByName('OLD');
   }
 
-  getNewTestament(): BibleTestament  {
-    return this.getTestament(TestamentType.NEW);
+  get newTestament(): BibleTestament {
+    return this.getTestamentByName('NEW');
   }
 
   getDefaultTestament(): BibleTestament {
-    return this.getOldTestament();
+    return this.oldTestament;
+  }
+
+  getTestaments(): BibleTestament[] {
+    return [this.oldTestament, this.newTestament];
+  }
+
+  getPercentComplete(): number {
+    return this.bibleData.percentComplete;
   }
 
   getDefaultGroup(): BibleGroup {
     return this.getDefaultBook().group;
   }
-  getBook(bookName: string): BibleBook  {
+  getBook(bookName: string): BibleBook {
     return this.bibleData.getBookByName(bookName);
   }
 
-  getGroup(groupName: BookGroupType): BibleBook[]  {
+  getGroup(groupName: BookGroupType): BibleBook[] {
     return this.bibleData.getGroupByName(groupName).books;
   }
 
@@ -52,7 +60,7 @@ export abstract class BaseBibleComponent implements OnInit, OnDestroy {
     return this.getBook("Psalms");
   }
 
-  getDefaultChapter(): BibleChapter  {
+  getDefaultChapter(): BibleChapter {
     return this.getBook("Psalms").chapters[22];
   }
 
