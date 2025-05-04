@@ -1,9 +1,7 @@
-import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BibleService } from '../../../services/bible.service';
-import { BaseBibleComponent } from '../../base-bible.component';
+import { Component } from '@angular/core';
+import { BibleStatsComponent } from '../../bible-stats.component';
 import { VerseSelectorComponent } from '../verse-selector/verse-selector.component';
-import { BibleBook, BibleChapter } from '../../../models/bible.model';
 
 @Component({
   selector: 'app-chapter-progress',
@@ -15,16 +13,10 @@ import { BibleBook, BibleChapter } from '../../../models/bible.model';
     VerseSelectorComponent
   ]
 })
-export class ChapterProgressComponent extends BaseBibleComponent implements OnInit {
+export class ChapterProgressComponent extends BibleStatsComponent {
 
-  @Input() selectedChapter: BibleChapter ;
-  @Input() selectedBook: BibleBook ;
-  
   constructor() {
     super();
-
-    this.selectedChapter = this.getDefaultChapter();
-    this.selectedBook = this.getDefaultBook();
   }
   
 }

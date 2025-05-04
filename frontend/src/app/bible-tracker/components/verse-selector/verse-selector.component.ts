@@ -1,8 +1,7 @@
 // components/verse-selector.component.ts
-import { Component, EventEmitter, Input, OnChanges, Output } from '@angular/core';
 import { NgClass, NgFor } from '@angular/common';
-import { BibleChapter, BibleVerse } from '../../../models/bible.model';
-import { BaseBibleComponent } from '../../base-bible.component';
+import { Component } from '@angular/core';
+import { BibleStatsComponent } from '../../bible-stats.component';
 
 @Component({
   selector: 'app-verse-selector',
@@ -11,19 +10,10 @@ import { BaseBibleComponent } from '../../base-bible.component';
   templateUrl: './verse-selector.component.html',
   styleUrls: ['./verse-selector.component.scss'],
 })
-export class VerseSelectorComponent extends BaseBibleComponent {
-
-  @Input() selectedChapter: BibleChapter ;
-  // @Output() verseSelect = new EventEmitter<BibleVerse>();
+export class VerseSelectorComponent extends BibleStatsComponent {
 
   constructor() {
     super();
-
-    this.selectedChapter = this.getDefaultChapter();
-  }
-
-  get versesArray(): BibleVerse[] {
-    return this.selectedChapter.verses || [];
   }
 
   selectAll(): void {

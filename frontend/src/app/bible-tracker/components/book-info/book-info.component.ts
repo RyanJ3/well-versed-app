@@ -1,19 +1,13 @@
 // components/book-info.component.ts
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { ConfirmationModalComponent } from '../../../shared/components/notification/confirmation-modal';
-import { BibleService } from '../../../services/bible.service';
-import { BibleBook, BibleChapter } from '../../../models/bible.model';
-import { BaseBibleComponent } from '../../base-bible.component';
+import { Component } from '@angular/core';
+import { BibleStatsComponent } from '../../bible-stats.component';
 
 @Component({
   selector: 'app-book-info',
   standalone: true,
   templateUrl: './book-info.component.html',
 })
-export class BookInfoComponent extends BaseBibleComponent {
-
-  @Input() selectedBook: BibleBook = this.getDefaultBook();
-  @Input() selectedChapter: BibleChapter = this.getDefaultChapter();
+export class BookInfoComponent extends BibleStatsComponent {
 
   isConfirmModalVisible: boolean = false;
 
@@ -26,7 +20,7 @@ export class BookInfoComponent extends BaseBibleComponent {
   }
 
   confirmReset(): void {
-    this.selectedBook.reset();
+    // this.selectedBook.reset();
     this.isConfirmModalVisible = false;
   }
 

@@ -2,7 +2,7 @@
 <div class="bg-white p-4 rounded shadow mb-6" *ngIf="selectedGroup">
   <h3 class="text-lg font-semibold mb-3">{{ selectedGroup.name }} Books</h3>
   <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-    <button *ngFor="let book of selectedGroup.books" (click)="bookChange.emit(book)" class="book-card"
+    <button *ngFor="let book of selectedGroup.books" class="book-card"
       [class.active]="selectedBook.name === book.name">
       <div class="book-name">{{ book.name }}</div>
     </button>

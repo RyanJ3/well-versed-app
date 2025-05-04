@@ -6,9 +6,9 @@
       <label for="chapter-select" class="block text-sm font-medium text-gray-700 mb-1">
         Select Chapter:
       </label>
-      <select id="chapter-select" [(ngModel)]="selectedChapter" (change)="onChapterSelect()"
+      <select id="chapter-select" [(ngModel)]="selectedChapter"
         class="w-full p-2 border rounded">
-        <option *ngFor="let chapter of currentBook.chapters; let i = index" [value]="chapter.chapterNumber">
+        <option *ngFor="let chapter of selectedBook.chapters; let i = index" [value]="chapter.chapterNumber">
           Chapter {{ chapter.chapterNumber }}
           {{
           chapter.isComplete ? ' (Completed)' :
@@ -22,7 +22,7 @@
     <div class="mb-3">
       <p class="text-sm text-gray-500 mb-2">Quick Overview:</p>
       <div class="bubbles-container">
-        <button *ngFor="let chapter of currentBook.chapters" (click)="selectChapter(chapter)" class="chapter-bubble"
+        <button *ngFor="let chapter of selectedBook.chapters" (click)="selectChapter(chapter)" class="chapter-bubble"
           [ngClass]="{
                 'not-started': chapter.isInProgress && !chapter.isComplete,
                 'in-progress': chapter.isInProgress && !chapter.isComplete,

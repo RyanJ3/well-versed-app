@@ -6,7 +6,7 @@
 
   <!-- Verse bubbles -->
   <div class="bubbles-container scrollable">
-    <button *ngFor="let verse of versesArray" (click)="verse.toggle()" class="bubble verse-bubble" [ngClass]="{
+    <button *ngFor="let verse of selectedChapter.verses" (click)="verse.toggle()" class="bubble verse-bubble" [ngClass]="{
             'not-selected': verse.memorized,
             'selected': verse.memorized
           }">

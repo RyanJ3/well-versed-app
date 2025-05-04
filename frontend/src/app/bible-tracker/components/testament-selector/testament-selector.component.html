@@ -5,7 +5,7 @@
     <div 
       class="testament-card" 
       [class.active]="selectedTestament.isOld" 
-      (click)="filterTestament('OLD')">
+      (click)="flipTestaments()">
       <h4 class="testament-title">Old Testament</h4>
       <div class="progress-container">
         <div class="progress-bar">
@@ -21,7 +21,7 @@
     <div 
       class="testament-card" 
       [class.active]="selectedTestament.isNew" 
-      (click)="filterTestament('NEW')">
+      (click)="flipTestaments()">
       <h4 class="testament-title">New Testament</h4>
       <div class="progress-container">
         <div class="progress-bar">

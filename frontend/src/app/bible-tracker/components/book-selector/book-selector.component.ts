@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { BibleBook, BibleGroup } from '../../../models/bible.model';
-import { BaseBibleComponent } from '../../base-bible.component';
+import { Component } from '@angular/core';
+import { BibleStatsComponent } from '../../bible-stats.component';
 
 @Component({
   selector: 'app-book-selector',
@@ -10,11 +9,7 @@ import { BaseBibleComponent } from '../../base-bible.component';
   styleUrls: ['./book-selector.component.scss'],
   imports: [CommonModule],
 })
-export class BookSelectorComponent extends BaseBibleComponent {
-
-  @Input() selectedGroup: BibleGroup = this.getDefaultGroup();
-  @Input() selectedBook: BibleBook = this.getDefaultBook();
-  @Output() bookChange = new EventEmitter<BibleBook>();
+export class BookSelectorComponent extends BibleStatsComponent {
 
   isConfirmModalVisible = false;
 

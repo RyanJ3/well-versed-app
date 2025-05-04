@@ -1,9 +1,8 @@
 // components/chapter-selector.component.ts
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { NgClass, NgForOf } from '@angular/common';
-import { BibleBook, BibleChapter } from '../../../models/bible.model';
-import { BaseBibleComponent } from '../../base-bible.component';
+import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { BibleStatsComponent } from '../../bible-stats.component';
 
 @Component({
   selector: 'app-chapter-selector',
@@ -12,27 +11,10 @@ import { BaseBibleComponent } from '../../base-bible.component';
   templateUrl: './chapter-selector.component.html',
   styleUrls: ['./chapter-selector.component.scss'],
 })
-export class ChapterSelectorComponent extends BaseBibleComponent {
-  @Input() selectedChapter: BibleChapter;
-
-  @Output() chapterSelect = new EventEmitter<BibleChapter>();
-  @Input() currentBook: BibleBook;
+export class ChapterSelectorComponent extends BibleStatsComponent {
 
   constructor() {
     super();
-
-    this.selectedChapter = this.getDefaultChapter();
-    this.currentBook = this.getDefaultBook();
-  }
-
-
-  onChapterSelect(): void {
-    this.chapterSelect.emit(this.selectedChapter);
-  }
-
-  selectChapter(chapterNumber: BibleChapter): void {
-    this.selectedChapter = chapterNumber;
-    this.chapterSelect.emit(chapterNumber);
   }
 
 }
