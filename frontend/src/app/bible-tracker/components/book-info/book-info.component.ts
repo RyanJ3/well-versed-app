@@ -12,16 +12,13 @@ import { BaseBibleComponent } from '../../base-bible.component';
 })
 export class BookInfoComponent extends BaseBibleComponent {
 
-  @Input() selectedBook: BibleBook ;
-  @Input() selectedChapter: BibleChapter ;
+  @Input() selectedBook: BibleBook = this.getDefaultBook();
+  @Input() selectedChapter: BibleChapter = this.getDefaultChapter();
 
   isConfirmModalVisible: boolean = false;
 
   constructor() {
     super()
-
-    this.selectedBook = this.getDefaultBook();
-    this.selectedChapter = this.getDefaultChapter();
   }
 
   showConfirmModal(): void {

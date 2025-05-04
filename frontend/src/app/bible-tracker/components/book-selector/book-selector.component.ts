@@ -24,7 +24,7 @@ export class BookSelectorComponent extends BaseBibleComponent {
 
     this.selectedBook = this.getDefaultBook();
     this.selectedGroup = this.getDefaultGroup();
-    this.booksInGroup = this.getBooksInGroup(this.selectedGroup);
+    this.booksInGroup = this.selectedGroup?.books;
   }
 
   selectBook(bibleBook: BibleBook): void {

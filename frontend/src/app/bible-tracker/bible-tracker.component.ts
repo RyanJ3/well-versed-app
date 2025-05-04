@@ -66,7 +66,7 @@ export class BibleTrackerComponent extends BaseBibleComponent implements OnDestr
 
   onTestamentChange(testament: BibleTestament): void {
     this.selectedTestament = testament;
-    this.booksInGroup = this.getBooksInGroup(this.selectedGroup);
+    this.booksInGroup = this.selectedGroup.books;
   }
 
 }
