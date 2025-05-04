@@ -2,7 +2,7 @@
   class="bg-white border rounded p-4 shadow-sm">
   <div class="flex justify-between items-center mb-4">
       <h3 class="text-xl font-bold">
-          {{ selectedBook.name }} {{ selectedChapter }}
+          {{ selectedBook.name }} {{ selectedChapter.chapterNumber }}
           <span *ngIf="selectedChapter.isComplete" class="ml-2 text-sm bg-green-100 text-green-800 px-2 py-1 rounded">
               Completed
           </span>
@@ -22,7 +22,7 @@
           <p class="text-sm text-gray-600">Total verses: {{ selectedChapter.totalVerses }}</p>
           <p class="text-sm text-gray-600">Memorized: {{ selectedChapter.memorizedVerses }}</p>
           <p class="text-sm text-gray-600">
-              Remaining: {{ selectedChapter.remainingVerses }}
+              Remaining verses: {{ selectedChapter.remainingVerses.length }}
           </p>
           <p class="text-sm text-gray-600">
               Progress: {{ selectedChapter.percentComplete }}%

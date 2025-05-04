@@ -31,7 +31,9 @@ export class VerseSelectorComponent extends BaseBibleComponent {
   }
 
   clearAll(): void {
-    this.selectedChapter.markAllVersesAsMemorized();
+    this.selectedChapter.verses.forEach(verse => {
+      verse.memorized = false;
+    });
   }
 
 }
