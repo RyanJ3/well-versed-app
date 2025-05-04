@@ -17,7 +17,6 @@ import { BaseBibleComponent } from './base-bible.component';
     TestamentSelectorComponent,
     GroupSelectorComponent,
     BookSelectorComponent,
-    BookInfoComponent,
     ChapterSelectorComponent,
     ChapterProgressComponent,
   ],
@@ -51,22 +50,27 @@ export class BibleTrackerComponent extends BaseBibleComponent implements OnDestr
   //   // Initialize default selections when data is loaded
   //   this.onTestamentChange(this.selectedTestament);
   // }
-
-  onBookChange(bibleBook: BibleBook): void {
-    this.selectedBook = bibleBook;
-  }
-
-  onChapterSelect(chapter: BibleChapter): void {
-    this.selectedChapter = chapter;
-  }
-
-  onGroupChange(group: BibleGroup): void {
-    this.selectedGroup = group;
-  }
-
   onTestamentChange(testament: BibleTestament): void {
     this.selectedTestament = testament;
-    this.booksInGroup = this.selectedGroup.books;
+    // Set default group and book for the new testament
+    this.selectedGroup = testament.groups[0];
+    this.selectedBook = this.selectedGroup.books[0];
+    this.selectedChapter = this.selectedBook.chapters[0];
+  }
+  
+  onGroupChange(group: BibleGroup): void {
+    this.selectedGroup = group;
+    // Set default book and chapter for the new group
+    this.selectedBook = group.books[0];
+    this.selectedChapter = this.selectedBook.chapters[0];
+  }
+  
+  onBookChange(book: BibleBook): void {
+    this.selectedBook = book;
+    this.selectedChapter = book.chapters[0];
+  }
+  onChapterSelect(chapter: BibleChapter): void {
+    this.selectedChapter = chapter;
   }
 
 }
