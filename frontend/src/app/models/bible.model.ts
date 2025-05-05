@@ -277,7 +277,6 @@ export class BibleTestament {
       if (!groupMap.has(book.group.name)) {
         groupMap.set(book.group.name, book.group);
       }
-      groupMap.get(book.group.name)?.books.push(book);
     });
 
     return Array.from(groupMap.values());
@@ -339,50 +338,78 @@ export class BibleTestament {
 }
 
 export class BibleData {
-
   private readonly testamentMap: Map<string, BibleTestament> = new Map();
   private readonly bookMap: Map<string, BibleBook> = new Map();
   private readonly synonyms: Record<string, string> = {};
   private readonly bookIndex: Record<string, number> = {};
+  private readonly books: BibleBook[] = [];
 
   constructor(progressData: Record<string, Record<number, number[]>> = {}) {
-    // Process the Bible data and create the object hierarchy
-    const oldTestamentBooks: BibleBook[] = [];
-    const newTestamentBooks: BibleBook[] = [];
-
     // Store lookup data
     this.synonyms = Object.fromEntries(
       Object.entries(BIBLE_DATA.synonyms || {}).map(([key, value]) => [key, String(value)])
     );
     this.bookIndex = BIBLE_DATA.bookIndex || {};
 
-    // Create book objects with progress data
+    // First, create all group objects
+    const groupMap = new Map<string, BibleGroup>();
     BIBLE_DATA.books.forEach((bookData: any) => {
+      if (!groupMap.has(bookData.bookGroup)) {
+        groupMap.set(bookData.bookGroup, new BibleGroup(bookData.bookGroup as BookGroupType));
+      }
+    });
+    
+    // Create temporary testament objects
+    const oldTestament = new BibleTestament(TestamentType.OLD, []);
+    const newTestament = new BibleTestament(TestamentType.NEW, []);
+    
+    // Sort books into old and new testament collections
+    const oldBooks: BibleBook[] = [];
+    const newBooks: BibleBook[] = [];
+    
+    // Create book objects with proper references
+    BIBLE_DATA.books.forEach((bookData: any) => {
+      const isOldTestament = bookData.testament === TestamentType.OLD;
+      const testament = isOldTestament ? oldTestament : newTestament;
+      const group = groupMap.get(bookData.bookGroup);
+      
+      if (!group) {
+        console.error(`Group ${bookData.bookGroup} not found for book ${bookData.name}`);
+        return;
+      }
+      
       const book = new BibleBook(
         bookData.name,
-        bookData.testament,
-        bookData.group,
+        testament,
+        group,
         bookData.chapters,
         progressData[bookData.name] || {},
         bookData.canonicalAffiliation,
         bookData.order
       );
-
-      // Add to bookMap for direct access
+      
+      // Add to bookMap and books array
       this.bookMap.set(book.name, book);
       this.books.push(book);
-
-      // Add to appropriate testament array
-      if (book.testament.name === TestamentType.OLD) {
-        oldTestamentBooks.push(book);
+      
+      // Add to group's books array
+      group.books.push(book);
+      
+      // Add to the appropriate testament collection
+      if (isOldTestament) {
+        oldBooks.push(book);
       } else {
-        newTestamentBooks.push(book);
+        newBooks.push(book);
       }
     });
-
-    // Create testament objects
-    this.testamentMap.set('OLD', new BibleTestament(TestamentType.OLD, oldTestamentBooks));
-    this.testamentMap.set('NEW', new BibleTestament(TestamentType.NEW, newTestamentBooks));
+    
+    // Create final testament objects with all books
+    const finalOldTestament = new BibleTestament(TestamentType.OLD, oldBooks);
+    const finalNewTestament = new BibleTestament(TestamentType.NEW, newBooks);
+    
+    // Store in the testament map
+    this.testamentMap.set('OLD', finalOldTestament);
+    this.testamentMap.set('NEW', finalNewTestament);
   }
 
   get totalChpaters(): number {
@@ -399,11 +426,6 @@ export class BibleData {
       return testament;
     }
     throw new Error(`Testament ${name} not found`);
-  }
-
-
-  get books(): BibleBook[] {
-    return Array.from(this.bookMap.values());
   }
 
   get totalBooks(): number {
@@ -472,21 +494,28 @@ export class BibleData {
 
   resetGroup(groupName: BookGroupType): void {
     this.testaments.forEach(testament => {
-      const group = testament.getGroup(groupName);
-      if (group) {
-        group.reset();
+      try {
+        const group = testament.getGroup(groupName);
+        if (group) {
+          group.reset();
+        }
+      } catch (e) {
+        // Group might not exist in this testament, continue
       }
     });
   }
 
   getGroupByName(groupName: string): BibleGroup {
     for (const testament of this.testaments) {
-      const group = testament.getGroup(groupName as BookGroupType);
-      if (group) {
-        return group;
+      try {
+        const group = testament.getGroup(groupName as BookGroupType);
+        if (group) {
+          return group;
+        }
+      } catch (e) {
+        // Group might not exist in this testament, continue
       }
     }
     throw new Error(`Group ${groupName} not found`);
   }
-
 }
