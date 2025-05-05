@@ -106,7 +106,7 @@
   <!-- Verse Selection -->
   <div *ngIf="selectedChapter" class="section bg-white p-4 rounded shadow mb-6">
     <h3 class="text-lg font-semibold mb-3">
-      {{ selectedBook.name }} {{ selectedChapter.chapterNumber }}
+      {{ selectedBook?.name }} {{ selectedChapter.chapterNumber }}
       <span class="text-sm text-gray-500 ml-2">
         {{ selectedChapter.memorizedVerses }} / {{ selectedChapter.totalVerses }} verses memorized
       </span>

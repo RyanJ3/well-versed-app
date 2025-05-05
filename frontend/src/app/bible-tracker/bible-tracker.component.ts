@@ -22,23 +22,51 @@ export class BibleTrackerComponent {
 
   private bibleData: BibleData = new BibleData();
 
-  selectedTestament: BibleTestament = this.defaultTestament;
-  selectedGroup: BibleGroup = this.defaultGroup;
-  selectedBook: BibleBook = this.defaultBook;
-  selectedChapter: BibleChapter = this.defaultChapter;
+  selectedTestament: BibleTestament | null = null;
+  selectedGroup: BibleGroup | null = null;
+  selectedBook: BibleBook | null = null;
+  selectedChapter: BibleChapter | null = null;
 
-  constructor() { }
+  constructor() { 
+    // Initialize with default testament on component creation
+    this.selectedTestament = this.defaultTestament;
+    // Set default group from the selected testament
+    if (this.selectedTestament && this.selectedTestament.groups.length > 0) {
+      this.setGroup(this.defaultGroup);
+    }
+  }
 
   setTestament(testament: BibleTestament): void {
     this.selectedTestament = testament;
+    // Reset child selections to appropriate defaults from the new testament
+    if (testament.groups.length > 0) {
+      this.setGroup(testament.groups[0]); // Set first group of the testament
+    } else {
+      this.selectedGroup = null;
+      this.selectedBook = null;
+      this.selectedChapter = null;
+    }
   }
 
   setGroup(group: BibleGroup): void {
     this.selectedGroup = group;
+    // Reset child selections to appropriate defaults from the new group
+    if (group.books.length > 0) {
+      this.setBook(group.books[0]); // Set first book of the group
+    } else {
+      this.selectedBook = null;
+      this.selectedChapter = null;
+    }
   }
 
   setBook(book: BibleBook): void {
     this.selectedBook = book;
+    // Reset child selections to appropriate defaults from the new book
+    if (book.chapters.length > 0) {
+      this.setChapter(book.chapters[0]); // Set first chapter of the book
+    } else {
+      this.selectedChapter = null;
+    }
   }
 
   setChapter(chapter: BibleChapter): void {
@@ -91,12 +119,14 @@ export class BibleTrackerComponent {
   }
 
   selectAllVerses() {
-    this.selectedChapter.verses.forEach(verse => verse.memorized = true);
+    if (this.selectedChapter) {
+      this.selectedChapter.verses.forEach(verse => verse.memorized = true);
+    }
   }
 
   clearAllVerses() {
-    this.selectedChapter.verses.forEach(verse => verse.memorized = false);
+    if (this.selectedChapter) {
+      this.selectedChapter.verses.forEach(verse => verse.memorized = false);
+    }
   }
-
-
 }
