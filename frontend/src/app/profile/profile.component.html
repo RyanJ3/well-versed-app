@@ -1,0 +1,80 @@
+<div class="profile-container">
+    <div *ngIf="isLoading" class="loading-spinner">
+      Loading profile...
+    </div>
+  
+    <div *ngIf="!isLoading && user" class="profile-content">
+      <div class="profile-header">
+        <div class="profile-avatar">
+          <span>{{ user.name.charAt(0) }}</span>
+        </div>
+        <div class="profile-info">
+          <h1 class="profile-name">{{ user.name }}</h1>
+          <p class="profile-email">{{ user.email }}</p>
+          <p class="profile-join-date">Member since {{ user.createdAt | date:'mediumDate' }}</p>
+        </div>
+      </div>
+  
+      <div class="profile-stats">
+        <div class="stat-card">
+          <div class="stat-value">{{ user.versesMemorized || 0 }}</div>
+          <div class="stat-label">Verses Memorized</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ user.streakDays || 0 }}</div>
+          <div class="stat-label">Day Streak</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ user.booksStarted || 0 }}</div>
+          <div class="stat-label">Books Started</div>
+        </div>
+      </div>
+  
+      <div class="profile-sections">
+        <div class="profile-section">
+          <h2 class="section-title">Personal Information</h2>
+          <div class="section-content">
+            <div class="info-row">
+              <span class="info-label">Denomination:</span>
+              <span class="info-value">{{ user.denomination || 'Not specified' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Preferred Bible:</span>
+              <span class="info-value">{{ user.preferredBible || 'Not specified' }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Include Apocrypha:</span>
+              <span class="info-value">{{ user.includeApocrypha ? 'Yes' : 'No' }}</span>
+            </div>
+          </div>
+        </div>
+  
+        <div class="profile-section">
+          <h2 class="section-title">Current Progress</h2>
+          <div class="section-content">
+            <div *ngIf="user.currentlyMemorizing && user.currentlyMemorizing.length > 0; else noCurrentPassages">
+              <div *ngFor="let passage of user.currentlyMemorizing" class="memorization-item">
+                <div class="passage-reference">{{ passage.reference }}</div>
+                <div class="progress-container">
+                  <div class="progress-bar" [style.width.%]="passage.progress"></div>
+                </div>
+                <div class="progress-text">{{ passage.progress }}% complete</div>
+              </div>
+            </div>
+            <ng-template #noCurrentPassages>
+              <p class="no-data-message">No verses currently being memorized.</p>
+            </ng-template>
+          </div>
+        </div>
+  
+        <div class="profile-section">
+          <h2 class="section-title">Account Settings</h2>
+          <div class="section-content">
+            <button class="settings-button">Edit Profile</button>
+            <button class="settings-button">Change Password</button>
+            <button class="settings-button danger">Logout</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
