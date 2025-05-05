@@ -1,55 +1,127 @@
-<!-- bible-tracker.component.html -->
-<div class="p-4 max-w-6xl mx-auto">
-  <h1 class="text-3xl font-bold text-center mb-6">Bible Memorization Tracker</h1>
+<div class="bible-selector-container">
+  <!-- Testament Selection -->
+  <div class="section bg-white p-4 rounded shadow mb-6">
+    <h3 class="text-lg font-semibold mb-3">Select Testament</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <button 
+        *ngFor="let testament of testaments" 
+        class="testament-card" 
+        [class.active]="testament === selectedTestament" 
+        (click)="setTestament(testament)">
+        <h4 class="text-md font-medium">{{ testament.name }}</h4>
+        <div class="progress-container">
+          <div class="progress-bar" [style.width.%]="testament.percentComplete"></div>
+        </div>
+        <span class="text-sm">{{ testament.percentComplete }}% Complete</span>
+      </button>
+    </div>
+  </div>
 
-  <!-- Testament Selector -->
-  <app-testament-selector
-    (resetTestament)="resetTestament()"
-    (testamentChange)="onTestamentChange($event)"
-    [selectedTestament]="selectedTestament"
-    [testaments]="testaments"
-  ></app-testament-selector>
+  <!-- Group Selection -->
+  <div *ngIf="selectedTestament" class="section bg-white p-4 rounded shadow mb-6">
+    <h3 class="text-lg font-semibold mb-3">Select Book Group</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+      <button
+        *ngFor="let group of selectedTestament.groups"
+        class="group-card"
+        [class.active]="group === selectedGroup"
+        (click)="setGroup(group)">
+        <div class="card-content">
+          <div class="flex justify-between items-center mb-2">
+            <h4 class="group-name">{{ group.name }}</h4>
+            <span class="group-badge">{{ group.percentComplete }}%</span>
+          </div>
+          <div class="progress-container">
+            <div class="progress-bar" [style.width.%]="group.percentComplete"></div>
+          </div>
+          <div class="book-preview mt-3">
+            <div class="flex flex-wrap gap-1">
+              <span *ngFor="let book of group.books.slice(0, 5)" class="book-chip">
+                {{ book.name }}
+              </span>
+              <span *ngIf="group.books.length > 5" class="book-chip more-chip">
+                +{{ group.books.length - 5 }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </button>
+    </div>
+  </div>
 
-  <!-- Group Selector -->
-  <app-group-selector
-    (groupChange)="onGroupChange($event)"
-    (resetGroup)="resetGroup()"
-    [availableGroups]="availableGroups"
-    [selectedGroup]="selectedGroup"
-  ></app-group-selector>
-
-  <!-- Book Selector -->
-  <app-book-selector
-    (bookChange)="onBookChange($event)"
-    [booksInGroup]="booksInGroup"
-    [selectedBook]="selectedBook"
-    [selectedGroup]="selectedGroup"
-  ></app-book-selector>
-
-  <!-- Book Information -->
-  <app-book-info
-    (resetBook)="resetBook()"
-    [completedChapters]="completedChapters"
-    [currentBook]="currentBook"
-    [inProgressChapters]="inProgressChapters"
-    [memorizedVerses]="memorizedVerses"
-    [totalVerses]="totalVerses"
-  ></app-book-info>
+  <!-- Book Selection -->
+  <div *ngIf="selectedGroup" class="section bg-white p-4 rounded shadow mb-6">
+    <h3 class="text-lg font-semibold mb-3">Select Book</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+      <button
+        *ngFor="let book of selectedGroup.books"
+        class="book-card" 
+        [class.active]="book === selectedBook"
+        (click)="setBook(book)">
+        <h4 class="book-name">{{ book.name }}</h4>
+        <div class="progress-container">
+          <div class="progress-bar" [style.width.%]="book.percentComplete"></div>
+        </div>
+        <span class="text-sm">{{ book.percentComplete }}%</span>
+      </button>
+    </div>
+  </div>
 
   <!-- Chapter Selection -->
-  <app-chapter-selector
-    (chapterSelect)="onChapterSelect($event)"
-    [currentBookProgress]="currentBookProgress"
-    [selectedChapter]="selectedChapter"
-  ></app-chapter-selector>
+  <div *ngIf="selectedBook" class="section bg-white p-4 rounded shadow mb-6">
+    <div class="flex justify-between items-center mb-3">
+      <h3 class="text-lg font-semibold">Select Chapter</h3>
+      <div *ngIf="selectedChapter" class="text-sm text-gray-500">
+        {{ selectedBook.memorizedChapters }} / {{ selectedBook.totalChapters }} chapters memorized
+      </div>
+    </div>
+    
+    <div class="chapter-overview flex flex-wrap gap-2 mb-4">
+      <button 
+        *ngFor="let chapter of selectedBook.chapters"
+        class="chapter-button" 
+        [class.active]="chapter === selectedChapter"
+        [class.completed]="chapter.isComplete"
+        [class.in-progress]="!chapter.isComplete && chapter.isInProgress"
+        (click)="setChapter(chapter)">
+        {{ chapter.chapterNumber }}
+      </button>
+    </div>
+  </div>
 
-  <!-- Selected Chapter Details with Verse Selector -->
-  <app-chapter-progress
-    (resetChapter)="resetChapter()"
-    (updateProgress)="updateMemorizedVerses($event)"
-    [chapterProgress]="currentBookProgress[selectedChapterIndex]"
-    [currentBook]="currentBook"
-    [selectedChapterIndex]="selectedChapterIndex"
-    [selectedChapter]="selectedChapter"
-  ></app-chapter-progress>
+  <!-- Verse Selection -->
+  <div *ngIf="selectedChapter" class="section bg-white p-4 rounded shadow mb-6">
+    <h3 class="text-lg font-semibold mb-3">
+      {{ selectedBook.name }} {{ selectedChapter.chapterNumber }}
+      <span class="text-sm text-gray-500 ml-2">
+        {{ selectedChapter.memorizedVerses }} / {{ selectedChapter.totalVerses }} verses memorized
+      </span>
+    </h3>
+    
+    <!-- Progress Bar -->
+    <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+      <div class="h-2 rounded-full bg-blue-500" [style.width.%]="selectedChapter.percentComplete"></div>
+    </div>
+  
+    <!-- Verse bubbles -->
+    <div class="verse-container">
+      <button 
+        *ngFor="let verse of selectedChapter.verses" 
+        (click)="verse.toggle()" 
+        class="verse-bubble" 
+        [class.selected]="verse.memorized"
+        [class.not-selected]="!verse.memorized">
+        {{ verse.verseNumber }}
+      </button>
+    </div>
+  
+    <div class="flex justify-between mt-4">
+      <button (click)="selectAllVerses()" class="verse-action-button primary">
+        Select All
+      </button>
+      <button (click)="clearAllVerses()" class="verse-action-button secondary">
+        Clear All
+      </button>
+    </div>
+  </div>
 </div>
