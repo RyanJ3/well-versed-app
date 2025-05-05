@@ -657,6 +657,13 @@
       ]
     }
   ],
+  "canonicalAffiliation": [
+      "All",
+      "Catholic",
+      "Eastern Orthodox",
+      "Protestant",
+      "NONE"
+  ],
   "bookIndex": {
     "Genesis": 1,
     "Exodus": 2,
