@@ -39,3 +39,12 @@ temp/
 backend/create_fastapi_backend.py
 .env
 backend/venv/*
+
+backend/venv/**/*
+backend/app/__pycache__/*
+backend/app/__pycache__/__init__.cpython-39.pyc
+backend/app/__pycache__/api.cpython-39.pyc
+backend/app/__pycache__/database.cpython-39.pyc
+backend/app/__pycache__/main.cpython-39.pyc
+backend/app/__pycache__/models.cpython-39.pyc
+backend/app/__pycache__/schemas.cpython-39.pyc
