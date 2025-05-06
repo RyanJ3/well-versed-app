@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { User } from './models/user';
-import { UserService } from './services/user.service';
 import { RouterModule } from '@angular/router'; // Make sure this is imported
+import { UserService } from './services/user.service';
 
 @Component({
   selector: 'app-root',
@@ -16,15 +16,15 @@ export class AppComponent implements OnInit {
   menuActive = false;
   userMenuActive = false;
   memorizeMenuActive = false;
-  currentUser: User ;
+  currentUser: User | undefined | null = null;
 
   constructor(private userService: UserService) {
-    this.currentUser = this.userService.getCurrentUser() || { id: '', name: '', email: '' };
+    this.currentUser = this.userService.getCurrentUser();
   }
 
   ngOnInit(): void {
     // Subscribe to user changes
-    this.userService.currentUser$.subscribe(user => {
+    this.userService.currentUser$.subscribe((user: any) => {
       this.currentUser = user;
     });
   }

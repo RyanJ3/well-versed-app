@@ -1,11 +1,16 @@
-# filename: app/schemas.py
-# Pydantic schemas for API request/response validation
-
-from typing import List, Optional
-from datetime import datetime
+# app/schemas.py
+from typing import Optional, List
 from pydantic import BaseModel, EmailStr
+from datetime import datetime
+from enum import Enum
 
-# User schemas
+class DenominationType(str, Enum):
+    NON_DENOMINATIONAL = "Non-denominational"
+    CATHOLIC = "Catholic"
+    PROTESTANT = "Protestant"
+    ORTHODOX = "Orthodox"
+    OTHER = "Other"
+
 class UserBase(BaseModel):
     username: str
     email: EmailStr
@@ -13,75 +18,71 @@ class UserBase(BaseModel):
     last_name: Optional[str] = None
 
 class UserCreate(UserBase):
-    password: str
-
-class UserUpdate(BaseModel):
-    username: Optional[str] = None
-    email: Optional[EmailStr] = None
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    password: Optional[str] = None
-    active: Optional[bool] = None
+    cognito_id: str
 
 class User(UserBase):
     user_id: int
+    cognito_id: str
     created_at: Optional[datetime] = None
     last_login: Optional[datetime] = None
     active: bool = True
-
+    
     class Config:
         orm_mode = True
 
-# UserSettings schemas
 class UserSettingsBase(BaseModel):
-    denomination: Optional[str] = None
+    denomination: Optional[DenominationType] = DenominationType.NON_DENOMINATIONAL
+    preferred_translation: Optional[str] = "NIV"
     include_apocrypha: Optional[bool] = False
 
 class UserSettingsCreate(UserSettingsBase):
     user_id: int
 
-class UserSettingsUpdate(UserSettingsBase):
-    pass
-
 class UserSettings(UserSettingsBase):
     setting_id: int
     user_id: int
-
+    
     class Config:
         orm_mode = True
 
-# Verse schemas
-class Verse(BaseModel):
+class BibleVerseBase(BaseModel):
     verse_id: str
+    book_id: str
+    chapter_number: int
     verse_number: int
 
+class BibleVerse(BibleVerseBase):
     class Config:
         orm_mode = True
 
-# UserVerse schemas
 class UserVerseBase(BaseModel):
     confidence: int = 1
+    practice_count: int = 0
 
 class UserVerseCreate(UserVerseBase):
     user_id: int
     verse_id: str
 
-class UserVerseUpdate(UserVerseBase):
-    pass
+class UserVerseUpdate(BaseModel):
+    user_id: int
+    verse_id: str
+    confidence: int
 
 class UserVerse(UserVerseBase):
     user_id: int
     verse_id: str
+    last_practiced: Optional[datetime] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
-
+    
     class Config:
         orm_mode = True
-        
-# Combined schema for frontend
+
 class UserVerseDetail(BaseModel):
-    verse: Verse
+    verse: BibleVerse
     confidence: int
+    practice_count: int
+    last_practiced: Optional[datetime] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     

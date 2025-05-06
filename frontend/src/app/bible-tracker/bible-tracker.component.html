@@ -22,7 +22,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
       <button *ngFor="let group of selectedTestament.groups" 
               class="group-card"
-              [class.active]="group === selectedGroup" 
+              [class.active]="group.name === selectedGroup?.name" 
               (click)="setGroup(group)">
         <div class="card-content">
           <div class="flex justify-between items-center mb-2">
@@ -129,10 +129,10 @@
     </div>
 
     <div class="flex justify-between mt-4">
-      <button (click)="selectAllVerses()" class="verse-action-button primary">
+      <button (click)="selectedChapter.selectAllVerses()" class="verse-action-button primary">
         Select All
       </button>
-      <button (click)="clearAllVerses()" class="verse-action-button secondary">
+      <button (click)="selectedChapter.clearAllVerses()" class="verse-action-button secondary">
         Clear All
       </button>
     </div>

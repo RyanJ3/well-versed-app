@@ -1,8 +1,33 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { HttpClient } from '@angular/common/http';
+// src/app/models/bible-data.ts
+import BIBLE_DATA from './bible_base_data.json';
 
-import BIBLE_DATA from './../bible-tracker/bible_base_data.json'
+// API Interface Models
+export interface BibleVerse {
+  verse_id: string;
+  book_id: string;
+  chapter_number: number;
+  verse_number: number;
+}
+
+export interface UserVerse {
+  user_id: number;
+  verse_id: string;
+  confidence: number;
+  practice_count: number;
+  last_practiced?: Date;
+  created_at: Date;
+  updated_at?: Date;
+}
+
+export interface UserVerseDetail {
+  verse: BibleVerse;
+  confidence: number;
+  practice_count: number;
+  last_practiced?: Date;
+  created_at: Date;
+  updated_at?: Date;
+}
+
 // Enums for type safety
 export enum TestamentType {
   OLD = 'Old Testament',
@@ -10,27 +35,49 @@ export enum TestamentType {
 }
 
 export enum BookGroupType {
-  LAW = 'Law',
-  HISTORY = 'History',
+  LAW = 'Torah',
+  HISTORY = 'Historical',
   WISDOM = 'Wisdom',
-  PROPHETS = 'Prophets',
+  MAJOR_PROPHETS = 'Major Prophets',
+  MINOR_PROPHETS = 'Minor Prophets',
   GOSPELS = 'Gospels',
-  ACTS = 'Acts',
+  MODERN_HISTORICAL = 'Modern Historical',
   PAULINE = 'Pauline Epistles',
   GENERAL = 'General Epistles',
   APOCALYPTIC = 'Apocalyptic'
 }
 
-// Model classes that integrate structure and progress
+// Model classes
 export class BibleVerse {
+  public confidence: number = 0;
+  public lastPracticed?: Date;
+  public practiceCount: number = 0;
+  
   constructor(
     public readonly verseNumber: number,
-    public memorized: boolean = false
-  ) { }
+    public memorized: boolean = false,
+    private readonly parentChapter?: BibleChapter
+  ) {}
 
   toggle(): boolean {
     this.memorized = !this.memorized;
     return this.memorized;
+  }
+
+  // Getter for parent chapter
+  get chapter(): BibleChapter | undefined {
+    return this.parentChapter;
+  }
+
+  // Getter for parent book through chapter
+  get book(): BibleBook | undefined {
+    return this.parentChapter?.book;
+  }
+
+  // Getter for reference
+  get reference(): string {
+    if (!this.parentChapter || !this.book) return `Verse ${this.verseNumber}`;
+    return `${this.book.name} ${this.parentChapter.chapterNumber}:${this.verseNumber}`;
   }
 }
 
@@ -40,12 +87,18 @@ export class BibleChapter {
   constructor(
     public readonly chapterNumber: number,
     totalVerses: number,
-    memorizedVerses: number[] = []
+    memorizedVerses: number[] = [],
+    private readonly parentBook?: BibleBook
   ) {
-    // Create verses with proper memorization status
+    // Create verses with proper memorization status and parent reference
     this.verses = Array.from({ length: totalVerses }, (_, i) =>
-      new BibleVerse(i + 1, memorizedVerses.includes(i + 1))
+      new BibleVerse(i + 1, memorizedVerses.includes(i + 1), this)
     );
+  }
+
+  // Getter for parent book
+  get book(): BibleBook | undefined {
+    return this.parentBook;
   }
 
   get totalVerses(): number {
@@ -94,17 +147,18 @@ export class BibleChapter {
       .map(verse => verse.verseNumber);
   }
 
-  markAllVersesAsMemorized(): void {
+  selectAllVerses(): void {
     this.verses.forEach(verse => verse.memorized = true);
   }
 
-  reset(): void {
+  clearAllVerses(): void {
     this.verses.forEach(verse => verse.memorized = false);
   }
 }
 
 export class BibleBook {
   public readonly chapters: BibleChapter[];
+  public readonly id: string;
 
   constructor(
     public readonly name: string,
@@ -112,31 +166,35 @@ export class BibleBook {
     public readonly group: BibleGroup,
     versesPerChapter: number[],
     memorizedData: Record<number, number[]> = {},
-    public readonly canonicalAffiliation: string = 'Canonical',
+    public readonly canonicalAffiliation: string = 'All',
     public readonly order: number = 0
   ) {
-    // Create chapters with memorization data
+    // Generate appropriate ID based on book name
+    this.id = this.generateBookId(name);
+    
+    // Create chapters with memorization data and parent reference
     this.chapters = versesPerChapter.map((verseCount, idx) => {
       const chapterNumber = idx + 1;
       return new BibleChapter(
         chapterNumber,
         verseCount,
-        memorizedData[chapterNumber] || []
+        memorizedData[chapterNumber] || [],
+        this // Pass this book as parent
       );
     });
   }
 
-  // Static factory method for creating from raw data
-  public static fromRawData(bookData: any): BibleBook {
-    return new BibleBook(
-      bookData.name,
-      bookData.testament,
-      bookData.group,
-      bookData.chapters,
-      {}, // No progress data for new books
-      bookData.canonicalAffiliation,
-      bookData.order
-    );
+  // Generate book ID (shorthand code like GEN, MAT, etc.)
+  private generateBookId(bookName: string): string {
+    if (bookName.includes(' ')) {
+      // Handle books like "1 Samuel" -> "1SA"
+      const parts = bookName.split(' ');
+      if (parts[0].match(/^\d+$/)) {
+        return parts[0] + parts[1].substring(0, 2).toUpperCase();
+      }
+    }
+    // Default: first 3 letters uppercase
+    return bookName.substring(0, 3).toUpperCase();
   }
 
   get totalChapters(): number {
@@ -193,19 +251,17 @@ export class BibleBook {
   }
 
   reset(): void {
-    this.chapters.forEach(chapter => chapter.reset());
+    this.chapters.forEach(chapter => chapter.clearAllVerses());
   }
 
   getProgressData(): Record<number, number[]> {
     const result: Record<number, number[]> = {};
-
     this.chapters.forEach(chapter => {
       const memorizedVerses = chapter.getMemorizedVerseNumbers();
       if (memorizedVerses.length > 0) {
         result[chapter.chapterNumber] = memorizedVerses;
       }
     });
-
     return result;
   }
 
@@ -216,9 +272,9 @@ export class BibleBook {
 
 export class BibleGroup {
   constructor(
-    public readonly name: BookGroupType,
+    public readonly name: string,
     public readonly books: BibleBook[] = []
-  ) { }
+  ) {}
 
   get totalBooks(): number {
     return this.books.length;
@@ -260,30 +316,31 @@ export class BibleGroup {
 }
 
 export class BibleTestament {
-
-  public readonly books: BibleBook[];
+  public readonly books: BibleBook[] = [];
+  private readonly _groupsMap: Map<string, BibleGroup> = new Map();
 
   constructor(
-    public readonly name: 'Old Testament' | 'New Testament',
-    public readonly testamentBooks: BibleBook[]
-  ) {
-    this.books = testamentBooks;
+    public readonly name: TestamentType | string,
+    books: any[] = []
+  ) { }
+
+  addBook(book: BibleBook): void {
+    this.books.push(book);
+    
+    // Add to group map if not exists
+    if (!this._groupsMap.has(book.group.name)) {
+      this._groupsMap.set(book.group.name, book.group);
+    }
   }
 
+  // Add this getter to fix the template error
   get groups(): BibleGroup[] {
-    const groupMap = new Map<string, BibleGroup>();
-
-    this.books.forEach(book => {
-      if (!groupMap.has(book.group.name)) {
-        groupMap.set(book.group.name, book.group);
-      }
-    });
-
-    return Array.from(groupMap.values());
+    return Array.from(this._groupsMap.values());
   }
 
-  get bookMap(): Map<string, BibleBook> {
-    return new Map(this.books.map(book => [book.name, book]));
+  // Keep the method but rename it to avoid conflicts
+  getGroupsArray(): BibleGroup[] {
+    return Array.from(this._groupsMap.values());
   }
 
   get isOld(): boolean {
@@ -295,7 +352,7 @@ export class BibleTestament {
   }
 
   get totalBooks(): number {
-    return this.bookMap.size;
+    return this.books.length;
   }
 
   get totalChapters(): number {
@@ -316,20 +373,12 @@ export class BibleTestament {
       : 0;
   }
 
-  getGroup(name: string): BibleGroup {
-    const group = this.groups.find(g => g.name === name);
-    if (!group) {
-      throw new Error(`Group ${name} not found in testament ${this.name}`);
-    }
-    return group;
+  getGroup(name: string): BibleGroup | undefined {
+    return this._groupsMap.get(name);
   }
 
-  getBook(name: string): BibleBook {
-    const book = this.bookMap.get(name);
-    if (!book) {
-      throw new Error(`Book ${name} not found in testament ${this.name}`);
-    }
-    return book;
+  getBook(name: string): BibleBook | undefined {
+    return this.books.find(book => book.name === name);
   }
 
   reset(): void {
@@ -340,80 +389,62 @@ export class BibleTestament {
 export class BibleData {
   private readonly testamentMap: Map<string, BibleTestament> = new Map();
   private readonly bookMap: Map<string, BibleBook> = new Map();
-  private readonly synonyms: Record<string, string> = {};
-  private readonly bookIndex: Record<string, number> = {};
-  private readonly books: BibleBook[] = [];
+  private readonly bookIdMap: Map<string, BibleBook> = new Map();
+  public readonly books: BibleBook[] = [];
 
   constructor(progressData: Record<string, Record<number, number[]>> = {}) {
-    // Store lookup data
-    this.synonyms = Object.fromEntries(
-      Object.entries(BIBLE_DATA.synonyms || {}).map(([key, value]) => [key, String(value)])
-    );
-    this.bookIndex = BIBLE_DATA.bookIndex || {};
-
-    // First, create all group objects
+    console.log('Initializing BibleData from JSON');
+    
+    // Create testament objects
+    const oldTestament = new BibleTestament(TestamentType.OLD);
+    const newTestament = new BibleTestament(TestamentType.NEW);
+    
+    // Store in maps for lookups
+    this.testamentMap.set('OLD', oldTestament);
+    this.testamentMap.set('NEW', newTestament);
+    
+    // Create group maps
     const groupMap = new Map<string, BibleGroup>();
+    
+    // Process each book from the JSON data
     BIBLE_DATA.books.forEach((bookData: any) => {
-      if (!groupMap.has(bookData.bookGroup)) {
-        groupMap.set(bookData.bookGroup, new BibleGroup(bookData.bookGroup as BookGroupType));
-      }
-    });
-    
-    // Create temporary testament objects
-    const oldTestament = new BibleTestament(TestamentType.OLD, []);
-    const newTestament = new BibleTestament(TestamentType.NEW, []);
-    
-    // Sort books into old and new testament collections
-    const oldBooks: BibleBook[] = [];
-    const newBooks: BibleBook[] = [];
-    
-    // Create book objects with proper references
-    BIBLE_DATA.books.forEach((bookData: any) => {
-      const isOldTestament = bookData.testament === TestamentType.OLD;
-      const testament = isOldTestament ? oldTestament : newTestament;
-      const group = groupMap.get(bookData.bookGroup);
-      
-      if (!group) {
-        console.error(`Group ${bookData.bookGroup} not found for book ${bookData.name}`);
+      // Skip books with canonicalAffiliation NONE
+      if (bookData.canonicalAffiliation === 'NONE') {
         return;
       }
       
+      const isOldTestament = bookData.testament === TestamentType.OLD;
+      const testament = isOldTestament ? oldTestament : newTestament;
+      
+      // Get or create group
+      if (!groupMap.has(bookData.bookGroup)) {
+        groupMap.set(bookData.bookGroup, new BibleGroup(bookData.bookGroup));
+      }
+      const group = groupMap.get(bookData.bookGroup)!;
+      
+      // Create book
       const book = new BibleBook(
         bookData.name,
         testament,
         group,
         bookData.chapters,
         progressData[bookData.name] || {},
-        bookData.canonicalAffiliation,
-        bookData.order
+        bookData.canonicalAffiliation
       );
       
-      // Add to bookMap and books array
+      // Add to book collections
       this.bookMap.set(book.name, book);
+      this.bookIdMap.set(book.id, book);
       this.books.push(book);
       
       // Add to group's books array
       group.books.push(book);
       
-      // Add to the appropriate testament collection
-      if (isOldTestament) {
-        oldBooks.push(book);
-      } else {
-        newBooks.push(book);
-      }
+      // Add to testament
+      testament.addBook(book);
     });
     
-    // Create final testament objects with all books
-    const finalOldTestament = new BibleTestament(TestamentType.OLD, oldBooks);
-    const finalNewTestament = new BibleTestament(TestamentType.NEW, newBooks);
-    
-    // Store in the testament map
-    this.testamentMap.set('OLD', finalOldTestament);
-    this.testamentMap.set('NEW', finalNewTestament);
-  }
-
-  get totalChpaters(): number {
-    return this.books.reduce((sum, book) => sum + book.totalChapters, 0);
+    console.log(`Initialized ${this.books.length} books in BibleData`);
   }
 
   get testaments(): BibleTestament[] {
@@ -429,29 +460,25 @@ export class BibleData {
   }
 
   get totalBooks(): number {
-    return this.bookMap.size;
+    return this.books.length;
+  }
+
+  get totalChapters(): number {
+    return this.books.reduce((sum, book) => sum + book.totalChapters, 0);
   }
 
   get totalVerses(): number {
-    return this.testaments.reduce((sum, testament) => sum + testament.totalVerses, 0);
+    return this.books.reduce((sum, book) => sum + book.totalVerses, 0);
   }
 
   get memorizedVerses(): number {
-    return this.testaments.reduce((sum, testament) => sum + testament.memorizedVerses, 0);
+    return this.books.reduce((sum, book) => sum + book.memorizedVerses, 0);
   }
 
   get percentComplete(): number {
     return this.totalVerses > 0
       ? Math.round((this.memorizedVerses / this.totalVerses) * 100)
       : 0;
-  }
-
-  getTestament(name: string): BibleTestament {
-    const testament = this.testamentMap.get(name);
-    if (!testament) {
-      throw new Error(`Testament ${name} not found`);
-    }
-    return testament;
   }
 
   getBookByName(name: string): BibleBook {
@@ -462,60 +489,68 @@ export class BibleData {
     return book;
   }
 
-  markVerseAsMemorized(bookName: string, chapterNumber: number, verseNumber: number): void {
-    const book = this.getBookByName(bookName);
-    if (book) {
-      book.markVerseAsMemorized(chapterNumber, verseNumber);
-    }
-  }
-
-  toggleVerse(bookName: string, chapterNumber: number, verseNumber: number): boolean {
-    const book = this.getBookByName(bookName);
-    return book ? book.toggleVerse(chapterNumber, verseNumber) : false;
-  }
-
-  reset(): void {
-    this.books.forEach(book => book.reset());
-  }
-
-  resetBook(bookName: string): void {
-    const book = this.getBookByName(bookName);
-    if (book) {
-      book.reset();
-    }
-  }
-
-  resetTestament(testamentName: TestamentType): void {
-    const testament = this.getTestament(testamentName);
-    if (testament) {
-      testament.reset();
-    }
-  }
-
-  resetGroup(groupName: BookGroupType): void {
-    this.testaments.forEach(testament => {
-      try {
-        const group = testament.getGroup(groupName);
-        if (group) {
-          group.reset();
-        }
-      } catch (e) {
-        // Group might not exist in this testament, continue
-      }
-    });
+  getBookById(id: string): BibleBook | undefined {
+    return this.bookIdMap.get(id);
   }
 
   getGroupByName(groupName: string): BibleGroup {
     for (const testament of this.testaments) {
-      try {
-        const group = testament.getGroup(groupName as BookGroupType);
-        if (group) {
-          return group;
-        }
-      } catch (e) {
-        // Group might not exist in this testament, continue
+      const group = testament.getGroup(groupName);
+      if (group) {
+        return group;
       }
     }
     throw new Error(`Group ${groupName} not found`);
+  }
+
+  // Map API verses to model verses
+  mapUserVersesToModel(userVerses: UserVerseDetail[]): void {
+    console.log(`Mapping ${userVerses.length} API verses to Bible model`);
+    
+    userVerses.forEach(userVerse => {
+      try {
+        if (!userVerse.verse) {
+          console.error('Missing verse data in user verse object');
+          return;
+        }
+        
+        const { book_id, chapter_number, verse_number } = userVerse.verse;
+        
+        // Find the book by ID
+        const book = this.getBookById(book_id);
+        if (!book) {
+          console.error(`Book not found with ID: ${book_id}`);
+          return;
+        }
+        
+        // Get chapter (array is 0-based, chapter numbers are 1-based)
+        if (chapter_number <= 0 || chapter_number > book.chapters.length) {
+          console.error(`Invalid chapter number: ${chapter_number} for book ${book.name}`);
+          return;
+        }
+        
+        const chapter = book.chapters[chapter_number - 1];
+        
+        // Get verse (array is 0-based, verse numbers are 1-based)
+        if (verse_number <= 0 || verse_number > chapter.verses.length) {
+          console.error(`Invalid verse number: ${verse_number} for chapter ${chapter_number}`);
+          return;
+        }
+        
+        const verse = chapter.verses[verse_number - 1];
+        
+        // Update verse properties
+        verse.confidence = userVerse.confidence;
+        verse.memorized = userVerse.confidence >= 500;
+        verse.lastPracticed = userVerse.last_practiced;
+        verse.practiceCount = userVerse.practice_count || 0;
+        
+        console.log(`Mapped verse: ${book.name} ${chapter_number}:${verse_number} (confidence: ${userVerse.confidence})`);
+      } catch (error) {
+        console.error('Error mapping verse:', error);
+      }
+    });
+    
+    console.log('Mapping complete');
   }
 }
