@@ -1,4 +1,4 @@
-# At the top of app/api.py, add:
+# app/api.py
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -10,7 +10,12 @@ from app import models, schemas
 # Create the router instance BEFORE using it
 router = APIRouter()
 
-# Now your route decorators will work
+# Health check endpoint
+@router.get("/")
+def health_check():
+    return {"status": "online", "service": "Bible Tracker API"}
+
+# User endpoints
 @router.post("/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = models.User(**user.dict())

@@ -12,6 +12,11 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+    networks:
+      - app-network
+    # Remove dependency on backend health
+    depends_on:
+      - backend
 
   backend:
     build:
@@ -29,3 +34,16 @@ services:
       - DB_NAME=${DB_NAME}
     env_file:
       - ./.env
+    networks:
+      - app-network
+    # Use a simpler healthcheck that doesn't require curl
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+networks:
+  app-network:
+    driver: bridge

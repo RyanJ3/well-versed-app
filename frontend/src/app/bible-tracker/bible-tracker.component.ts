@@ -88,11 +88,12 @@ export class BibleTrackerComponent implements OnInit {
     });
   }
 
-  // Bible navigation methods
   setTestament(testament: BibleTestament): void {
     this.selectedTestament = testament;
     if (testament.groups.length > 0) {
-      this.setGroup(testament.getGroup('Wisdom')!);
+      // Select the first group from the new testament
+      const firstGroup = testament.groups[0];
+      this.setGroup(firstGroup);
     } else {
       this.selectedGroup = null;
       this.selectedBook = null;

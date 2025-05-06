@@ -14,7 +14,7 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # For debugging
-print(f"Connecting to database at: {DATABASE_URL}")
+print(f"Connecting to database...")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
