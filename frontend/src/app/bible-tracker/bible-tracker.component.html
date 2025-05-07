@@ -3,10 +3,8 @@
   <div class="section bg-white p-4 rounded shadow mb-6">
     <h3 class="text-lg font-semibold mb-3">Select Testament</h3>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <button *ngFor="let testament of testaments" 
-              class="testament-card"
-              [class.active]="testament === selectedTestament" 
-              (click)="setTestament(testament)">
+      <button *ngFor="let testament of testaments" class="testament-card"
+        [class.active]="testament === selectedTestament" (click)="setTestament(testament)">
         <h4 class="text-md font-medium">{{ testament.name }}</h4>
         <div class="progress-container">
           <div class="progress-bar" [style.width.%]="testament.percentComplete"></div>
@@ -20,10 +18,8 @@
   <div *ngIf="selectedTestament" class="section bg-white p-4 rounded shadow mb-6">
     <h3 class="text-lg font-semibold mb-3">Select Book Group</h3>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-      <button *ngFor="let group of selectedTestament.groups" 
-              class="group-card"
-              [class.active]="group.name === selectedGroup?.name" 
-              (click)="setGroup(group)">
+      <button *ngFor="let group of selectedTestament.groups" class="group-card"
+        [class.active]="group.name === selectedGroup?.name" (click)="setGroup(group)">
         <div class="card-content">
           <div class="flex justify-between items-center mb-2">
             <h4 class="group-name">{{ group.name }}</h4>
@@ -54,10 +50,8 @@
       <span class="text-sm text-gray-500">{{ selectedGroup.name }}</span>
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-      <button *ngFor="let book of selectedGroup.books" 
-              class="book-card" 
-              [class.active]="book === selectedBook"
-              (click)="setBook(book)">
+      <button *ngFor="let book of selectedGroup.books" class="book-card" [class.active]="book === selectedBook"
+        (click)="setBook(book)">
         <div class="card-header">
           <h4 class="book-name">{{ book.name }}</h4>
           <span class="book-badge">{{ book.name.substring(0,3) }}</span>
@@ -92,12 +86,9 @@
     </div>
 
     <div class="chapter-overview flex flex-wrap gap-2 mb-4">
-      <button *ngFor="let chapter of selectedBook.chapters" 
-              class="chapter-button"
-              [class.active]="chapter === selectedChapter" 
-              [class.completed]="chapter.isComplete"
-              [class.in-progress]="!chapter.isComplete && chapter.isInProgress" 
-              (click)="setChapter(chapter)">
+      <button *ngFor="let chapter of selectedBook.chapters" class="chapter-button"
+        [class.active]="chapter === selectedChapter" [class.completed]="chapter.isComplete"
+        [class.in-progress]="!chapter.isComplete && chapter.isInProgress" (click)="setChapter(chapter)">
         {{ chapter.chapterNumber }}
       </button>
     </div>
@@ -119,11 +110,8 @@
 
     <!-- Verse bubbles -->
     <div class="verse-container">
-      <button *ngFor="let verse of selectedChapter.verses" 
-              (click)="verse.toggle()" 
-              class="verse-bubble"
-              [class.selected]="verse.memorized" 
-              [class.not-selected]="!verse.memorized">
+      <button *ngFor="let verse of selectedChapter.verses" (click)="toggleAndSaveVerse(verse)" class="verse-bubble"
+        [class.selected]="verse.memorized" [class.not-selected]="!verse.memorized">
         {{ verse.verseNumber }}
       </button>
     </div>

@@ -66,14 +66,27 @@ export class BibleTrackerComponent implements OnInit {
     );
   }
 
+  toggleAndSaveVerse(verse: BibleVerse): void {
+    // Toggle the verse state
+    verse.toggle();
+    
+    // Save the change to database
+    this.saveVerse(verse);
+  }
+
   saveVerse(verse: BibleVerse) {
     if (!verse.chapter || !verse.book) {
-      console.error('Cannot save verse without proper hierarchy');
+      console.error('Cannot save verse without proper hierarchy', verse);
       return;
     }
     
+    console.log(`Saving verse: ${verse.book.name} ${verse.chapter.chapterNumber}:${verse.verseNumber}`);
+    console.log(`Current memorization status: ${verse.memorized}, Practice count: ${verse.practiceCount}`);
+    
     // If verse is memorized, increment practice count
     const practiceCount = verse.memorized ? verse.practiceCount + 1 : verse.practiceCount;
+    
+    console.log(`Calling bibleService.saveVerse with practice count: ${practiceCount}`);
     
     this.bibleService.saveVerse(
       this.userId,
@@ -81,12 +94,18 @@ export class BibleTrackerComponent implements OnInit {
       verse.chapter.chapterNumber,
       verse.verseNumber,
       practiceCount
-    ).subscribe(() => {
-      // Update local model
-      verse.practiceCount = practiceCount;
-      verse.lastPracticed = new Date();
-      this.cdr.detectChanges();
-    });
+    ).subscribe(
+      (response) => {
+        console.log('Save verse response:', response);
+        // Update local model
+        verse.practiceCount = practiceCount;
+        verse.lastPracticed = new Date();
+        this.cdr.detectChanges();
+      },
+      (error) => {
+        console.error('Error saving verse:', error);
+      }
+    );
   }
 
   setTestament(testament: BibleTestament): void {

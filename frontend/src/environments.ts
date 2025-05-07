@@ -1,5 +1,5 @@
 // src/environments.ts
 export const environment = {
     production: false,
-    apiUrl: 'http://backend:8000/api' // Use Docker service name inside container
-  };
+    apiUrl: 'http://localhost:8000/api' // Change from 'backend' to 'localhost'
+};
