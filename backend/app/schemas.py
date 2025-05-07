@@ -56,7 +56,6 @@ class BibleVerse(BibleVerseBase):
         orm_mode = True
 
 class UserVerseBase(BaseModel):
-    confidence: int = 1
     practice_count: int = 0
 
 class UserVerseCreate(UserVerseBase):
@@ -64,9 +63,7 @@ class UserVerseCreate(UserVerseBase):
     verse_id: str
 
 class UserVerseUpdate(BaseModel):
-    user_id: int
-    verse_id: str
-    confidence: int
+    practice_count: int = 1
 
 class UserVerse(UserVerseBase):
     user_id: int
@@ -80,7 +77,6 @@ class UserVerse(UserVerseBase):
 
 class UserVerseDetail(BaseModel):
     verse: BibleVerse
-    confidence: int
     practice_count: int
     last_practiced: Optional[datetime] = None
     created_at: datetime

@@ -38,7 +38,6 @@ def read_user_verses(user_id: int, db: Session = Depends(get_db)):
     for user_verse, verse in user_verses:
         result.append({
             "verse": verse,
-            "confidence": user_verse.confidence,
             "practice_count": user_verse.practice_count,
             "last_practiced": user_verse.last_practiced,
             "created_at": user_verse.created_at,
@@ -71,8 +70,7 @@ def update_user_verse(user_id: int, verse_id: str, user_verse: schemas.UserVerse
     if db_user_verse is None:
         raise HTTPException(status_code=404, detail="User verse not found")
     
-    db_user_verse.confidence = user_verse.confidence
-    db_user_verse.practice_count += 1
+    db_user_verse.practice_count = user_verse.practice_count
     db_user_verse.last_practiced = func.now()
     db_user_verse.updated_at = func.now()
     

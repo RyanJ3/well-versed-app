@@ -66,24 +66,25 @@ export class BibleTrackerComponent implements OnInit {
     );
   }
 
-  saveVerse(verse: BibleVerse, confidence: number) {
+  saveVerse(verse: BibleVerse) {
     if (!verse.chapter || !verse.book) {
       console.error('Cannot save verse without proper hierarchy');
       return;
     }
+    
+    // If verse is memorized, increment practice count
+    const practiceCount = verse.memorized ? verse.practiceCount + 1 : verse.practiceCount;
     
     this.bibleService.saveVerse(
       this.userId,
       verse.book.id,
       verse.chapter.chapterNumber,
       verse.verseNumber,
-      confidence
+      practiceCount
     ).subscribe(() => {
       // Update local model
-      verse.confidence = confidence;
-      verse.memorized = confidence >= 500;
+      verse.practiceCount = practiceCount;
       verse.lastPracticed = new Date();
-      verse.practiceCount++;
       this.cdr.detectChanges();
     });
   }
@@ -138,10 +139,10 @@ export class BibleTrackerComponent implements OnInit {
     }
   }
 
-  getConfidenceClass(confidence: number): string {
-    if (confidence >= 800) return 'high-confidence';
-    if (confidence >= 500) return 'medium-confidence';
-    return 'low-confidence';
+  getMemorizationClass(verse: BibleVerse): string {
+    if (verse.practiceCount >= 5) return 'high-practice';
+    if (verse.practiceCount >= 2) return 'medium-practice';
+    return 'low-practice';
   }
 
   refreshVerses() {
@@ -169,7 +170,7 @@ export class BibleTrackerComponent implements OnInit {
   }
 
   get defaultBook(): BibleBook {
-    return this.bibleData.getBookByName("Psalms");
+    return this.bibleData.getBookByName("Genesis");
   }
 
   get percentComplete(): number {

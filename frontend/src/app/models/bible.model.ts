@@ -12,7 +12,6 @@ export interface BibleVerse {
 export interface UserVerse {
   user_id: number;
   verse_id: string;
-  confidence: number;
   practice_count: number;
   last_practiced?: Date;
   created_at: Date;
@@ -21,7 +20,6 @@ export interface UserVerse {
 
 export interface UserVerseDetail {
   verse: BibleVerse;
-  confidence: number;
   practice_count: number;
   last_practiced?: Date;
   created_at: Date;
@@ -49,7 +47,6 @@ export enum BookGroupType {
 
 // Model classes
 export class BibleVerse {
-  public confidence: number = 0;
   public lastPracticed?: Date;
   public practiceCount: number = 0;
   
@@ -540,12 +537,11 @@ export class BibleData {
         const verse = chapter.verses[verse_number - 1];
         
         // Update verse properties
-        verse.confidence = userVerse.confidence;
-        verse.memorized = userVerse.confidence >= 500;
-        verse.lastPracticed = userVerse.last_practiced;
         verse.practiceCount = userVerse.practice_count || 0;
+        verse.memorized = userVerse.practice_count > 0;
+        verse.lastPracticed = userVerse.last_practiced;
         
-        console.log(`Mapped verse: ${book.name} ${chapter_number}:${verse_number} (confidence: ${userVerse.confidence})`);
+        console.log(`Mapped verse: ${book.name} ${chapter_number}:${verse_number} (practice count: ${userVerse.practice_count})`);
       } catch (error) {
         console.error('Error mapping verse:', error);
       }

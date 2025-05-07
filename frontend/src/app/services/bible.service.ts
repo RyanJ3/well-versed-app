@@ -65,14 +65,14 @@ export class BibleService {
     );
   }
 
-  saveVerse(userId: number, bookId: string, chapterNum: number, verseNum: number, confidence: number): Observable<any> {
+  saveVerse(userId: number, bookId: string, chapterNum: number, verseNum: number, practiceCount: number): Observable<any> {
     if (!this.backendAvailable) {
       console.warn('Backend unavailable, verse changes will not be saved');
       return of({ success: false, reason: 'offline' });
     }
     
     const verseId = `${bookId}-${chapterNum}-${verseNum}`;
-    const payload = { user_id: userId, verse_id: verseId, confidence };
+    const payload = { user_id: userId, verse_id: verseId, practice_count: practiceCount };
     
     // First try PUT (update)
     return this.http.put(`${this.apiUrl}/user-verses/${userId}/${verseId}`, payload).pipe(

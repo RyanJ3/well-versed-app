@@ -60,15 +60,10 @@ class UserVerse(Base):
     __tablename__ = "user_verses"
     user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), primary_key=True)
     verse_id = Column(String(12), ForeignKey("bible_verses.verse_id"), primary_key=True)
-    confidence = Column(Integer, default=1)
     practice_count = Column(Integer, default=0)
     last_practiced = Column(DateTime)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime)
-    
-    __table_args__ = (
-        CheckConstraint('confidence >= 1 AND confidence <= 1000', name='check_confidence_range'),
-    )
     
     user = relationship("User", back_populates="verses")
     verse = relationship("BibleVerse", back_populates="users")

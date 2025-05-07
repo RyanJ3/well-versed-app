@@ -49,11 +49,9 @@ CREATE TABLE public.verses (
 CREATE TABLE public.user_verses (
     user_id INTEGER REFERENCES public.users(user_id) ON DELETE CASCADE,
     verse_id VARCHAR(12) REFERENCES public.verses(verse_id) ON DELETE CASCADE,
-    confidence INTEGER DEFAULT 1 NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     PRIMARY KEY (user_id, verse_id),
-    CONSTRAINT check_confidence_range CHECK (confidence BETWEEN 1 AND 1000)
 );
 
 -- Create indexes for performance
@@ -81,11 +79,11 @@ VALUES
 ('ROM-8-28', 28);
 
 -- Insert sample user verses (memorization progress)
-INSERT INTO public.user_verses (user_id, verse_id, confidence)
+INSERT INTO public.user_verses (user_id, verse_id)
 VALUES 
-(1, 'JHN-3-16', 900),
-(1, 'PSA-23-1', 750),
-(1, 'ROM-8-28', 500);
+(1, 'JHN-3-16'),
+(1, 'PSA-23-1'),
+(1, 'ROM-8-28');
 
 -- Grant permissions to application role
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO data_editor_limited;
