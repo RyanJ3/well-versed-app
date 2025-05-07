@@ -77,3 +77,53 @@ def update_user_verse(user_id: int, verse_id: str, user_verse: schemas.UserVerse
     db.commit()
     db.refresh(db_user_verse)
     return db_user_verse
+
+# Optimize the bulk endpoint in api.py
+@router.post("/user-verses/bulk", response_model=dict)
+def create_user_verses_bulk(data: dict, db: Session = Depends(get_db)):
+    user_id = data.get("user_id")
+    book_id = data.get("book_id")
+    chapter_number = data.get("chapter_number")
+    verse_numbers = data.get("verse_numbers", [])
+    practice_count = data.get("practice_count", 0)
+    
+    if not all([user_id, book_id, chapter_number, verse_numbers]):
+        raise HTTPException(status_code=400, detail="Missing required parameters")
+    
+    # Process in batches for better performance
+    updated_count = 0
+    
+    # Create verse IDs
+    verse_ids = [f"{book_id}-{chapter_number}-{verse_num}" for verse_num in verse_numbers]
+    
+    if practice_count > 0:
+        # For "Select All" - use raw SQL but avoid passing func.now() as parameter
+        stmt = text("""
+            INSERT INTO user_verses (user_id, verse_id, practice_count, last_practiced, created_at, updated_at)
+            VALUES (:user_id, :verse_id, :practice_count, NOW(), NOW(), NOW())
+            ON CONFLICT (user_id, verse_id) 
+            DO UPDATE SET 
+                practice_count = :practice_count,
+                last_practiced = NOW(),
+                updated_at = NOW()
+        """)
+        
+        # Execute in batches
+        for verse_id in verse_ids:
+            params = {
+                "user_id": user_id,
+                "verse_id": verse_id,
+                "practice_count": practice_count
+            }
+            db.execute(stmt, params)
+            updated_count += 1
+    else:
+        # For "Clear All" - delete records
+        result = db.query(models.UserVerse).filter(
+            models.UserVerse.user_id == user_id,
+            models.UserVerse.verse_id.in_(verse_ids)
+        ).delete(synchronize_session=False)
+        updated_count = result
+    
+    db.commit()
+    return {"success": True, "updated_count": updated_count}

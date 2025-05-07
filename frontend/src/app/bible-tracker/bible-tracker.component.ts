@@ -21,12 +21,12 @@ import { BibleBook, BibleChapter, BibleData, BibleGroup, BibleTestament, BibleVe
 })
 export class BibleTrackerComponent implements OnInit {
   private bibleData: BibleData;
-  
+
   selectedTestament: BibleTestament | null = null;
   selectedGroup: BibleGroup | null = null;
   selectedBook: BibleBook | null = null;
   selectedChapter: BibleChapter | null = null;
-  
+
   userVerses: UserVerseDetail[] = [];
   isLoading = true;
   userId = 1;
@@ -37,7 +37,7 @@ export class BibleTrackerComponent implements OnInit {
   ) {
     console.log('BibleTrackerComponent initialized');
     this.bibleData = this.bibleService.getBibleData();
-    
+
     // Initialize with default testament
     this.selectedTestament = this.defaultTestament;
     if (this.selectedTestament?.groups.length > 0) {
@@ -51,7 +51,7 @@ export class BibleTrackerComponent implements OnInit {
 
   loadUserVerses() {
     this.isLoading = true;
-    
+
     this.bibleService.getUserVerses(this.userId).subscribe(
       (verses) => {
         this.userVerses = verses;
@@ -69,7 +69,7 @@ export class BibleTrackerComponent implements OnInit {
   toggleAndSaveVerse(verse: BibleVerse): void {
     // Toggle the verse state
     verse.toggle();
-    
+
     // Save the change to database
     this.saveVerse(verse);
   }
@@ -79,15 +79,15 @@ export class BibleTrackerComponent implements OnInit {
       console.error('Cannot save verse without proper hierarchy', verse);
       return;
     }
-    
+
     console.log(`Saving verse: ${verse.book.name} ${verse.chapter.chapterNumber}:${verse.verseNumber}`);
     console.log(`Current memorization status: ${verse.memorized}, Practice count: ${verse.practiceCount}`);
-    
+
     // If verse is memorized, increment practice count
     const practiceCount = verse.memorized ? verse.practiceCount + 1 : verse.practiceCount;
-    
+
     console.log(`Calling bibleService.saveVerse with practice count: ${practiceCount}`);
-    
+
     this.bibleService.saveVerse(
       this.userId,
       verse.book.id,
@@ -106,6 +106,51 @@ export class BibleTrackerComponent implements OnInit {
         console.error('Error saving verse:', error);
       }
     );
+  }
+  // Replace the button click methods
+  selectAllVerses(): void {
+    if (this.selectedChapter) {
+      this.selectedChapter.selectAllVerses();
+      this.saveBulkVerses(this.selectedChapter, true);
+      this.cdr.detectChanges();
+    }
+  }
+
+  clearAllVerses(): void {
+    if (this.selectedChapter) {
+      this.selectedChapter.clearAllVerses();
+      this.saveBulkVerses(this.selectedChapter, false);
+      this.cdr.detectChanges();
+    }
+  }
+
+  isSavingBulk = false;
+
+  saveBulkVerses(chapter: BibleChapter, isMemorized: boolean): void {
+    if (!chapter || !chapter.book) return;
+
+    this.isSavingBulk = true; // Start loading
+    const verseNums = Array.from({ length: chapter.verses.length }, (_, i) => i + 1);
+    const practiceCount = isMemorized ? 1 : 0;
+
+    this.bibleService.saveVersesBulk(
+      this.userId, chapter.book.id, chapter.chapterNumber, verseNums, practiceCount
+    ).subscribe({
+      next: (response) => {
+        chapter.verses.forEach(verse => {
+          verse.memorized = isMemorized;
+          verse.practiceCount = practiceCount;
+          if (isMemorized) verse.lastPracticed = new Date();
+        });
+        this.isSavingBulk = false; // End loading
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error saving verses in bulk:', error);
+        this.isSavingBulk = false; // End loading
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   setTestament(testament: BibleTestament): void {
@@ -144,19 +189,6 @@ export class BibleTrackerComponent implements OnInit {
     this.selectedChapter = chapter;
   }
 
-  selectAllVerses() {
-    if (this.selectedChapter) {
-      this.selectedChapter.selectAllVerses();
-      this.cdr.detectChanges();
-    }
-  }
-
-  clearAllVerses() {
-    if (this.selectedChapter) {
-      this.selectedChapter.clearAllVerses();
-      this.cdr.detectChanges();
-    }
-  }
 
   getMemorizationClass(verse: BibleVerse): string {
     if (verse.practiceCount >= 5) return 'high-practice';
