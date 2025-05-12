@@ -1,23 +1,29 @@
-# app/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import router
 
-app = FastAPI(title="Bible Tracker API")
+# Create the app first
+app = FastAPI(
+    title="Angular-PostgreSQL API",
+    description="API for connecting Angular to AWS RDS Aurora PostgreSQL",
+    version="1.0.0"
+)
 
-# Enable CORS
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:4200"],  # Angular default port
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Root health check endpoint
-@app.get("/")
-def read_root():
-    return {"status": "online", "service": "Bible Tracker API"}
+# Import AFTER creating the app to avoid circular imports
+from app.api.endpoints import router
 
-# Include API router at /api prefix
+# Include API routes
 app.include_router(router, prefix="/api")
+
+# Add a root endpoint
+@app.get("/")
+async def root():
+    return {"message": "API is running"}
