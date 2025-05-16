@@ -20,6 +20,7 @@ export interface User {
   versesMemorized?: number;
   streakDays?: number;
   booksStarted?: number;
+  peferredBible?: string;
   
   // Current progress
   currentlyMemorizing?: MemorizationProgress[];

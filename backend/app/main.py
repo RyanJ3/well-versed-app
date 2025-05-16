@@ -1,29 +1,22 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.api.router import router as api_router
+from app.config import settings
 
-# Create the app first
-app = FastAPI(
-    title="Angular-PostgreSQL API",
-    description="API for connecting Angular to AWS RDS Aurora PostgreSQL",
-    version="1.0.0"
-)
+app = FastAPI(title=settings.PROJECT_NAME)
 
-# Configure CORS
+# Set up CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],  # Angular default port
+    allow_origins=["*"],  # For development; lock down in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Import AFTER creating the app to avoid circular imports
-from app.api.endpoints import router
-
 # Include API routes
-app.include_router(router, prefix="/api")
+app.include_router(api_router, prefix=settings.API_V1_STR)
 
-# Add a root endpoint
 @app.get("/")
-async def root():
-    return {"message": "API is running"}
+def read_root():
+    return {"message": "Welcome to the Well Versed API"}

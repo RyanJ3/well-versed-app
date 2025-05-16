@@ -187,7 +187,7 @@ export class BibleBook {
       // Handle books like "1 Samuel" -> "1SA"
       const parts = bookName.split(' ');
       if (parts[0].match(/^\d+$/)) {
-        return parts[0] + parts[1].substring(0, 2).toUpperCase();
+        return parts[0] + parts[1].substring(0, 3).toUpperCase();
       }
     }
     // Default: first 3 letters uppercase
