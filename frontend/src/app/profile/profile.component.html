@@ -47,47 +47,101 @@
           <span class="info-value">{{ user.includeApocrypha ? 'Yes' : 'No' }}</span>
         </div>
       </div>
-      <button kendoButton [primary]="true" (click)="startEditing()">Edit Profile</button>
+      <button class="btn btn-primary" (click)="startEditing()">Edit Profile</button>
     </div>
           
     <div *ngIf="isEditing">
       <form (ngSubmit)="saveProfile()">
         <div class="form-group">
           <label for="firstName">First Name</label>
-          <input kendoTextBox id="firstName" [(ngModel)]="editForm.first_name" name="firstName" required>
+          <input type="text" id="firstName" class="form-control" [(ngModel)]="editForm.first_name" name="firstName" required>
         </div>
               
         <div class="form-group">
           <label for="lastName">Last Name</label>
-          <input kendoTextBox id="lastName" [(ngModel)]="editForm.last_name" name="lastName">
+          <input type="text" id="lastName" class="form-control" [(ngModel)]="editForm.last_name" name="lastName">
         </div>
               
         <div class="form-group">
           <label for="denomination">Denomination</label>
-          <select id="denomination" [(ngModel)]="editForm.denomination" name="denomination" class="k-input">
-            <option *ngFor="let opt of denominationOptions" [value]="opt.value">{{ opt.text }}</option>
+          <select id="denomination" class="form-control" [(ngModel)]="editForm.denomination" name="denomination">
+            <option *ngFor="let option of denominationOptions" [value]="option.value">{{ option.text }}</option>
           </select>
         </div>
               
         <div class="form-group">
           <label for="preferredBible">Preferred Bible</label>
-          <select id="preferredBible" [(ngModel)]="editForm.preferred_bible" name="preferredBible" class="k-input">
-            <option *ngFor="let opt of bibleOptions" [value]="opt.value">{{ opt.text }}</option>
+          <select id="preferredBible" class="form-control" [(ngModel)]="editForm.preferred_bible" name="preferredBible">
+            <option *ngFor="let option of bibleOptions" [value]="option.value">{{ option.text }}</option>
           </select>
         </div>
               
         <div class="form-group checkbox-group">
-          <label>
-            <input type="checkbox" [(ngModel)]="editForm.include_apocrypha" name="includeApocrypha">
-            Include Apocrypha
-          </label>
+          <div class="custom-checkbox">
+            <input type="checkbox" id="includeApocrypha" [(ngModel)]="editForm.include_apocrypha" name="includeApocrypha">
+            <label for="includeApocrypha">Include Apocrypha</label>
+          </div>
         </div>
               
         <div class="form-actions">
-          <button kendoButton [primary]="true" type="submit">Save Changes</button>
-          <button kendoButton type="button" (click)="cancelEdit()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+          <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
         </div>
       </form>
+    </div>
+  </div>
+  
+  <div class="profile-section">
+    <h2 class="section-title">Memorization Progress</h2>
+    <div class="chart-container">
+      <div class="chart-bar" *ngFor="let item of memorizationData">
+        <div class="chart-label">{{ item.category }}</div>
+        <div class="chart-bar-container">
+          <div class="chart-bar-fill" [style.width.%]="(item.count / 30) * 100"></div>
+          <span class="chart-bar-value">{{ item.count }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="profile-section">
+    <h2 class="section-title">Recent Activity</h2>
+    <div class="tabs">
+      <div class="tab-buttons">
+        <button class="tab-button" [class.active]="selectedTab === 'current'" (click)="selectTab('current')">
+          Currently Memorizing
+        </button>
+        <button class="tab-button" [class.active]="selectedTab === 'achievements'" (click)="selectTab('achievements')">
+          Recent Achievements
+        </button>
+      </div>
+      
+      <div class="tab-content" [class.active]="selectedTab === 'current'">
+        <div class="empty-state" *ngIf="!user.currentlyMemorizing || user.currentlyMemorizing?.length === 0">
+          <p>You're not currently memorizing any verses.</p>
+          <button class="btn btn-primary" routerLink="/tracker">Start Memorizing</button>
+        </div>
+        
+        <div class="passage-list" *ngIf="user.currentlyMemorizing && user.currentlyMemorizing.length > 0">
+          <div class="passage-card" *ngFor="let passage of user.currentlyMemorizing">
+            <h3 class="passage-title">{{ passage.reference }}</h3>
+            <div class="progress">
+              <div class="progress-bar" [style.width.%]="passage.progress">
+                {{ passage.progress }}%
+              </div>
+            </div>
+            <p class="last-practiced" *ngIf="passage.lastPracticed">
+              Last practiced: {{ passage.lastPracticed | date:'shortDate' }}
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tab-content" [class.active]="selectedTab === 'achievements'">
+        <div class="empty-state">
+          <p>No recent achievements to display.</p>
+        </div>
+      </div>
     </div>
   </div>
 </div>

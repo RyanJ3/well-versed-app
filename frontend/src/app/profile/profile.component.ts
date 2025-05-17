@@ -1,145 +1,95 @@
-// profile.component.ts
+// src/app/profile/profile.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { UserService } from '../services/user.service';
 import { User } from '../models/user';
 
 @Component({
   selector: 'app-profile',
+  templateUrl: './profile.component.html',
+  styleUrls: ['./profile.component.scss'],
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule
-  ],
-  template: `
-    <div *ngIf="isLoading" class="loading">Loading...</div>
-    
-    <div *ngIf="!isLoading && user" class="profile">
-      <h1>{{ user.name }}</h1>
-      <p>{{ user.email }}</p>
-      
-      <div *ngIf="!isEditing" class="info-section">
-        <p><strong>Denomination:</strong> {{ user.denomination || 'Not specified' }}</p>
-        <p><strong>Preferred Bible:</strong> {{ user.preferredBible || 'Not specified' }}</p>
-        <p><strong>Include Apocrypha:</strong> {{ user.includeApocrypha ? 'Yes' : 'No' }}</p>
-        
-        <button (click)="startEditing()">Edit Profile</button>
-      </div>
-      
-      <div *ngIf="isEditing" class="edit-form">
-        <form (ngSubmit)="saveProfile()">
-          <div>
-            <label for="firstName">First Name:</label>
-            <input id="firstName" [(ngModel)]="editForm.first_name" name="firstName">
-          </div>
-          
-          <div>
-            <label for="lastName">Last Name:</label>
-            <input id="lastName" [(ngModel)]="editForm.last_name" name="lastName">
-          </div>
-          
-          <div>
-            <label for="denomination">Denomination:</label>
-            <select id="denomination" [(ngModel)]="editForm.denomination" name="denomination">
-              <option value="">Select Denomination</option>
-              <option value="Non-denominational">Non-denominational</option>
-              <option value="Catholic">Catholic</option>
-              <option value="Protestant">Protestant</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          
-          <div>
-            <label for="preferredBible">Preferred Bible:</label>
-            <select id="preferredBible" [(ngModel)]="editForm.preferred_bible" name="preferredBible">
-              <option value="">Select Translation</option>
-              <option value="KJV">King James Version (KJV)</option>
-              <option value="NIV">New International Version (NIV)</option>
-              <option value="ESV">English Standard Version (ESV)</option>
-            </select>
-          </div>
-          
-          <div>
-            <label>
-              <input type="checkbox" [(ngModel)]="editForm.include_apocrypha" name="includeApocrypha">
-              Include Apocrypha
-            </label>
-          </div>
-          
-          <div class="actions">
-            <button type="submit">Save</button>
-            <button type="button" (click)="cancelEdit()">Cancel</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .profile {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    
-    .loading {
-      text-align: center;
-      padding: 40px;
-    }
-    
-    form div {
-      margin-bottom: 15px;
-    }
-    
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: 500;
-    }
-    
-    input, select {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-    
-    .actions {
-      margin-top: 20px;
-      display: flex;
-      gap: 10px;
-    }
-    
-    button {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 4px;
-      background: #3b82f6;
-      color: white;
-      cursor: pointer;
-    }
-    
-    button[type="button"] {
-      background: #e5e7eb;
-      color: #4b5563;
-    }
-  `]
+    FormsModule,
+    RouterModule
+  ]
 })
 export class ProfileComponent implements OnInit {
   user: User | null = null;
   isLoading = true;
   isEditing = false;
-  editForm: any = {};
+  
+  // Form data
+  editForm: any = {
+    first_name: '',
+    last_name: '',
+    denomination: '',
+    preferred_bible: '',
+    include_apocrypha: false
+  };
+  
+  // Dropdown options
+  denominationOptions = [
+    { text: 'Select Denomination', value: '' },
+    { text: 'Non-denominational', value: 'Non-denominational' },
+    { text: 'Catholic', value: 'Catholic' },
+    { text: 'Protestant', value: 'Protestant' },
+    { text: 'Orthodox', value: 'Orthodox' },
+    { text: 'Baptist', value: 'Baptist' },
+    { text: 'Methodist', value: 'Methodist' },
+    { text: 'Presbyterian', value: 'Presbyterian' },
+    { text: 'Anglican/Episcopal', value: 'Anglican/Episcopal' },
+    { text: 'Lutheran', value: 'Lutheran' },
+    { text: 'Other', value: 'Other' }
+  ];
+  
+  bibleOptions = [
+    { text: 'Select Bible Translation', value: '' },
+    { text: 'King James Version (KJV)', value: 'KJV' },
+    { text: 'New International Version (NIV)', value: 'NIV' },
+    { text: 'English Standard Version (ESV)', value: 'ESV' },
+    { text: 'New American Standard Bible (NASB)', value: 'NASB' },
+    { text: 'New Living Translation (NLT)', value: 'NLT' },
+    { text: 'Christian Standard Bible (CSB)', value: 'CSB' },
+    { text: 'New King James Version (NKJV)', value: 'NKJV' },
+    { text: 'Revised Standard Version (RSV)', value: 'RSV' },
+    { text: 'The Message (MSG)', value: 'MSG' },
+    { text: 'Amplified Bible (AMP)', value: 'AMP' }
+  ];
+  
+  // Chart data
+  memorizationData = [
+    { category: 'Genesis', count: 15 },
+    { category: 'Psalms', count: 28 },
+    { category: 'Proverbs', count: 12 },
+    { category: 'John', count: 8 },
+    { category: 'Romans', count: 10 }
+  ];
+
+  // Tab selection state
+  selectedTab = 'current';
   
   constructor(private userService: UserService) { }
 
   ngOnInit(): void {
-    this.userService.currentUser$.subscribe(user => {
-      this.user = user;
-      this.isLoading = false;
+    this.loadUserProfile();
+  }
+  
+  loadUserProfile(): void {
+    this.isLoading = true;
+    
+    this.userService.currentUser$.subscribe({
+      next: (user) => {
+        this.user = user;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading user profile:', error);
+        this.isLoading = false;
+      }
     });
     
     this.userService.fetchCurrentUser();
@@ -180,5 +130,9 @@ export class ProfileComponent implements OnInit {
   
   cancelEdit(): void {
     this.isEditing = false;
+  }
+  
+  selectTab(tabId: string): void {
+    this.selectedTab = tabId;
   }
 }
