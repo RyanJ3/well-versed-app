@@ -1,9 +1,9 @@
 // src/app/services/user.service.ts
 import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { User } from '../models/user';
+import { User, UserApiResponse, UserProfileUpdate } from '../models/user';
 import { HttpClient } from '@angular/common/http';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../environments';
 
@@ -25,8 +25,10 @@ export class UserService {
 
   fetchCurrentUser(): void {
     // For testing, we'll use user ID 1
-    this.http.get<User>(`${this.apiUrl}/users/1`).pipe(
+    this.http.get<UserApiResponse>(`${this.apiUrl}/users/1`).pipe(
+      map(apiResponse => this.mapApiResponseToUser(apiResponse)),
       tap(user => {
+        console.log('Fetched user from API:', user);
         this.currentUserSubject.next(user);
       }),
       catchError(error => {
@@ -40,9 +42,27 @@ export class UserService {
     return this.currentUserSubject.value;
   }
 
-  updateUser(userData: Partial<User>): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/users/1`, userData).pipe(
+  updateUser(formData: any): Observable<User> {
+    console.log('Updating user with form data:', formData);
+
+    // Convert camelCase form data to snake_case for API
+    const apiRequestData: UserProfileUpdate = {
+      first_name: formData.firstName || formData.first_name,
+      last_name: formData.lastName || formData.last_name,
+      denomination: formData.denomination,
+      preferred_bible: formData.preferredBible || formData.preferred_bible,
+      // FIXED: Use nullish coalescing for boolean value to properly handle false
+      include_apocrypha: formData.includeApocrypha !== undefined
+        ? formData.includeApocrypha
+        : formData.include_apocrypha
+    };
+
+    console.log('Converted to API format:', apiRequestData);
+
+    return this.http.put<UserApiResponse>(`${this.apiUrl}/users/1`, apiRequestData).pipe(
+      map(apiResponse => this.mapApiResponseToUser(apiResponse)),
       tap(updatedUser => {
+        console.log('User updated successfully, mapped response:', updatedUser);
         this.currentUserSubject.next(updatedUser);
       }),
       catchError(error => {
@@ -54,5 +74,27 @@ export class UserService {
 
   logout(): void {
     this.currentUserSubject.next(null);
+  }
+
+  // Helper method to convert API response (snake_case) to User model (camelCase)
+  private mapApiResponseToUser(apiResponse: UserApiResponse): User {
+    return {
+      id: apiResponse.id,
+      name: apiResponse.name,
+      email: apiResponse.email,
+      createdAt: new Date(apiResponse.created_at),
+
+      denomination: apiResponse.denomination,
+      preferredBible: apiResponse.preferred_bible,
+      // FIXED: Handle boolean properly
+      includeApocrypha: apiResponse.include_apocrypha !== undefined ? apiResponse.include_apocrypha : false,
+
+      versesMemorized: apiResponse.verses_memorized,
+      streakDays: apiResponse.streak_days,
+      booksStarted: apiResponse.books_started,
+
+      // Add default empty array for currently memorizing verses
+      currentlyMemorizing: []
+    };
   }
 }

@@ -57,12 +57,20 @@ export class BibleTrackerComponent implements OnInit {
     // Get user preferences first
     this.userService.currentUser$.subscribe(user => {
       if (user) {
-        console.log('User preferences loaded:', user);
-        this.includeApocrypha = user.includeApocrypha || false;
-        console.log(`User apocrypha setting: ${this.includeApocrypha}`);
+        console.log('BibleTracker - User preferences loaded:', user);
 
-        // Now load verses with the correct setting
-        this.loadUserVerses();
+        // Check if apocrypha setting has changed - note we're using camelCase
+        const newSetting = user.includeApocrypha || false;
+        if (this.includeApocrypha !== newSetting) {
+          console.log(`Apocrypha setting changed from ${this.includeApocrypha} to ${newSetting}`);
+          this.includeApocrypha = newSetting;
+
+          // Reload verses with the new setting
+          this.loadUserVerses();
+        } else if (!this.userVerses.length) {
+          // Initial load or reload after reset
+          this.loadUserVerses();
+        }
       } else {
         // Fallback if no user is loaded yet
         this.loadUserVerses();

@@ -32,63 +32,47 @@
 
   <div class="profile-section">
     <h2 class="section-title">Personal Information</h2>
-    <div *ngIf="!isEditing">
-      <div class="info-list">
-        <div class="info-row">
-          <span class="info-label">Denomination:</span>
-          <span class="info-value">{{ user.denomination || 'Not specified' }}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Preferred Bible:</span>
-          <span class="info-value">{{ user.preferredBible || 'Not specified' }}</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">Include Apocrypha:</span>
-          <span class="info-value">{{ user.includeApocrypha ? 'Yes' : 'No' }}</span>
+    
+    <!-- Directly editable form -->
+    <form (ngSubmit)="saveProfile()">
+      <div class="form-group">
+        <label for="firstName">First Name</label>
+        <input type="text" id="firstName" class="form-control" [(ngModel)]="profileForm.firstName" name="firstName" required>
+      </div>
+          
+      <div class="form-group">
+        <label for="lastName">Last Name</label>
+        <input type="text" id="lastName" class="form-control" [(ngModel)]="profileForm.lastName" name="lastName">
+      </div>
+          
+      <div class="form-group">
+        <label for="denomination">Denomination</label>
+        <select id="denomination" class="form-control" [(ngModel)]="profileForm.denomination" name="denomination">
+          <option *ngFor="let option of denominationOptions" [value]="option.value">{{ option.text }}</option>
+        </select>
+      </div>
+          
+      <div class="form-group">
+        <label for="preferredBible">Preferred Bible</label>
+        <select id="preferredBible" class="form-control" [(ngModel)]="profileForm.preferredBible" name="preferredBible">
+          <option *ngFor="let option of bibleOptions" [value]="option.value">{{ option.text }}</option>
+        </select>
+      </div>
+          
+      <div class="form-group checkbox-group">
+        <div class="custom-checkbox">
+          <input type="checkbox" id="includeApocrypha" [(ngModel)]="profileForm.includeApocrypha" name="includeApocrypha">
+          <label for="includeApocrypha">Include Apocrypha</label>
         </div>
       </div>
-      <button class="btn btn-primary" (click)="startEditing()">Edit Profile</button>
-    </div>
           
-    <div *ngIf="isEditing">
-      <form (ngSubmit)="saveProfile()">
-        <div class="form-group">
-          <label for="firstName">First Name</label>
-          <input type="text" id="firstName" class="form-control" [(ngModel)]="editForm.first_name" name="firstName" required>
-        </div>
-              
-        <div class="form-group">
-          <label for="lastName">Last Name</label>
-          <input type="text" id="lastName" class="form-control" [(ngModel)]="editForm.last_name" name="lastName">
-        </div>
-              
-        <div class="form-group">
-          <label for="denomination">Denomination</label>
-          <select id="denomination" class="form-control" [(ngModel)]="editForm.denomination" name="denomination">
-            <option *ngFor="let option of denominationOptions" [value]="option.value">{{ option.text }}</option>
-          </select>
-        </div>
-              
-        <div class="form-group">
-          <label for="preferredBible">Preferred Bible</label>
-          <select id="preferredBible" class="form-control" [(ngModel)]="editForm.preferred_bible" name="preferredBible">
-            <option *ngFor="let option of bibleOptions" [value]="option.value">{{ option.text }}</option>
-          </select>
-        </div>
-              
-        <div class="form-group checkbox-group">
-          <div class="custom-checkbox">
-            <input type="checkbox" id="includeApocrypha" [(ngModel)]="editForm.include_apocrypha" name="includeApocrypha">
-            <label for="includeApocrypha">Include Apocrypha</label>
-          </div>
-        </div>
-              
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Save Changes</button>
-          <button type="button" class="btn btn-secondary" (click)="cancelEdit()">Cancel</button>
-        </div>
-      </form>
-    </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+          <span *ngIf="!isLoading">Save Changes</span>
+          <span *ngIf="isLoading">Saving...</span>
+        </button>
+      </div>
+    </form>
   </div>
   
   <div class="profile-section">

@@ -780,4 +780,5 @@ export class BibleData {
 
     console.log(`Mapping complete: ${successCount} verses mapped successfully, ${errorCount} errors`);
   }
+  
 }

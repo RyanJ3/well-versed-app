@@ -1,9 +1,9 @@
-// src/app/profile/profile.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { UserService } from '../services/user.service';
+import { BibleService } from '../services/bible.service';
 import { User } from '../models/user';
 
 @Component({
@@ -20,15 +20,15 @@ import { User } from '../models/user';
 export class ProfileComponent implements OnInit {
   user: User | null = null;
   isLoading = true;
-  isEditing = false;
-  
-  // Form data
-  editForm: any = {
-    first_name: '',
-    last_name: '',
+  showSuccess = false;
+
+  // Form data (always available for editing)
+  profileForm: any = {
+    firstName: '',
+    lastName: '',
     denomination: '',
-    preferred_bible: '',
-    include_apocrypha: false
+    preferredBible: '',
+    includeApocrypha: false
   };
   
   // Dropdown options
@@ -72,7 +72,10 @@ export class ProfileComponent implements OnInit {
   // Tab selection state
   selectedTab = 'current';
   
-  constructor(private userService: UserService) { }
+  constructor(
+    private userService: UserService,
+    private bibleService: BibleService
+  ) { }
 
   ngOnInit(): void {
     this.loadUserProfile();
@@ -84,7 +87,14 @@ export class ProfileComponent implements OnInit {
     this.userService.currentUser$.subscribe({
       next: (user) => {
         this.user = user;
+        
+        if (user) {
+          // Initialize the form fields with user data
+          this.initializeForm(user);
+        }
+        
         this.isLoading = false;
+        console.log('Loaded user profile:', user);
       },
       error: (error) => {
         console.error('Error loading user profile:', error);
@@ -95,30 +105,45 @@ export class ProfileComponent implements OnInit {
     this.userService.fetchCurrentUser();
   }
   
-  startEditing(): void {
-    if (!this.user) return;
+  // Initialize form with user data
+  initializeForm(user: User): void {
+    const nameParts = user.name.split(' ');
     
-    const nameParts = this.user.name.split(' ');
-    
-    this.editForm = {
-      first_name: nameParts[0] || '',
-      last_name: nameParts.slice(1).join(' ') || '',
-      denomination: this.user.denomination || '',
-      preferred_bible: this.user.preferredBible || '',
-      include_apocrypha: this.user.includeApocrypha || false
+    this.profileForm = {
+      firstName: nameParts[0] || '',
+      lastName: nameParts.slice(1).join(' ') || '',
+      denomination: user.denomination || '',
+      preferredBible: user.preferredBible || '',
+      // FIXED: Handle boolean correctly - don't use || with booleans
+      includeApocrypha: user.includeApocrypha !== undefined ? user.includeApocrypha : false
     };
     
-    this.isEditing = true;
+    console.log('Profile form initialized with:', this.profileForm);
   }
   
   saveProfile(): void {
-    if (!this.editForm) return;
+    if (!this.profileForm) return;
     
+    console.log('Saving profile with data:', this.profileForm);
     this.isLoading = true;
     
-    this.userService.updateUser(this.editForm).subscribe({
-      next: () => {
-        this.isEditing = false;
+    this.userService.updateUser(this.profileForm).subscribe({
+      next: (updatedUser) => {
+        console.log('Profile updated successfully:', updatedUser);
+        
+        // Update Bible service with new apocrypha setting
+        if (updatedUser && updatedUser.includeApocrypha !== undefined) {
+          this.bibleService.updateUserPreferences(updatedUser.includeApocrypha);
+        }
+        
+        // Show success message
+        this.showSuccess = true;
+        
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+          this.dismissSuccess();
+        }, 5000);
+        
         this.isLoading = false;
       },
       error: (error) => {
@@ -128,11 +153,11 @@ export class ProfileComponent implements OnInit {
     });
   }
   
-  cancelEdit(): void {
-    this.isEditing = false;
-  }
-  
   selectTab(tabId: string): void {
     this.selectedTab = tabId;
+  }
+  
+  dismissSuccess(): void {
+    this.showSuccess = false;
   }
 }
