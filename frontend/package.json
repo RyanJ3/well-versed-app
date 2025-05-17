@@ -23,6 +23,8 @@
     "@angular/platform-server": "^19.2.0",
     "@angular/router": "^19.2.0",
     "@angular/ssr": "^19.2.3",
+    "@progress/kendo-angular-treeview": "^18.5.2",
+    "@progress/kendo-angular-utils": "^18.5.2",
     "express": "^4.18.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",

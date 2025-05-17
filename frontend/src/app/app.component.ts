@@ -5,11 +5,13 @@ import { User } from './models/user';
 import { RouterModule } from '@angular/router'; // Make sure this is imported
 import { UserService } from './services/user.service';
 
+// src/app/app.component.ts
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
-  imports: [CommonModule, RouterModule, RouterOutlet, RouterLink, RouterLinkActive],
+  standalone: true, // Add this line
+  imports: [CommonModule, RouterModule, RouterOutlet, RouterLink, RouterLinkActive]
 })
 export class AppComponent implements OnInit {
   title = 'Well Versed';
