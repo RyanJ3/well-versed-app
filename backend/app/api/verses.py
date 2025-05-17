@@ -1,23 +1,47 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from app import models, schemas
 from app.database import get_db
+from app.utils import get_apocryphal_book_ids
+from sqlalchemy import not_
 
 router = APIRouter()
 
 @router.get("/{user_id}", response_model=List[schemas.UserVerseDetail])
-def get_user_verses(user_id: int, db: Session = Depends(get_db)):
-    """Get all verses memorized by a user"""
+def get_user_verses(
+    user_id: int, 
+    include_apocrypha: bool = False, 
+    db: Session = Depends(get_db)
+):
+    """Get all verses memorized by a user, with option to exclude apocryphal books"""
     # Check if user exists
     user = db.query(models.User).filter(models.User.user_id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
     # Get all user verses with verse details
-    user_verses = db.query(models.UserVerse, models.Verse).join(
+    user_verses_query = db.query(models.UserVerse, models.Verse).join(
         models.Verse, models.UserVerse.verse_id == models.Verse.verse_id
-    ).filter(models.UserVerse.user_id == user_id).all()
+    ).filter(models.UserVerse.user_id == user_id)
+    
+    # Filter out apocryphal books if include_apocrypha is False
+    if not include_apocrypha:
+        # Get list of apocryphal book IDs
+        apocryphal_book_ids = get_apocryphal_book_ids()
+        
+        # Filter out verses from apocryphal books
+        # This creates a condition to exclude verses where the verse_id starts with any apocryphal book ID
+        conditions = []
+        for book_id in apocryphal_book_ids:
+            conditions.append(not_(models.Verse.verse_id.startswith(f"{book_id}-")))
+        
+        # Apply all conditions (AND them together)
+        for condition in conditions:
+            user_verses_query = user_verses_query.filter(condition)
+    
+    # Execute the query
+    user_verses = user_verses_query.all()
     
     # If no verses found, return empty list
     if not user_verses:
@@ -198,3 +222,10 @@ def create_user_verses_bulk(bulk_data: schemas.UserVerseBulkCreate, db: Session 
         "count": len(results),
         "verses": results
     }
+
+# todo determine where psalm 1:7 and philemon 1:30 come from
+@router.get("/debug/{user_id}", response_model=List[str])
+def debug_user_verses(user_id: int, db: Session = Depends(get_db)):
+    """Debug endpoint to return just verse_ids for a user"""
+    user_verses = db.query(models.UserVerse).filter(models.UserVerse.user_id == user_id).all()
+    return [uv.verse_id for uv in user_verses]

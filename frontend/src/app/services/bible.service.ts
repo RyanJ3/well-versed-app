@@ -1,7 +1,7 @@
 // frontend/src/app/services/bible.service.ts
 
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { BibleData, UserVerseDetail } from '../models/bible.model';
@@ -38,7 +38,7 @@ export class BibleService {
     return this.bibleData;
   }
 
-  // Add method to update user preferences
+  // Method to update user preferences
   updateUserPreferences(includeApocrypha: boolean): void {
     console.log(`Updating Bible data preferences: includeApocrypha=${includeApocrypha}`);
     this.bibleData.includeApocrypha = includeApocrypha;
@@ -63,17 +63,23 @@ export class BibleService {
     ).subscribe();
   }
 
-  // Updated to handle apocrypha preference
+  // Updated getUserVerses to include the includeApocrypha parameter
   getUserVerses(userId: number, includeApocrypha?: boolean): Observable<UserVerseDetail[]> {
-    const endpoint = `${this.apiUrl}/user-verses/${userId}`;
-    console.log('Requesting verses from:', endpoint);
+    // Build the API endpoint with the includeApocrypha parameter
+    let params = new HttpParams();
+    if (includeApocrypha !== undefined) {
+      params = params.set('include_apocrypha', includeApocrypha.toString());
+    }
 
-    // If includeApocrypha is provided, update preferences
+    const endpoint = `${this.apiUrl}/user-verses/${userId}`;
+    console.log(`Requesting verses from: ${endpoint} with includeApocrypha=${includeApocrypha}`);
+
+    // If includeApocrypha is provided, update frontend preferences
     if (includeApocrypha !== undefined) {
       this.updateUserPreferences(includeApocrypha);
     }
 
-    return this.http.get<UserVerseDetail[]>(endpoint).pipe(
+    return this.http.get<UserVerseDetail[]>(endpoint, { params }).pipe(
       tap(verses => console.log(`Received ${verses?.length || 0} verses from API`)),
       tap(verses => this.bibleData.mapUserVersesToModel(verses)),
       catchError(error => {
@@ -105,7 +111,7 @@ export class BibleService {
     );
   }
 
-  // Add this method to support offline storage
+  // Method to support offline storage
   private storeOfflineVerse(verseData: any): void {
     if (!this.isBrowser) return;
 
@@ -129,7 +135,7 @@ export class BibleService {
     localStorage.setItem('pendingVerses', JSON.stringify(pendingVerses));
   }
 
-  // Optional: Method to sync offline verses when backend becomes available
+  // Method to sync offline verses when backend becomes available
   syncOfflineVerses(): Observable<any> {
     if (!this.isBrowser || !this.backendAvailable) {
       return of({ success: false });
@@ -160,9 +166,14 @@ export class BibleService {
     }
   }
 
-  // Update this method to use the new bulk endpoint
-  saveVersesBulk(userId: number, bookId: string, chapterNum: number,
-    verseNums: number[], practiceCount: number): Observable<any> {
+  // Updated saveVersesBulk to also pass the include_apocrypha parameter if needed
+  saveVersesBulk(
+    userId: number, 
+    bookId: string, 
+    chapterNum: number,
+    verseNums: number[], 
+    practiceCount: number
+  ): Observable<any> {
     
     console.log(`Saving verses in bulk - User: ${userId}, Book: ${bookId}, Chapter: ${chapterNum}, Verses: ${verseNums.length}`);
     
@@ -200,10 +211,14 @@ export class BibleService {
     );
   }
 
-  // Add method to support Promise-based operations
-  saveVersesBulkWithPromise(userId: number, bookId: string, chapterNum: number, 
-    verseNums: number[], practiceCount: number): Promise<any> {
-    
+  // Method to support Promise-based operations
+  saveVersesBulkWithPromise(
+    userId: number, 
+    bookId: string, 
+    chapterNum: number, 
+    verseNums: number[], 
+    practiceCount: number
+  ): Promise<any> {
     return this.saveVersesBulk(userId, bookId, chapterNum, verseNums, practiceCount).toPromise();
   }
 

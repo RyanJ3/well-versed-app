@@ -446,7 +446,7 @@ export class BibleData {
   private readonly bookMap: Map<string, BibleBook> = new Map();
   private readonly bookIdMap: Map<string, BibleBook> = new Map();
   public readonly books: BibleBook[] = [];
-  
+
   // Add the book ID aliases property
   private readonly bookIdAliases: Record<string, string> = {
     // Standard aliases
@@ -481,42 +481,44 @@ export class BibleData {
     'JN1': '1JN',  // 1 John
     'JN2': '2JN',  // 2 John
     'JN3': '3JN',  // 3 John
-    'REV': 'REV'   // Revelation
+    'REV': 'REV',   // Revelation
+    'SIR': 'SIR',  // Sirach - You might need to use an actual ID that exists in your books collection
+    'MAR': 'MRK',  // Mark - This maps to the standard 'MRK' ID for Mark
   };
-  
+
   // Add property to track apocrypha preference 
   private _includeApocrypha: boolean = false;
 
   constructor(progressData: Record<string, Record<number, number[]>> = {}) {
     console.log('Initializing BibleData from JSON');
-    
+
     // Create testament objects
     const oldTestament = new BibleTestament(TestamentType.OLD);
     const newTestament = new BibleTestament(TestamentType.NEW);
-    
+
     // Store in maps for lookups
     this.testamentMap.set('OLD', oldTestament);
     this.testamentMap.set('NEW', newTestament);
-    
+
     // Create group maps
     const groupMap = new Map<string, BibleGroup>();
-    
+
     // Process each book from the JSON data
     BIBLE_DATA.books.forEach((bookData: any) => {
       // Skip books with canonicalAffiliation NONE
       if (bookData.canonicalAffiliation === 'NONE') {
         return;
       }
-      
+
       const isOldTestament = bookData.testament === TestamentType.OLD;
       const testament = isOldTestament ? oldTestament : newTestament;
-      
+
       // Get or create group
       if (!groupMap.has(bookData.bookGroup)) {
         groupMap.set(bookData.bookGroup, new BibleGroup(bookData.bookGroup));
       }
       const group = groupMap.get(bookData.bookGroup)!;
-      
+
       // Create book
       const book = new BibleBook(
         bookData.name,
@@ -526,21 +528,21 @@ export class BibleData {
         progressData[bookData.name] || {},
         bookData.canonicalAffiliation
       );
-      
+
       // Add to book collections
       this.bookMap.set(book.name, book);
       this.bookIdMap.set(book.id, book);
       this.books.push(book);
-      
+
       // Add to group's books array
       group.books.push(book);
-      
+
       // Add to testament
       testament.addBook(book);
     });
-    
+
     console.log(`Initialized ${this.books.length} books in BibleData`);
-    
+
     // Apply initial filtering based on apocrypha setting
     this.refreshBooksBasedOnSettings();
   }
@@ -549,48 +551,47 @@ export class BibleData {
   private getBookByIdWithFallback(bookId: string): BibleBook | undefined {
     // Try direct lookup first
     let book = this.bookIdMap.get(bookId);
-    
+
     // If not found, check for aliases
     if (!book && this.bookIdAliases[bookId]) {
       const standardId = this.bookIdAliases[bookId];
       book = this.bookIdMap.get(standardId);
-      console.log(`Book ID ${bookId} mapped to standard ID ${standardId}`);
+      // console.log(`Book ID ${bookId} mapped to standard ID ${standardId}`);
     }
-    
+
     return book;
   }
 
   // Add this method for handling special cases
-  private normalizeChapterAndVerse(book: BibleBook, chapterNum: number, verseNum: number): 
-    { chapterNum: number, verseNum: number, valid: boolean } {
-    
+  private normalizeChapterAndVerse(book: BibleBook, chapterNum: number, verseNum: number): { chapterNum: number, verseNum: number, valid: boolean } {
+
     // Single-chapter books to handle specially
     const singleChapterBooks = [
       'OBA', 'PHM', 'JDE', '2JN', '3JN'  // Obadiah, Philemon, Jude, 2 John, 3 John
     ];
-    
+
     // If it's a single-chapter book and not requesting chapter 1
     if (book.chapters.length === 1 && chapterNum > 1) {
       // For single-chapter books, normalize to chapter 1
-      console.log(`Normalizing reference: ${book.name} ${chapterNum}:${verseNum} -> ${book.name} 1:${verseNum}`);
+      // console.log(`Normalizing reference: ${book.name} ${chapterNum}:${verseNum} -> ${book.name} 1:${verseNum}`);
       return { chapterNum: 1, verseNum, valid: true };
     }
-    
+
     // Regular validation
     const isValidChapter = chapterNum > 0 && chapterNum <= book.chapters.length;
-    
+
     if (!isValidChapter) {
       return { chapterNum, verseNum, valid: false };
     }
-    
+
     // Get the actual chapter and check if verse is valid
     const chapter = book.chapters[chapterNum - 1];
     const isValidVerse = verseNum > 0 && verseNum <= chapter.verses.length;
-    
-    return { 
-      chapterNum, 
-      verseNum, 
-      valid: isValidChapter && isValidVerse 
+
+    return {
+      chapterNum,
+      verseNum,
+      valid: isValidChapter && isValidVerse
     };
   }
 
@@ -609,7 +610,7 @@ export class BibleData {
   // Add this method to filter books based on settings
   refreshBooksBasedOnSettings(): void {
     console.log(`Refreshing books with includeApocrypha=${this._includeApocrypha}`);
-    
+
     // For each testament, filter books
     this.testaments.forEach(testament => {
       testament.groups.forEach(group => {
@@ -617,9 +618,9 @@ export class BibleData {
         group.books = group.books.filter(book => {
           if (!this._includeApocrypha && book.canonicalAffiliation !== 'All') {
             // Check specific cases
-            if (book.name === 'Psalm 151' || 
-                book.canonicalAffiliation === 'Catholic' || 
-                book.canonicalAffiliation === 'Eastern Orthodox') {
+            if (book.name === 'Psalm 151' ||
+              book.canonicalAffiliation === 'Catholic' ||
+              book.canonicalAffiliation === 'Eastern Orthodox') {
               console.log(`Filtering out apocryphal book: ${book.name}`);
               return false;
             }
@@ -628,7 +629,7 @@ export class BibleData {
         });
       });
     });
-    
+
     // Re-initialize maps and arrays after filtering
     this.rebuildMaps();
   }
@@ -639,7 +640,7 @@ export class BibleData {
     this.bookMap.clear();
     this.bookIdMap.clear();
     this.books.length = 0;
-    
+
     // Rebuild from filtered testament groups
     this.testaments.forEach(testament => {
       testament.groups.forEach(group => {
@@ -650,7 +651,7 @@ export class BibleData {
         });
       });
     });
-    
+
     console.log(`Books rebuilt, total count: ${this.books.length}`);
   }
 
@@ -713,11 +714,11 @@ export class BibleData {
   // Replace this method entirely
   mapUserVersesToModel(userVerses: UserVerseDetail[]): void {
     console.log(`Mapping ${userVerses.length} API verses to Bible model`);
-    
+
     // Keep track of success rate for debugging
     let successCount = 0;
     let errorCount = 0;
-    
+
     userVerses.forEach(userVerse => {
       try {
         if (!userVerse.verse) {
@@ -725,9 +726,9 @@ export class BibleData {
           errorCount++;
           return;
         }
-        
+
         const { book_id, chapter_number, verse_number } = userVerse.verse;
-        
+
         // Find the book by ID with fallback to aliases
         const book = this.getBookByIdWithFallback(book_id);
         if (!book) {
@@ -735,36 +736,40 @@ export class BibleData {
           errorCount++;
           return;
         }
-        
+
         // Handle special cases and validate chapter/verse
         const normalized = this.normalizeChapterAndVerse(book, chapter_number, verse_number);
-        
+
         if (!normalized.valid) {
+          // todo find out how this is hit for psalm 1:7 and philemon 25-30
+
           // Skip this verse but don't flood the console with errors
           if (errorCount < 10 || errorCount % 50 === 0) {
-            console.error(`Invalid reference: ${book.name} ${chapter_number}:${verse_number}`);
+            //todo fix verse mismatch
+            // console.error(`Invalid reference: ${book.name} ${chapter_number}:${verse_number}`);
           }
           errorCount++;
           return;
         }
-        
+
         // Get the chapter and verse using normalized numbers
         const chapter = book.chapters[normalized.chapterNum - 1];
-        
+
         // One final safety check for verse bounds
         if (normalized.verseNum <= 0 || normalized.verseNum > chapter.verses.length) {
-          console.error(`Invalid verse number: ${normalized.verseNum} for chapter ${normalized.chapterNum} (has ${chapter.verses.length} verses)`);
+          // todo find out how this is hit for psalm 1:7 and philemon 25-30
+          // console.error(`Invalid verse number: ${normalized.verseNum} for chapter ${normalized.chapterNum} (has ${chapter.verses.length} verses)`);
           errorCount++;
           return;
         }
-        
+
         const verse = chapter.verses[normalized.verseNum - 1];
-        
+
         // Update verse properties
         verse.practiceCount = userVerse.practice_count || 0;
         verse.memorized = userVerse.practice_count > 0;
         verse.lastPracticed = userVerse.last_practiced;
-        
+
         // Count successful mapping
         successCount++;
       } catch (error) {
@@ -772,7 +777,7 @@ export class BibleData {
         errorCount++;
       }
     });
-    
+
     console.log(`Mapping complete: ${successCount} verses mapped successfully, ${errorCount} errors`);
   }
 }

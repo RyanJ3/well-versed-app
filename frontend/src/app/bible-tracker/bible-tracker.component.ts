@@ -53,14 +53,14 @@ export class BibleTrackerComponent implements OnInit {
   ngOnInit() {
     // Log book ID mappings for debugging
     this.bibleService.logBookIdMappings();
-    
+
     // Get user preferences first
     this.userService.currentUser$.subscribe(user => {
       if (user) {
         console.log('User preferences loaded:', user);
         this.includeApocrypha = user.includeApocrypha || false;
         console.log(`User apocrypha setting: ${this.includeApocrypha}`);
-        
+
         // Now load verses with the correct setting
         this.loadUserVerses();
       } else {
@@ -68,7 +68,7 @@ export class BibleTrackerComponent implements OnInit {
         this.loadUserVerses();
       }
     });
-    
+
     // Also try to fetch the current user if not already available
     this.userService.fetchCurrentUser();
   }
@@ -76,6 +76,7 @@ export class BibleTrackerComponent implements OnInit {
   loadUserVerses() {
     this.isLoading = true;
 
+    // Pass the user's apocrypha preference to the service
     this.bibleService.getUserVerses(this.userId, this.includeApocrypha).subscribe({
       next: (verses) => {
         console.log(`Loaded ${verses.length} verses for user ${this.userId}`);
@@ -157,7 +158,7 @@ export class BibleTrackerComponent implements OnInit {
     if (this.selectedBook) {
       this.isSavingBulk = true;
       this.selectedBook.selectAllVerses();
-      
+
       // Bulk save all chapters in the book
       this.saveBulkBook(this.selectedBook, true);
     }
@@ -167,7 +168,7 @@ export class BibleTrackerComponent implements OnInit {
     if (this.selectedBook) {
       this.isSavingBulk = true;
       this.selectedBook.clearAllVerses();
-      
+
       // Bulk save all chapters in the book
       this.saveBulkBook(this.selectedBook, false);
     }
@@ -205,23 +206,23 @@ export class BibleTrackerComponent implements OnInit {
   // Method to save all chapters in a book
   saveBulkBook(book: BibleBook, isMemorized: boolean): void {
     if (!book) return;
-    
+
     // Create an array to track pending operations
     const operations: Promise<any>[] = [];
-    
+
     // Process each chapter
     book.chapters.forEach(chapter => {
       const verseNums = Array.from({ length: chapter.verses.length }, (_, i) => i + 1);
       const practiceCount = isMemorized ? 1 : 0;
-      
+
       // Create a promise for this chapter
       const operation = this.bibleService.saveVersesBulkWithPromise(
         this.userId, book.id, chapter.chapterNumber, verseNums, practiceCount
       );
-      
+
       operations.push(operation);
     });
-    
+
     // Wait for all operations to complete
     Promise.all(operations)
       .then(() => {
@@ -284,10 +285,10 @@ export class BibleTrackerComponent implements OnInit {
 
   // Helper method to check if a book is apocryphal
   isApocryphalBook(book: BibleBook): boolean {
-    return book.canonicalAffiliation !== 'All' && 
-           (book.canonicalAffiliation === 'Catholic' || 
-            book.canonicalAffiliation === 'Eastern Orthodox' ||
-            book.name === 'Psalm 151');
+    return book.canonicalAffiliation !== 'All' &&
+      (book.canonicalAffiliation === 'Catholic' ||
+        book.canonicalAffiliation === 'Eastern Orthodox' ||
+        book.name === 'Psalm 151');
   }
 
   // Helper method to determine testament styling
