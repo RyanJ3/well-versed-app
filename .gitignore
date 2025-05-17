@@ -48,3 +48,43 @@ backend/app/__pycache__/database.cpython-39.pyc
 backend/app/__pycache__/main.cpython-39.pyc
 backend/app/__pycache__/models.cpython-39.pyc
 backend/app/__pycache__/schemas.cpython-39.pyc
+
+# Python virtual environment
+venv/
+env/
+.env
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+*.egg-info/
+
+# Node modules and Angular build output
+node_modules/
+/dist
+/tmp
+/.angular/cache
+.sass-cache/
+npm-debug.log
+yarn-error.log
+
+# IDE files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+
+# Database files
+*.sqlite3
+
+backend/app/api
+backend/app/api/__pycache__/__init__.cpython-311.pyc
+backend/app/api/__pycache__/router.cpython-311.pyc
+backend/app/api/__pycache__/users.cpython-311.pyc
+backend/app/api/__pycache__/verses.cpython-311.pyc
