@@ -259,6 +259,32 @@
   animation: spin 1s linear infinite;
 }
 
+/* Apocrypha notification banner */
+.apocrypha-notification {
+  background-color: #dbeafe;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  color: #1e40af;
+  font-size: 0.875rem;
+}
+
+.apocrypha-notification a {
+  color: #2563eb;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.apocrypha-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
 /* Apocrypha indicator */
 .apocrypha-indicator {
   padding: 0.25rem 0.5rem;

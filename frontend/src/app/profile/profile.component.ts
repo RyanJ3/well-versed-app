@@ -1,3 +1,4 @@
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -127,12 +128,24 @@ export class ProfileComponent implements OnInit {
     console.log('Saving profile with data:', this.profileForm);
     this.isLoading = true;
     
-    this.userService.updateUser(this.profileForm).subscribe({
+    // Create a clean user profile update object
+    const profileUpdate = {
+      firstName: this.profileForm.firstName,
+      lastName: this.profileForm.lastName,
+      denomination: this.profileForm.denomination,
+      preferredBible: this.profileForm.preferredBible,
+      includeApocrypha: this.profileForm.includeApocrypha
+    };
+    
+    console.log('Profile update payload:', profileUpdate);
+    
+    this.userService.updateUser(profileUpdate).subscribe({
       next: (updatedUser) => {
         console.log('Profile updated successfully:', updatedUser);
         
         // Update Bible service with new apocrypha setting
         if (updatedUser && updatedUser.includeApocrypha !== undefined) {
+          console.log(`Explicitly updating BibleService with includeApocrypha=${updatedUser.includeApocrypha}`);
           this.bibleService.updateUserPreferences(updatedUser.includeApocrypha);
         }
         

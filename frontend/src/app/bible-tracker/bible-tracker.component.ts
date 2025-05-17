@@ -1,16 +1,18 @@
 // frontend/src/app/bible-tracker/bible-tracker.component.ts
 
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { BibleService } from '../services/bible.service';
 import { UserService } from '../services/user.service';
 import { BibleBook, BibleChapter, BibleData, BibleGroup, BibleTestament, BibleVerse, UserVerseDetail } from '../models/bible.model';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-bible-tracker',
   templateUrl: './bible-tracker.component.html',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule], // Added RouterModule
   styleUrls: [
     './bible-tracker.component.scss',
     './style-sheets/book-selector.scss',
@@ -21,8 +23,9 @@ import { BibleBook, BibleChapter, BibleData, BibleGroup, BibleTestament, BibleVe
     './style-sheets/shared-bubble.scss'
   ],
 })
-export class BibleTrackerComponent implements OnInit {
+export class BibleTrackerComponent implements OnInit, OnDestroy {
   private bibleData: BibleData;
+  private subscriptions: Subscription = new Subscription();
 
   selectedTestament: BibleTestament | null = null;
   selectedGroup: BibleGroup | null = null;
@@ -37,7 +40,7 @@ export class BibleTrackerComponent implements OnInit {
 
   constructor(
     private bibleService: BibleService,
-    private userService: UserService, // Add UserService injection
+    private userService: UserService, 
     private cdr: ChangeDetectorRef
   ) {
     console.log('BibleTrackerComponent initialized');
@@ -54,8 +57,8 @@ export class BibleTrackerComponent implements OnInit {
     // Log book ID mappings for debugging
     this.bibleService.logBookIdMappings();
 
-    // Get user preferences first
-    this.userService.currentUser$.subscribe(user => {
+    // Subscribe to user preferences from UserService
+    const userSub = this.userService.currentUser$.subscribe(user => {
       if (user) {
         console.log('BibleTracker - User preferences loaded:', user);
 
@@ -76,9 +79,108 @@ export class BibleTrackerComponent implements OnInit {
         this.loadUserVerses();
       }
     });
+    
+    // Subscribe to the Bible service preferences
+    const prefSub = this.bibleService.preferences$.subscribe(prefs => {
+      if (this.includeApocrypha !== prefs.includeApocrypha) {
+        console.log(`BibleTracker - Detected preference change: includeApocrypha=${prefs.includeApocrypha}`);
+        this.includeApocrypha = prefs.includeApocrypha;
+        
+        // Force reload testaments to reflect the updated book list
+        this.refreshView();
+      }
+    });
+    
+    // Add subscriptions to be cleaned up on destroy
+    this.subscriptions.add(userSub);
+    this.subscriptions.add(prefSub);
 
-    // Also try to fetch the current user if not already available
+    // Try to fetch the current user if not already available
     this.userService.fetchCurrentUser();
+  }
+  
+  ngOnDestroy() {
+    // Clean up subscriptions to prevent memory leaks
+    this.subscriptions.unsubscribe();
+  }
+
+  // Enhanced refreshView with debugging
+  refreshView() {
+    console.log(`BibleTracker.refreshView() - includeApocrypha=${this.includeApocrypha}`);
+    
+    // Reload the current selection to account for new books
+    this.bibleData = this.bibleService.getBibleData();
+    
+    // Debug: Log the number of books in each group
+    this.bibleData.testaments.forEach(testament => {
+      console.log(`Testament: ${testament.name}`);
+      testament.groups.forEach(group => {
+        console.log(`  Group: ${group.name} - ${group.books.length} books`);
+        
+        // Check for apocryphal books
+        const apocryphalBooks = group.books.filter(b => this.isApocryphalBook(b));
+        if (apocryphalBooks.length > 0) {
+          console.log(`    Contains ${apocryphalBooks.length} apocryphal books:`);
+          apocryphalBooks.forEach(book => {
+            console.log(`      - ${book.name} (${book.canonicalAffiliation})`);
+          });
+        }
+      });
+    });
+    
+    // Save current selections
+    const currentTestamentName = this.selectedTestament?.name;
+    const currentGroupName = this.selectedGroup?.name;
+    const currentBookName = this.selectedBook?.name;
+    const currentChapterNum = this.selectedChapter?.chapterNumber;
+    
+    // Reset selections to apply new filters
+    this.selectedTestament = null;
+    this.selectedGroup = null;
+    this.selectedBook = null;
+    this.selectedChapter = null;
+    
+    // Try to restore previous selection if available
+    if (currentTestamentName) {
+      const testament = this.testaments.find(t => t.name === currentTestamentName);
+      if (testament) {
+        this.selectedTestament = testament;
+        
+        if (currentGroupName) {
+          const group = testament.groups.find(g => g.name === currentGroupName);
+          if (group) {
+            this.selectedGroup = group;
+            
+            if (currentBookName) {
+              const book = group.books.find(b => b.name === currentBookName);
+              if (book) {
+                this.selectedBook = book;
+                
+                if (currentChapterNum && book.chapters.length >= currentChapterNum) {
+                  this.selectedChapter = book.chapters[currentChapterNum - 1];
+                } else if (book.chapters.length > 0) {
+                  this.selectedChapter = book.chapters[0];
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    // If we couldn't restore the selection, initialize with defaults
+    if (!this.selectedTestament) {
+      this.selectedTestament = this.defaultTestament;
+      if (this.selectedTestament?.groups.length > 0) {
+        this.setGroup(this.defaultGroup);
+      }
+    }
+    
+    // Reload verses data
+    this.loadUserVerses();
+    
+    // Force view update
+    this.cdr.detectChanges();
   }
 
   loadUserVerses() {

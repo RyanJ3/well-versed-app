@@ -2,7 +2,7 @@
 
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, of, throwError, BehaviorSubject } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { BibleData, UserVerseDetail } from '../models/bible.model';
 import { environment } from '../../environments';
@@ -16,6 +16,14 @@ export class BibleService {
   private bibleData: BibleData;
   private isBrowser: boolean;
   private backendAvailable: boolean = false;
+  
+  // Add a BehaviorSubject to notify subscribers when preferences change
+  private preferencesSubject = new BehaviorSubject<{includeApocrypha: boolean}>({
+    includeApocrypha: false
+  });
+  
+  // Public observable that components can subscribe to
+  public preferences$ = this.preferencesSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -38,10 +46,34 @@ export class BibleService {
     return this.bibleData;
   }
 
-  // Method to update user preferences
+  // Updated method to notify of preference changes
   updateUserPreferences(includeApocrypha: boolean): void {
-    console.log(`Updating Bible data preferences: includeApocrypha=${includeApocrypha}`);
-    this.bibleData.includeApocrypha = includeApocrypha;
+    console.log(`BibleService: Updating preferences - includeApocrypha=${includeApocrypha}`);
+    
+    // Check if there's an actual change
+    const needsUpdate = this.bibleData.includeApocrypha !== includeApocrypha;
+    console.log(`Preference change detected: ${needsUpdate}`);
+    
+    if (needsUpdate) {
+      // Update the Bible data model
+      this.bibleData.includeApocrypha = includeApocrypha;
+      
+      // Force a complete reload and refresh of the Bible data
+      console.log('Forcing complete reload of Bible data with new preferences');
+      
+      // First reload all books from the original data source
+      if (typeof this.bibleData.reloadAllBooks === 'function') {
+        this.bibleData.reloadAllBooks();
+      } else {
+        // Fallback to just refreshing based on settings
+        this.bibleData.refreshBooksBasedOnSettings();
+      }
+      
+      // Notify subscribers about the change
+      this.preferencesSubject.next({
+        includeApocrypha: includeApocrypha
+      });
+    }
   }
 
   private checkBackendAvailability(): void {
@@ -68,11 +100,14 @@ export class BibleService {
     // Build the API endpoint with the includeApocrypha parameter
     let params = new HttpParams();
     if (includeApocrypha !== undefined) {
-      params = params.set('include_apocrypha', includeApocrypha.toString());
+      // Ensure it's a proper boolean string
+      const apocryphaValue = includeApocrypha === true ? 'true' : 'false';
+      params = params.set('include_apocrypha', apocryphaValue);
     }
 
     const endpoint = `${this.apiUrl}/user-verses/${userId}`;
     console.log(`Requesting verses from: ${endpoint} with includeApocrypha=${includeApocrypha}`);
+    console.log(`Query params: ${params.toString()}`);
 
     // If includeApocrypha is provided, update frontend preferences
     if (includeApocrypha !== undefined) {
@@ -80,7 +115,13 @@ export class BibleService {
     }
 
     return this.http.get<UserVerseDetail[]>(endpoint, { params }).pipe(
-      tap(verses => console.log(`Received ${verses?.length || 0} verses from API`)),
+      tap(verses => {
+        console.log(`Received ${verses?.length || 0} verses from API`);
+        if (verses && verses.length > 0) {
+          // Log a sample of the response for debugging
+          console.log('Sample verse response:', verses[0]);
+        }
+      }),
       tap(verses => this.bibleData.mapUserVersesToModel(verses)),
       catchError(error => {
         console.error('API ERROR:', error);

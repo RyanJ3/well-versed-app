@@ -4,6 +4,21 @@
 </div>
 
 <div *ngIf="!isLoading && user" class="profile-container">
+  <!-- Success message -->
+  <div class="success-message" *ngIf="showSuccess">
+    <div class="success-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+    </div>
+    <div class="success-text">
+      Profile updated successfully!
+      <span *ngIf="profileForm.includeApocrypha"> Apocryphal books are now visible.</span>
+      <span *ngIf="!profileForm.includeApocrypha"> Apocryphal books are now hidden.</span>
+    </div>
+    <button class="close-button" (click)="dismissSuccess()">×</button>
+  </div>
+
   <div class="profile-header">
     <div class="profile-avatar">
       <span>{{ user.name.charAt(0) }}</span>

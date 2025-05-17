@@ -45,24 +45,31 @@ export class UserService {
   updateUser(formData: any): Observable<User> {
     console.log('Updating user with form data:', formData);
 
+    // For debugging - log the type of the includeApocrypha field
+    console.log('includeApocrypha type:', typeof formData.includeApocrypha, 'value:', formData.includeApocrypha);
+
+    // Ensure includeApocrypha is a proper boolean
+    const includeApocrypha = formData.includeApocrypha === true;
+    
     // Convert camelCase form data to snake_case for API
     const apiRequestData: UserProfileUpdate = {
       first_name: formData.firstName || formData.first_name,
       last_name: formData.lastName || formData.last_name,
       denomination: formData.denomination,
       preferred_bible: formData.preferredBible || formData.preferred_bible,
-      // FIXED: Use nullish coalescing for boolean value to properly handle false
-      include_apocrypha: formData.includeApocrypha !== undefined
-        ? formData.includeApocrypha
-        : formData.include_apocrypha
+      // Use the normalized boolean value
+      include_apocrypha: includeApocrypha
     };
 
     console.log('Converted to API format:', apiRequestData);
+    console.log('include_apocrypha value after normalization:', apiRequestData.include_apocrypha);
 
     return this.http.put<UserApiResponse>(`${this.apiUrl}/users/1`, apiRequestData).pipe(
       map(apiResponse => this.mapApiResponseToUser(apiResponse)),
       tap(updatedUser => {
         console.log('User updated successfully, mapped response:', updatedUser);
+        // Make sure the boolean is preserved
+        console.log('Updated includeApocrypha value:', updatedUser.includeApocrypha);
         this.currentUserSubject.next(updatedUser);
       }),
       catchError(error => {
@@ -78,6 +85,15 @@ export class UserService {
 
   // Helper method to convert API response (snake_case) to User model (camelCase)
   private mapApiResponseToUser(apiResponse: UserApiResponse): User {
+    // Convert include_apocrypha to a proper boolean if it exists
+    const includeApocrypha = apiResponse.include_apocrypha !== undefined 
+      ? apiResponse.include_apocrypha === true
+      : false;
+    
+    console.log('Mapping API response - includeApocrypha:', includeApocrypha, 
+      'Original value:', apiResponse.include_apocrypha, 
+      'Type:', typeof apiResponse.include_apocrypha);
+    
     return {
       id: apiResponse.id,
       name: apiResponse.name,
@@ -86,8 +102,7 @@ export class UserService {
 
       denomination: apiResponse.denomination,
       preferredBible: apiResponse.preferred_bible,
-      // FIXED: Handle boolean properly
-      includeApocrypha: apiResponse.include_apocrypha !== undefined ? apiResponse.include_apocrypha : false,
+      includeApocrypha: includeApocrypha,
 
       versesMemorized: apiResponse.verses_memorized,
       streakDays: apiResponse.streak_days,
