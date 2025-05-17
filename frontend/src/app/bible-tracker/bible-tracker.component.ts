@@ -1,4 +1,5 @@
-// bible-tracker.component.ts
+// frontend/src/app/bible-tracker/bible-tracker.component.ts
+
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BibleService } from '../services/bible.service';
@@ -50,6 +51,9 @@ export class BibleTrackerComponent implements OnInit {
   }
 
   ngOnInit() {
+    // Log book ID mappings for debugging
+    this.bibleService.logBookIdMappings();
+    
     // Get user preferences first
     this.userService.currentUser$.subscribe(user => {
       if (user) {

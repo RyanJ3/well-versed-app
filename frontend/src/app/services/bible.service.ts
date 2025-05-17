@@ -1,3 +1,5 @@
+// frontend/src/app/services/bible.service.ts
+
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
@@ -203,5 +205,36 @@ export class BibleService {
     verseNums: number[], practiceCount: number): Promise<any> {
     
     return this.saveVersesBulk(userId, bookId, chapterNum, verseNums, practiceCount).toPromise();
+  }
+
+  /**
+   * Logs all book IDs for debugging purposes
+   * Call this method during component initialization to verify book ID mappings
+   */
+  logBookIdMappings(): void {
+    console.log('=== Book ID Mappings ===');
+    const bibleData = this.getBibleData();
+    const books = bibleData.books;
+    
+    // Create a sorted list for easier reference
+    const mappings = books.map(book => ({
+      name: book.name,
+      id: book.id,
+      chapters: book.chapters.length
+    })).sort((a, b) => a.name.localeCompare(b.name));
+    
+    // Log each book with its ID and chapter count
+    mappings.forEach(book => {
+      console.log(`${book.name.padEnd(20)}: ${book.id.padEnd(5)} (${book.chapters} chapters)`);
+    });
+    
+    // Log single-chapter books separately for reference
+    console.log('\n=== Single Chapter Books ===');
+    const singleChapterBooks = mappings.filter(book => book.chapters === 1);
+    singleChapterBooks.forEach(book => {
+      console.log(`${book.name.padEnd(20)}: ${book.id}`);
+    });
+    
+    console.log('=====================');
   }
 }

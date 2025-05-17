@@ -49,12 +49,12 @@ export enum BookGroupType {
 export class BibleVerse {
   public lastPracticed?: Date;
   public practiceCount: number = 0;
-  
+
   constructor(
     public readonly verseNumber: number,
     public memorized: boolean = false,
     private readonly parentChapter?: BibleChapter
-  ) {}
+  ) { }
 
   toggle(): boolean {
     this.memorized = !this.memorized;
@@ -168,7 +168,7 @@ export class BibleBook {
   ) {
     // Generate appropriate ID based on book name
     this.id = this.generateBookId(name);
-    
+
     // Create chapters with memorization data and parent reference
     this.chapters = versesPerChapter.map((verseCount, idx) => {
       const chapterNumber = idx + 1;
@@ -238,7 +238,7 @@ export class BibleBook {
       const abbr = parts.slice(1).join(' ').substring(0, 3).toUpperCase();
       return `${number}${abbr}`;
     }
-    
+
     // Default: first 3 letters uppercase
     return bookName.substring(0, 3).toUpperCase();
   }
@@ -329,7 +329,7 @@ export class BibleGroup {
   constructor(
     public readonly name: string,
     public books: BibleBook[] = []
-  ) {}
+  ) { }
 
   get totalBooks(): number {
     return this.books.length;
@@ -381,7 +381,7 @@ export class BibleTestament {
 
   addBook(book: BibleBook): void {
     this.books.push(book);
-    
+
     // Add to group map if not exists
     if (!this._groupsMap.has(book.group.name)) {
       this._groupsMap.set(book.group.name, book.group);
@@ -447,6 +447,43 @@ export class BibleData {
   private readonly bookIdMap: Map<string, BibleBook> = new Map();
   public readonly books: BibleBook[] = [];
   
+  // Add the book ID aliases property
+  private readonly bookIdAliases: Record<string, string> = {
+    // Standard aliases
+    'JOH': 'JHN',  // John
+    'JN': 'JHN',   // John
+    'JO': 'JHN',   // John
+    'JUD': 'JDE',  // Jude
+    'PSM': 'PSA',  // Psalms
+    'PS': 'PSA',   // Psalms
+    'PRV': 'PRO',  // Proverbs
+    'MAT': 'MAT',  // Matthew
+    'MRK': 'MRK',  // Mark
+    'LUK': 'LUK',  // Luke
+    'ACT': 'ACT',  // Acts
+    'ROM': 'ROM',  // Romans
+    'CO1': '1CO',  // 1 Corinthians
+    'CO2': '2CO',  // 2 Corinthians
+    'GAL': 'GAL',  // Galatians
+    'EPH': 'EPH',  // Ephesians
+    'PHP': 'PHP',  // Philippians
+    'COL': 'COL',  // Colossians
+    'TH1': '1TH',  // 1 Thessalonians
+    'TH2': '2TH',  // 2 Thessalonians
+    'TI1': '1TI',  // 1 Timothy
+    'TI2': '2TI',  // 2 Timothy
+    'TIT': 'TIT',  // Titus
+    'PHM': 'PHM',  // Philemon
+    'HEB': 'HEB',  // Hebrews
+    'JAS': 'JAS',  // James
+    'PE1': '1PE',  // 1 Peter
+    'PE2': '2PE',  // 2 Peter
+    'JN1': '1JN',  // 1 John
+    'JN2': '2JN',  // 2 John
+    'JN3': '3JN',  // 3 John
+    'REV': 'REV'   // Revelation
+  };
+  
   // Add property to track apocrypha preference 
   private _includeApocrypha: boolean = false;
 
@@ -506,6 +543,55 @@ export class BibleData {
     
     // Apply initial filtering based on apocrypha setting
     this.refreshBooksBasedOnSettings();
+  }
+
+  // Add this helper method
+  private getBookByIdWithFallback(bookId: string): BibleBook | undefined {
+    // Try direct lookup first
+    let book = this.bookIdMap.get(bookId);
+    
+    // If not found, check for aliases
+    if (!book && this.bookIdAliases[bookId]) {
+      const standardId = this.bookIdAliases[bookId];
+      book = this.bookIdMap.get(standardId);
+      console.log(`Book ID ${bookId} mapped to standard ID ${standardId}`);
+    }
+    
+    return book;
+  }
+
+  // Add this method for handling special cases
+  private normalizeChapterAndVerse(book: BibleBook, chapterNum: number, verseNum: number): 
+    { chapterNum: number, verseNum: number, valid: boolean } {
+    
+    // Single-chapter books to handle specially
+    const singleChapterBooks = [
+      'OBA', 'PHM', 'JDE', '2JN', '3JN'  // Obadiah, Philemon, Jude, 2 John, 3 John
+    ];
+    
+    // If it's a single-chapter book and not requesting chapter 1
+    if (book.chapters.length === 1 && chapterNum > 1) {
+      // For single-chapter books, normalize to chapter 1
+      console.log(`Normalizing reference: ${book.name} ${chapterNum}:${verseNum} -> ${book.name} 1:${verseNum}`);
+      return { chapterNum: 1, verseNum, valid: true };
+    }
+    
+    // Regular validation
+    const isValidChapter = chapterNum > 0 && chapterNum <= book.chapters.length;
+    
+    if (!isValidChapter) {
+      return { chapterNum, verseNum, valid: false };
+    }
+    
+    // Get the actual chapter and check if verse is valid
+    const chapter = book.chapters[chapterNum - 1];
+    const isValidVerse = verseNum > 0 && verseNum <= chapter.verses.length;
+    
+    return { 
+      chapterNum, 
+      verseNum, 
+      valid: isValidChapter && isValidVerse 
+    };
   }
 
   // Add this getter and setter for apocrypha preference
@@ -624,53 +710,69 @@ export class BibleData {
     throw new Error(`Group ${groupName} not found`);
   }
 
-  // Map API verses to model verses
+  // Replace this method entirely
   mapUserVersesToModel(userVerses: UserVerseDetail[]): void {
     console.log(`Mapping ${userVerses.length} API verses to Bible model`);
+    
+    // Keep track of success rate for debugging
+    let successCount = 0;
+    let errorCount = 0;
     
     userVerses.forEach(userVerse => {
       try {
         if (!userVerse.verse) {
           console.error('Missing verse data in user verse object');
+          errorCount++;
           return;
         }
         
         const { book_id, chapter_number, verse_number } = userVerse.verse;
         
-        // Find the book by ID
-        const book = this.getBookById(book_id);
+        // Find the book by ID with fallback to aliases
+        const book = this.getBookByIdWithFallback(book_id);
         if (!book) {
           console.error(`Book not found with ID: ${book_id}`);
+          errorCount++;
           return;
         }
         
-        // Get chapter (array is 0-based, chapter numbers are 1-based)
-        if (chapter_number <= 0 || chapter_number > book.chapters.length) {
-          console.error(`Invalid chapter number: ${chapter_number} for book ${book.name}`);
+        // Handle special cases and validate chapter/verse
+        const normalized = this.normalizeChapterAndVerse(book, chapter_number, verse_number);
+        
+        if (!normalized.valid) {
+          // Skip this verse but don't flood the console with errors
+          if (errorCount < 10 || errorCount % 50 === 0) {
+            console.error(`Invalid reference: ${book.name} ${chapter_number}:${verse_number}`);
+          }
+          errorCount++;
           return;
         }
         
-        const chapter = book.chapters[chapter_number - 1];
+        // Get the chapter and verse using normalized numbers
+        const chapter = book.chapters[normalized.chapterNum - 1];
         
-        // Get verse (array is 0-based, verse numbers are 1-based)
-        if (verse_number <= 0 || verse_number > chapter.verses.length) {
-          console.error(`Invalid verse number: ${verse_number} for chapter ${chapter_number}`);
+        // One final safety check for verse bounds
+        if (normalized.verseNum <= 0 || normalized.verseNum > chapter.verses.length) {
+          console.error(`Invalid verse number: ${normalized.verseNum} for chapter ${normalized.chapterNum} (has ${chapter.verses.length} verses)`);
+          errorCount++;
           return;
         }
         
-        const verse = chapter.verses[verse_number - 1];
+        const verse = chapter.verses[normalized.verseNum - 1];
         
         // Update verse properties
         verse.practiceCount = userVerse.practice_count || 0;
         verse.memorized = userVerse.practice_count > 0;
         verse.lastPracticed = userVerse.last_practiced;
         
-        // console.log(`Mapped verse: ${book.name} ${chapter_number}:${verse_number} (practice count: ${userVerse.practice_count})`);
+        // Count successful mapping
+        successCount++;
       } catch (error) {
         console.error('Error mapping verse:', error);
+        errorCount++;
       }
     });
     
-    console.log('Mapping complete');
+    console.log(`Mapping complete: ${successCount} verses mapped successfully, ${errorCount} errors`);
   }
 }
