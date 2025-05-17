@@ -108,20 +108,40 @@
       <div class="h-2 rounded-full bg-blue-500" [style.width.%]="selectedChapter.percentComplete"></div>
     </div>
 
+    <!-- Loading indicator -->
+    <div *ngIf="isLoading || isSavingBulk" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p *ngIf="isLoading">Loading verses...</p>
+      <p *ngIf="isSavingBulk">Saving verses...</p>
+    </div>
+
     <!-- Verse bubbles -->
-    <div class="verse-container">
+    <div class="verse-container" [class.disabled]="isLoading || isSavingBulk">
       <button *ngFor="let verse of selectedChapter.verses" (click)="toggleAndSaveVerse(verse)" class="verse-bubble"
-        [class.selected]="verse.memorized" [class.not-selected]="!verse.memorized">
+        [class.selected]="verse.memorized" [class.not-selected]="!verse.memorized" [disabled]="isLoading || isSavingBulk">
         {{ verse.verseNumber }}
       </button>
     </div>
 
     <div class="flex justify-between mt-4">
-      <button (click)="selectAllVerses()" class="verse-action-button primary">
+      <button (click)="selectAllVerses()" class="verse-action-button primary" [disabled]="isLoading || isSavingBulk">
         Select All
       </button>
-      <button (click)="clearAllVerses()" class="verse-action-button secondary">
+      <button (click)="clearAllVerses()" class="verse-action-button secondary" [disabled]="isLoading || isSavingBulk">
         Clear All
+      </button>
+    </div>
+
+    <!-- Status indicator message that appears for saving actions -->
+    <div *ngIf="isSavingBulk" class="status-message">
+      <p>Saving changes...</p>
+    </div>
+
+    <!-- Refresh button to reload user verses from server -->
+    <div class="flex justify-center mt-4">
+      <button (click)="refreshVerses()" class="refresh-button" [disabled]="isLoading">
+        <span *ngIf="!isLoading">Refresh</span>
+        <span *ngIf="isLoading">Loading...</span>
       </button>
     </div>
   </div>

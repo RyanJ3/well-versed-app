@@ -72,7 +72,15 @@ def update_user_verse(
         # First check if verse exists
         verse = db.query(models.Verse).filter(models.Verse.verse_id == verse_id).first()
         if not verse:
-            raise HTTPException(status_code=404, detail="Verse not found")
+            # Auto-create the verse if it doesn't exist
+            book_id, chapter_num, verse_num = verse_id.split('-')
+            new_verse = models.Verse(
+                verse_id=verse_id,
+                verse_number=int(verse_num)
+            )
+            db.add(new_verse)
+            db.flush()
+            verse = new_verse
         
         # Create new user verse
         user_verse = models.UserVerse(
@@ -100,7 +108,17 @@ def create_user_verse(verse_data: schemas.UserVerseCreate, db: Session = Depends
     # Check if verse exists
     verse = db.query(models.Verse).filter(models.Verse.verse_id == verse_data.verse_id).first()
     if not verse:
-        raise HTTPException(status_code=404, detail="Verse not found")
+        # Auto-create the verse if it doesn't exist
+        try:
+            book_id, chapter_num, verse_num = verse_data.verse_id.split('-')
+            verse = models.Verse(
+                verse_id=verse_data.verse_id,
+                verse_number=int(verse_num)
+            )
+            db.add(verse)
+            db.flush()
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid verse_id format. Expected: BOOK-CHAPTER-VERSE")
     
     # Check if user verse already exists
     existing = db.query(models.UserVerse).filter(
@@ -124,3 +142,59 @@ def create_user_verse(verse_data: schemas.UserVerseCreate, db: Session = Depends
     db.refresh(user_verse)
     
     return {"status": "success"}
+
+# Add the new bulk endpoint here
+@router.post("/bulk", status_code=status.HTTP_201_CREATED)
+def create_user_verses_bulk(bulk_data: schemas.UserVerseBulkCreate, db: Session = Depends(get_db)):
+    """Create or update multiple verse entries at once"""
+    # Check if user exists
+    user = db.query(models.User).filter(models.User.user_id == bulk_data.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Process verse numbers
+    results = []
+    for verse_num in bulk_data.verse_numbers:
+        # Create verse_id
+        verse_id = f"{bulk_data.book_id}-{bulk_data.chapter_number}-{verse_num}"
+        
+        # Check if verse exists
+        verse = db.query(models.Verse).filter(models.Verse.verse_id == verse_id).first()
+        if not verse:
+            # Auto-create the verse
+            verse = models.Verse(
+                verse_id=verse_id,
+                verse_number=verse_num
+            )
+            db.add(verse)
+            db.flush()
+        
+        # Find or create user verse
+        user_verse = db.query(models.UserVerse).filter(
+            models.UserVerse.user_id == bulk_data.user_id,
+            models.UserVerse.verse_id == verse_id
+        ).first()
+        
+        if not user_verse:
+            # Create new entry
+            user_verse = models.UserVerse(
+                user_id=bulk_data.user_id,
+                verse_id=verse_id,
+                practice_count=bulk_data.practice_count,
+                last_practiced=bulk_data.last_practiced
+            )
+            db.add(user_verse)
+        else:
+            # Update existing entry
+            user_verse.practice_count = bulk_data.practice_count
+            user_verse.last_practiced = bulk_data.last_practiced
+        
+        results.append(verse_id)
+    
+    db.commit()
+    
+    return {
+        "status": "success", 
+        "count": len(results),
+        "verses": results
+    }

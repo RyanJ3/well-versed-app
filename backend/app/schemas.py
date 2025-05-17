@@ -68,3 +68,12 @@ class UserVerseDetail(BaseModel):
     
     class Config:
         orm_mode = True
+
+# New schema for bulk operations
+class UserVerseBulkCreate(BaseModel):
+    user_id: int
+    book_id: str
+    chapter_number: int
+    verse_numbers: List[int]
+    practice_count: int = 0
+    last_practiced: Optional[datetime] = None

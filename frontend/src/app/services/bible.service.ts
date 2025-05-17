@@ -146,20 +146,41 @@ export class BibleService {
     }
   }
 
-  // Add this method to BibleService
+  // Update this method to use the new bulk endpoint
   saveVersesBulk(userId: number, bookId: string, chapterNum: number,
     verseNums: number[], practiceCount: number): Observable<any> {
+    
+    console.log(`Saving verses in bulk - User: ${userId}, Book: ${bookId}, Chapter: ${chapterNum}, Verses: ${verseNums.length}`);
+    
     const payload = {
       user_id: userId,
       book_id: bookId,
       chapter_number: chapterNum,
       verse_numbers: verseNums,
-      practice_count: practiceCount
+      practice_count: practiceCount,
+      last_practiced: new Date()
     };
 
     return this.http.post(`${this.apiUrl}/user-verses/bulk`, payload).pipe(
+      tap(response => console.log('Bulk save response:', response)),
       catchError((error) => {
         console.error('Error saving verses in bulk:', error);
+        
+        // Store locally for offline mode
+        if (!this.backendAvailable) {
+          console.log('Backend unavailable, storing bulk verses locally');
+          verseNums.forEach(verseNum => {
+            const verseId = `${bookId}-${chapterNum}-${verseNum}`;
+            this.storeOfflineVerse({
+              user_id: userId,
+              verse_id: verseId,
+              practice_count: practiceCount,
+              last_practiced: new Date()
+            });
+          });
+          return of({ success: true, offline: true, count: verseNums.length });
+        }
+        
         return of({ success: false, error });
       })
     );
