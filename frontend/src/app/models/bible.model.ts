@@ -46,15 +46,46 @@ export enum BookGroupType {
 }
 
 // Model classes
+// API Interface Models
+export interface BibleVerse {
+  verse_id: string;
+  book_id: string;
+  chapter_number: number;
+  verse_number: number;
+  isApocryphal: boolean; // Added field from database
+}
+
+export interface UserVerse {
+  user_id: number;
+  verse_id: string;
+  practice_count: number;
+  last_practiced?: Date;
+  created_at: Date;
+  updated_at?: Date;
+}
+
+export interface UserVerseDetail {
+  verse: BibleVerse;
+  practice_count: number;
+  last_practiced?: Date;
+  created_at: Date;
+  updated_at?: Date;
+}
+
+// Model classes
 export class BibleVerse {
   public lastPracticed?: Date;
   public practiceCount: number = 0;
+  public isApocryphal: boolean = false;
 
   constructor(
     public readonly verseNumber: number,
     public memorized: boolean = false,
-    private readonly parentChapter?: BibleChapter
-  ) { }
+    private readonly parentChapter?: BibleChapter,
+    isApocryphal: boolean = false
+  ) { 
+    this.isApocryphal = isApocryphal;
+  }
 
   toggle(): boolean {
     this.memorized = !this.memorized;
@@ -80,19 +111,28 @@ export class BibleVerse {
 
 export class BibleChapter {
   public readonly verses: BibleVerse[];
-  isApocryphal: boolean = false;
-  isHidden: boolean = false;
+  private _isApocryphal: boolean = false;
 
   constructor(
     public readonly chapterNumber: number,
     totalVerses: number,
     memorizedVerses: number[] = [],
-    private readonly parentBook?: BibleBook
+    private readonly parentBook?: BibleBook,
+    versesApocryphalStatus: boolean[] = []
   ) {
-    // Create verses with proper memorization status and parent reference
-    this.verses = Array.from({ length: totalVerses }, (_, i) =>
-      new BibleVerse(i + 1, memorizedVerses.includes(i + 1), this)
-    );
+    // Create verses with proper apocryphal status
+    this.verses = Array.from({ length: totalVerses }, (_, i) => {
+      const isVerseApocryphal = versesApocryphalStatus[i] || false;
+      return new BibleVerse(i + 1, memorizedVerses.includes(i + 1), this, isVerseApocryphal);
+    });
+    
+    // A chapter is considered apocryphal if any of its verses are apocryphal
+    this._isApocryphal = this.verses.some(v => v.isApocryphal);
+  }
+
+  // Getter for isApocryphal that can't be modified from outside
+  get isApocryphal(): boolean {
+    return this._isApocryphal;
   }
 
   // Getter for parent book
@@ -178,34 +218,12 @@ export class BibleBook {
         chapterNumber,
         verseCount,
         memorizedData[chapterNumber] || [],
-        this // Pass this book as parent
+        this, // Pass this book as parent
+        [] // Initially empty apocryphal status array - will be updated by mapUserVersesToModel
       );
     });
   }
-  /**
-     * Check if a specific chapter is apocryphal
-     */
-  isApocryphalChapter(chapterNumber: number): boolean {
-    // Special handling for Psalms
-    if (this.name === 'Psalms' && chapterNumber === 151) {
-      return true;
-    }
 
-    // Get the chapter
-    const chapter = this.chapters.find(ch => ch.chapterNumber === chapterNumber);
-    return chapter ? chapter.isApocryphal : false;
-  }
-
-  /**
-   * Gets visible chapters based on user preferences
-   */
-  getVisibleChapters(includeApocrypha: boolean): BibleChapter[] {
-    if (includeApocrypha) {
-      return this.chapters;
-    }
-
-    return this.chapters.filter(chapter => !chapter.isApocryphal);
-  }
   // Generate book ID (shorthand code like GEN, MAT, etc.)
   private generateBookId(bookName: string): string {
     // Special cases for books that might have abbreviation issues
@@ -266,6 +284,17 @@ export class BibleBook {
 
     // Default: first 3 letters uppercase
     return bookName.substring(0, 3).toUpperCase();
+  }
+
+  /**
+   * Gets visible chapters based on user preferences
+   */
+  getVisibleChapters(includeApocrypha: boolean): BibleChapter[] {
+    if (includeApocrypha) {
+      return this.chapters;
+    }
+
+    return this.chapters.filter(chapter => !chapter.isApocryphal);
   }
 
   get totalChapters(): number {
@@ -340,7 +369,7 @@ export class BibleBook {
     return this.chapters.filter(chapter => chapter.isComplete).length;
   }
 
-  // Add book-level operations
+  // Book-level operations
   selectAllVerses(): void {
     this.chapters.forEach(chapter => chapter.selectAllVerses());
   }
@@ -590,7 +619,7 @@ export class BibleData {
     console.log(`Initialized ${this._allBooks.length} books in BibleData`);
   }
 
-  // Add this getter and setter for apocrypha preference
+  // Getter and setter for apocrypha preference
   get includeApocrypha(): boolean {
     return this._includeApocrypha;
   }
@@ -614,9 +643,6 @@ export class BibleData {
 
         // Replace the group's books with the complete set
         group.books = [...groupBooks];
-
-        // Log the books in this group for debugging
-        console.log(`Group ${group.name} has ${group.books.length} books after reload`);
       });
     });
 
@@ -624,8 +650,7 @@ export class BibleData {
     this.refreshBooksBasedOnSettings();
   }
 
-  // 2. Update the refreshBooksBasedOnSettings method in BibleData class
-  // Modified version:
+  // Method to update book visibility based on apocrypha preference
   refreshBooksBasedOnSettings(): void {
     console.log(`Refreshing books with includeApocrypha=${this._includeApocrypha}`);
 
@@ -645,30 +670,11 @@ export class BibleData {
 
     console.log(`Filtered to ${this.visibleBooks.length} visible books out of ${this._allBooks.length} total books`);
 
-    // If we're not showing apocrypha, we need to hide Psalm 151
-    if (!this._includeApocrypha) {
-      // Find the Psalms book
-      const psalmsBook = this._allBooks.find(book => book.name === 'Psalms');
-      if (psalmsBook && psalmsBook.chapters.length > 150) {
-        // Hide chapter 151 by setting a flag or filtering it out of the displayed chapters
-        console.log('Hiding Psalm 151 chapter');
-        // We need a way to mark chapters as hidden
-        // This could be a new property on the chapter model
-        if (psalmsBook.chapters[150]) {
-          psalmsBook.chapters[150].isApocryphal = true;
-          psalmsBook.chapters[150].isHidden = !this._includeApocrypha;
-        }
-      }
-    }
-
     // Update the groups in each testament to show/hide books
     this.testaments.forEach(testament => {
       testament.groups.forEach(group => {
         // Filter books based on visibility
         group.books = group.books.filter(book => this.visibleBooks.includes(book));
-
-        // Log how many books are in the group after filtering
-        console.log(`Group ${group.name}: ${group.books.length} books after filtering (apocrypha: ${this._includeApocrypha})`);
       });
     });
   }
@@ -740,7 +746,6 @@ export class BibleData {
     if (!book && this.bookIdAliases[bookId]) {
       const standardId = this.bookIdAliases[bookId];
       book = this.bookIdMap.get(standardId);
-      // console.log(`Book ID ${bookId} mapped to standard ID ${standardId}`);
     }
 
     return book;
@@ -756,7 +761,6 @@ export class BibleData {
     // If it's a single-chapter book and not requesting chapter 1
     if (book.chapters.length === 1 && chapterNum > 1) {
       // For single-chapter books, normalize to chapter 1
-      // console.log(`Normalizing reference: ${book.name} ${chapterNum}:${verseNum} -> ${book.name} 1:${verseNum}`);
       return { chapterNum: 1, verseNum, valid: true };
     }
 
@@ -778,29 +782,62 @@ export class BibleData {
     };
   }
 
-  // Replace this method entirely
+  // Method to map user verses from API to the Bible model 
+  // This is where we update our model with apocryphal data from the API
   mapUserVersesToModel(userVerses: UserVerseDetail[]): void {
     console.log(`Mapping ${userVerses.length} API verses to Bible model`);
 
-    // Keep track of success rate for debugging
-    let successCount = 0;
-    let errorCount = 0;
+    // First pass: collect apocryphal status information by chapter
+    const apocryphalInfo: Record<string, Record<number, boolean[]>> = {};
+    
+    userVerses.forEach(userVerse => {
+      try {
+        if (!userVerse.verse) {
+          return;
+        }
 
+        const { book_id, chapter_number, verse_number, isApocryphal } = userVerse.verse;
+        
+        // Initialize book record if not exists
+        if (!apocryphalInfo[book_id]) {
+          apocryphalInfo[book_id] = {};
+        }
+        
+        // Initialize chapter array if not exists
+        if (!apocryphalInfo[book_id][chapter_number]) {
+          // Initialize with an array of false values with length equal to the max verse number
+          const book = this.getBookByIdWithFallback(book_id);
+          if (book) {
+            const chapter = book.chapters[chapter_number - 1];
+            if (chapter) {
+              apocryphalInfo[book_id][chapter_number] = new Array(chapter.verses.length).fill(false);
+            }
+          }
+        }
+        
+        // Set the apocryphal status for this verse
+        if (apocryphalInfo[book_id][chapter_number]) {
+          apocryphalInfo[book_id][chapter_number][verse_number - 1] = isApocryphal || false;
+        }
+      } catch (error) {
+        console.error('Error processing verse for apocryphal info:', error);
+      }
+    });
+    
+    // Second pass: update the model with apocryphal info and other verse data
     userVerses.forEach(userVerse => {
       try {
         if (!userVerse.verse) {
           console.error('Missing verse data in user verse object');
-          errorCount++;
           return;
         }
 
-        const { book_id, chapter_number, verse_number } = userVerse.verse;
+        const { book_id, chapter_number, verse_number, isApocryphal } = userVerse.verse;
 
-        // Find the book by ID with fallback to aliases - search in all books, not just visible ones
+        // Find the book by ID with fallback to aliases
         const book = this.getBookByIdWithFallback(book_id);
         if (!book) {
           console.error(`Book not found with ID: ${book_id}`);
-          errorCount++;
           return;
         }
 
@@ -808,11 +845,6 @@ export class BibleData {
         const normalized = this.normalizeChapterAndVerse(book, chapter_number, verse_number);
 
         if (!normalized.valid) {
-          // Skip this verse but don't flood the console with errors
-          if (errorCount < 10 || errorCount % 50 === 0) {
-            //console.error(`Invalid reference: ${book.name} ${chapter_number}:${verse_number}`);
-          }
-          errorCount++;
           return;
         }
 
@@ -821,7 +853,6 @@ export class BibleData {
 
         // One final safety check for verse bounds
         if (normalized.verseNum <= 0 || normalized.verseNum > chapter.verses.length) {
-          errorCount++;
           return;
         }
 
@@ -831,16 +862,24 @@ export class BibleData {
         verse.practiceCount = userVerse.practice_count || 0;
         verse.memorized = userVerse.practice_count > 0;
         verse.lastPracticed = userVerse.last_practiced;
-
-        // Count successful mapping
-        successCount++;
+        verse.isApocryphal = isApocryphal || false;
       } catch (error) {
         console.error('Error mapping verse:', error);
-        errorCount++;
       }
     });
 
-    console.log(`Mapping complete: ${successCount} verses mapped successfully, ${errorCount} errors`);
-  }
+    // After processing all verses, check for apocryphal chapters
+    // A chapter is considered apocryphal if any of its verses is apocryphal
+    this._allBooks.forEach(book => {
+      book.chapters.forEach(chapter => {
+        // We can't directly set isApocryphal since it's a getter,
+        // but recalculating through the verses will update the state
+        if (chapter.isApocryphal) {
+          console.log(`Chapter ${book.name} ${chapter.chapterNumber} contains apocryphal content`);
+        }
+      });
+    });
 
+    console.log(`Mapping complete`);
+  }
 }

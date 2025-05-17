@@ -2,7 +2,7 @@
 
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { BibleService } from '../services/bible.service';
 import { UserService } from '../services/user.service';
 import { BibleBook, BibleChapter, BibleData, BibleGroup, BibleTestament, BibleVerse, UserVerseDetail } from '../models/bible.model';
@@ -12,7 +12,7 @@ import { Subscription } from 'rxjs';
   selector: 'app-bible-tracker',
   templateUrl: './bible-tracker.component.html',
   standalone: true,
-  imports: [CommonModule, RouterModule], // Added RouterModule
+  imports: [CommonModule, RouterModule], 
   styleUrls: [
     './bible-tracker.component.scss',
     './style-sheets/book-selector.scss',
@@ -41,7 +41,8 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   constructor(
     private bibleService: BibleService,
     private userService: UserService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router // Add router for navigation
   ) {
     console.log('BibleTrackerComponent initialized');
     this.bibleData = this.bibleService.getBibleData();
@@ -111,23 +112,6 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     // Reload the current selection to account for new books
     this.bibleData = this.bibleService.getBibleData();
 
-    // Debug: Log the number of books in each group
-    this.bibleData.testaments.forEach(testament => {
-      console.log(`Testament: ${testament.name}`);
-      testament.groups.forEach(group => {
-        console.log(`  Group: ${group.name} - ${group.books.length} books`);
-
-        // Check for apocryphal books
-        const apocryphalBooks = group.books.filter(b => this.isApocryphalBook(b));
-        if (apocryphalBooks.length > 0) {
-          console.log(`    Contains ${apocryphalBooks.length} apocryphal books:`);
-          apocryphalBooks.forEach(book => {
-            console.log(`      - ${book.name} (${book.canonicalAffiliation})`);
-          });
-        }
-      });
-    });
-
     // Save current selections
     const currentTestamentName = this.selectedTestament?.name;
     const currentGroupName = this.selectedGroup?.name;
@@ -156,10 +140,16 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
               if (book) {
                 this.selectedBook = book;
 
-                if (currentChapterNum && book.chapters.length >= currentChapterNum) {
-                  this.selectedChapter = book.chapters[currentChapterNum - 1];
-                } else if (book.chapters.length > 0) {
-                  this.selectedChapter = book.chapters[0];
+                if (currentChapterNum) {
+                  // Get visible chapters based on apocrypha setting
+                  const visibleChapters = this.getVisibleChapters(book);
+                  const chapter = visibleChapters.find(c => c.chapterNumber === currentChapterNum);
+                  if (chapter) {
+                    this.selectedChapter = chapter;
+                  } else if (visibleChapters.length > 0) {
+                    // If current chapter is now hidden, select first visible chapter
+                    this.selectedChapter = visibleChapters[0];
+                  }
                 }
               }
             }
@@ -370,10 +360,16 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     }
   }
 
+  // UPDATED METHOD: Modified to filter visible chapters based on apocrypha setting
   setBook(book: BibleBook): void {
     this.selectedBook = book;
-    if (book.chapters.length > 0) {
-      this.setChapter(book.chapters[0]);
+    
+    // Get only the visible chapters based on apocrypha setting
+    const visibleChapters = this.getVisibleChapters(book);
+    
+    if (visibleChapters.length > 0) {
+      // Select the first visible chapter
+      this.setChapter(visibleChapters[0]);
     } else {
       this.selectedChapter = null;
     }
@@ -393,11 +389,44 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     this.loadUserVerses();
   }
 
+  // UPDATED METHOD: Now we use isApocryphal from API data
   isApocryphalBook(book: BibleBook): boolean {
     // Check if the book has apocryphal content
     return book.canonicalAffiliation !== 'All' &&
       (book.canonicalAffiliation === 'Catholic' ||
         book.canonicalAffiliation === 'Eastern Orthodox');
+  }
+
+  // NEW METHOD: Determines if a chapter should be visible
+  isChapterVisible(chapter: BibleChapter): boolean {
+    if (!chapter) return false;
+    
+    // If apocrypha is included, all chapters are visible
+    if (this.includeApocrypha) {
+      return true;
+    }
+    
+    // Otherwise, only show non-apocryphal chapters
+    return !chapter.isApocryphal;
+  }
+
+  // NEW METHOD: Returns only the chapters that should be visible
+  getVisibleChapters(book: BibleBook): BibleChapter[] {
+    if (!book) return [];
+    
+    return book.chapters.filter(chapter => this.isChapterVisible(chapter));
+  }
+
+  // NEW METHOD: Check if a book has any apocryphal chapters
+  hasApocryphalChapters(book: BibleBook): boolean {
+    if (!book) return false;
+    return book.chapters.some(chapter => chapter.isApocryphal);
+  }
+
+  // NEW METHOD: Navigate to settings page to enable/disable apocrypha
+  goToSettings(event: Event): void {
+    event.preventDefault();
+    this.router.navigate(['/profile']);
   }
 
   // Helper method to determine testament styling

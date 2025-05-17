@@ -1,3 +1,4 @@
+<!-- Updated chapter buttons section for bible-tracker.component.html -->
 <div class="bible-selector-container">
   <!-- Loading overlay for the entire tracker -->
   <div *ngIf="isLoading" class="global-loading-overlay">
@@ -132,15 +133,30 @@
       </div>
     </div>
     
-    <!-- Chapter buttons -->
+    <!-- Add this section to show a message when apocrypha is disabled and the book has apocryphal chapters -->
+    <div *ngIf="hasApocryphalChapters(selectedBook) && !includeApocrypha" 
+         class="apocrypha-info text-sm text-gray-500 mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      This book has apocryphal chapters that are currently hidden.
+      <a href="#" (click)="goToSettings($event)" class="text-blue-600 hover:underline">Enable apocrypha</a> to view them.
+    </div>
+    
+    <!-- Chapter buttons - UPDATED to only show visible chapters -->
     <div class="chapter-overview flex flex-wrap gap-2 mb-4">
-      <button *ngFor="let chapter of selectedBook.chapters" class="chapter-button"
-        [class.active]="chapter === selectedChapter" 
-        [class.completed]="chapter.isComplete"
-        [class.in-progress]="!chapter.isComplete && chapter.isInProgress" 
-        (click)="setChapter(chapter)">
-        {{ chapter.chapterNumber }}
-      </button>
+      <ng-container *ngFor="let chapter of selectedBook.chapters">
+        <!-- Only show chapters that should be visible based on user preferences -->
+        <button *ngIf="isChapterVisible(chapter)" 
+          class="chapter-button"
+          [class.active]="chapter === selectedChapter" 
+          [class.completed]="chapter.isComplete"
+          [class.in-progress]="!chapter.isComplete && chapter.isInProgress" 
+          [class.apocryphal]="chapter.isApocryphal"
+          (click)="setChapter(chapter)">
+          {{ chapter.chapterNumber }}
+        </button>
+      </ng-container>
     </div>
   </div>
 
@@ -171,7 +187,8 @@
               (click)="toggleAndSaveVerse(verse)" 
               class="verse-bubble"
               [class.selected]="verse.memorized" 
-              [class.not-selected]="!verse.memorized" 
+              [class.not-selected]="!verse.memorized"
+              [class.apocryphal]="verse.isApocryphal"
               [disabled]="isLoading || isSavingBulk">
         {{ verse.verseNumber }}
       </button>

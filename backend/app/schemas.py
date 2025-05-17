@@ -38,6 +38,7 @@ class VerseBase(BaseModel):
     book_id: str
     chapter_number: int
     verse_number: int
+    is_apocryphal: bool = False  # Added is_apocryphal field with default value
 
 class Verse(VerseBase):
     class Config:

@@ -39,6 +39,7 @@ class Verse(Base):
     
     verse_id = Column(String(12), primary_key=True, index=True)
     verse_number = Column(Integer, nullable=False)
+    is_apocryphal = Column(Boolean, default=False)  # Added field to track apocryphal verses
     
     # Relationship with users who memorized this verse
     users = relationship("UserVerse", back_populates="verse")

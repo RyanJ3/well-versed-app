@@ -14,7 +14,7 @@ def get_user_verses(
     include_apocrypha: bool = False, 
     db: Session = Depends(get_db)
 ):
-    """Get all verses memorized by a user, with option to exclude apocryphal books"""
+    """Get all verses memorized by a user, with option to exclude apocryphal books and verses"""
     # Check if user exists
     user = db.query(models.User).filter(models.User.user_id == user_id).first()
     if not user:
@@ -25,20 +25,22 @@ def get_user_verses(
         models.Verse, models.UserVerse.verse_id == models.Verse.verse_id
     ).filter(models.UserVerse.user_id == user_id)
     
-    # Filter out apocryphal books if include_apocrypha is False
+    # Filter out apocryphal content if include_apocrypha is False
     if not include_apocrypha:
         # Get list of apocryphal book IDs
         apocryphal_book_ids = get_apocryphal_book_ids()
         
         # Filter out verses from apocryphal books
-        # This creates a condition to exclude verses where the verse_id starts with any apocryphal book ID
         conditions = []
         for book_id in apocryphal_book_ids:
             conditions.append(not_(models.Verse.verse_id.startswith(f"{book_id}-")))
         
-        # Apply all conditions (AND them together)
+        # Apply all book conditions (AND them together)
         for condition in conditions:
             user_verses_query = user_verses_query.filter(condition)
+        
+        # Also filter out individual apocryphal verses from canonical books
+        user_verses_query = user_verses_query.filter(not_(models.Verse.is_apocryphal))
     
     # Execute the query
     user_verses = user_verses_query.all()
@@ -67,7 +69,8 @@ def get_user_verses(
                 "verse_id": verse.verse_id,
                 "book_id": book_id,
                 "chapter_number": chapter_number,
-                "verse_number": verse_number
+                "verse_number": verse_number,
+                "is_apocryphal": verse.is_apocryphal
             },
             "practice_count": user_verse.practice_count,
             "last_practiced": user_verse.last_practiced,
@@ -98,9 +101,22 @@ def update_user_verse(
         if not verse:
             # Auto-create the verse if it doesn't exist
             book_id, chapter_num, verse_num = verse_id.split('-')
+            
+            # Determine if this verse is apocryphal
+            is_apocryphal = False
+            
+            # Apocryphal chapters logic
+            if (book_id == 'PSA' and chapter_num == '151') or \
+               (book_id == 'EST' and int(chapter_num) >= 10) or \
+               (book_id == 'DAN' and chapter_num in ['13', '14']) or \
+               (book_id == 'DAN' and chapter_num == '3' and 24 <= int(verse_num) <= 50):
+                is_apocryphal = True
+                
+            # Create the verse
             new_verse = models.Verse(
                 verse_id=verse_id,
-                verse_number=int(verse_num)
+                verse_number=int(verse_num),
+                is_apocryphal=is_apocryphal
             )
             db.add(new_verse)
             db.flush()
@@ -135,9 +151,21 @@ def create_user_verse(verse_data: schemas.UserVerseCreate, db: Session = Depends
         # Auto-create the verse if it doesn't exist
         try:
             book_id, chapter_num, verse_num = verse_data.verse_id.split('-')
+            
+            # Determine if this verse is apocryphal
+            is_apocryphal = False
+            
+            # Check for known apocryphal content
+            if (book_id == 'PSA' and chapter_num == '151') or \
+               (book_id == 'EST' and int(chapter_num) >= 10) or \
+               (book_id == 'DAN' and chapter_num in ['13', '14']) or \
+               (book_id == 'DAN' and chapter_num == '3' and 24 <= int(verse_num) <= 50):
+                is_apocryphal = True
+            
             verse = models.Verse(
                 verse_id=verse_data.verse_id,
-                verse_number=int(verse_num)
+                verse_number=int(verse_num),
+                is_apocryphal=is_apocryphal
             )
             db.add(verse)
             db.flush()
@@ -185,10 +213,21 @@ def create_user_verses_bulk(bulk_data: schemas.UserVerseBulkCreate, db: Session 
         # Check if verse exists
         verse = db.query(models.Verse).filter(models.Verse.verse_id == verse_id).first()
         if not verse:
+            # Determine if this verse is apocryphal
+            is_apocryphal = False
+            
+            # Check for known apocryphal content
+            if (bulk_data.book_id == 'PSA' and bulk_data.chapter_number == 151) or \
+               (bulk_data.book_id == 'EST' and bulk_data.chapter_number >= 10) or \
+               (bulk_data.book_id == 'DAN' and bulk_data.chapter_number in [13, 14]) or \
+               (bulk_data.book_id == 'DAN' and bulk_data.chapter_number == 3 and 24 <= verse_num <= 50):
+                is_apocryphal = True
+            
             # Auto-create the verse
             verse = models.Verse(
                 verse_id=verse_id,
-                verse_number=verse_num
+                verse_number=verse_num,
+                is_apocryphal=is_apocryphal
             )
             db.add(verse)
             db.flush()
