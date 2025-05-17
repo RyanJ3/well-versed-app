@@ -80,6 +80,8 @@ export class BibleVerse {
 
 export class BibleChapter {
   public readonly verses: BibleVerse[];
+  isApocryphal: boolean = false;
+  isHidden: boolean = false;
 
   constructor(
     public readonly chapterNumber: number,
@@ -180,7 +182,30 @@ export class BibleBook {
       );
     });
   }
+  /**
+     * Check if a specific chapter is apocryphal
+     */
+  isApocryphalChapter(chapterNumber: number): boolean {
+    // Special handling for Psalms
+    if (this.name === 'Psalms' && chapterNumber === 151) {
+      return true;
+    }
 
+    // Get the chapter
+    const chapter = this.chapters.find(ch => ch.chapterNumber === chapterNumber);
+    return chapter ? chapter.isApocryphal : false;
+  }
+
+  /**
+   * Gets visible chapters based on user preferences
+   */
+  getVisibleChapters(includeApocrypha: boolean): BibleChapter[] {
+    if (includeApocrypha) {
+      return this.chapters;
+    }
+
+    return this.chapters.filter(chapter => !chapter.isApocryphal);
+  }
   // Generate book ID (shorthand code like GEN, MAT, etc.)
   private generateBookId(bookName: string): string {
     // Special cases for books that might have abbreviation issues
@@ -448,13 +473,13 @@ export class BibleData {
   private readonly testamentMap: Map<string, BibleTestament> = new Map();
   private readonly bookMap: Map<string, BibleBook> = new Map();
   private readonly bookIdMap: Map<string, BibleBook> = new Map();
-  
+
   // Store all books regardless of filter status
   private readonly _allBooks: BibleBook[] = [];
-  
+
   // Visible books after filtering (when not showing apocrypha)
   public readonly visibleBooks: BibleBook[] = [];
-  
+
   // Add the book ID aliases property
   private readonly bookIdAliases: Record<string, string> = {
     // Standard aliases
@@ -580,77 +605,72 @@ export class BibleData {
   // Method to ensure all books are loaded from the original data source
   reloadAllBooks(): void {
     console.log('Reloading all books from original data');
-    
+
     // Process each testament to restore all books to their groups
     this.testaments.forEach(testament => {
       testament.groups.forEach(group => {
         // Find all books that belong to this group
         const groupBooks = this._allBooks.filter(book => book.group === group);
-        
+
         // Replace the group's books with the complete set
         group.books = [...groupBooks];
-        
+
         // Log the books in this group for debugging
         console.log(`Group ${group.name} has ${group.books.length} books after reload`);
       });
     });
-    
+
     // Now apply filtering based on current settings
     this.refreshBooksBasedOnSettings();
   }
 
-  // Updated method to filter books based on settings
+  // 2. Update the refreshBooksBasedOnSettings method in BibleData class
+  // Modified version:
   refreshBooksBasedOnSettings(): void {
     console.log(`Refreshing books with includeApocrypha=${this._includeApocrypha}`);
 
     // Clear the visible books list
     this.visibleBooks.length = 0;
-    
+
     // Populate the filtered books list
     this._allBooks.forEach(book => {
       // Add to visible books if it should be visible
-      if (this._includeApocrypha || 
-          (book.canonicalAffiliation === 'All') ||
-          (book.canonicalAffiliation !== 'Catholic' && 
-           book.canonicalAffiliation !== 'Eastern Orthodox' &&
-           book.name !== 'Psalm 151')) {
+      if (this._includeApocrypha ||
+        (book.canonicalAffiliation === 'All') ||
+        (book.canonicalAffiliation !== 'Catholic' &&
+          book.canonicalAffiliation !== 'Eastern Orthodox')) {
         this.visibleBooks.push(book);
       }
     });
 
     console.log(`Filtered to ${this.visibleBooks.length} visible books out of ${this._allBooks.length} total books`);
-    
+
+    // If we're not showing apocrypha, we need to hide Psalm 151
+    if (!this._includeApocrypha) {
+      // Find the Psalms book
+      const psalmsBook = this._allBooks.find(book => book.name === 'Psalms');
+      if (psalmsBook && psalmsBook.chapters.length > 150) {
+        // Hide chapter 151 by setting a flag or filtering it out of the displayed chapters
+        console.log('Hiding Psalm 151 chapter');
+        // We need a way to mark chapters as hidden
+        // This could be a new property on the chapter model
+        if (psalmsBook.chapters[150]) {
+          psalmsBook.chapters[150].isApocryphal = true;
+          psalmsBook.chapters[150].isHidden = !this._includeApocrypha;
+        }
+      }
+    }
+
     // Update the groups in each testament to show/hide books
     this.testaments.forEach(testament => {
       testament.groups.forEach(group => {
-        // Get all books that belong to this group
-        const allGroupBooks = this._allBooks.filter(book => book.group === group);
-        
-        if (this._includeApocrypha) {
-          // If apocrypha is enabled, show all books in the group
-          group.books = [...allGroupBooks];
-        } else {
-          // If apocrypha is disabled, filter the books
-          group.books = allGroupBooks.filter(book => {
-            if (book.canonicalAffiliation !== 'All') {
-              if (book.name === 'Psalm 151' ||
-                  book.canonicalAffiliation === 'Catholic' ||
-                  book.canonicalAffiliation === 'Eastern Orthodox') {
-                console.log(`Filtering out apocryphal book: ${book.name} (canonical: ${book.canonicalAffiliation})`);
-                return false;
-              }
-            }
-            return true;
-          });
-        }
-        
+        // Filter books based on visibility
+        group.books = group.books.filter(book => this.visibleBooks.includes(book));
+
         // Log how many books are in the group after filtering
         console.log(`Group ${group.name}: ${group.books.length} books after filtering (apocrypha: ${this._includeApocrypha})`);
       });
     });
-
-    // Since we're not rebuilding the bookMap and bookIdMap, those will still contain all books,
-    // allowing us to find any book by name or ID even if it's filtered out from the groups
   }
 
   get testaments(): BibleTestament[] {
@@ -822,5 +842,5 @@ export class BibleData {
 
     console.log(`Mapping complete: ${successCount} verses mapped successfully, ${errorCount} errors`);
   }
-  
+
 }

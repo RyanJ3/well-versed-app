@@ -40,7 +40,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
 
   constructor(
     private bibleService: BibleService,
-    private userService: UserService, 
+    private userService: UserService,
     private cdr: ChangeDetectorRef
   ) {
     console.log('BibleTrackerComponent initialized');
@@ -79,18 +79,18 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
         this.loadUserVerses();
       }
     });
-    
+
     // Subscribe to the Bible service preferences
     const prefSub = this.bibleService.preferences$.subscribe(prefs => {
       if (this.includeApocrypha !== prefs.includeApocrypha) {
         console.log(`BibleTracker - Detected preference change: includeApocrypha=${prefs.includeApocrypha}`);
         this.includeApocrypha = prefs.includeApocrypha;
-        
+
         // Force reload testaments to reflect the updated book list
         this.refreshView();
       }
     });
-    
+
     // Add subscriptions to be cleaned up on destroy
     this.subscriptions.add(userSub);
     this.subscriptions.add(prefSub);
@@ -98,7 +98,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     // Try to fetch the current user if not already available
     this.userService.fetchCurrentUser();
   }
-  
+
   ngOnDestroy() {
     // Clean up subscriptions to prevent memory leaks
     this.subscriptions.unsubscribe();
@@ -107,16 +107,16 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   // Enhanced refreshView with debugging
   refreshView() {
     console.log(`BibleTracker.refreshView() - includeApocrypha=${this.includeApocrypha}`);
-    
+
     // Reload the current selection to account for new books
     this.bibleData = this.bibleService.getBibleData();
-    
+
     // Debug: Log the number of books in each group
     this.bibleData.testaments.forEach(testament => {
       console.log(`Testament: ${testament.name}`);
       testament.groups.forEach(group => {
         console.log(`  Group: ${group.name} - ${group.books.length} books`);
-        
+
         // Check for apocryphal books
         const apocryphalBooks = group.books.filter(b => this.isApocryphalBook(b));
         if (apocryphalBooks.length > 0) {
@@ -127,35 +127,35 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
         }
       });
     });
-    
+
     // Save current selections
     const currentTestamentName = this.selectedTestament?.name;
     const currentGroupName = this.selectedGroup?.name;
     const currentBookName = this.selectedBook?.name;
     const currentChapterNum = this.selectedChapter?.chapterNumber;
-    
+
     // Reset selections to apply new filters
     this.selectedTestament = null;
     this.selectedGroup = null;
     this.selectedBook = null;
     this.selectedChapter = null;
-    
+
     // Try to restore previous selection if available
     if (currentTestamentName) {
       const testament = this.testaments.find(t => t.name === currentTestamentName);
       if (testament) {
         this.selectedTestament = testament;
-        
+
         if (currentGroupName) {
           const group = testament.groups.find(g => g.name === currentGroupName);
           if (group) {
             this.selectedGroup = group;
-            
+
             if (currentBookName) {
               const book = group.books.find(b => b.name === currentBookName);
               if (book) {
                 this.selectedBook = book;
-                
+
                 if (currentChapterNum && book.chapters.length >= currentChapterNum) {
                   this.selectedChapter = book.chapters[currentChapterNum - 1];
                 } else if (book.chapters.length > 0) {
@@ -167,7 +167,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
         }
       }
     }
-    
+
     // If we couldn't restore the selection, initialize with defaults
     if (!this.selectedTestament) {
       this.selectedTestament = this.defaultTestament;
@@ -175,10 +175,10 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
         this.setGroup(this.defaultGroup);
       }
     }
-    
+
     // Reload verses data
     this.loadUserVerses();
-    
+
     // Force view update
     this.cdr.detectChanges();
   }
@@ -393,12 +393,11 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     this.loadUserVerses();
   }
 
-  // Helper method to check if a book is apocryphal
   isApocryphalBook(book: BibleBook): boolean {
+    // Check if the book has apocryphal content
     return book.canonicalAffiliation !== 'All' &&
       (book.canonicalAffiliation === 'Catholic' ||
-        book.canonicalAffiliation === 'Eastern Orthodox' ||
-        book.name === 'Psalm 151');
+        book.canonicalAffiliation === 'Eastern Orthodox');
   }
 
   // Helper method to determine testament styling
