@@ -1,10 +1,29 @@
 <div class="bible-selector-container">
+  <!-- Loading overlay for the entire tracker -->
+  <div *ngIf="isLoading" class="global-loading-overlay">
+    <div class="loading-spinner"></div>
+    <p>Loading Bible data...</p>
+  </div>
+
   <!-- Testament Selection -->
   <div class="section bg-white p-4 rounded shadow mb-6">
-    <h3 class="text-lg font-semibold mb-3">Select Testament</h3>
+    <div class="flex justify-between items-center mb-3">
+      <h3 class="text-lg font-semibold">Select Testament</h3>
+      
+      <!-- Apocrypha indicator -->
+      <div class="apocrypha-indicator flex items-center text-sm" *ngIf="includeApocrypha">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-blue-600">Apocrypha Included</span>
+      </div>
+    </div>
+    
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <button *ngFor="let testament of testaments" class="testament-card"
-        [class.active]="testament === selectedTestament" (click)="setTestament(testament)">
+        [class.active]="testament === selectedTestament" 
+        [class]="getTestamentClass(testament)"
+        (click)="setTestament(testament)">
         <h4 class="text-md font-medium">{{ testament.name }}</h4>
         <div class="progress-container">
           <div class="progress-bar" [style.width.%]="testament.percentComplete"></div>
@@ -50,11 +69,20 @@
       <span class="text-sm text-gray-500">{{ selectedGroup.name }}</span>
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-      <button *ngFor="let book of selectedGroup.books" class="book-card" [class.active]="book === selectedBook"
-        (click)="setBook(book)">
+      <button *ngFor="let book of selectedGroup.books" class="book-card" 
+              [class.active]="book === selectedBook"
+              [class.completed]="book.isCompleted"
+              [class.in-progress]="book.isInProgress"
+              [class.apocryphal]="isApocryphalBook(book)"
+              (click)="setBook(book)">
         <div class="card-header">
           <h4 class="book-name">{{ book.name }}</h4>
           <span class="book-badge">{{ book.name.substring(0,3) }}</span>
+          
+          <!-- Add a small indicator for apocryphal books -->
+          <span *ngIf="isApocryphalBook(book)" class="apocryphal-badge">
+            A
+          </span>
         </div>
 
         <div class="progress-container my-2">
@@ -76,19 +104,41 @@
     </div>
   </div>
 
-  <!-- Chapter Selection -->
+  <!-- Chapter Selection with Book-level Actions -->
   <div *ngIf="selectedBook" class="section bg-white p-4 rounded shadow mb-6">
     <div class="flex justify-between items-center mb-3">
-      <h3 class="text-lg font-semibold">Select Chapter</h3>
+      <h3 class="text-lg font-semibold">{{ selectedBook.name }}</h3>
       <div class="text-sm text-gray-500">
         {{ selectedBook.memorizedChapters }} / {{ selectedBook.totalChapters }} chapters memorized
       </div>
     </div>
 
+    <!-- Book-level Selection Buttons -->
+    <div class="flex justify-between items-center mb-4 book-actions">
+      <div>
+        <span class="text-sm font-medium">Book Actions:</span>
+        <button (click)="selectAllBookVerses()" class="book-action-button primary ml-2" 
+                [disabled]="isLoading || isSavingBulk">
+          Memorize Entire Book
+        </button>
+        <button (click)="clearAllBookVerses()" class="book-action-button secondary ml-2" 
+                [disabled]="isLoading || isSavingBulk">
+          Clear Entire Book
+        </button>
+      </div>
+      <div *ngIf="isSavingBulk" class="flex items-center">
+        <div class="loading-spinner-small mr-2"></div>
+        <span class="text-sm text-gray-500">Saving...</span>
+      </div>
+    </div>
+    
+    <!-- Chapter buttons -->
     <div class="chapter-overview flex flex-wrap gap-2 mb-4">
       <button *ngFor="let chapter of selectedBook.chapters" class="chapter-button"
-        [class.active]="chapter === selectedChapter" [class.completed]="chapter.isComplete"
-        [class.in-progress]="!chapter.isComplete && chapter.isInProgress" (click)="setChapter(chapter)">
+        [class.active]="chapter === selectedChapter" 
+        [class.completed]="chapter.isComplete"
+        [class.in-progress]="!chapter.isComplete && chapter.isInProgress" 
+        (click)="setChapter(chapter)">
         {{ chapter.chapterNumber }}
       </button>
     </div>
@@ -117,24 +167,45 @@
 
     <!-- Verse bubbles -->
     <div class="verse-container" [class.disabled]="isLoading || isSavingBulk">
-      <button *ngFor="let verse of selectedChapter.verses" (click)="toggleAndSaveVerse(verse)" class="verse-bubble"
-        [class.selected]="verse.memorized" [class.not-selected]="!verse.memorized" [disabled]="isLoading || isSavingBulk">
+      <button *ngFor="let verse of selectedChapter.verses" 
+              (click)="toggleAndSaveVerse(verse)" 
+              class="verse-bubble"
+              [class.selected]="verse.memorized" 
+              [class.not-selected]="!verse.memorized" 
+              [disabled]="isLoading || isSavingBulk">
         {{ verse.verseNumber }}
       </button>
     </div>
 
+    <!-- Chapter-level actions -->
     <div class="flex justify-between mt-4">
-      <button (click)="selectAllVerses()" class="verse-action-button primary" [disabled]="isLoading || isSavingBulk">
-        Select All
+      <button (click)="selectAllVerses()" class="verse-action-button primary" 
+              [disabled]="isLoading || isSavingBulk">
+        Select All Verses
       </button>
-      <button (click)="clearAllVerses()" class="verse-action-button secondary" [disabled]="isLoading || isSavingBulk">
-        Clear All
+      <button (click)="clearAllVerses()" class="verse-action-button secondary" 
+              [disabled]="isLoading || isSavingBulk">
+        Clear All Verses
       </button>
     </div>
 
-    <!-- Status indicator message that appears for saving actions -->
-    <div *ngIf="isSavingBulk" class="status-message">
-      <p>Saving changes...</p>
+    <!-- Legend for memorization levels -->
+    <div class="memorization-legend mt-4 p-3 bg-gray-50 rounded">
+      <h4 class="text-sm font-medium mb-2">Memorization Guide:</h4>
+      <div class="flex flex-wrap gap-4">
+        <div class="flex items-center">
+          <span class="memory-level level-low"></span>
+          <span class="text-xs">New (1 time)</span>
+        </div>
+        <div class="flex items-center">
+          <span class="memory-level level-medium"></span>
+          <span class="text-xs">Learning (2-4 times)</span>
+        </div>
+        <div class="flex items-center">
+          <span class="memory-level level-high"></span>
+          <span class="text-xs">Memorized (5+ times)</span>
+        </div>
+      </div>
     </div>
 
     <!-- Refresh button to reload user verses from server -->

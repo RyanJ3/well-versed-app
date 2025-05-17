@@ -143,7 +143,7 @@ def create_user_verse(verse_data: schemas.UserVerseCreate, db: Session = Depends
     
     return {"status": "success"}
 
-# Add the new bulk endpoint here
+# Add the new bulk endpoint
 @router.post("/bulk", status_code=status.HTTP_201_CREATED)
 def create_user_verses_bulk(bulk_data: schemas.UserVerseBulkCreate, db: Session = Depends(get_db)):
     """Create or update multiple verse entries at once"""

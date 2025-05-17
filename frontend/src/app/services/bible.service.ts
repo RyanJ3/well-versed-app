@@ -36,6 +36,12 @@ export class BibleService {
     return this.bibleData;
   }
 
+  // Add method to update user preferences
+  updateUserPreferences(includeApocrypha: boolean): void {
+    console.log(`Updating Bible data preferences: includeApocrypha=${includeApocrypha}`);
+    this.bibleData.includeApocrypha = includeApocrypha;
+  }
+
   private checkBackendAvailability(): void {
     // Check the root endpoint, not /api
     const rootUrl = this.apiUrl.replace('/api', '');
@@ -55,9 +61,15 @@ export class BibleService {
     ).subscribe();
   }
 
-  getUserVerses(userId: number): Observable<UserVerseDetail[]> {
+  // Updated to handle apocrypha preference
+  getUserVerses(userId: number, includeApocrypha?: boolean): Observable<UserVerseDetail[]> {
     const endpoint = `${this.apiUrl}/user-verses/${userId}`;
     console.log('Requesting verses from:', endpoint);
+
+    // If includeApocrypha is provided, update preferences
+    if (includeApocrypha !== undefined) {
+      this.updateUserPreferences(includeApocrypha);
+    }
 
     return this.http.get<UserVerseDetail[]>(endpoint).pipe(
       tap(verses => console.log(`Received ${verses?.length || 0} verses from API`)),
@@ -184,5 +196,12 @@ export class BibleService {
         return of({ success: false, error });
       })
     );
+  }
+
+  // Add method to support Promise-based operations
+  saveVersesBulkWithPromise(userId: number, bookId: string, chapterNum: number, 
+    verseNums: number[], practiceCount: number): Promise<any> {
+    
+    return this.saveVersesBulk(userId, bookId, chapterNum, verseNums, practiceCount).toPromise();
   }
 }

@@ -183,13 +183,62 @@ export class BibleBook {
 
   // Generate book ID (shorthand code like GEN, MAT, etc.)
   private generateBookId(bookName: string): string {
-    if (bookName.includes(' ')) {
-      // Handle books like "1 Samuel" -> "1SA"
-      const parts = bookName.split(' ');
-      if (parts[0].match(/^\d+$/)) {
-        return parts[0] + parts[1].substring(0, 3).toUpperCase();
-      }
+    // Special cases for books that might have abbreviation issues
+    const specialCases: Record<string, string> = {
+      'Psalms': 'PSA',
+      'Psalm': 'PSA',
+      'Psalm 151': 'PS151',  // Special case for Psalm 151
+      'Genesis': 'GEN',
+      'Exodus': 'EXO',
+      'Leviticus': 'LEV',
+      'Numbers': 'NUM',
+      'Deuteronomy': 'DEU',
+      'Joshua': 'JOS',
+      'Judges': 'JDG',
+      'Ruth': 'RUT',
+      'Esther': 'EST',
+      'Job': 'JOB',
+      'Proverbs': 'PRO',
+      'Ecclesiastes': 'ECC',
+      'Isaiah': 'ISA',
+      'Jeremiah': 'JER',
+      'Lamentations': 'LAM',
+      'Ezekiel': 'EZK',
+      'Daniel': 'DAN',
+      'Hosea': 'HOS',
+      'Joel': 'JOL',
+      'Amos': 'AMO',
+      'Obadiah': 'OBA',
+      'Jonah': 'JON',
+      'Micah': 'MIC',
+      'Nahum': 'NAH',
+      'Habakkuk': 'HAB',
+      'Zephaniah': 'ZEP',
+      'Haggai': 'HAG',
+      'Zechariah': 'ZEC',
+      'Malachi': 'MAL',
+      'Matthew': 'MAT',
+      'Mark': 'MRK',
+      'Luke': 'LUK',
+      'John': 'JHN',
+      'Acts': 'ACT',
+      'Romans': 'ROM',
+      'Revelation': 'REV'
+    };
+
+    // Check if the book is in our special cases list
+    if (specialCases[bookName]) {
+      return specialCases[bookName];
     }
+
+    // Handle numbered books like "1 Samuel" -> "1SA"
+    if (bookName.match(/^\d+\s/)) {
+      const parts = bookName.split(' ');
+      const number = parts[0];
+      const abbr = parts.slice(1).join(' ').substring(0, 3).toUpperCase();
+      return `${number}${abbr}`;
+    }
+    
     // Default: first 3 letters uppercase
     return bookName.substring(0, 3).toUpperCase();
   }
@@ -265,12 +314,21 @@ export class BibleBook {
   get memorizedChapters(): number {
     return this.chapters.filter(chapter => chapter.isComplete).length;
   }
+
+  // Add book-level operations
+  selectAllVerses(): void {
+    this.chapters.forEach(chapter => chapter.selectAllVerses());
+  }
+
+  clearAllVerses(): void {
+    this.chapters.forEach(chapter => chapter.clearAllVerses());
+  }
 }
 
 export class BibleGroup {
   constructor(
     public readonly name: string,
-    public readonly books: BibleBook[] = []
+    public books: BibleBook[] = []
   ) {}
 
   get totalBooks(): number {
@@ -388,6 +446,9 @@ export class BibleData {
   private readonly bookMap: Map<string, BibleBook> = new Map();
   private readonly bookIdMap: Map<string, BibleBook> = new Map();
   public readonly books: BibleBook[] = [];
+  
+  // Add property to track apocrypha preference 
+  private _includeApocrypha: boolean = false;
 
   constructor(progressData: Record<string, Record<number, number[]>> = {}) {
     console.log('Initializing BibleData from JSON');
@@ -442,6 +503,69 @@ export class BibleData {
     });
     
     console.log(`Initialized ${this.books.length} books in BibleData`);
+    
+    // Apply initial filtering based on apocrypha setting
+    this.refreshBooksBasedOnSettings();
+  }
+
+  // Add this getter and setter for apocrypha preference
+  get includeApocrypha(): boolean {
+    return this._includeApocrypha;
+  }
+
+  set includeApocrypha(value: boolean) {
+    if (this._includeApocrypha !== value) {
+      this._includeApocrypha = value;
+      this.refreshBooksBasedOnSettings();
+    }
+  }
+
+  // Add this method to filter books based on settings
+  refreshBooksBasedOnSettings(): void {
+    console.log(`Refreshing books with includeApocrypha=${this._includeApocrypha}`);
+    
+    // For each testament, filter books
+    this.testaments.forEach(testament => {
+      testament.groups.forEach(group => {
+        // Filter out apocryphal books if not enabled
+        group.books = group.books.filter(book => {
+          if (!this._includeApocrypha && book.canonicalAffiliation !== 'All') {
+            // Check specific cases
+            if (book.name === 'Psalm 151' || 
+                book.canonicalAffiliation === 'Catholic' || 
+                book.canonicalAffiliation === 'Eastern Orthodox') {
+              console.log(`Filtering out apocryphal book: ${book.name}`);
+              return false;
+            }
+          }
+          return true;
+        });
+      });
+    });
+    
+    // Re-initialize maps and arrays after filtering
+    this.rebuildMaps();
+  }
+
+  // Add this helper method to rebuild maps after filtering
+  private rebuildMaps(): void {
+    // Clear existing maps and arrays
+    this.bookMap.clear();
+    this.bookIdMap.clear();
+    this.books.length = 0;
+    
+    // Rebuild from filtered testament groups
+    this.testaments.forEach(testament => {
+      testament.groups.forEach(group => {
+        group.books.forEach(book => {
+          this.bookMap.set(book.name, book);
+          this.bookIdMap.set(book.id, book);
+          this.books.push(book);
+        });
+      });
+    });
+    
+    console.log(`Books rebuilt, total count: ${this.books.length}`);
   }
 
   get testaments(): BibleTestament[] {
@@ -541,7 +665,7 @@ export class BibleData {
         verse.memorized = userVerse.practice_count > 0;
         verse.lastPracticed = userVerse.last_practiced;
         
-        console.log(`Mapped verse: ${book.name} ${chapter_number}:${verse_number} (practice count: ${userVerse.practice_count})`);
+        // console.log(`Mapped verse: ${book.name} ${chapter_number}:${verse_number} (practice count: ${userVerse.practice_count})`);
       } catch (error) {
         console.error('Error mapping verse:', error);
       }
