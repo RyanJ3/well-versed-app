@@ -4,9 +4,9 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError, BehaviorSubject } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { BibleData, UserVerseDetail } from '../models/bible.model';
 import { environment } from '../../environments';
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
+import { BibleData, UserVerseDetail } from '../models/bible';
 
 @Injectable({
   providedIn: 'root'

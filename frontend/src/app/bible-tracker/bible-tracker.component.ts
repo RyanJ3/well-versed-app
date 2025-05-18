@@ -5,8 +5,10 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { BibleService } from '../services/bible.service';
 import { UserService } from '../services/user.service';
-import { BibleBook, BibleChapter, BibleData, BibleGroup, BibleTestament, BibleVerse, UserVerseDetail } from '../models/bible.model';
 import { Subscription } from 'rxjs';
+import { BibleBook, BibleChapter, BibleData, BibleTestament, UserVerseDetail } from '../models/bible';
+import { BibleGroup } from '../models/bible/bible-group.modle';
+import { BibleVerse } from '../models/bible/bible-verse.model';
 
 @Component({
   selector: 'app-bible-tracker',
