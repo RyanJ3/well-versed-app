@@ -18,10 +18,8 @@ import { RouterModule } from '@angular/router';
             Master scripture memorization with our powerful tools
           </p>
           <div class="cta-buttons">
-            <a routerLink="/flow" class="cta-button primary">Try FLOW Method</a>
-            <a routerLink="/flashcard" class="cta-button secondary"
-              >Use Flashcards</a
-            >
+            <a routerLink="/tracker" class="cta-button primary">Try Bible Tracker</a>
+            <a routerLink="/tracker" class="cta-button secondary">Start Memorizing</a>
           </div>
         </div>
       </section>
@@ -138,7 +136,7 @@ import { RouterModule } from '@angular/router';
           Begin your journey of scripture memorization today!
         </p>
         <div class="cta-buttons">
-          <a routerLink="/" class="cta-button primary">Start Tracking</a>
+          <a routerLink="/tracker" class="cta-button primary">Start Tracking</a>
         </div>
       </section>
     </div>
