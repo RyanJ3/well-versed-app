@@ -1,4 +1,3 @@
-<!-- Updated chapter buttons section for bible-tracker.component.html -->
 <div class="bible-selector-container">
   <!-- Loading overlay for the entire tracker -->
   <div *ngIf="isLoading" class="global-loading-overlay">
@@ -77,9 +76,7 @@
               [class.apocryphal]="isApocryphalBook(book)"
               (click)="setBook(book)">
         <div class="card-header">
-          <h4 class="book-name">{{ book.name }}</h4>
-          <span class="book-badge">{{ book.name.substring(0,3) }}</span>
-          
+          <h4 class="book-name">{{ book.name }}</h4>          
           <!-- Add a small indicator for apocryphal books -->
           <span *ngIf="isApocryphalBook(book)" class="apocryphal-badge">
             A
@@ -95,13 +92,6 @@
           <span>{{ book.memorizedChapters }}/{{ book.totalChapters }} ch</span>
         </div>
       </button>
-    </div>
-
-    <!-- Optional pagination for books -->
-    <div *ngIf="selectedGroup.books.length > 12" class="mt-4 flex justify-center">
-      <button class="pagination-button">&laquo; Previous</button>
-      <span class="pagination-info">Page 1 of 2</span>
-      <button class="pagination-button">Next &raquo;</button>
     </div>
   </div>
 
@@ -143,7 +133,7 @@
       <a href="#" (click)="goToSettings($event)" class="text-blue-600 hover:underline">Enable apocrypha</a> to view them.
     </div>
     
-    <!-- Chapter buttons - UPDATED to only show visible chapters -->
+    <!-- Chapter buttons - Shows only visible chapters based on apocrypha settings -->
     <div class="chapter-overview flex flex-wrap gap-2 mb-4">
       <ng-container *ngFor="let chapter of selectedBook.chapters">
         <!-- Only show chapters that should be visible based on user preferences -->
@@ -167,11 +157,17 @@
       <span class="text-sm text-gray-500 ml-2">
         {{ selectedChapter.memorizedVerses }} / {{ selectedChapter.totalVerses }} verses memorized
       </span>
+      <span *ngIf="selectedChapter.isApocryphal" class="text-sm text-purple-500 ml-2">
+        (Apocryphal)
+      </span>
     </h3>
 
     <!-- Progress Bar -->
     <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
-      <div class="h-2 rounded-full bg-blue-500" [style.width.%]="selectedChapter.percentComplete"></div>
+      <div class="h-2 rounded-full" 
+           [style.width.%]="selectedChapter.percentComplete"
+           [class.bg-blue-500]="!selectedChapter.isApocryphal"
+           [class.bg-purple-500]="selectedChapter.isApocryphal"></div>
     </div>
 
     <!-- Loading indicator -->
@@ -204,25 +200,6 @@
               [disabled]="isLoading || isSavingBulk">
         Clear All Verses
       </button>
-    </div>
-
-    <!-- Legend for memorization levels -->
-    <div class="memorization-legend mt-4 p-3 bg-gray-50 rounded">
-      <h4 class="text-sm font-medium mb-2">Memorization Guide:</h4>
-      <div class="flex flex-wrap gap-4">
-        <div class="flex items-center">
-          <span class="memory-level level-low"></span>
-          <span class="text-xs">New (1 time)</span>
-        </div>
-        <div class="flex items-center">
-          <span class="memory-level level-medium"></span>
-          <span class="text-xs">Learning (2-4 times)</span>
-        </div>
-        <div class="flex items-center">
-          <span class="memory-level level-high"></span>
-          <span class="text-xs">Memorized (5+ times)</span>
-        </div>
-      </div>
     </div>
 
     <!-- Refresh button to reload user verses from server -->
