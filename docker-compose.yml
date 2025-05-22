@@ -1,37 +1,69 @@
 services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "4200:4200"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+  db:
+    image: postgres:16-alpine
+    container_name: wellversed-postgres
+    env_file: .env
     environment:
-      - NODE_ENV=development
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./data/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
-      - app-network
-    depends_on:
-      - backend
+      - wellversed-network
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    container_name: wellversed-backend
+    env_file: .env
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_NAME: ${DATABASE_NAME}
     ports:
       - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - wellversed-network
     volumes:
       - ./backend:/app
-    environment:
-      - DATABASE_HOST=${DATABASE_HOST:-localhost}
-      - DATABASE_PORT=${DATABASE_PORT:-5432}
-      - DATABASE_USER=${DATABASE_USER:-postgres}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-postgres}
-      - DATABASE_NAME=${DATABASE_NAME:-well_versed}
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: wellversed-frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
     networks:
-      - app-network
+      - wellversed-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run start -- --host 0.0.0.0 --disable-host-check
 
 networks:
-  app-network:
+  wellversed-network:
     driver: bridge
+
+volumes:
+  postgres_data:

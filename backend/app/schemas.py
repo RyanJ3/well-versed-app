@@ -78,3 +78,9 @@ class UserVerseBulkCreate(BaseModel):
     verse_numbers: List[int]
     practice_count: int = 0
     last_practiced: Optional[datetime] = None
+
+class BookSaveRequest(BaseModel):
+    user_id: int
+    book_id: str
+    practice_count: int = 0
+    last_practiced: Optional[datetime] = None

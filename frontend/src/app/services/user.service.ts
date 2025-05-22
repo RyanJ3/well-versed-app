@@ -5,7 +5,7 @@ import { User, UserApiResponse, UserProfileUpdate } from '../models/user';
 import { HttpClient } from '@angular/common/http';
 import { catchError, map, tap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
-import { environment } from '../../environments';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'

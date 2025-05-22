@@ -4,9 +4,9 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError, BehaviorSubject } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { environment } from '../../environments';
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
 import { BibleData, UserVerseDetail } from '../models/bible';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -247,6 +247,54 @@ export class BibleService {
           return of({ success: true, offline: true, count: verseNums.length });
         }
         
+        return of({ success: false, error });
+      })
+    );
+  }
+
+  saveChapterVerses(
+    userId: number,
+    bookId: string,
+    chapterNum: number,
+    practiceCount: number
+  ): Observable<any> {
+    console.log(`Saving chapter - User: ${userId}, Book: ${bookId}, Chapter: ${chapterNum}`);
+    
+    const payload = {
+      user_id: userId,
+      book_id: bookId,
+      chapter_number: chapterNum,
+      practice_count: practiceCount,
+      last_practiced: new Date()
+    };
+
+    return this.http.post(`${this.apiUrl}/user-verses/chapter`, payload).pipe(
+      tap(response => console.log('Chapter save response:', response)),
+      catchError((error) => {
+        console.error('Error saving chapter:', error);
+        return of({ success: false, error });
+      })
+    );
+  }
+
+  saveBookVerses(
+    userId: number,
+    bookId: string,
+    practiceCount: number
+  ): Observable<any> {
+    console.log(`Saving entire book - User: ${userId}, Book: ${bookId}`);
+    
+    const payload = {
+      user_id: userId,
+      book_id: bookId,
+      practice_count: practiceCount,
+      last_practiced: new Date()
+    };
+
+    return this.http.post(`${this.apiUrl}/user-verses/book`, payload).pipe(
+      tap(response => console.log('Book save response:', response)),
+      catchError((error) => {
+        console.error('Error saving book:', error);
         return of({ success: false, error });
       })
     );

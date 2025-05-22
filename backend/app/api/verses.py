@@ -268,3 +268,44 @@ def debug_user_verses(user_id: int, db: Session = Depends(get_db)):
     """Debug endpoint to return just verse_ids for a user"""
     user_verses = db.query(models.UserVerse).filter(models.UserVerse.user_id == user_id).all()
     return [uv.verse_id for uv in user_verses]
+
+@router.post("/book", status_code=status.HTTP_201_CREATED)
+def save_book_verses(book_data: schemas.BookSaveRequest, db: Session = Depends(get_db)):
+    """Save or update all verses in a book at once"""
+    
+    # Verify user exists
+    user = db.query(models.User).filter(models.User.user_id == book_data.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get all verses for this book
+    verses = db.query(models.Verse).filter(
+        models.Verse.book_id == book_data.book_id
+    ).all()
+    
+    if not verses:
+        raise HTTPException(status_code=404, detail=f"No verses found for book {book_data.book_id}")
+    
+    if book_data.practice_count > 0:
+        # Bulk insert/update using merge
+        for verse in verses:
+            db.merge(models.UserVerse(
+                user_id=book_data.user_id,
+                verse_id=verse.verse_id,
+                practice_count=book_data.practice_count,
+                last_practiced=book_data.last_practiced
+            ))
+    else:
+        # Delete all user verses for this book
+        db.query(models.UserVerse).filter(
+            models.UserVerse.user_id == book_data.user_id,
+            models.UserVerse.verse_id.in_([v.verse_id for v in verses])
+        ).delete(synchronize_session=False)
+    
+    db.commit()
+    
+    return {
+        "status": "success",
+        "book_id": book_data.book_id,
+        "verses_updated": len(verses)
+    }

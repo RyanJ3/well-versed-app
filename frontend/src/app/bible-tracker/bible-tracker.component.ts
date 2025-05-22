@@ -203,6 +203,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   }
 
   saveVerse(verse: BibleVerse) {
+    // Use the public getters instead of private parentChapter
     if (!verse.chapter || !verse.book) {
       console.error('Cannot save verse without proper hierarchy', verse);
       return;
@@ -279,27 +280,28 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   saveBulkVerses(chapter: BibleChapter, isMemorized: boolean): void {
     if (!chapter || !chapter.book) return;
 
-    this.isSavingBulk = true; // Start loading
-    const verseNums = Array.from({ length: chapter.verses.length }, (_, i) => i + 1);
+    this.isSavingBulk = true;
     const practiceCount = isMemorized ? 1 : 0;
 
-    this.bibleService.saveVersesBulk(
-      this.userId, chapter.book.id, chapter.chapterNumber, verseNums, practiceCount
+    this.bibleService.saveChapterVerses(
+      this.userId, 
+      chapter.book.id, 
+      chapter.chapterNumber, 
+      practiceCount
     ).subscribe({
       next: (response) => {
-        console.log('Bulk save successful:', response);
+        console.log('Chapter save successful:', response);
         chapter.verses.forEach(verse => {
           verse.memorized = isMemorized;
           verse.practiceCount = practiceCount;
           if (isMemorized) verse.lastPracticed = new Date();
         });
-        this.isSavingBulk = false; // End loading
+        this.isSavingBulk = false;
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error saving verses in bulk:', error);
-        this.isSavingBulk = false; // End loading
-        // Keep the UI state even if there's an error
+        console.error('Error saving chapter:', error);
+        this.isSavingBulk = false;
         this.cdr.detectChanges();
       }
     });
@@ -309,34 +311,35 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   saveBulkBook(book: BibleBook, isMemorized: boolean): void {
     if (!book) return;
 
-    // Create an array to track pending operations
-    const operations: Promise<any>[] = [];
+    this.isSavingBulk = true;
+    const practiceCount = isMemorized ? 1 : 0;
 
-    // Process each chapter
-    book.chapters.forEach(chapter => {
-      const verseNums = Array.from({ length: chapter.verses.length }, (_, i) => i + 1);
-      const practiceCount = isMemorized ? 1 : 0;
-
-      // Create a promise for this chapter
-      const operation = this.bibleService.saveVersesBulkWithPromise(
-        this.userId, book.id, chapter.chapterNumber, verseNums, practiceCount
-      );
-
-      operations.push(operation);
+    this.bibleService.saveBookVerses(
+      this.userId, 
+      book.id, 
+      practiceCount
+    ).subscribe({
+      next: (response) => {
+        console.log(`Book ${book.name} saved:`, response);
+        
+        // Update local state for all chapters and verses
+        book.chapters.forEach(chapter => {
+          chapter.verses.forEach(verse => {
+            verse.memorized = isMemorized;
+            verse.practiceCount = practiceCount;
+            if (isMemorized) verse.lastPracticed = new Date();
+          });
+        });
+        
+        this.isSavingBulk = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error(`Error saving book ${book.name}:`, error);
+        this.isSavingBulk = false;
+        this.cdr.detectChanges();
+      }
     });
-
-    // Wait for all operations to complete
-    Promise.all(operations)
-      .then(() => {
-        console.log(`All ${operations.length} chapters in ${book.name} saved successfully`);
-        this.isSavingBulk = false;
-        this.cdr.detectChanges();
-      })
-      .catch(error => {
-        console.error(`Error saving chapters in ${book.name}:`, error);
-        this.isSavingBulk = false;
-        this.cdr.detectChanges();
-      });
   }
 
   setTestament(testament: BibleTestament): void {

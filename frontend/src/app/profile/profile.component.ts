@@ -3,9 +3,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { UserService } from '../services/user.service';
 import { BibleService } from '../services/bible.service';
 import { User } from '../models/user';
+import { UserService } from '../services/user.service';
 
 @Component({
   selector: 'app-profile',
@@ -86,7 +86,7 @@ export class ProfileComponent implements OnInit {
     this.isLoading = true;
     
     this.userService.currentUser$.subscribe({
-      next: (user) => {
+      next: (user: any) => {
         this.user = user;
         
         if (user) {
@@ -97,7 +97,7 @@ export class ProfileComponent implements OnInit {
         this.isLoading = false;
         console.log('Loaded user profile:', user);
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading user profile:', error);
         this.isLoading = false;
       }
@@ -140,7 +140,7 @@ export class ProfileComponent implements OnInit {
     console.log('Profile update payload:', profileUpdate);
     
     this.userService.updateUser(profileUpdate).subscribe({
-      next: (updatedUser) => {
+      next: (updatedUser: any) => {
         console.log('Profile updated successfully:', updatedUser);
         
         // Update Bible service with new apocrypha setting
@@ -159,7 +159,7 @@ export class ProfileComponent implements OnInit {
         
         this.isLoading = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error updating profile:', error);
         this.isLoading = false;
       }
