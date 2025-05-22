@@ -28,7 +28,9 @@ export class BibleBook {
             return new BibleChapter(
                 chapterNumber,
                 verseCount,
-                memorizedData[chapterNumber] || []
+                memorizedData[chapterNumber] || [],
+                this,
+                []
             );
         });
     }

@@ -165,3 +165,11 @@ def update_user_profile(user_id: int, profile_update: schemas.UserProfileUpdate,
     
     # Return updated profile
     return get_user_profile(user_id, db)
+
+@router.post("/bulk", status_code=status.HTTP_201_CREATED)
+def create_user_verses_bulk(bulk_data: schemas.UserVerseBulkCreate, db: Session = Depends(get_db)):
+    """Create or update multiple verse entries at once"""
+    # Check if user exists
+    user = db.query(models.User).filter(models.User.user_id == bulk_data.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")

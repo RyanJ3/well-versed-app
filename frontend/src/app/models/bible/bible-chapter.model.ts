@@ -1,4 +1,3 @@
-// src/app/models/bible/bible-chapter.model.ts
 import { BibleVerse } from './bible-verse.model';
 import { BibleBook } from './bible-book.model';
 
@@ -16,17 +15,22 @@ export class BibleChapter {
     private readonly parentBook?: BibleBook,
     versesApocryphalStatus: boolean[] = []
   ) {
-    // Create verses with proper apocryphal status
+    // Create verses with proper parent references
     this.verses = Array.from({ length: totalVerses }, (_, i) => {
       const isVerseApocryphal = versesApocryphalStatus[i] || false;
-      return new BibleVerse(i + 1, memorizedVerses.includes(i + 1), this, isVerseApocryphal);
+      return new BibleVerse(
+        i + 1,
+        memorizedVerses.includes(i + 1),
+        this,
+        isVerseApocryphal
+      );
     });
-    
+
     // A chapter is considered apocryphal if any of its verses are apocryphal
     this._isApocryphal = this.verses.some(v => v.isApocryphal);
   }
 
-  // Getter for isApocryphal that can't be modified from outside
+  // Getter for isApocryphal
   get isApocryphal(): boolean {
     return this._isApocryphal;
   }
