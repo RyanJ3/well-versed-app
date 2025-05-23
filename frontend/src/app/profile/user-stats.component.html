@@ -1,0 +1,82 @@
+<div class="stats-container">
+  <h1 class="text-2xl font-bold mb-6">Bible Memorization Stats</h1>
+
+  <div *ngIf="isLoading" class="text-center py-8">
+    Loading statistics...
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <!-- Testament Progress Pie Chart -->
+      <div class="bg-white p-4 rounded-lg shadow">
+        <h2 class="text-lg font-semibold mb-4">Testament Progress</h2>
+        <kendo-chart>
+          <kendo-chart-series>
+            <kendo-chart-series-item 
+              type="pie"
+              [data]="testamentProgressData"
+              categoryField="testament"
+              valueField="progress"
+              [labels]="pieLabelOptions">
+            </kendo-chart-series-item>
+          </kendo-chart-series>
+        </kendo-chart>
+      </div>
+
+      <!-- Book Group Progress Bar Chart -->
+      <div class="bg-white p-4 rounded-lg shadow">
+        <h2 class="text-lg font-semibold mb-4">Book Group Progress</h2>
+        <kendo-chart>
+          <kendo-chart-series>
+            <kendo-chart-series-item 
+              type="column"
+              [data]="bookGroupProgressData"
+              categoryField="group"
+              valueField="verses">
+            </kendo-chart-series-item>
+          </kendo-chart-series>
+          <kendo-chart-value-axis>
+            <kendo-chart-value-axis-item [min]="0"></kendo-chart-value-axis-item>
+          </kendo-chart-value-axis>
+        </kendo-chart>
+      </div>
+    </div>
+
+    <!-- Top Memorized Books Bar Chart -->
+    <div class="bg-white p-4 rounded-lg shadow mb-8">
+      <h2 class="text-lg font-semibold mb-4">Top 5 Most Memorized Books</h2>
+      <kendo-chart>
+        <kendo-chart-series>
+          <kendo-chart-series-item 
+            type="column"
+            [data]="topMemorizedBooksData"
+            categoryField="book"
+            valueField="verses">
+          </kendo-chart-series-item>
+        </kendo-chart-series>
+        <kendo-chart-value-axis>
+          <kendo-chart-value-axis-item [min]="0"></kendo-chart-value-axis-item>
+        </kendo-chart-value-axis>
+      </kendo-chart>
+    </div>
+
+    <!-- Memorization Trend Line Chart -->
+    <div class="bg-white p-4 rounded-lg shadow">
+      <h2 class="text-lg font-semibold mb-4">Memorization Progress Over Time</h2>
+      <kendo-chart>
+        <kendo-chart-series>
+          <kendo-chart-series-item 
+            type="line"
+            [data]="memorializationTrendData"
+            categoryField="month"
+            valueField="verses">
+          </kendo-chart-series-item>
+        </kendo-chart-series>
+        <kendo-chart-category-axis>
+          <kendo-chart-category-axis-item [categories]="getMonths()">
+          </kendo-chart-category-axis-item>
+        </kendo-chart-category-axis>
+      </kendo-chart>
+    </div>
+  </ng-container>
+</div>

@@ -32,16 +32,16 @@ import 'hammerjs';
     HttpClientModule,
     RouterModule,
     BibleTrackerModule,
-    
+
     // Kendo UI modules
     ButtonsModule,
-    ChartsModule,
     DialogsModule,
     DropDownsModule,
     InputsModule,
     IntlModule,
     LayoutModule,
-    ProgressBarModule
+    ProgressBarModule,
+    ChartsModule
   ],
   providers: [
     provideHttpClient(withInterceptorsFromDi())
@@ -49,4 +49,4 @@ import 'hammerjs';
   bootstrap: [],
   exports: [],
 })
-export class AppModule {}
+export class AppModule { }
