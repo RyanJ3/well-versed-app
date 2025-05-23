@@ -1,45 +1,48 @@
+// Workaround for Kendo localize requirement
+(globalThis as any).$localize = (strings: TemplateStringsArray, ...values: any[]) => {
+  let result = strings[0];
+  for (let i = 0; i < values.length; i++) {
+    result += values[i] + strings[i + 1];
+  }
+  return result;
+};
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
 import { ChartsModule } from '@progress/kendo-angular-charts';
-
+import { IntlModule } from '@progress/kendo-angular-intl';
 import { BibleService } from '../services/bible.service';
 import { UserService } from '../services/user.service';
-import { User } from '../models/user';
 import { BibleData } from '../models/bible';
 
 @Component({
   selector: 'app-user-stats',
   standalone: true,
-  imports: [
-    CommonModule, 
-    RouterModule, 
-    ChartsModule
-  ],
+  imports: [CommonModule, ChartsModule, IntlModule],
   templateUrl: './user-stats.component.html',
-  styles: [`
-    .stats-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 1rem;
-    }
-  `]
+  styleUrls: ['./user-stats.component.scss']
 })
 export class UserStatsComponent implements OnInit {
-  user: User | null = null;
   bibleData: BibleData;
   isLoading = true;
 
-  // Chart data properties
+  // Chart data
   testamentProgressData: any[] = [];
   bookGroupProgressData: any[] = [];
   topMemorizedBooksData: any[] = [];
   memorializationTrendData: any[] = [];
 
+  // Stats
+  totalVerses = 0;
+  totalChapters = 0;
+  totalBooks = 0;
+  percentComplete = 0;
+
   // Pie chart label configuration
   pieLabelOptions = {
     visible: true,
-    content: this.formatPieLabel
+    format: '{0}%',
+    position: 'outsideEnd' as const
   };
 
   constructor(
@@ -50,55 +53,75 @@ export class UserStatsComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadUserData();
+  }
+
+  private loadUserData(): void {
     this.userService.currentUser$.subscribe(user => {
-      this.user = user;
       if (user) {
-        this.prepareChartData();
+        this.bibleService.getUserVerses(1, user.includeApocrypha).subscribe({
+          next: () => {
+            this.prepareChartData();
+            this.isLoading = false;
+          },
+          error: () => {
+            this.prepareChartData();
+            this.isLoading = false;
+          }
+        });
+      } else {
+        this.isLoading = false;
       }
-      this.isLoading = false;
     });
-  }
 
-  formatPieLabel(e: any): string {
-    return `${e.category}: ${e.value}%`;
-  }
-
-  getMonths(): string[] {
-    return this.memorializationTrendData.map(d => d.month);
+    this.userService.fetchCurrentUser();
   }
 
   prepareChartData(): void {
-    // Testament Progress Data
+    // Calculate overall stats
+    this.totalVerses = this.bibleData.memorizedVerses;
+    this.totalChapters = this.bibleData.books.reduce((sum, book) => 
+      sum + book.chapters.filter(ch => ch.percentComplete === 100).length, 0
+    );
+    this.totalBooks = this.bibleData.books.filter(book => book.percentComplete === 100).length;
+    this.percentComplete = this.bibleData.percentComplete;
+
+    // Testament Progress Data (for pie chart)
     this.testamentProgressData = this.bibleData.testaments.map(testament => ({
-      testament: testament.name,
-      progress: testament.percentComplete
+      category: testament.name,
+      value: testament.percentComplete || 0
     }));
 
-    // Book Group Progress Data
+    // Book Group Progress Data (for column chart)
     this.bookGroupProgressData = this.bibleData.testaments
       .flatMap(testament => testament.groups)
       .map(group => ({
-        group: group.name,
-        verses: group.memorizedVerses
+        category: group.name,
+        value: group.memorizedVerses || 0
       }))
-      .sort((a, b) => b.verses - a.verses);
+      .filter(item => item.value > 0)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
 
-    // Top 5 Most Memorized Books
+    // Top 10 Most Memorized Books
     this.topMemorizedBooksData = this.bibleData.books
       .map(book => ({
-        book: book.name,
-        verses: book.memorizedVerses
+        category: book.name,
+        value: book.memorizedVerses || 0
       }))
-      .sort((a, b) => b.verses - a.verses)
-      .slice(0, 5);
+      .filter(item => item.value > 0)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10);
 
-    // Memorization Trend (mock data for now)
-    this.memorializationTrendData = [
-      { month: 'Jan', verses: 50 },
-      { month: 'Feb', verses: 120 },
-      { month: 'Mar', verses: 200 },
-      { month: 'Apr', verses: 350 },
-      { month: 'May', verses: 500 }
-    ];
+    // Memorization Trend (mock data - replace with real data later)
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    this.memorializationTrendData = months.map((month, index) => ({
+      category: month,
+      value: Math.floor(Math.random() * 100) + index * 50
+    }));
+  }
+
+  getMonths(): string[] {
+    return this.memorializationTrendData.map(d => d.category);
   }
 }
