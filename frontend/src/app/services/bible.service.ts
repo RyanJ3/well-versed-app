@@ -98,4 +98,64 @@ export class BibleService {
       })
     );
   }
+
+  /**
+   * Save all verses in a chapter as memorized
+   */
+  saveChapter(userId: number, bookId: string, chapterNum: number): Observable<any> {
+    console.log(`Saving chapter: ${bookId} ${chapterNum}`);
+    
+    return this.http.post(`${this.apiUrl}/user-verses/${userId}/chapters/${bookId}/${chapterNum}`, {}).pipe(
+      tap(response => console.log('Chapter saved:', response)),
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error saving chapter:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Save all verses in a book as memorized
+   */
+  saveBook(userId: number, bookId: string): Observable<any> {
+    console.log(`Saving book: ${bookId}`);
+    
+    return this.http.post(`${this.apiUrl}/user-verses/${userId}/books/${bookId}`, {}).pipe(
+      tap(response => console.log('Book saved:', response)),
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error saving book:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Clear all memorized verses in a chapter
+   */
+  clearChapter(userId: number, bookId: string, chapterNum: number): Observable<any> {
+    console.log(`Clearing chapter: ${bookId} ${chapterNum}`);
+    
+    return this.http.delete(`${this.apiUrl}/user-verses/${userId}/chapters/${bookId}/${chapterNum}`).pipe(
+      tap(response => console.log('Chapter cleared:', response)),
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error clearing chapter:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Clear all memorized verses in a book
+   */
+  clearBook(userId: number, bookId: string): Observable<any> {
+    console.log(`Clearing book: ${bookId}`);
+    
+    return this.http.delete(`${this.apiUrl}/user-verses/${userId}/books/${bookId}`).pipe(
+      tap(response => console.log('Book cleared:', response)),
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error clearing book:', error);
+        return throwError(() => error);
+      })
+    );
+  }
 }

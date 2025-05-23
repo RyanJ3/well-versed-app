@@ -168,6 +168,133 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     this.loadUserVerses();
   }
 
+  // Chapter-level operations using efficient single-call endpoints
+  selectAllVerses(): void {
+    if (!this.selectedChapter || !this.selectedBook) return;
+    
+    this.isSavingBulk = true;
+    
+    // Use the efficient save endpoint
+    this.bibleService.saveChapter(
+      this.userId,
+      this.selectedBook.id,
+      this.selectedChapter.chapterNumber
+    ).subscribe({
+      next: () => {
+        // Update local state
+        this.selectedChapter!.verses.forEach(verse => {
+          verse.memorized = true;
+          verse.practiceCount = 1;
+          verse.lastPracticed = new Date();
+        });
+        this.isSavingBulk = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error saving chapter:', error);
+        this.isSavingBulk = false;
+        // Optionally show error message to user
+      }
+    });
+  }
+
+  clearAllVerses(): void {
+    if (!this.selectedChapter || !this.selectedBook) return;
+    
+    this.isSavingBulk = true;
+    
+    // Use the efficient clear endpoint
+    this.bibleService.clearChapter(
+      this.userId,
+      this.selectedBook.id,
+      this.selectedChapter.chapterNumber
+    ).subscribe({
+      next: () => {
+        // Update local state
+        this.selectedChapter!.verses.forEach(verse => {
+          verse.memorized = false;
+          verse.practiceCount = 0;
+          verse.lastPracticed = undefined;
+        });
+        this.isSavingBulk = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error clearing chapter:', error);
+        this.isSavingBulk = false;
+      }
+    });
+  }
+
+  // Book-level operations using efficient single-call endpoints
+  selectAllBookVerses(): void {
+    if (!this.selectedBook) return;
+    
+    // Optional: Add confirmation for large books
+    const totalVerses = this.selectedBook.totalVerses;
+    if (totalVerses > 500) {
+      if (!confirm(`This will mark ${totalVerses} verses as memorized. Continue?`)) {
+        return;
+      }
+    }
+    
+    this.isSavingBulk = true;
+    
+    // Use the efficient save endpoint
+    this.bibleService.saveBook(this.userId, this.selectedBook.id).subscribe({
+      next: () => {
+        // Update local state for all chapters
+        this.selectedBook!.chapters.forEach(chapter => {
+          chapter.verses.forEach(verse => {
+            verse.memorized = true;
+            verse.practiceCount = 1;
+            verse.lastPracticed = new Date();
+          });
+        });
+        this.isSavingBulk = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error saving book:', error);
+        this.isSavingBulk = false;
+        // Optionally show error message
+        alert('Failed to save book. Please try again.');
+      }
+    });
+  }
+
+  clearAllBookVerses(): void {
+    if (!this.selectedBook) return;
+    
+    // Optional: Add confirmation
+    if (!confirm(`Clear all memorized verses in ${this.selectedBook.name}?`)) {
+      return;
+    }
+    
+    this.isSavingBulk = true;
+    
+    // Use the efficient clear endpoint
+    this.bibleService.clearBook(this.userId, this.selectedBook.id).subscribe({
+      next: () => {
+        // Update local state for all chapters
+        this.selectedBook!.chapters.forEach(chapter => {
+          chapter.verses.forEach(verse => {
+            verse.memorized = false;
+            verse.practiceCount = 0;
+            verse.lastPracticed = undefined;
+          });
+        });
+        this.isSavingBulk = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error clearing book:', error);
+        this.isSavingBulk = false;
+        alert('Failed to clear book. Please try again.');
+      }
+    });
+  }
+
   // Helper methods
   isChapterVisible(chapter: BibleChapter): boolean {
     return this.includeApocrypha || !chapter.isApocryphal;
@@ -194,23 +321,6 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     return book.canonicalAffiliation !== 'All' &&
       (book.canonicalAffiliation === 'Catholic' ||
         book.canonicalAffiliation === 'Eastern Orthodox');
-  }
-
-  // Stub methods for bulk operations (to be implemented later)
-  selectAllVerses(): void {
-    console.log('Select all verses - to be implemented');
-  }
-
-  clearAllVerses(): void {
-    console.log('Clear all verses - to be implemented');
-  }
-
-  selectAllBookVerses(): void {
-    console.log('Select all book verses - to be implemented');
-  }
-
-  clearAllBookVerses(): void {
-    console.log('Clear all book verses - to be implemented');
   }
 
   // Getters

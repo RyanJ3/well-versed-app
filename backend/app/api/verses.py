@@ -162,3 +162,173 @@ def delete_user_verse(
         raise HTTPException(status_code=404, detail="User verse not found")
     
     return {"status": "success", "message": f"Verse {verse_id} deleted successfully"}
+
+@router.delete("/{user_id}/chapters/{book_id}/{chapter_number}", status_code=status.HTTP_200_OK)
+def clear_chapter_verses(
+    user_id: int,
+    book_id: str,
+    chapter_number: int,
+    db: Session = Depends(get_db)
+):
+    """Clear all verses in a chapter with a single database command"""
+    # Single SQL DELETE using LIKE pattern
+    result = db.query(models.UserVerse).filter(
+        models.UserVerse.user_id == user_id,
+        models.UserVerse.verse_id.like(f"{book_id}-{chapter_number}-%")
+    ).delete(synchronize_session=False)
+    
+    db.commit()
+    
+    return {
+        "status": "success", 
+        "message": f"Cleared {result} verses from {book_id} chapter {chapter_number}"
+    }
+
+@router.delete("/{user_id}/books/{book_id}", status_code=status.HTTP_200_OK)
+def clear_book_verses(
+    user_id: int,
+    book_id: str,
+    db: Session = Depends(get_db)
+):
+    """Clear all verses in a book with a single database command"""
+    # Single SQL DELETE for entire book
+    result = db.query(models.UserVerse).filter(
+        models.UserVerse.user_id == user_id,
+        models.UserVerse.verse_id.like(f"{book_id}-%")
+    ).delete(synchronize_session=False)
+    
+    db.commit()
+    
+    return {
+        "status": "success", 
+        "message": f"Cleared {result} verses from book {book_id}"
+    }
+
+# Add to backend/app/api/verses.py
+
+@router.post("/{user_id}/chapters/{book_id}/{chapter_number}", status_code=status.HTTP_200_OK)
+def save_chapter_verses(
+    user_id: int,
+    book_id: str,
+    chapter_number: int,
+    db: Session = Depends(get_db)
+):
+    """Save all verses in a chapter as memorized using verses table as reference"""
+    # Verify user exists
+    user = db.query(models.User).filter(models.User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get all verses for this chapter from the verses table
+    chapter_verses = db.query(models.Verse).filter(
+        models.Verse.verse_id.like(f"{book_id}-{chapter_number}-%")
+    ).all()
+    
+    if not chapter_verses:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"No verses found for {book_id} chapter {chapter_number}"
+        )
+    
+    # Bulk insert user_verses using a single query
+    new_user_verses = []
+    for verse in chapter_verses:
+        # Check if already exists
+        existing = db.query(models.UserVerse).filter(
+            models.UserVerse.user_id == user_id,
+            models.UserVerse.verse_id == verse.verse_id
+        ).first()
+        
+        if not existing:
+            new_user_verses.append({
+                'user_id': user_id,
+                'verse_id': verse.verse_id,
+                'practice_count': 1,
+                'last_practiced': datetime.utcnow()
+            })
+        else:
+            # Update existing
+            existing.practice_count = 1
+            existing.last_practiced = datetime.utcnow()
+            existing.updated_at = datetime.utcnow()
+    
+    # Bulk insert new verses
+    if new_user_verses:
+        db.execute(
+            models.UserVerse.__table__.insert(),
+            new_user_verses
+        )
+    
+    db.commit()
+    
+    return {
+        "status": "success",
+        "message": f"Saved {len(chapter_verses)} verses in {book_id} chapter {chapter_number}"
+    }
+
+@router.post("/{user_id}/books/{book_id}", status_code=status.HTTP_200_OK)
+def save_book_verses(
+    user_id: int,
+    book_id: str,
+    db: Session = Depends(get_db)
+):
+    """Save all verses in a book as memorized using verses table as reference"""
+    # Verify user exists
+    user = db.query(models.User).filter(models.User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Get all verses for this book from the verses table
+    book_verses = db.query(models.Verse).filter(
+        models.Verse.verse_id.like(f"{book_id}-%")
+    ).all()
+    
+    if not book_verses:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No verses found for book {book_id}"
+        )
+    
+    # Get existing user verses for this book
+    existing_verses = db.query(models.UserVerse).filter(
+        models.UserVerse.user_id == user_id,
+        models.UserVerse.verse_id.like(f"{book_id}-%")
+    ).all()
+    
+    existing_verse_ids = {uv.verse_id for uv in existing_verses}
+    
+    # Prepare bulk insert for new verses
+    new_user_verses = []
+    for verse in book_verses:
+        if verse.verse_id not in existing_verse_ids:
+            new_user_verses.append({
+                'user_id': user_id,
+                'verse_id': verse.verse_id,
+                'practice_count': 1,
+                'last_practiced': datetime.utcnow()
+            })
+    
+    # Update existing verses
+    if existing_verses:
+        db.query(models.UserVerse).filter(
+            models.UserVerse.user_id == user_id,
+            models.UserVerse.verse_id.like(f"{book_id}-%")
+        ).update({
+            'practice_count': 1,
+            'last_practiced': datetime.utcnow(),
+            'updated_at': datetime.utcnow()
+        }, synchronize_session=False)
+    
+    # Bulk insert new verses
+    if new_user_verses:
+        db.execute(
+            models.UserVerse.__table__.insert(),
+            new_user_verses
+        )
+    
+    db.commit()
+    
+    return {
+        "status": "success",
+        "message": f"Saved {len(book_verses)} verses in book {book_id}"
+    }
