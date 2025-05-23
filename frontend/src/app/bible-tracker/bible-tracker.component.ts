@@ -198,19 +198,18 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Chapter-level clear (should only clear current chapter)
   clearAllVerses(): void {
     if (!this.selectedChapter || !this.selectedBook) return;
 
     this.isSavingBulk = true;
 
-    // Use the efficient clear endpoint
     this.bibleService.clearChapter(
       this.userId,
       this.selectedBook.id,
       this.selectedChapter.chapterNumber
     ).subscribe({
       next: () => {
-        // Update local state
         this.selectedChapter!.verses.forEach(verse => {
           verse.memorized = false;
           verse.practiceCount = 0;
@@ -226,62 +225,70 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     });
   }
 
-// Chapter-level clear (should only clear current chapter)
-clearAllVerses(): void {
-  if (!this.selectedChapter || !this.selectedBook) return;
-  
-  this.isSavingBulk = true;
-  
-  this.bibleService.clearChapter(
-    this.userId,
-    this.selectedBook.id,
-    this.selectedChapter.chapterNumber
-  ).subscribe({
-    next: () => {
-      this.selectedChapter!.verses.forEach(verse => {
-        verse.memorized = false;
-        verse.practiceCount = 0;
-        verse.lastPracticed = undefined;
-      });
-      this.isSavingBulk = false;
-      this.cdr.detectChanges();
-    },
-    error: (error) => {
-      console.error('Error clearing chapter:', error);
-      this.isSavingBulk = false;
-    }
-  });
-}
+  selectAllBookVerses(): void {
+    if (!this.selectedBook) return;
 
-// Book-level clear (clears entire book)
-clearAllBookVerses(): void {
-  if (!this.selectedBook) return;
-  
-  if (!confirm(`Clear all memorized verses in ${this.selectedBook.name}?`)) {
-    return;
-  }
-  
-  this.isSavingBulk = true;
-  
-  this.bibleService.clearBook(this.userId, this.selectedBook.id).subscribe({
-    next: () => {
-      this.selectedBook!.chapters.forEach(chapter => {
-        chapter.verses.forEach(verse => {
-          verse.memorized = false;
-          verse.practiceCount = 0;
-          verse.lastPracticed = undefined;
-        });
-      });
-      this.isSavingBulk = false;
-      this.cdr.detectChanges();
-    },
-    error: (error) => {
-      console.error('Error clearing book:', error);
-      this.isSavingBulk = false;
-      alert('Failed to clear book. Please try again.');
+    // Optional confirmation for large books
+    const totalVerses = this.selectedBook.totalVerses;
+    if (totalVerses > 500) {
+      if (!confirm(`This will mark ${totalVerses} verses as memorized. Continue?`)) {
+        return;
+      }
     }
-  });
-}
+
+    this.isSavingBulk = true;
+
+    // Use efficient save endpoint
+    this.bibleService.saveBook(this.userId, this.selectedBook.id).subscribe({
+      next: () => {
+        // Update local state for all chapters
+        this.selectedBook!.chapters.forEach(chapter => {
+          chapter.verses.forEach(verse => {
+            verse.memorized = true;
+            verse.practiceCount = 1;
+            verse.lastPracticed = new Date();
+          });
+        });
+        this.isSavingBulk = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error saving book:', error);
+        this.isSavingBulk = false;
+        alert('Failed to save book. Please try again.');
+      }
+    });
+  }
+
+  // Book-level clear (clears entire book)
+  clearAllBookVerses(): void {
+    if (!this.selectedBook) return;
+
+    if (!confirm(`Clear all memorized verses in ${this.selectedBook.name}?`)) {
+      return;
+    }
+
+    this.isSavingBulk = true;
+
+    this.bibleService.clearBook(this.userId, this.selectedBook.id).subscribe({
+      next: () => {
+        this.selectedBook!.chapters.forEach(chapter => {
+          chapter.verses.forEach(verse => {
+            verse.memorized = false;
+            verse.practiceCount = 0;
+            verse.lastPracticed = undefined;
+          });
+        });
+        this.isSavingBulk = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error clearing book:', error);
+        this.isSavingBulk = false;
+        alert('Failed to clear book. Please try again.');
+      }
+    });
+  }
   // Helper methods
   isChapterVisible(chapter: BibleChapter): boolean {
     return this.includeApocrypha || !chapter.isApocryphal;

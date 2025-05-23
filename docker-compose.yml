@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:16-alpine
@@ -20,25 +18,26 @@ services:
     networks:
       - wellversed-network
 
-  db-init:
-    build:
-      context: ./data
-      dockerfile: Dockerfile.init
-    container_name: wellversed-db-init
-    environment:
-      DATABASE_HOST: ${DATABASE_HOST}
-      DATABASE_PORT: ${DATABASE_PORT}
-      DATABASE_USER: ${DATABASE_USER}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-      DATABASE_NAME: ${DATABASE_NAME}
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - wellversed-network
-    volumes:
-      - ./data:/data
-      - ./bible_data:/bible_data
+  # db-init:
+  #   build:
+  #     context: ./data
+  #     dockerfile: Dockerfile.init
+  #   container_name: wellversed-db-init
+  #   environment:
+  #     DATABASE_HOST: ${DATABASE_HOST}
+  #     DATABASE_PORT: ${DATABASE_PORT}
+  #     DATABASE_USER: ${DATABASE_USER}
+  #     DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+  #     DATABASE_NAME: ${DATABASE_NAME}
+  #     FORCE_DB_INIT: ${FORCE_DB_INIT:-false}
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   networks:
+  #     - wellversed-network
+  #   volumes:
+  #     - ./data:/data
+  #     - ./bible_data:/bible_data
 
   backend:
     build:
@@ -53,9 +52,9 @@ services:
       DATABASE_NAME: ${DATABASE_NAME}
     ports:
       - "8000:8000"
-    depends_on:
-      db-init:
-        condition: service_completed_successfully
+    # depends_on:
+    #   db-init:
+    #     condition: service_completed_successfully
     networks:
       - wellversed-network
     volumes:
