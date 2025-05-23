@@ -1,31 +1,50 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:16-alpine
     container_name: wellversed-postgres
-    env_file: .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - "${DATABASE_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./data/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
       - wellversed-network
 
+  db-init:
+    build:
+      context: ./data
+      dockerfile: Dockerfile.init
+    container_name: wellversed-db-init
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_NAME: ${DATABASE_NAME}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - wellversed-network
+    volumes:
+      - ./data:/data
+      - ./bible_data:/bible_data
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: wellversed-backend
-    env_file: .env
     environment:
       DATABASE_HOST: ${DATABASE_HOST}
       DATABASE_PORT: ${DATABASE_PORT}
@@ -35,8 +54,8 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      db:
-        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     networks:
       - wellversed-network
     volumes:
@@ -58,8 +77,8 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - NODE_ENV=development
-    command: npm run start -- --host 0.0.0.0 --disable-host-check
+      - NODE_ENV=${NODE_ENV}
+    command: npm run serve
 
 networks:
   wellversed-network:

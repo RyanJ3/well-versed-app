@@ -1,7 +1,6 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Table
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, SmallInteger, String, DateTime, CheckConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
 from app.database import Base
 
 class User(Base):
@@ -17,11 +16,8 @@ class User(Base):
     last_login = Column(DateTime)
     active = Column(Boolean, default=True)
     
-    # Relationship with user settings
     settings = relationship("UserSettings", back_populates="user", uselist=False)
-    
-    # Relationship with memorized verses
-    verses = relationship("UserVerse", back_populates="user")
+    verse_ranges = relationship("UserVerseRange", back_populates="user")
 
 class UserSettings(Base):
     __tablename__ = "user_settings"
@@ -29,30 +25,60 @@ class UserSettings(Base):
     setting_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), unique=True, nullable=False)
     denomination = Column(String(50))
-    include_apocrypha = Column(Boolean, default=False)
     preferred_bible = Column(String(50), default="ESV")
+    include_apocrypha = Column(Boolean, default=False)
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
     user = relationship("User", back_populates="settings")
 
-class Verse(Base):
-    __tablename__ = "verses"
+class Book(Base):
+    __tablename__ = "books"
     
-    verse_id = Column(String(12), primary_key=True, index=True)
-    verse_number = Column(Integer, nullable=False)
-    is_apocryphal = Column(Boolean, default=False)  # Added field to track apocryphal verses
-    
-    # Relationship with users who memorized this verse
-    users = relationship("UserVerse", back_populates="verse")
+    book_id = Column(SmallInteger, primary_key=True)
+    book_code = Column(String(3), unique=True, nullable=False)
+    book_name = Column(String(50), nullable=False)
+    testament = Column(String(20), nullable=False)
+    book_group = Column(String(50), nullable=False)
+    total_chapters = Column(SmallInteger, nullable=False)
+    total_verses = Column(Integer, nullable=False)
+    canonical_affiliation = Column(String(20), nullable=False)
+    is_apocryphal_book = Column(Boolean, default=False)
+    display_order = Column(SmallInteger, nullable=False)
 
-class UserVerse(Base):
-    __tablename__ = "user_verses"
+class ChapterVerseCount(Base):
+    __tablename__ = "chapter_verse_counts"
     
-    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), primary_key=True)
-    verse_id = Column(String(12), ForeignKey("verses.verse_id", ondelete="CASCADE"), primary_key=True)
-    practice_count = Column(Integer, default=0)
-    last_practiced = Column(DateTime)
-    created_at = Column(DateTime, default=func.now(), nullable=False)
-    updated_at = Column(DateTime, onupdate=func.now())
+    book_id = Column(SmallInteger, ForeignKey("books.book_id"), primary_key=True)
+    chapter_number = Column(SmallInteger, primary_key=True)
+    verse_count = Column(SmallInteger, nullable=False)
+
+class ApocryphalContent(Base):
+    __tablename__ = "apocryphal_content"
     
-    user = relationship("User", back_populates="verses")
-    verse = relationship("Verse", back_populates="users")
+    apocryphal_id = Column(Integer, primary_key=True)
+    book_id = Column(SmallInteger, ForeignKey("books.book_id"), nullable=False)
+    chapter_number = Column(SmallInteger, nullable=False)
+    verse_start = Column(SmallInteger)
+    verse_end = Column(SmallInteger)
+    description = Column(String(100))
+
+class UserVerseRange(Base):
+    __tablename__ = "user_verse_ranges"
+    
+    range_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+    book_id = Column(SmallInteger, ForeignKey("books.book_id"), nullable=False)
+    chapter_start = Column(SmallInteger, nullable=False)
+    verse_start = Column(SmallInteger, nullable=False)
+    chapter_end = Column(SmallInteger, nullable=False)
+    verse_end = Column(SmallInteger, nullable=False)
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+    
+    __table_args__ = (
+        CheckConstraint('(chapter_start < chapter_end) OR (chapter_start = chapter_end AND verse_start <= verse_end)', 
+                       name='valid_range'),
+    )
+    
+    user = relationship("User", back_populates="verse_ranges")
+    book = relationship("Book")
