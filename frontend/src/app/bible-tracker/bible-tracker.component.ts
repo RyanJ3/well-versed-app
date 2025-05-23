@@ -12,7 +12,7 @@ import { BibleVerse } from '../models/bible/bible-verse.model';
   selector: 'app-bible-tracker',
   templateUrl: './bible-tracker.component.html',
   standalone: true,
-  imports: [CommonModule, RouterModule], 
+  imports: [CommonModule, RouterModule],
   styleUrls: [
     './bible-tracker.component.scss',
     './style-sheets/book-selector.scss',
@@ -77,7 +77,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
 
   loadUserVerses() {
     this.isLoading = true;
-    
+
     this.bibleService.getUserVerses(this.userId, this.includeApocrypha).subscribe({
       next: (verses) => {
         this.userVerses = verses;
@@ -98,7 +98,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   toggleAndSaveVerse(verse: BibleVerse): void {
     // Toggle the verse state
     verse.toggle();
-    
+
     // Save the change
     this.saveVerse(verse);
   }
@@ -114,7 +114,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
 
     // Determine practice count based on memorized state
     const practiceCount = verse.memorized ? 1 : 0;
-    
+
     this.bibleService.saveVerse(
       this.userId,
       verse.book.id,
@@ -171,9 +171,9 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   // Chapter-level operations using efficient single-call endpoints
   selectAllVerses(): void {
     if (!this.selectedChapter || !this.selectedBook) return;
-    
+
     this.isSavingBulk = true;
-    
+
     // Use the efficient save endpoint
     this.bibleService.saveChapter(
       this.userId,
@@ -200,9 +200,9 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
 
   clearAllVerses(): void {
     if (!this.selectedChapter || !this.selectedBook) return;
-    
+
     this.isSavingBulk = true;
-    
+
     // Use the efficient clear endpoint
     this.bibleService.clearChapter(
       this.userId,
@@ -226,75 +226,62 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Book-level operations using efficient single-call endpoints
-  selectAllBookVerses(): void {
-    if (!this.selectedBook) return;
-    
-    // Optional: Add confirmation for large books
-    const totalVerses = this.selectedBook.totalVerses;
-    if (totalVerses > 500) {
-      if (!confirm(`This will mark ${totalVerses} verses as memorized. Continue?`)) {
-        return;
-      }
+// Chapter-level clear (should only clear current chapter)
+clearAllVerses(): void {
+  if (!this.selectedChapter || !this.selectedBook) return;
+  
+  this.isSavingBulk = true;
+  
+  this.bibleService.clearChapter(
+    this.userId,
+    this.selectedBook.id,
+    this.selectedChapter.chapterNumber
+  ).subscribe({
+    next: () => {
+      this.selectedChapter!.verses.forEach(verse => {
+        verse.memorized = false;
+        verse.practiceCount = 0;
+        verse.lastPracticed = undefined;
+      });
+      this.isSavingBulk = false;
+      this.cdr.detectChanges();
+    },
+    error: (error) => {
+      console.error('Error clearing chapter:', error);
+      this.isSavingBulk = false;
     }
-    
-    this.isSavingBulk = true;
-    
-    // Use the efficient save endpoint
-    this.bibleService.saveBook(this.userId, this.selectedBook.id).subscribe({
-      next: () => {
-        // Update local state for all chapters
-        this.selectedBook!.chapters.forEach(chapter => {
-          chapter.verses.forEach(verse => {
-            verse.memorized = true;
-            verse.practiceCount = 1;
-            verse.lastPracticed = new Date();
-          });
-        });
-        this.isSavingBulk = false;
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        console.error('Error saving book:', error);
-        this.isSavingBulk = false;
-        // Optionally show error message
-        alert('Failed to save book. Please try again.');
-      }
-    });
-  }
+  });
+}
 
-  clearAllBookVerses(): void {
-    if (!this.selectedBook) return;
-    
-    // Optional: Add confirmation
-    if (!confirm(`Clear all memorized verses in ${this.selectedBook.name}?`)) {
-      return;
+// Book-level clear (clears entire book)
+clearAllBookVerses(): void {
+  if (!this.selectedBook) return;
+  
+  if (!confirm(`Clear all memorized verses in ${this.selectedBook.name}?`)) {
+    return;
+  }
+  
+  this.isSavingBulk = true;
+  
+  this.bibleService.clearBook(this.userId, this.selectedBook.id).subscribe({
+    next: () => {
+      this.selectedBook!.chapters.forEach(chapter => {
+        chapter.verses.forEach(verse => {
+          verse.memorized = false;
+          verse.practiceCount = 0;
+          verse.lastPracticed = undefined;
+        });
+      });
+      this.isSavingBulk = false;
+      this.cdr.detectChanges();
+    },
+    error: (error) => {
+      console.error('Error clearing book:', error);
+      this.isSavingBulk = false;
+      alert('Failed to clear book. Please try again.');
     }
-    
-    this.isSavingBulk = true;
-    
-    // Use the efficient clear endpoint
-    this.bibleService.clearBook(this.userId, this.selectedBook.id).subscribe({
-      next: () => {
-        // Update local state for all chapters
-        this.selectedBook!.chapters.forEach(chapter => {
-          chapter.verses.forEach(verse => {
-            verse.memorized = false;
-            verse.practiceCount = 0;
-            verse.lastPracticed = undefined;
-          });
-        });
-        this.isSavingBulk = false;
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        console.error('Error clearing book:', error);
-        this.isSavingBulk = false;
-        alert('Failed to clear book. Please try again.');
-      }
-    });
-  }
-
+  });
+}
   // Helper methods
   isChapterVisible(chapter: BibleChapter): boolean {
     return this.includeApocrypha || !chapter.isApocryphal;

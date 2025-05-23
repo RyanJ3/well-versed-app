@@ -274,15 +274,42 @@ def clear_chapter_verses(user_id: int, book_id: str, chapter_number: int, db: Se
     """Clear all verses in a chapter"""
     book = get_book_by_code(db, book_id)
     
-    # Delete all ranges for this chapter
-    db.query(models.UserVerseRange).filter(
+    # FIXED: Only delete ranges that overlap with this specific chapter
+    deleted = db.query(models.UserVerseRange).filter(
         and_(
             models.UserVerseRange.user_id == user_id,
             models.UserVerseRange.book_id == book.book_id,
+            # Chapter range overlaps with target chapter
             models.UserVerseRange.chapter_start <= chapter_number,
             models.UserVerseRange.chapter_end >= chapter_number
         )
-    ).delete()
+    ).all()
+    
+    # Handle partial range deletions
+    for range_obj in deleted:
+        if range_obj.chapter_start == range_obj.chapter_end == chapter_number:
+            # Single chapter range - delete completely
+            db.delete(range_obj)
+        elif range_obj.chapter_start < chapter_number < range_obj.chapter_end:
+            # Split multi-chapter range
+            # Keep first part, create second part
+            new_range = models.UserVerseRange(
+                user_id=user_id,
+                book_id=book.book_id,
+                chapter_start=chapter_number + 1,
+                verse_start=1,
+                chapter_end=range_obj.chapter_end,
+                verse_end=range_obj.verse_end
+            )
+            range_obj.chapter_end = chapter_number - 1
+            db.add(new_range)
+        elif range_obj.chapter_start == chapter_number:
+            # Starts at target chapter
+            range_obj.chapter_start = chapter_number + 1
+            range_obj.verse_start = 1
+        elif range_obj.chapter_end == chapter_number:
+            # Ends at target chapter
+            range_obj.chapter_end = chapter_number - 1
     
     db.commit()
     return {"status": "success", "message": f"Cleared verses from {book_id} chapter {chapter_number}"}
@@ -290,29 +317,42 @@ def clear_chapter_verses(user_id: int, book_id: str, chapter_number: int, db: Se
 @router.post("/{user_id}/books/{book_id}")
 def save_book_verses(user_id: int, book_id: str, db: Session = Depends(get_db)):
     """Save all verses in a book as memorized"""
+    print(f"Saving book: {book_id} for user: {user_id}")  # Debug log
+    
     book = get_book_by_code(db, book_id)
+    print(f"Found book: {book.book_name} (ID: {book.book_id})")  # Debug log
     
     # Get all chapters for book
     chapters = db.query(models.ChapterVerseCount).filter(
         models.ChapterVerseCount.book_id == book.book_id
     ).order_by(models.ChapterVerseCount.chapter_number).all()
     
+    print(f"Found {len(chapters)} chapters for {book.book_name}")  # Debug log
+    
     if not chapters:
+        print(f"ERROR: No chapters found for book {book_id}")  # Debug log
         raise HTTPException(status_code=404, detail=f"No chapters found for book {book_id}")
     
-    # Create single range for entire book
-    first_chapter = chapters[0]
-    last_chapter = chapters[-1]
+    # Log chapter info
+    for ch in chapters[:3]:  # Log first 3 chapters
+        print(f"Chapter {ch.chapter_number}: {ch.verse_count} verses")
     
     # Delete existing ranges for this book
-    db.query(models.UserVerseRange).filter(
+    deleted_count = db.query(models.UserVerseRange).filter(
         and_(
             models.UserVerseRange.user_id == user_id,
             models.UserVerseRange.book_id == book.book_id
         )
     ).delete()
     
-    # Create new range
+    print(f"Deleted {deleted_count} existing ranges")  # Debug log
+    
+    # Create new range for entire book
+    first_chapter = chapters[0]
+    last_chapter = chapters[-1]
+    
+    print(f"Creating range: Ch{first_chapter.chapter_number}:1 to Ch{last_chapter.chapter_number}:{last_chapter.verse_count}")
+    
     new_range = models.UserVerseRange(
         user_id=user_id,
         book_id=book.book_id,
@@ -321,10 +361,34 @@ def save_book_verses(user_id: int, book_id: str, db: Session = Depends(get_db)):
         chapter_end=last_chapter.chapter_number,
         verse_end=last_chapter.verse_count
     )
-    db.add(new_range)
-    db.commit()
     
-    return {"status": "success", "message": f"Saved all verses in book {book_id}"}
+    try:
+        db.add(new_range)
+        db.commit()
+        db.refresh(new_range)
+        print(f"Successfully created range ID: {new_range.range_id}")  # Debug log
+    except Exception as e:
+        print(f"ERROR creating range: {e}")  # Debug log
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to save book: {str(e)}")
+    
+    # Verify the range was saved
+    verify_range = db.query(models.UserVerseRange).filter(
+        models.UserVerseRange.range_id == new_range.range_id
+    ).first()
+    
+    if verify_range:
+        print(f"Verification successful: Range {verify_range.range_id} exists")
+    else:
+        print("ERROR: Range not found after commit!")
+    
+    return {
+        "status": "success", 
+        "message": f"Saved all verses in book {book_id}",
+        "range_id": new_range.range_id,
+        "chapters": len(chapters),
+        "total_verses": sum(ch.verse_count for ch in chapters)
+    }
 
 @router.delete("/{user_id}/books/{book_id}")
 def clear_book_verses(user_id: int, book_id: str, db: Session = Depends(get_db)):

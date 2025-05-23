@@ -1,21 +1,4 @@
-# backend/populate_all_verses.py
-import json
-import os
-from sqlalchemy import create_engine, text
-from dotenv import load_dotenv
-from app.utils import get_apocryphal_book_ids
-
-# Load environment variables
-load_dotenv()
-
-# Database connection
-conn_str = f"postgresql://{os.getenv('DATABASE_USER')}:{os.getenv('DATABASE_PASSWORD')}@{os.getenv('DATABASE_HOST')}:{os.getenv('DATABASE_PORT')}/{os.getenv('DATABASE_NAME')}"
-
-# Load Bible data
-with open('../data/bible_base_data.json', 'r') as f:
-    bible_data = json.load(f)
-
-# Book ID mapping (same as before)
+# backend/populate_all_verses.py - Fix book ID mapping
 def get_book_id(book_name):
     special_cases = {
         'Psalms': 'PSA',
@@ -56,11 +39,17 @@ def get_book_id(book_name):
         'Acts': 'ACT',
         'Romans': 'ROM',
         'Revelation': 'REV',
+        # FIX: Correct mappings for similar books
+        'Philippians': 'PHP',
         'Philemon': 'PHM',
         'Hebrews': 'HEB',
         'James': 'JAS',
         'Jude': 'JDE',
         'Titus': 'TIT',
+        'Galatians': 'GAL',
+        'Ephesians': 'EPH',
+        'Colossians': 'COL',
+        # Numbered books
         '1 Samuel': '1SA',
         '2 Samuel': '2SA',
         '1 Kings': '1KI',
@@ -78,6 +67,7 @@ def get_book_id(book_name):
         '1 John': '1JN',
         '2 John': '2JN',
         '3 John': '3JN',
+        # Apocryphal books
         'Wisdom of Solomon': 'WIS',
         'Sirach': 'SIR',
         'Baruch': 'BAR',
@@ -101,61 +91,10 @@ def get_book_id(book_name):
     
     return book_name[:3].upper()
 
-try:
-    engine = create_engine(conn_str)
-    with engine.connect() as conn:
-        verse_count = 0
-        apocryphal_books = get_apocryphal_book_ids()
-        
-        for book in bible_data['books']:
-            if book['canonicalAffiliation'] == 'NONE':
-                continue
-                
-            book_name = book['name']
-            book_id = get_book_id(book_name)
-            book_is_apocryphal = book_id in apocryphal_books
-            
-            # Process each chapter
-            for chapter_num, verse_count_in_chapter in enumerate(book['chapters'], 1):
-                # Check if chapter is apocryphal
-                is_chapter_apocryphal = book_is_apocryphal
-                
-                # Special cases for partially apocryphal books
-                if book_id == 'PSA' and chapter_num == 151:
-                    is_chapter_apocryphal = True
-                elif book_id == 'DAN' and chapter_num in [13, 14]:
-                    is_chapter_apocryphal = True
-                elif book_id == 'EST' and chapter_num > 10:
-                    is_chapter_apocryphal = True
-                
-                # Insert all verses for this chapter
-                for verse_num in range(1, verse_count_in_chapter + 1):
-                    verse_id = f"{book_id}-{chapter_num}-{verse_num}"
-                    
-                    # Special handling for Daniel 3:24-90 (additions)
-                    verse_is_apocryphal = is_chapter_apocryphal
-                    if book_id == 'DAN' and chapter_num == 3 and verse_num >= 24:
-                        verse_is_apocryphal = True
-                    
-                    conn.execute(text("""
-                        INSERT INTO verses (verse_id, verse_number, is_apocryphal)
-                        VALUES (:verse_id, :verse_num, :is_apoc)
-                        ON CONFLICT (verse_id) DO UPDATE SET
-                            is_apocryphal = EXCLUDED.is_apocryphal
-                    """), {
-                        'verse_id': verse_id,
-                        'verse_num': verse_num,
-                        'is_apoc': verse_is_apocryphal
-                    })
-                    verse_count += 1
-        
-        conn.commit()
-        
-        # Show summary
-        total = conn.execute(text("SELECT COUNT(*) FROM verses")).scalar()
-        apoc = conn.execute(text("SELECT COUNT(*) FROM verses WHERE is_apocryphal = TRUE")).scalar()
-        
-        print(f"Populated {total} verses ({apoc} apocryphal)")
-        
-except Exception as e:
-    print(f"Error: {str(e)}")
+# backend/app/models.py - Update books table data
+# SQL to fix the collision in database:
+"""
+UPDATE books SET book_code = 'PHP' WHERE book_name = 'Philippians';
+UPDATE books SET book_code = 'PHM' WHERE book_name = 'Philemon';
+"""
+

@@ -36,12 +36,14 @@ export class BibleBook {
     }
 
     // Generate book ID (shorthand code like GEN, MAT, etc.)
+    // frontend/src/app/models/bible/bible-book.model.ts
+    // Fix the generateBookId method
+
     private generateBookId(bookName: string): string {
-        // Special cases for books that might have abbreviation issues
         const specialCases: Record<string, string> = {
             'Psalms': 'PSA',
             'Psalm': 'PSA',
-            'Psalm 151': 'PS151',  // Special case for Psalm 151
+            'Psalm 151': 'PS151',
             'Genesis': 'GEN',
             'Exodus': 'EXO',
             'Leviticus': 'LEV',
@@ -77,15 +79,55 @@ export class BibleBook {
             'John': 'JHN',
             'Acts': 'ACT',
             'Romans': 'ROM',
-            'Revelation': 'REV'
+            'Revelation': 'REV',
+            // FIX: Distinguish between Philippians and Philemon
+            'Philippians': 'PHP',
+            'Philemon': 'PHM',
+            // Other specific cases
+            '1 Samuel': '1SA',
+            '2 Samuel': '2SA',
+            '1 Kings': '1KI',
+            '2 Kings': '2KI',
+            '1 Chronicles': '1CH',
+            '2 Chronicles': '2CH',
+            '1 Corinthians': '1CO',
+            '2 Corinthians': '2CO',
+            '1 Thessalonians': '1TH',
+            '2 Thessalonians': '2TH',
+            '1 Timothy': '1TI',
+            '2 Timothy': '2TI',
+            '1 Peter': '1PE',
+            '2 Peter': '2PE',
+            '1 John': '1JN',
+            '2 John': '2JN',
+            '3 John': '3JN',
+            'Jude': 'JDE',
+            'Titus': 'TIT',
+            'Galatians': 'GAL',
+            'Ephesians': 'EPH',
+            'Colossians': 'COL',
+            'Hebrews': 'HEB',
+            'James': 'JAS',
+            // Apocryphal books
+            'Wisdom of Solomon': 'WIS',
+            'Sirach': 'SIR',
+            'Baruch': 'BAR',
+            'Tobit': 'TOB',
+            'Judith': 'JDT',
+            'Prayer of Manasseh': 'PAM',
+            '1 Esdras': '1ES',
+            '2 Esdras': '2ES',
+            '1 Maccabees': '1MA',
+            '2 Maccabees': '2MA',
+            '3 Maccabees': '3MA',
+            '4 Maccabees': '4MA'
         };
 
-        // Check if the book is in our special cases list
         if (specialCases[bookName]) {
             return specialCases[bookName];
         }
 
-        // Handle numbered books like "1 Samuel" -> "1SA"
+        // Handle numbered books
         if (bookName.match(/^\d+\s/)) {
             const parts = bookName.split(' ');
             const number = parts[0];
@@ -93,7 +135,6 @@ export class BibleBook {
             return `${number}${abbr}`;
         }
 
-        // Default: first 3 letters uppercase
         return bookName.substring(0, 3).toUpperCase();
     }
 
