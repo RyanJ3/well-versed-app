@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <div class="stats-container">
   <h1 class="page-title">Bible Memorization Statistics</h1>
 
@@ -145,4 +146,339 @@
       </kendo-chart>
     </div>
   </ng-container>
+=======
+<div class="stats-container">
+  <h1 class="page-title">Bible Memorization Statistics</h1>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    <!-- Overall Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ totalVerses }}</div>
+        <div class="stat-label">Verses Memorized</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ totalChapters }}</div>
+        <div class="stat-label">Chapters Completed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ totalBooks }}</div>
+        <div class="stat-label">Books Completed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ percentComplete }}%</div>
+        <div class="stat-label">Bible Progress</div>
+      </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="charts-grid">
+      <!-- Testament Progress Pie Chart -->
+      <div class="chart-card">
+        <h2 class="chart-title">Testament Progress</h2>
+        <kendo-chart>
+          <kendo-chart-series>
+            <kendo-chart-series-item 
+              type="pie"
+              [data]="testamentProgressData"
+              field="value"
+              categoryField="category"
+              [labels]="pieLabelOptions">
+            </kendo-chart-series-item>
+          </kendo-chart-series>
+          <kendo-chart-legend [visible]="true" position="bottom"></kendo-chart-legend>
+        </kendo-chart>
+      </div>
+
+      <!-- Book Group Progress Bar Chart -->
+      <div class="chart-card">
+        <h2 class="chart-title">Progress by Book Group</h2>
+        <kendo-chart>
+          <kendo-chart-series>
+            <kendo-chart-series-item 
+              type="column"
+              [data]="bookGroupProgressData"
+              field="value"
+              categoryField="category"
+              [color]="'#3b82f6'"
+              [labels]="{
+                visible: true,
+                format: '{0}'
+              }">
+            </kendo-chart-series-item>
+          </kendo-chart-series>
+          <kendo-chart-category-axis>
+            <kendo-chart-category-axis-item
+              [labels]="{
+                rotation: -45
+              }">
+            </kendo-chart-category-axis-item>
+          </kendo-chart-category-axis>
+          <kendo-chart-value-axis>
+            <kendo-chart-value-axis-item
+              [title]="{
+                text: 'Verses Memorized'
+              }">
+            </kendo-chart-value-axis-item>
+          </kendo-chart-value-axis>
+        </kendo-chart>
+      </div>
+    </div>
+
+    <!-- Top Memorized Books Bar Chart -->
+    <div class="chart-card full-width">
+      <h2 class="chart-title">Top 10 Most Memorized Books</h2>
+      <kendo-chart [style.height.px]="400">
+        <kendo-chart-series>
+          <kendo-chart-series-item 
+            type="bar"
+            [data]="topMemorizedBooksData"
+            field="value"
+            categoryField="category"
+            [color]="'#10b981'"
+            [labels]="{
+              visible: true,
+              format: '{0} verses'
+            }">
+          </kendo-chart-series-item>
+        </kendo-chart-series>
+        <kendo-chart-category-axis>
+          <kendo-chart-category-axis-item>
+          </kendo-chart-category-axis-item>
+        </kendo-chart-category-axis>
+        <kendo-chart-value-axis>
+          <kendo-chart-value-axis-item
+            [title]="{
+              text: 'Verses Memorized'
+            }">
+          </kendo-chart-value-axis-item>
+        </kendo-chart-value-axis>
+      </kendo-chart>
+    </div>
+
+    <!-- Memorization Trend Line Chart -->
+    <div class="chart-card full-width">
+      <h2 class="chart-title">Memorization Progress Over Time</h2>
+      <kendo-chart>
+        <kendo-chart-series>
+          <kendo-chart-series-item 
+            type="line"
+            [data]="memorializationTrendData"
+            field="value"
+            categoryField="category"
+            [markers]="{
+              visible: true,
+              size: 8
+            }"
+            [style]="'smooth'">
+          </kendo-chart-series-item>
+        </kendo-chart-series>
+        <kendo-chart-category-axis>
+          <kendo-chart-category-axis-item
+            [title]="{
+              text: 'Month'
+            }">
+          </kendo-chart-category-axis-item>
+        </kendo-chart-category-axis>
+        <kendo-chart-value-axis>
+          <kendo-chart-value-axis-item
+            [title]="{
+              text: 'Total Verses'
+            }">
+          </kendo-chart-value-axis-item>
+        </kendo-chart-value-axis>
+      </kendo-chart>
+    </div>
+
+    <!-- Additional Charts Section -->
+    <div class="charts-grid">
+      <!-- Books Progress Donut Chart -->
+      <div class="chart-card">
+        <h2 class="chart-title">Books Completion Status</h2>
+        <kendo-chart>
+          <kendo-chart-series>
+            <kendo-chart-series-item 
+              type="donut"
+              [data]="bookCompletionData"
+              field="value"
+              categoryField="category"
+              [holeSize]="60"
+              [labels]="{
+                visible: true,
+                format: '{0} books'
+              }">
+            </kendo-chart-series-item>
+          </kendo-chart-series>
+          <kendo-chart-legend [visible]="true" position="bottom"></kendo-chart-legend>
+        </kendo-chart>
+      </div>
+
+      <!-- Daily Average Card -->
+      <div class="chart-card">
+        <h2 class="chart-title">Daily Average</h2>
+        <div class="daily-average-display">
+          <div class="average-number">{{ dailyAverage }}</div>
+          <div class="average-label">verses per day</div>
+          <div class="progress-ring">
+            <svg width="120" height="120">
+              <circle cx="60" cy="60" r="54" fill="none" stroke="#e5e7eb" stroke-width="12"></circle>
+              <circle cx="60" cy="60" r="54" fill="none" stroke="#3b82f6" stroke-width="12"
+                      [style.stroke-dasharray]="339.292"
+                      [style.stroke-dashoffset]="339.292 - (339.292 * dailyAverage / 50)"
+                      style="transform: rotate(-90deg); transform-origin: center;">
+              </circle>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Verses by Chapter Range -->
+    <div class="chart-card full-width">
+      <h2 class="chart-title">Memorization by Chapter Size</h2>
+      <kendo-chart>
+        <kendo-chart-series>
+          <kendo-chart-series-item 
+            type="column"
+            [data]="chapterSizeData"
+            field="verses"
+            categoryField="range"
+            [color]="'#8b5cf6'"
+            [labels]="{
+              visible: true,
+              format: '{0} verses'
+            }">
+          </kendo-chart-series-item>
+        </kendo-chart-series>
+        <kendo-chart-category-axis>
+          <kendo-chart-category-axis-item
+            [title]="{
+              text: 'Chapter Size Range'
+            }">
+          </kendo-chart-category-axis-item>
+        </kendo-chart-category-axis>
+        <kendo-chart-value-axis>
+          <kendo-chart-value-axis-item
+            [title]="{
+              text: 'Verses Memorized'
+            }">
+          </kendo-chart-value-axis-item>
+        </kendo-chart-value-axis>
+      </kendo-chart>
+    </div>
+
+    <!-- Weekly Activity Pattern -->
+    <div class="chart-card full-width">
+      <h2 class="chart-title">Weekly Memorization Pattern</h2>
+      <kendo-chart>
+        <kendo-chart-series>
+          <kendo-chart-series-item 
+            type="column"
+            [data]="weeklyPatternData"
+            field="average"
+            categoryField="day"
+            [color]="'#6366f1'"
+            [labels]="{
+              visible: true,
+              format: '{0}'
+            }">
+          </kendo-chart-series-item>
+        </kendo-chart-series>
+        <kendo-chart-category-axis>
+          <kendo-chart-category-axis-item
+            [title]="{
+              text: 'Day of Week'
+            }">
+          </kendo-chart-category-axis-item>
+        </kendo-chart-category-axis>
+        <kendo-chart-value-axis>
+          <kendo-chart-value-axis-item
+            [title]="{
+              text: 'Average Verses'
+            }">
+          </kendo-chart-value-axis-item>
+        </kendo-chart-value-axis>
+      </kendo-chart>
+    </div>
+
+    <!-- Progress Comparison Radar Chart -->
+    <div class="chart-card full-width">
+      <h2 class="chart-title">Book Category Progress Comparison</h2>
+      <kendo-chart>
+        <kendo-chart-series>
+          <kendo-chart-series-item 
+            type="radarArea"
+            [data]="categoryProgressData"
+            field="progress"
+            categoryField="category"
+            [opacity]="0.6">
+          </kendo-chart-series-item>
+        </kendo-chart-series>
+        <kendo-chart-value-axis>
+          <kendo-chart-value-axis-item
+            [max]="100"
+            [majorUnit]="20">
+          </kendo-chart-value-axis-item>
+        </kendo-chart-value-axis>
+      </kendo-chart>
+    </div>
+
+    <!-- Memorization Streak Calendar -->
+    <div class="chart-card full-width">
+      <h2 class="chart-title">Current Streak: {{ currentStreak }} days</h2>
+      <div class="streak-calendar">
+        <div class="calendar-month" *ngFor="let month of streakCalendarData">
+          <h3>{{ month.name }}</h3>
+          <div class="calendar-grid">
+            <div *ngFor="let day of month.days" 
+                 class="calendar-day"
+                 [class.active]="day.active"
+                 [class.today]="day.isToday"
+                 [title]="day.verses + ' verses'">
+              {{ day.date }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Speed Chart -->
+    <div class="chart-card full-width">
+      <h2 class="chart-title">Memorization Speed Trend</h2>
+      <kendo-chart>
+        <kendo-chart-series>
+          <kendo-chart-series-item 
+            type="area"
+            [data]="speedTrendData"
+            field="versesPerDay"
+            categoryField="month"
+            [color]="'#10b981'"
+            [opacity]="0.3">
+          </kendo-chart-series-item>
+          <kendo-chart-series-item 
+            type="line"
+            [data]="speedTrendData"
+            field="movingAverage"
+            categoryField="month"
+            [color]="'#059669'"
+            [width]="3"
+            name="7-day Average">
+          </kendo-chart-series-item>
+        </kendo-chart-series>
+        <kendo-chart-legend [visible]="true" position="top"></kendo-chart-legend>
+        <kendo-chart-value-axis>
+          <kendo-chart-value-axis-item
+            [title]="{
+              text: 'Verses per Day'
+            }">
+          </kendo-chart-value-axis-item>
+        </kendo-chart-value-axis>
+      </kendo-chart>
+    </div>
+  </ng-container>
+>>>>>>> main
 </div>

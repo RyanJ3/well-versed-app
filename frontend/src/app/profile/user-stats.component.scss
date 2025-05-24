@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .stats-container {
   max-width: 1400px;
   margin: 0 auto;
@@ -173,4 +174,259 @@
     font-size: 0.75rem;
     color: #6b7280;
   }
+=======
+// Daily Average Display
+.daily-average-display {
+  text-align: center;
+  padding: 1rem;
+}
+
+.average-number {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #3b82f6;
+  line-height: 1;
+}
+
+.average-label {
+  color: #6b7280;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.progress-ring {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+  
+  svg {
+    transform: scale(1);
+  }
+}.stats-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+// Loading State
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f4f6;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// Stats Cards
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid #e5e7eb;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.stat-value {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #3b82f6;
+  margin-bottom: 0.5rem;
+  line-height: 1;
+}
+
+.stat-label {
+  color: #6b7280;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+// Charts
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.chart-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+
+  &.full-width {
+    grid-column: 1 / -1;
+  }
+
+  kendo-chart {
+    height: 350px;
+    display: block;
+  }
+}
+
+.chart-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #1f2937;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.75rem;
+}
+
+// Mobile Responsive
+@media (max-width: 768px) {
+  .stats-container {
+    padding: 1rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .chart-card {
+    padding: 1rem;
+
+    kendo-chart {
+      height: 250px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Kendo Chart Customizations
+::ng-deep {
+  .k-chart {
+    font-family: inherit;
+  }
+
+  .k-chart-legend {
+    margin-top: 1rem;
+  }
+
+  .k-chart-legend-item {
+    font-size: 0.875rem;
+  }
+
+  .k-chart-title {
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .k-chart-axis-labels {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+}
+
+// Streak Calendar Styles
+.streak-calendar {
+  display: flex;
+  gap: 2rem;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.calendar-month {
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #4b5563;
+  }
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+}
+
+.calendar-day {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  background-color: #f3f4f6;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &.active {
+    background-color: #3b82f6;
+    color: white;
+  }
+
+  &.today {
+    border: 2px solid #f59e0b;
+    font-weight: 700;
+  }
+
+  &:hover {
+    transform: scale(1.1);
+  }
+>>>>>>> main
 }
