@@ -13,20 +13,20 @@
     </button>
 
     <nav class="app-nav" [class.active]="menuActive">
-         (click)="closeMenu()">Home</a>
+      (click)="closeMenu()">Home</a>
 
-      <a routerLink="/tracker" class="nav-link" routerLinkActive="active"
-         (click)="closeMenu()">Tracker</a>
-      
-      <a routerLink="/flashcard" class="nav-link" routerLinkActive="active"
-         (click)="closeMenu()">Flashcards</a>
+      <a routerLink="/tracker" class="nav-link" routerLinkActive="active" (click)="closeMenu()">Tracker</a>
 
       <!-- Memorize dropdown menu -->
       <div class="nav-dropdown">
-        <button class="nav-link dropdown-toggle" [class.active]="memorizeMenuActive" (click)="toggleMemorizeMenu($event)">
+        <button class="nav-link dropdown-toggle" [class.active]="memorizeMenuActive"
+          (click)="toggleMemorizeMenu($event)">
           Memorize
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="dropdown-icon" [class.rotate]="memorizeMenuActive">
-            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="dropdown-icon"
+            [class.rotate]="memorizeMenuActive">
+            <path fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clip-rule="evenodd" />
           </svg>
         </button>
 
@@ -42,7 +42,7 @@
   <main class="app-content">
     <router-outlet></router-outlet>
   </main>
-
+ 
   <footer class="app-footer">
     <!--        <p>&copy; 2025 TODO WellVersed App. All rights reserved.</p>-->
   </footer>
