@@ -1,4 +1,31 @@
-.stats-container {
+// Daily Average Display
+.daily-average-display {
+  text-align: center;
+  padding: 1rem;
+}
+
+.average-number {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #3b82f6;
+  line-height: 1;
+}
+
+.average-label {
+  color: #6b7280;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.progress-ring {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+  
+  svg {
+    transform: scale(1);
+  }
+}.stats-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
@@ -172,5 +199,56 @@
   .k-chart-axis-labels {
     font-size: 0.75rem;
     color: #6b7280;
+  }
+}
+
+// Streak Calendar Styles
+.streak-calendar {
+  display: flex;
+  gap: 2rem;
+  justify-content: space-around;
+  flex-wrap: wrap;
+}
+
+.calendar-month {
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #4b5563;
+  }
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+}
+
+.calendar-day {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  background-color: #f3f4f6;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &.active {
+    background-color: #3b82f6;
+    color: white;
+  }
+
+  &.today {
+    border: 2px solid #f59e0b;
+    font-weight: 700;
+  }
+
+  &:hover {
+    transform: scale(1.1);
   }
 }

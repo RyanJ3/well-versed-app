@@ -31,6 +31,16 @@ export class UserStatsComponent implements OnInit {
   bookGroupProgressData: any[] = [];
   topMemorizedBooksData: any[] = [];
   memorializationTrendData: any[] = [];
+  
+  // New chart data
+  bookCompletionData: any[] = [];
+  dailyAverage = 0;
+  chapterSizeData: any[] = [];
+  weeklyPatternData: any[] = [];
+  categoryProgressData: any[] = [];
+  currentStreak = 0;
+  streakCalendarData: any[] = [];
+  speedTrendData: any[] = [];
 
   // Stats
   totalVerses = 0;
@@ -118,6 +128,76 @@ export class UserStatsComponent implements OnInit {
     this.memorializationTrendData = months.map((month, index) => ({
       category: month,
       value: Math.floor(Math.random() * 100) + index * 50
+    }));
+
+    // Book Completion Status (Donut)
+    const completedBooks = this.bibleData.books.filter(b => b.percentComplete === 100).length;
+    const inProgressBooks = this.bibleData.books.filter(b => b.percentComplete > 0 && b.percentComplete < 100).length;
+    const notStartedBooks = this.bibleData.books.filter(b => b.percentComplete === 0).length;
+    
+    this.bookCompletionData = [
+      { category: 'Completed', value: completedBooks },
+      { category: 'In Progress', value: inProgressBooks },
+      { category: 'Not Started', value: notStartedBooks }
+    ];
+
+    // Daily Average (mock data)
+    this.dailyAverage = Math.round(this.totalVerses / 180); // Assuming 6 months
+
+    // Chapter Size Distribution
+    this.chapterSizeData = [
+      { range: '1-20 verses', verses: 450 },
+      { range: '21-40 verses', verses: 890 },
+      { range: '41-60 verses', verses: 650 },
+      { range: '61-80 verses', verses: 320 },
+      { range: '80+ verses', verses: 504 }
+    ];
+
+    // Weekly Pattern (replacing heatmap)
+    this.weeklyPatternData = [
+      { day: 'Monday', average: 12 },
+      { day: 'Tuesday', average: 18 },
+      { day: 'Wednesday', average: 15 },
+      { day: 'Thursday', average: 20 },
+      { day: 'Friday', average: 8 },
+      { day: 'Saturday', average: 25 },
+      { day: 'Sunday', average: 30 }
+    ];
+
+    // Category Progress Radar
+    this.categoryProgressData = [
+      { category: 'Law', progress: 15 },
+      { category: 'History', progress: 8 },
+      { category: 'Wisdom', progress: 35 },
+      { category: 'Prophets', progress: 5 },
+      { category: 'Gospels', progress: 45 },
+      { category: 'Epistles', progress: 65 }
+    ];
+
+    // Current Streak
+    this.currentStreak = 23;
+
+    // Streak Calendar (last 3 months)
+    this.streakCalendarData = this.generateStreakCalendar();
+
+    // Speed Trend
+    this.speedTrendData = months.map((month, index) => ({
+      month,
+      versesPerDay: Math.floor(Math.random() * 15) + 5,
+      movingAverage: Math.floor(Math.random() * 10) + 8
+    }));
+  }
+
+  private generateStreakCalendar(): any[] {
+    const months = ['November', 'December', 'January'];
+    return months.map(month => ({
+      name: month,
+      days: Array.from({ length: 30 }, (_, i) => ({
+        date: i + 1,
+        active: Math.random() > 0.3,
+        verses: Math.floor(Math.random() * 20),
+        isToday: month === 'January' && i === 22
+      }))
     }));
   }
 
