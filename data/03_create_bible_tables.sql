@@ -3,7 +3,7 @@
 
 CREATE TABLE books (
     book_id SMALLINT PRIMARY KEY,
-    book_code CHAR(3) NOT NULL UNIQUE,
+    book_code CHAR(4) NOT NULL UNIQUE,
     book_name VARCHAR(50) NOT NULL,
     testament testament_type NOT NULL,
     book_group book_group_type NOT NULL,

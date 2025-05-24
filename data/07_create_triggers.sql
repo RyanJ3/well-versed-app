@@ -1,6 +1,7 @@
 -- /data/07_create_triggers.sql
 -- Trigger functions and triggers
 
+-- Update save count when decks are saved/unsaved
 CREATE OR REPLACE FUNCTION update_deck_save_count()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -13,11 +14,30 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Update timestamp function
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Helper function to parse verse_id
+CREATE OR REPLACE FUNCTION parse_verse_id(verse_id_str VARCHAR)
+RETURNS TABLE(book_code VARCHAR, chapter_num INTEGER, verse_num INTEGER) AS $$
+DECLARE
+    parts TEXT[];
+BEGIN
+    parts := string_to_array(verse_id_str, '-');
+    IF array_length(parts, 1) = 3 THEN
+        RETURN QUERY SELECT 
+            parts[1]::VARCHAR,
+            parts[2]::INTEGER,
+            parts[3]::INTEGER;
+    ELSE
+        RAISE EXCEPTION 'Invalid verse_id format: %', verse_id_str;
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 

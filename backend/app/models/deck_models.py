@@ -35,20 +35,17 @@ class DeckVerse(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     deck_id = Column(Integer, ForeignKey("decks.deck_id", ondelete="CASCADE"), nullable=False)
-    verse_id = Column(String(20), nullable=False)  # Format: BOOK-CHAPTER-VERSE
+    book_id = Column(SmallInteger, ForeignKey("books.book_id"), nullable=False)
+    chapter_number = Column(SmallInteger, nullable=False)
+    verse_number = Column(SmallInteger, nullable=False)
     order_position = Column(SmallInteger, nullable=False, default=0)
-    
-    # Optional: store verse context to avoid lookups
-    book_id = Column(SmallInteger, ForeignKey("books.book_id"))
-    chapter_number = Column(SmallInteger)
-    verse_number = Column(SmallInteger)
     
     # Relationships
     deck = relationship("Deck", back_populates="verses")
     book = relationship("Book")
     
     __table_args__ = (
-        UniqueConstraint('deck_id', 'verse_id', name='uq_deck_verse'),
+        UniqueConstraint('deck_id', 'book_id', 'chapter_number', 'verse_number', name='uq_deck_verse'),
     )
 
 

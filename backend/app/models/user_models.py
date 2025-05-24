@@ -1,8 +1,9 @@
 # backend/app/models/user_models.py
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, SmallInteger, UniqueConstraint
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, SmallInteger, UniqueConstraint, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
+from app.models.enums import BibleTranslation
 
 
 class User(Base):
@@ -19,7 +20,7 @@ class User(Base):
     active = Column(Boolean, default=True)
     
     # Relationships
-    settings = relationship("UserSettings", back_populates="user", uselist=False)
+    settings = relationship("UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan")
     verses = relationship("UserVerse", back_populates="user", cascade="all, delete-orphan")
     created_decks = relationship("Deck", back_populates="creator", cascade="all, delete-orphan")
     saved_decks = relationship("SavedDeck", back_populates="user", cascade="all, delete-orphan")
@@ -31,7 +32,7 @@ class UserSettings(Base):
     setting_id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), unique=True, nullable=False)
     denomination = Column(String(50))
-    preferred_bible = Column(String(50), default="ESV")
+    preferred_bible = Column(Enum(BibleTranslation), default=BibleTranslation.ESV)
     include_apocrypha = Column(Boolean, default=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     
@@ -43,7 +44,6 @@ class UserVerse(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
-    verse_id = Column(String(20), nullable=False, index=True)  # Format: BOOK-CHAPTER-VERSE
     book_id = Column(SmallInteger, ForeignKey("books.book_id"), nullable=False)
     chapter_number = Column(SmallInteger, nullable=False)
     verse_number = Column(SmallInteger, nullable=False)
@@ -65,5 +65,5 @@ class UserVerse(Base):
     book = relationship("Book")
     
     __table_args__ = (
-        UniqueConstraint('user_id', 'verse_id', name='uq_user_verse'),
+        UniqueConstraint('user_id', 'book_id', 'chapter_number', 'verse_number', name='uq_user_verse'),
     )

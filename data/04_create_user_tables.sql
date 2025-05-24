@@ -22,14 +22,19 @@ CREATE TABLE user_settings (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Individual verse tracking with confidence levels
 CREATE TABLE user_verses (
+    id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-    verse_id VARCHAR(12) NOT NULL, -- Format: XXX-C-V (e.g., GEN-1-1)
-    confidence confidence_level DEFAULT '0',
-    last_reviewed TIMESTAMP,
-    next_review TIMESTAMP,
+    verse_id VARCHAR(20) NOT NULL, -- Format: BOOK-CHAPTER-VERSE (e.g., GEN-1-1)
+    book_id SMALLINT NOT NULL REFERENCES books(book_id),
+    chapter_number SMALLINT NOT NULL,
+    verse_number SMALLINT NOT NULL,
+    confidence_level SMALLINT NOT NULL DEFAULT 1 CHECK (confidence_level >= 0 AND confidence_level <= 5),
+    last_reviewed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    next_review TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     review_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_id, verse_id)
+    UNIQUE(user_id, verse_id)
 );
