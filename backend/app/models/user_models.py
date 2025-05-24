@@ -1,4 +1,4 @@
-# backend/app/models/user_models.py
+# backend/app/models/user_models_normalized.py
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, SmallInteger, UniqueConstraint, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -44,16 +44,12 @@ class UserVerse(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
-    book_id = Column(SmallInteger, ForeignKey("books.book_id"), nullable=False)
-    chapter_number = Column(SmallInteger, nullable=False)
-    verse_number = Column(SmallInteger, nullable=False)
+    verse_id = Column(Integer, ForeignKey("bible_verses.verse_id"), nullable=False)
     
     # Confidence levels: 0-5 (0=not memorized, 1=just started, 5=perfectly memorized)
-    confidence_level = Column(SmallInteger, default=1, nullable=False)
+    confidence_level = Column(SmallInteger, default=0, nullable=False)
     
-    # Spaced repetition tracking
-    last_reviewed = Column(DateTime, default=func.now())
-    next_review = Column(DateTime, default=func.now())
+    # Track review count for statistics
     review_count = Column(Integer, default=0)
     
     # Timestamps
@@ -62,8 +58,8 @@ class UserVerse(Base):
     
     # Relationships
     user = relationship("User", back_populates="verses")
-    book = relationship("Book")
+    verse = relationship("BibleVerse", back_populates="user_verses")
     
     __table_args__ = (
-        UniqueConstraint('user_id', 'book_id', 'chapter_number', 'verse_number', name='uq_user_verse'),
+        UniqueConstraint('user_id', 'verse_id', name='uq_user_verse'),
     )

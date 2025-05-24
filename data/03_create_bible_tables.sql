@@ -1,5 +1,5 @@
--- /data/03_create_bible_tables.sql
--- Bible structure tables
+-- data/03_create_bible_tables_normalized.sql
+-- Normalized Bible structure tables
 
 CREATE TABLE books (
     book_id SMALLINT PRIMARY KEY,
@@ -21,6 +21,19 @@ CREATE TABLE chapter_verse_counts (
     PRIMARY KEY (book_id, chapter_number)
 );
 
+-- New table for all possible verses
+CREATE TABLE bible_verses (
+    verse_id SERIAL PRIMARY KEY,
+    book_id SMALLINT NOT NULL REFERENCES books(book_id),
+    chapter_number SMALLINT NOT NULL,
+    verse_number SMALLINT NOT NULL,
+    verse_code VARCHAR(20) GENERATED ALWAYS AS (
+        (SELECT book_code FROM books WHERE books.book_id = bible_verses.book_id) || 
+        '-' || chapter_number || '-' || verse_number
+    ) STORED,
+    UNIQUE(book_id, chapter_number, verse_number)
+);
+
 CREATE TABLE apocryphal_content (
     apocryphal_id SERIAL PRIMARY KEY,
     book_id SMALLINT NOT NULL REFERENCES books(book_id),
@@ -30,3 +43,8 @@ CREATE TABLE apocryphal_content (
     description VARCHAR(100),
     UNIQUE(book_id, chapter_number, verse_start, verse_end)
 );
+
+-- Indexes for performance
+CREATE INDEX idx_bible_verses_book ON bible_verses(book_id);
+CREATE INDEX idx_bible_verses_chapter ON bible_verses(book_id, chapter_number);
+CREATE INDEX idx_bible_verses_code ON bible_verses(verse_code);
