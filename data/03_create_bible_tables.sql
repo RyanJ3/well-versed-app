@@ -1,4 +1,4 @@
--- data/03_create_bible_tables_normalized.sql
+-- data/03_create_bible_tables.sql
 -- Normalized Bible structure tables
 
 CREATE TABLE books (
@@ -27,10 +27,7 @@ CREATE TABLE bible_verses (
     book_id SMALLINT NOT NULL REFERENCES books(book_id),
     chapter_number SMALLINT NOT NULL,
     verse_number SMALLINT NOT NULL,
-    verse_code VARCHAR(20) GENERATED ALWAYS AS (
-        (SELECT book_code FROM books WHERE books.book_id = bible_verses.book_id) || 
-        '-' || chapter_number || '-' || verse_number
-    ) STORED,
+    verse_code VARCHAR(20),  -- Will be populated via trigger
     UNIQUE(book_id, chapter_number, verse_number)
 );
 

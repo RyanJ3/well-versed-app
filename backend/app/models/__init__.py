@@ -1,7 +1,7 @@
 # backend/app/models/__init__.py
 from app.models.user_models import User, UserSettings, UserVerse
 from app.models.deck_models import Deck, DeckVerse, SavedDeck, DeckTag
-from app.models.bible_models import Book, ChapterVerseCount, ApocryphalContent
+from app.models.bible_models import Book, ChapterVerseCount, ApocryphalContent, BibleVerse
 
 __all__ = [
     # User models
@@ -16,5 +16,6 @@ __all__ = [
     # Bible models
     "Book",
     "ChapterVerseCount",
-    "ApocryphalContent"
+    "ApocryphalContent",
+    "BibleVerse"
 ]

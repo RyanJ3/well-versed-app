@@ -41,6 +41,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Function to set verse_code on bible_verses
+CREATE OR REPLACE FUNCTION set_verse_code()
+RETURNS TRIGGER AS $$
+BEGIN
+    SELECT book_code || '-' || NEW.chapter_number || '-' || NEW.verse_number
+    INTO NEW.verse_code
+    FROM books
+    WHERE book_id = NEW.book_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Create triggers
 CREATE TRIGGER update_deck_saves
 AFTER INSERT OR DELETE ON saved_decks

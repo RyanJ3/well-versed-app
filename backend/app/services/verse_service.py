@@ -1,4 +1,4 @@
-# backend/app/services/verse_service_normalized.py
+# backend/app/services/verse_service.py
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import and_, func
 from typing import List, Optional, Dict, Tuple

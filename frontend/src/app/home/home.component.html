@@ -17,7 +17,11 @@
 
       <a routerLink="/tracker" class="nav-link" routerLinkActive="active"
          (click)="closeMenu()">Tracker</a>
+      
+      <a routerLink="/flashcard" class="nav-link" routerLinkActive="active"
+         (click)="closeMenu()">Flashcards</a>
 
+      <!-- Memorize dropdown menu -->
       <!-- Memorize dropdown menu -->
       <div class="nav-dropdown">
         <button class="nav-link dropdown-toggle" [class.active]="memorizeMenuActive" (click)="toggleMemorizeMenu($event)">

@@ -1,4 +1,4 @@
--- data/05_create_deck_tables_normalized.sql
+-- data/05_create_deck_tables.sql
 -- Flashcard deck tables with normalized verse references
 
 CREATE TABLE decks (

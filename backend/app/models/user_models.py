@@ -1,4 +1,4 @@
-# backend/app/models/user_models_normalized.py
+# backend/app/models/user_models.py
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, SmallInteger, UniqueConstraint, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
