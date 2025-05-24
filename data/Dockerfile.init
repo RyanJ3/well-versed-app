@@ -19,7 +19,7 @@ COPY safe_init_with_sql_scripts.py /data/init_database.py
 
 # ONLY UNCOMMENT if the db needs to be RESET - use with caution
 # Make executable
-RUN chmod +x /data/init_database.py
+# RUN chmod +x /data/init_database.py
 
 # Run safe initialization
-CMD ["python", "init_database.py"]
+# CMD ["python", "init_database.py"]

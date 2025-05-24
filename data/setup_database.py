@@ -23,7 +23,7 @@ SQL_FILES = [
 def setup_database():
     # Database connection parameters
     conn_params = {
-        'host': os.getenv('DATABASE_HOST'),
+        'host': "localhost",
         'port': os.getenv('DATABASE_PORT'),
         'user': os.getenv('DATABASE_USER'),
         'password': os.getenv('DATABASE_PASSWORD'),
