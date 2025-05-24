@@ -115,9 +115,10 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     // Determine practice count based on memorized state
     const practiceCount = verse.memorized ? 1 : 0;
 
+    // Use numerical book ID instead of string ID
     this.bibleService.saveVerse(
       this.userId,
-      verse.book.id,
+      verse.book.id,  // Now using numerical ID
       verse.chapter.chapterNumber,
       verse.verseNumber,
       practiceCount
@@ -137,47 +138,16 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Navigation methods
-  setTestament(testament: BibleTestament): void {
-    this.selectedTestament = testament;
-    if (testament.groups.length > 0) {
-      this.setGroup(testament.groups[0]);
-    }
-  }
-
-  setGroup(group: BibleGroup): void {
-    this.selectedGroup = group;
-    if (group.books.length > 0) {
-      this.setBook(group.books[0]);
-    }
-  }
-
-  setBook(book: BibleBook): void {
-    this.selectedBook = book;
-    const visibleChapters = this.getVisibleChapters(book);
-    if (visibleChapters.length > 0) {
-      this.setChapter(visibleChapters[0]);
-    }
-  }
-
-  setChapter(chapter: BibleChapter): void {
-    this.selectedChapter = chapter;
-  }
-
-  refreshVerses() {
-    this.loadUserVerses();
-  }
-
   // Chapter-level operations using efficient single-call endpoints
   selectAllVerses(): void {
     if (!this.selectedChapter || !this.selectedBook) return;
 
     this.isSavingBulk = true;
 
-    // Use the efficient save endpoint
+    // Use numerical book ID
     this.bibleService.saveChapter(
       this.userId,
-      this.selectedBook.id,
+      this.selectedBook.id,  // Numerical ID
       this.selectedChapter.chapterNumber
     ).subscribe({
       next: () => {
@@ -193,20 +163,20 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('Error saving chapter:', error);
         this.isSavingBulk = false;
-        // Optionally show error message to user
       }
     });
   }
 
-  // Chapter-level clear (should only clear current chapter)
+  // Chapter-level clear
   clearAllVerses(): void {
     if (!this.selectedChapter || !this.selectedBook) return;
 
     this.isSavingBulk = true;
 
+    // Use numerical book ID
     this.bibleService.clearChapter(
       this.userId,
-      this.selectedBook.id,
+      this.selectedBook.id,  // Numerical ID
       this.selectedChapter.chapterNumber
     ).subscribe({
       next: () => {
@@ -238,7 +208,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
 
     this.isSavingBulk = true;
 
-    // Use efficient save endpoint
+    // Use numerical book ID
     this.bibleService.saveBook(this.userId, this.selectedBook.id).subscribe({
       next: () => {
         // Update local state for all chapters
@@ -260,7 +230,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Book-level clear (clears entire book)
+  // Book-level clear
   clearAllBookVerses(): void {
     if (!this.selectedBook) return;
 
@@ -270,6 +240,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
 
     this.isSavingBulk = true;
 
+    // Use numerical book ID
     this.bibleService.clearBook(this.userId, this.selectedBook.id).subscribe({
       next: () => {
         this.selectedBook!.chapters.forEach(chapter => {
@@ -289,6 +260,37 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
       }
     });
   }
+  // Navigation methods
+  setTestament(testament: BibleTestament): void {
+    this.selectedTestament = testament;
+    if (testament.groups.length > 0) {
+      this.setGroup(testament.groups[0]);
+    }
+  }
+
+  setGroup(group: BibleGroup): void {
+    this.selectedGroup = group;
+    if (group.books.length > 0) {
+      this.setBook(group.books[0]);
+    }
+  }
+
+  setBook(book: BibleBook): void {
+    this.selectedBook = book;
+    const visibleChapters = this.getVisibleChapters(book);
+    if (visibleChapters.length > 0) {
+      this.setChapter(visibleChapters[0]);
+    }
+  }
+
+  setChapter(chapter: BibleChapter): void {
+    this.selectedChapter = chapter;
+  }
+
+  refreshVerses() {
+    this.loadUserVerses();
+  }
+
   // Helper methods
   isChapterVisible(chapter: BibleChapter): boolean {
     return this.includeApocrypha || !chapter.isApocryphal;

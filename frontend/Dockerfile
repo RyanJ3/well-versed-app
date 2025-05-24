@@ -1,3 +1,4 @@
+# frontend/Dockerfile
 FROM node:20-slim
 
 WORKDIR /app
@@ -9,5 +10,5 @@ COPY . .
 
 EXPOSE 4200
 
-# Remove --open flag and specify host 0.0.0.0
-CMD ["npm", "run", "serve"]
+# Use the proxy configuration for Docker
+CMD ["npm", "run", "serve:docker"]

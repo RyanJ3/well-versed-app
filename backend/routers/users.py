@@ -19,6 +19,7 @@ class UserResponse(BaseModel):
     last_name: Optional[str]
     denomination: Optional[str]
     preferred_bible: Optional[str]
+    include_apocrypha: bool = False
     created_at: str
     verses_memorized: int = 0
     streak_days: int = 0
@@ -29,6 +30,7 @@ class UserUpdate(BaseModel):
     last_name: Optional[str] = None
     denomination: Optional[str] = None
     preferred_bible: Optional[str] = None
+    include_apocrypha: Optional[bool] = None
 
 def get_db():
     """Dependency to get database connection"""
@@ -49,6 +51,7 @@ async def get_user(user_id: int, db: DatabaseConnection = Depends(get_db)):
             last_name,
             denomination,
             preferred_bible,
+            include_apocrypha,
             created_at::text
         FROM users
         WHERE user_id = %s
@@ -104,13 +107,17 @@ async def update_user(
         update_fields.append("preferred_bible = %s")
         params.append(user_update.preferred_bible)
     
+    if user_update.include_apocrypha is not None:
+        update_fields.append("include_apocrypha = %s")
+        params.append(user_update.include_apocrypha)
+    
     # Update name field (combine first and last)
     if user_update.first_name is not None or user_update.last_name is not None:
         # Get current values
         current = db.fetch_one("SELECT first_name, last_name FROM users WHERE user_id = %s", (user_id,))
         if current:
-            first = user_update.first_name or current['first_name'] or ''
-            last = user_update.last_name or current['last_name'] or ''
+            first = user_update.first_name if user_update.first_name is not None else current['first_name'] or ''
+            last = user_update.last_name if user_update.last_name is not None else current['last_name'] or ''
             full_name = f"{first} {last}".strip()
             update_fields.append("name = %s")
             params.append(full_name)

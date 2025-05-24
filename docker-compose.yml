@@ -1,7 +1,8 @@
-# dockercompose.yml
+# docker-compose.yml
+
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:16 # Changed from 15 to 16 to match your existing data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -11,7 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -26,6 +27,7 @@ services:
       DATABASE_USER: postgres
       DATABASE_PASSWORD: postgres
       DATABASE_PORT: 5432
+      FRONTEND_URL: http://localhost:4200
     depends_on:
       db:
         condition: service_healthy
@@ -37,11 +39,12 @@ services:
     build: ./frontend
     ports:
       - "4200:4200"
+    depends_on:
+      - backend
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    environment:
-      - NODE_ENV=development
+    command: npm run serve:docker
 
 volumes:
   postgres_data:
