@@ -27,13 +27,26 @@ import { BibleService } from '../services/bible.service';
 export class StatsComponent implements OnInit {
   isLoading = true;
   
+  // Overview stats with icons and trends
   overviewStats = [
-    { label: 'TOTAL VERSES', value: '31,177' },
-    { label: 'MEMORIZED', value: '2,963' },
-    { label: 'COMPLETE', value: '10%' },
-    { label: 'BOOKS STARTED', value: '37' }
+    { label: 'TOTAL VERSES', value: '31,177', icon: '📖', change: 0 },
+    { label: 'MEMORIZED', value: '2,963', icon: '✓', change: 12 },
+    { label: 'COMPLETE', value: '10%', icon: '📊', change: 3 },
+    { label: 'BOOKS STARTED', value: '37', icon: '📚', change: -2 }
   ];
   
+  // Daily activity data
+  dailyActivityData = [
+    { date: 'Mon', verses: 15 },
+    { date: 'Tue', verses: 23 },
+    { date: 'Wed', verses: 8 },
+    { date: 'Thu', verses: 32 },
+    { date: 'Fri', verses: 19 },
+    { date: 'Sat', verses: 45 },
+    { date: 'Sun', verses: 38 }
+  ];
+
+  // Books heatmap
   booksHeatmapData: any[] = [];
 
   constructor(
@@ -42,10 +55,6 @@ export class StatsComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loadStats();
-  }
-
-  refreshStats() {
     this.loadStats();
   }
 

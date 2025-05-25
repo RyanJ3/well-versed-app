@@ -14,24 +14,38 @@
       <kendo-card class="stat-card" *ngFor="let stat of overviewStats">
         <kendo-card-body>
           <div class="stat-content">
+            <div class="stat-icon">{{ stat.icon }}</div>
             <div class="stat-number">{{ stat.value }}</div>
             <div class="stat-label">{{ stat.label }}</div>
+            <div class="stat-change" [class.positive]="stat.change > 0" [class.negative]="stat.change < 0">
+              {{ stat.change > 0 ? '+' : '' }}{{ stat.change }}% this week
+            </div>
           </div>
         </kendo-card-body>
       </kendo-card>
     </div>
 
-    <!-- Quick Actions -->
-    <kendo-card class="actions-section">
+    <!-- Daily Activity Chart -->
+    <kendo-card class="chart-section">
       <kendo-card-header>
-        <h2>Quick Actions</h2>
+        <h2>Daily Activity</h2>
       </kendo-card-header>
       <kendo-card-body>
-        <kendo-buttongroup>
-          <button kendoButton (click)="refreshStats()" [primary]="true">
-            Refresh Stats
-          </button>
-        </kendo-buttongroup>
+        <kendo-chart>
+          <kendo-chart-series>
+            <kendo-chart-series-item
+              [data]="dailyActivityData"
+              type="column"
+              field="verses"
+              categoryField="date"
+              [color]="'#3b82f6'">
+            </kendo-chart-series-item>
+          </kendo-chart-series>
+          <kendo-chart-category-axis>
+            <kendo-chart-category-axis-item [labels]="{ rotation: -45 }">
+            </kendo-chart-category-axis-item>
+          </kendo-chart-category-axis>
+        </kendo-chart>
       </kendo-card-body>
     </kendo-card>
 
