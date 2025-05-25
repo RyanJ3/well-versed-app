@@ -41,10 +41,12 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   includeApocrypha = false;
 
   // Dialog properties
-  showDialog = false;
+  showConfirmDialog = false;
   dialogTitle = '';
   dialogMessage = '';
   dialogDetails = '';
+  confirmButtonText = 'Confirm';
+  confirmButtonClass = 'k-primary';
   private pendingAction: (() => void) | null = null;
 
   constructor(
@@ -105,56 +107,56 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     this.saveVerse(verse);
   }
 
-saveVerse(verse: BibleVerse) {
-  if (!verse.chapter || !verse.book) {
-    console.error('Verse missing required data');
-    return;
-  }
+  saveVerse(verse: BibleVerse) {
+    if (!verse.chapter || !verse.book) {
+      console.error('Verse missing required data');
+      return;
+    }
 
-  // If verse is now memorized, save it; if not, delete it
-  if (verse.memorized) {
-    const practiceCount = 1;
-    this.bibleService.saveVerse(
-      this.userId,
-      verse.book.id,
-      verse.chapter.chapterNumber,
-      verse.verseNumber,
-      practiceCount
-    ).subscribe({
-      next: (response) => {
-        console.log('Verse saved successfully');
-        verse.practiceCount = practiceCount;
-        verse.lastPracticed = new Date();
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        console.error('Error saving verse:', error);
-        verse.toggle();
-        this.cdr.detectChanges();
-      }
-    });
-  } else {
-    // Delete the verse - now using separate parameters
-    this.bibleService.deleteVerse(
-      this.userId,
-      verse.book.id,
-      verse.chapter.chapterNumber,
-      verse.verseNumber
-    ).subscribe({
-      next: (response) => {
-        console.log('Verse deleted successfully');
-        verse.practiceCount = 0;
-        verse.lastPracticed = undefined;
-        this.cdr.detectChanges();
-      },
-      error: (error) => {
-        console.error('Error deleting verse:', error);
-        verse.toggle();
-        this.cdr.detectChanges();
-      }
-    });
+    // If verse is now memorized, save it; if not, delete it
+    if (verse.memorized) {
+      const practiceCount = 1;
+      this.bibleService.saveVerse(
+        this.userId,
+        verse.book.id,
+        verse.chapter.chapterNumber,
+        verse.verseNumber,
+        practiceCount
+      ).subscribe({
+        next: (response) => {
+          console.log('Verse saved successfully');
+          verse.practiceCount = practiceCount;
+          verse.lastPracticed = new Date();
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error saving verse:', error);
+          verse.toggle();
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      // Delete the verse - now using separate parameters
+      this.bibleService.deleteVerse(
+        this.userId,
+        verse.book.id,
+        verse.chapter.chapterNumber,
+        verse.verseNumber
+      ).subscribe({
+        next: (response) => {
+          console.log('Verse deleted successfully');
+          verse.practiceCount = 0;
+          verse.lastPracticed = undefined;
+          this.cdr.detectChanges();
+        },
+        error: (error) => {
+          console.error('Error deleting verse:', error);
+          verse.toggle();
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
-}
 
   // Navigation methods
   setTestament(testament: BibleTestament): void {
@@ -243,17 +245,18 @@ saveVerse(verse: BibleVerse) {
   // Book-level operations with confirmation
   selectAllBookVerses(): void {
     if (!this.selectedBook) return;
+    
+    console.log('selectAllBookVerses called for book:', this.selectedBook.name);
 
     const totalVerses = this.selectedBook.totalVerses;
     
-    this.dialogTitle = 'Confirm Memorization';
-    this.dialogMessage = `Mark all ${totalVerses} verses in ${this.selectedBook.name} as memorized?`;
-    this.dialogDetails = totalVerses > 500 ? 'This is a large book and may take a moment to process.' : '';
-    
-    this.pendingAction = () => {
+    // For now, let's use simple confirm to debug
+    if (confirm(`Mark all ${totalVerses} verses in ${this.selectedBook.name} as memorized?${totalVerses > 500 ? '\n\nThis is a large book and may take a moment to process.' : ''}`)) {
+      console.log('User confirmed, starting book save...');
       this.isSavingBulk = true;
-      this.bibleService.saveBook(this.userId, this.selectedBook!.id).subscribe({
+      this.bibleService.saveBook(this.userId, this.selectedBook.id).subscribe({
         next: () => {
+          console.log('Book saved successfully');
           this.selectedBook!.chapters.forEach(chapter => {
             chapter.verses.forEach(verse => {
               verse.memorized = true;
@@ -267,24 +270,23 @@ saveVerse(verse: BibleVerse) {
         error: (error) => {
           console.error('Error saving book:', error);
           this.isSavingBulk = false;
+          this.cdr.detectChanges();
         }
       });
-    };
-    
-    this.showDialog = true;
+    }
   }
 
   clearAllBookVerses(): void {
     if (!this.selectedBook) return;
-
-    this.dialogTitle = 'Confirm Clear';
-    this.dialogMessage = `Clear all memorized verses in ${this.selectedBook.name}?`;
-    this.dialogDetails = 'This action cannot be undone.';
     
-    this.pendingAction = () => {
+    console.log('clearAllBookVerses called for book:', this.selectedBook.name);
+
+    if (confirm(`Clear all memorized verses in ${this.selectedBook.name}?\n\nThis action cannot be undone.`)) {
+      console.log('User confirmed, starting book clear...');
       this.isSavingBulk = true;
-      this.bibleService.clearBook(this.userId, this.selectedBook!.id).subscribe({
+      this.bibleService.clearBook(this.userId, this.selectedBook.id).subscribe({
         next: () => {
+          console.log('Book cleared successfully');
           this.selectedBook!.chapters.forEach(chapter => {
             chapter.verses.forEach(verse => {
               verse.memorized = false;
@@ -298,25 +300,10 @@ saveVerse(verse: BibleVerse) {
         error: (error) => {
           console.error('Error clearing book:', error);
           this.isSavingBulk = false;
+          this.cdr.detectChanges();
         }
       });
-    };
-    
-    this.showDialog = true;
-  }
-
-  // Dialog actions
-  confirmAction(): void {
-    this.showDialog = false;
-    if (this.pendingAction) {
-      this.pendingAction();
-      this.pendingAction = null;
     }
-  }
-
-  cancelAction(): void {
-    this.showDialog = false;
-    this.pendingAction = null;
   }
 
   // Helper methods

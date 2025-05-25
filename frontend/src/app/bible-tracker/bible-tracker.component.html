@@ -97,31 +97,14 @@
 
   <!-- Chapter Selection with Book-level Actions -->
   <div *ngIf="selectedBook" class="section bg-white p-4 rounded shadow mb-6">
-    <div class="flex justify-between items-center mb-3">
+    <div class="flex justify-between items-center mb-4">
       <h3 class="text-lg font-semibold">{{ selectedBook.name }}</h3>
       <div class="text-sm text-gray-500">
         {{ selectedBook.memorizedChapters }} / {{ selectedBook.totalChapters }} chapters memorized
       </div>
     </div>
 
-    <!-- Book-level Selection Buttons -->
-    <div class="flex justify-between items-center mb-4 book-actions">
-      <div>
-        <span class="text-sm font-medium">Book Actions:</span>
-        <button (click)="selectAllBookVerses()" class="book-action-button primary ml-2" 
-                [disabled]="isLoading || isSavingBulk">
-          Memorize Entire Book
-        </button>
-        <button (click)="clearAllBookVerses()" class="book-action-button secondary ml-2" 
-                [disabled]="isLoading || isSavingBulk">
-          Clear Entire Book
-        </button>
-      </div>
-      <div *ngIf="isSavingBulk" class="flex items-center">
-        <div class="loading-spinner-small mr-2"></div>
-        <span class="text-sm text-gray-500">Saving...</span>
-      </div>
-    </div>
+
     
     <!-- Add this section to show a message when apocrypha is disabled and the book has apocryphal chapters -->
     <div *ngIf="hasApocryphalChapters(selectedBook) && !includeApocrypha" 
@@ -147,6 +130,35 @@
           {{ chapter.chapterNumber }}
         </button>
       </ng-container>
+    </div>
+
+    <!-- Book-level Controls -->
+    <div class="bulk-actions-container">
+      <div class="bulk-actions-header">
+        <h4 class="bulk-actions-title">Book Actions</h4>
+        <div *ngIf="isSavingBulk" class="bulk-actions-status">
+          <div class="loading-spinner-small"></div>
+          <span>Processing...</span>
+        </div>
+      </div>
+      <div class="bulk-actions-buttons">
+        <button (click)="selectAllBookVerses()" 
+                class="bulk-action-btn bulk-action-primary" 
+                [disabled]="isLoading || isSavingBulk">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Memorize Entire Book
+        </button>
+        <button (click)="clearAllBookVerses()" 
+                class="bulk-action-btn bulk-action-secondary" 
+                [disabled]="isLoading || isSavingBulk">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Clear Entire Book
+        </button>
+      </div>
     </div>
   </div>
 
@@ -190,16 +202,34 @@
       </button>
     </div>
 
-    <!-- Chapter-level actions -->
-    <div class="flex justify-between mt-4">
-      <button (click)="selectAllVerses()" class="verse-action-button primary" 
-              [disabled]="isLoading || isSavingBulk">
-        Select All Verses
-      </button>
-      <button (click)="clearAllVerses()" class="verse-action-button secondary" 
-              [disabled]="isLoading || isSavingBulk">
-        Clear All Verses
-      </button>
+    <!-- Chapter-level Controls -->
+    <div class="bulk-actions-container">
+      <div class="bulk-actions-header">
+        <h4 class="bulk-actions-title">Chapter Actions</h4>
+        <div *ngIf="isLoading || isSavingBulk" class="bulk-actions-status">
+          <div class="loading-spinner-small"></div>
+          <span *ngIf="isLoading">Loading verses...</span>
+          <span *ngIf="isSavingBulk">Saving verses...</span>
+        </div>
+      </div>
+      <div class="bulk-actions-buttons">
+        <button (click)="selectAllVerses()" 
+                class="bulk-action-btn bulk-action-primary" 
+                [disabled]="isLoading || isSavingBulk">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Select All Verses
+        </button>
+        <button (click)="clearAllVerses()" 
+                class="bulk-action-btn bulk-action-secondary" 
+                [disabled]="isLoading || isSavingBulk">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Clear All Verses
+        </button>
+      </div>
     </div>
 
     <!-- Refresh button to reload user verses from server -->
