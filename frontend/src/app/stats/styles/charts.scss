@@ -1,0 +1,17 @@
+// src/app/stats/styles/charts.scss
+// Reserved for future chart styles when additional visualizations are added
+
+:host ::ng-deep {
+  .k-chart {
+    font-family: inherit;
+  }
+  
+  .k-chart-legend {
+    font-size: 0.875rem;
+  }
+  
+  .k-chart-tooltip {
+    font-size: 0.875rem;
+    padding: 0.5rem;
+  }
+}

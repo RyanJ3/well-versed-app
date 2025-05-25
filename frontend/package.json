@@ -29,6 +29,7 @@
     "@progress/kendo-angular-buttons": "^18.5.2",
     "@progress/kendo-angular-charts": "^18.5.2",
     "@progress/kendo-angular-dropdowns": "^18.5.2",
+    "@progress/kendo-angular-gauges": "^18.5.2",
     "@progress/kendo-angular-intl": "^18.5.2",
     "@progress/kendo-angular-layout": "^18.5.2",
     "@progress/kendo-angular-progressbar": "^18.5.2",
