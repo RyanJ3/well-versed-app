@@ -1,4 +1,5 @@
 /* ---- TESTAMENT SELECTOR STYLES ---- */
+
 .testament-card {
   background-color: white;
   padding: 1rem;
@@ -22,12 +23,16 @@
 }
 
 /* Testament-specific styles */
-.testament-old.active {
+.testament-card.old-testament {
+  border-left: 3px solid #f59e0b; /* amber-500 */
+}
+
+.testament-card.old-testament.active {
   border-color: #f59e0b;
   background-color: rgba(254, 243, 199, 0.2);
 }
 
-.testament-old.active::before {
+.testament-card.old-testament.active::before {
   content: '';
   position: absolute;
   left: 0;
@@ -37,12 +42,16 @@
   background: linear-gradient(to bottom, #f59e0b, #fbbf24);
 }
 
-.testament-new.active {
+.testament-card.new-testament {
+  border-left: 3px solid #6366f1; /* indigo-500 */
+}
+
+.testament-card.new-testament.active {
   border-color: #6366f1;
   background-color: rgba(224, 231, 255, 0.2);
 }
 
-.testament-new.active::before {
+.testament-card.new-testament.active::before {
   content: '';
   position: absolute;
   left: 0;
@@ -51,4 +60,3 @@
   width: 4px;
   background: linear-gradient(to bottom, #6366f1, #818cf8);
 }
-

@@ -1,4 +1,5 @@
 /* ---- CHAPTER SELECTOR STYLES ---- */
+
 .chapter-button {
   display: flex;
   align-items: center;
@@ -77,36 +78,4 @@
 .chapter-button.apocryphal.active {
   border-color: #8b5cf6;
   background-color: rgba(139, 92, 246, 0.1);
-}
-
-/* Apocrypha info message */
-.apocrypha-info {
-  padding: 0.75rem;
-  background-color: #f8f5ff; /* Very light purple */
-  border: 1px dashed #c4b5fd; /* Light purple */
-  border-radius: 0.375rem;
-  display: flex;
-  align-items: center;
-}
-
-.apocrypha-info svg {
-  flex-shrink: 0;
-  color: #8b5cf6;
-}
-
-/* Added for apocryphal verses */
-.verse-bubble.apocryphal {
-  position: relative;
-  border-left: 2px solid #8b5cf6; /* Purple for apocrypha */
-}
-
-.verse-bubble.apocryphal::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 6px;
-  height: 6px;
-  background-color: #8b5cf6;
-  border-radius: 50%;
 }

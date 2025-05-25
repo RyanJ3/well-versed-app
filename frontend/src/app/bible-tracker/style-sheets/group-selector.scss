@@ -1,4 +1,5 @@
 /* ---- GROUP SELECTOR STYLES ---- */
+
 .group-card {
   background-color: white;
   text-align: left;
@@ -44,6 +45,10 @@
   border-radius: 1rem;
 }
 
+.book-preview {
+  margin-top: 0.75rem;
+}
+
 .book-chip {
   font-size: 0.7rem;
   padding: 0.1rem 0.4rem;
@@ -51,6 +56,8 @@
   display: inline-block;
   background-color: #f3f4f6;
   color: #4b5563;
+  margin-right: 0.25rem;
+  margin-bottom: 0.25rem;
 }
 
 .book-chip.more-chip {
