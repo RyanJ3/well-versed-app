@@ -1,8 +1,7 @@
-// frontend/src/app/services/bible.service.ts
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError, BehaviorSubject } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { tap, catchError, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { BibleData, UserVerseDetail } from '../models/bible';
 import { environment } from '../../environments/environment';
@@ -14,11 +13,11 @@ export class BibleService {
   private apiUrl = environment.apiUrl;
   private bibleData: BibleData;
   private isBrowser: boolean;
-  
-  private preferencesSubject = new BehaviorSubject<{includeApocrypha: boolean}>({
+
+  private preferencesSubject = new BehaviorSubject<{ includeApocrypha: boolean }>({
     includeApocrypha: false
   });
-  
+
   public preferences$ = this.preferencesSubject.asObservable();
 
   constructor(
@@ -45,7 +44,7 @@ export class BibleService {
     }
 
     const endpoint = `${this.apiUrl}/user-verses/${userId}`;
-    
+
     return this.http.get<UserVerseDetail[]>(endpoint, { params }).pipe(
       tap(verses => {
         console.log(`Loaded ${verses?.length || 0} verses`);
@@ -59,26 +58,34 @@ export class BibleService {
   }
 
   /**
-   * Save or update a single verse using numerical IDs
+   * Save or update a single verse
+   * Now handles both POST (create) and PUT (update) cases
    */
   saveVerse(userId: number, bookId: number, chapterNum: number, verseNum: number, practiceCount: number): Observable<any> {
-    console.log(`Saving verse: Book ${bookId}, Chapter ${chapterNum}, Verse ${verseNum}, practice_count: ${practiceCount}`);
-    
+    const verseId = `${bookId}-${chapterNum}-${verseNum}`;
+    console.log(`Saving verse: ${verseId}, practice_count: ${practiceCount}`);
+
     // If practice count is 0, delete the verse
     if (practiceCount === 0) {
-      return this.deleteVerse(userId, bookId, chapterNum, verseNum);
+      return this.deleteVerse(userId, verseId);
     }
-    
-    // Otherwise, save/update the verse
-    const payload = { 
+
+    // Otherwise, try PUT first, if it fails with 404, then POST
+    const payload = {
       practice_count: practiceCount,
       last_practiced: new Date().toISOString()
     };
-    
-    // Use numerical IDs in the URL
-    return this.http.put(`${this.apiUrl}/user-verses/${userId}/${bookId}/${chapterNum}/${verseNum}`, payload).pipe(
-      tap(response => console.log('Verse saved:', response)),
+
+    return this.http.put(`${this.apiUrl}/user-verses/${userId}/${verseId}`, payload).pipe(
+      tap(response => console.log('Verse updated:', response)),
       catchError((error: HttpErrorResponse) => {
+        // If verse doesn't exist (404), create it with POST
+        if (error.status === 404) {
+          console.log('Verse not found, creating new verse');
+          return this.http.post(`${this.apiUrl}/user-verses/${userId}/${verseId}`, payload).pipe(
+            tap(response => console.log('Verse created:', response))
+          );
+        }
         console.error('Error saving verse:', error);
         return throwError(() => error);
       })
@@ -86,12 +93,26 @@ export class BibleService {
   }
 
   /**
-   * Delete a verse (unmemorize) using numerical IDs
+   * Delete a verse (unmemorize)
    */
-  deleteVerse(userId: number, bookId: number, chapterNum: number, verseNum: number): Observable<any> {
-    console.log(`Deleting verse: Book ${bookId}, Chapter ${chapterNum}, Verse ${verseNum}`);
-    
-    return this.http.delete(`${this.apiUrl}/user-verses/${userId}/${bookId}/${chapterNum}/${verseNum}`).pipe(
+  deleteVerse(userId: number, verseId: string): Observable<any> {
+    console.log(`Deleting verse: ${verseId}`);
+
+    // Convert verse ID format from "BOOK-CHAPTER-VERSE" to "BOOK/CHAPTER/VERSE" for DELETE endpoint
+    const verseIdParts = verseId.split('-');
+    if (verseIdParts.length === 3) {
+      const deleteUrl = `${this.apiUrl}/user-verses/${userId}/${verseIdParts[0]}/${verseIdParts[1]}/${verseIdParts[2]}`;
+      return this.http.delete(deleteUrl).pipe(
+        tap(response => console.log('Verse deleted:', response)),
+        catchError((error: HttpErrorResponse) => {
+          console.error('Error deleting verse:', error);
+          return throwError(() => error);
+        })
+      );
+    }
+
+    // Fallback to original format if not in expected format
+    return this.http.delete(`${this.apiUrl}/user-verses/${userId}/${verseId}`).pipe(
       tap(response => console.log('Verse deleted:', response)),
       catchError((error: HttpErrorResponse) => {
         console.error('Error deleting verse:', error);
@@ -104,8 +125,8 @@ export class BibleService {
    * Save all verses in a chapter as memorized
    */
   saveChapter(userId: number, bookId: number, chapterNum: number): Observable<any> {
-    console.log(`Saving chapter: Book ${bookId}, Chapter ${chapterNum}`);
-    
+    console.log(`Saving chapter: ${bookId} ${chapterNum}`);
+
     return this.http.post(`${this.apiUrl}/user-verses/${userId}/chapters/${bookId}/${chapterNum}`, {}).pipe(
       tap(response => console.log('Chapter saved:', response)),
       catchError((error: HttpErrorResponse) => {
@@ -120,7 +141,7 @@ export class BibleService {
    */
   saveBook(userId: number, bookId: number): Observable<any> {
     console.log(`Saving book: ${bookId}`);
-    
+
     return this.http.post(`${this.apiUrl}/user-verses/${userId}/books/${bookId}`, {}).pipe(
       tap(response => console.log('Book saved:', response)),
       catchError((error: HttpErrorResponse) => {
@@ -134,8 +155,8 @@ export class BibleService {
    * Clear all memorized verses in a chapter
    */
   clearChapter(userId: number, bookId: number, chapterNum: number): Observable<any> {
-    console.log(`Clearing chapter: Book ${bookId}, Chapter ${chapterNum}`);
-    
+    console.log(`Clearing chapter: ${bookId} ${chapterNum}`);
+
     return this.http.delete(`${this.apiUrl}/user-verses/${userId}/chapters/${bookId}/${chapterNum}`).pipe(
       tap(response => console.log('Chapter cleared:', response)),
       catchError((error: HttpErrorResponse) => {
@@ -150,7 +171,7 @@ export class BibleService {
    */
   clearBook(userId: number, bookId: number): Observable<any> {
     console.log(`Clearing book: ${bookId}`);
-    
+
     return this.http.delete(`${this.apiUrl}/user-verses/${userId}/books/${bookId}`).pipe(
       tap(response => console.log('Book cleared:', response)),
       catchError((error: HttpErrorResponse) => {

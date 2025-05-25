@@ -28,7 +28,7 @@ export const apocryphalChapters: Record<string, number[]> = {
 /**
  * Helper function to check if a specific chapter in a book is apocryphal
  */
-export function isApocryphalChapter(bookId: string, chapterNumber: number): boolean {
+export function isApocryphalChapter(bookId: number, chapterNumber: number): boolean {
   // Check if the book is in our apocryphal chapters list
   if (apocryphalChapters[bookId]) {
     // Check if the chapter number is in the list of apocryphal chapters
