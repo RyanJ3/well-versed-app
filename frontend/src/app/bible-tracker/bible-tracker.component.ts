@@ -105,52 +105,56 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     this.saveVerse(verse);
   }
 
-  saveVerse(verse: BibleVerse) {
-    if (!verse.chapter || !verse.book) {
-      console.error('Verse missing required data');
-      return;
-    }
-
-    // If verse is now memorized, save it; if not, delete it
-    if (verse.memorized) {
-      const practiceCount = 1;
-      this.bibleService.saveVerse(
-        this.userId,
-        verse.book.id,
-        verse.chapter.chapterNumber,
-        verse.verseNumber,
-        practiceCount
-      ).subscribe({
-        next: (response) => {
-          console.log('Verse saved successfully');
-          verse.practiceCount = practiceCount;
-          verse.lastPracticed = new Date();
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error('Error saving verse:', error);
-          verse.toggle();
-          this.cdr.detectChanges();
-        }
-      });
-    } else {
-      // Delete the verse
-      const verseId = `${verse.book.id}-${verse.chapter.chapterNumber}-${verse.verseNumber}`;
-      this.bibleService.deleteVerse(this.userId, verseId).subscribe({
-        next: (response) => {
-          console.log('Verse deleted successfully');
-          verse.practiceCount = 0;
-          verse.lastPracticed = undefined;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error('Error deleting verse:', error);
-          verse.toggle();
-          this.cdr.detectChanges();
-        }
-      });
-    }
+saveVerse(verse: BibleVerse) {
+  if (!verse.chapter || !verse.book) {
+    console.error('Verse missing required data');
+    return;
   }
+
+  // If verse is now memorized, save it; if not, delete it
+  if (verse.memorized) {
+    const practiceCount = 1;
+    this.bibleService.saveVerse(
+      this.userId,
+      verse.book.id,
+      verse.chapter.chapterNumber,
+      verse.verseNumber,
+      practiceCount
+    ).subscribe({
+      next: (response) => {
+        console.log('Verse saved successfully');
+        verse.practiceCount = practiceCount;
+        verse.lastPracticed = new Date();
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error saving verse:', error);
+        verse.toggle();
+        this.cdr.detectChanges();
+      }
+    });
+  } else {
+    // Delete the verse - now using separate parameters
+    this.bibleService.deleteVerse(
+      this.userId,
+      verse.book.id,
+      verse.chapter.chapterNumber,
+      verse.verseNumber
+    ).subscribe({
+      next: (response) => {
+        console.log('Verse deleted successfully');
+        verse.practiceCount = 0;
+        verse.lastPracticed = undefined;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error deleting verse:', error);
+        verse.toggle();
+        this.cdr.detectChanges();
+      }
+    });
+  }
+}
 
   // Navigation methods
   setTestament(testament: BibleTestament): void {

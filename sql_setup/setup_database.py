@@ -41,84 +41,135 @@ def execute_sql_file(conn, filepath):
     finally:
         cur.close()
 
-def execute_sql_with_bible_data(conn, filepath):
-    """Execute SQL file with Bible data if needed"""
-    logging.info(f"Executing {filepath}...")
+def populate_bible_data(conn):
+    """Populate Bible books and verses with numerical book IDs"""
+    logging.info("Populating Bible data...")
     
-    with open(filepath, 'r') as f:
-        sql = f.read()
+    with open('bible_base_data.json', 'r') as f:
+        bible_data = json.load(f)
     
     cur = conn.cursor()
+    
     try:
-        # Execute the base SQL
-        cur.execute(sql)
+        # Book ID mapping from the JSON
+        book_id_map = {
+            'Genesis': 1, 'Exodus': 2, 'Leviticus': 3, 'Numbers': 4, 'Deuteronomy': 5,
+            'Joshua': 6, 'Judges': 7, 'Ruth': 8, '1 Samuel': 9, '2 Samuel': 10,
+            '1 Kings': 11, '2 Kings': 12, '1 Chronicles': 13, '2 Chronicles': 14,
+            'Ezra': 15, 'Nehemiah': 16, 'Esther': 17, 'Job': 18, 'Psalms': 19,
+            'Proverbs': 20, 'Ecclesiastes': 21, 'Song of Solomon': 22, 'Isaiah': 23,
+            'Jeremiah': 24, 'Lamentations': 25, 'Ezekiel': 26, 'Daniel': 27,
+            'Hosea': 28, 'Joel': 29, 'Amos': 30, 'Obadiah': 31, 'Jonah': 32,
+            'Micah': 33, 'Nahum': 34, 'Habakkuk': 35, 'Zephaniah': 36,
+            'Haggai': 37, 'Zechariah': 38, 'Malachi': 39, 'Matthew': 40,
+            'Mark': 41, 'Luke': 42, 'John': 43, 'Acts': 44, 'Romans': 45,
+            '1 Corinthians': 46, '2 Corinthians': 47, 'Galatians': 48,
+            'Ephesians': 49, 'Philippians': 50, 'Colossians': 51,
+            '1 Thessalonians': 52, '2 Thessalonians': 53, '1 Timothy': 54,
+            '2 Timothy': 55, 'Titus': 56, 'Philemon': 57, 'Hebrews': 58,
+            'James': 59, '1 Peter': 60, '2 Peter': 61, '1 John': 62,
+            '2 John': 63, '3 John': 64, 'Jude': 65, 'Revelation': 66,
+            # Apocryphal books
+            'Tobit': 67, 'Judith': 68, '1 Maccabees': 69, '2 Maccabees': 70,
+            'Wisdom of Solomon': 71, 'Sirach': 72, 'Baruch': 73,
+            '1 Esdras': 74, '3 Maccabees': 75, 'Prayer of Manasseh': 76
+        }
         
-        # If this is the populate file, add the Bible data
-        if '03-populate-bible-verses.sql' in filepath:
-            # Load Bible data
-            with open('bible_base_data.json', 'r') as f:
-                bible_data = json.load(f)
+        # 3-char book codes
+        book_code_3_map = {
+            'Genesis': 'GEN', 'Exodus': 'EXO', 'Leviticus': 'LEV', 'Numbers': 'NUM',
+            'Deuteronomy': 'DEU', 'Joshua': 'JOS', 'Judges': 'JDG', 'Ruth': 'RUT',
+            '1 Samuel': '1SA', '2 Samuel': '2SA', '1 Kings': '1KI', '2 Kings': '2KI',
+            '1 Chronicles': '1CH', '2 Chronicles': '2CH', 'Ezra': 'EZR', 'Nehemiah': 'NEH',
+            'Esther': 'EST', 'Job': 'JOB', 'Psalms': 'PSA', 'Proverbs': 'PRO',
+            'Ecclesiastes': 'ECC', 'Song of Solomon': 'SOS', 'Isaiah': 'ISA', 'Jeremiah': 'JER',
+            'Lamentations': 'LAM', 'Ezekiel': 'EZE', 'Daniel': 'DAN', 'Hosea': 'HOS',
+            'Joel': 'JOE', 'Amos': 'AMO', 'Obadiah': 'OBA', 'Jonah': 'JON',
+            'Micah': 'MIC', 'Nahum': 'NAH', 'Habakkuk': 'HAB', 'Zephaniah': 'ZEP',
+            'Haggai': 'HAG', 'Zechariah': 'ZEC', 'Malachi': 'MAL', 'Matthew': 'MAT',
+            'Mark': 'MRK', 'Luke': 'LUK', 'John': 'JHN', 'Acts': 'ACT',
+            'Romans': 'ROM', '1 Corinthians': '1CO', '2 Corinthians': '2CO', 'Galatians': 'GAL',
+            'Ephesians': 'EPH', 'Philippians': 'PHP', 'Colossians': 'COL',
+            '1 Thessalonians': '1TH', '2 Thessalonians': '2TH', '1 Timothy': '1TI',
+            '2 Timothy': '2TI', 'Titus': 'TIT', 'Philemon': 'PHM', 'Hebrews': 'HEB',
+            'James': 'JAS', '1 Peter': '1PE', '2 Peter': '2PE', '1 John': '1JN',
+            '2 John': '2JN', '3 John': '3JN', 'Jude': 'JDE', 'Revelation': 'REV',
+            'Tobit': 'TOB', 'Judith': 'JDT', '1 Maccabees': '1MA', '2 Maccabees': '2MA',
+            'Wisdom of Solomon': 'WIS', 'Sirach': 'SIR', 'Baruch': 'BAR',
+            '1 Esdras': '1ES', '3 Maccabees': '3MA', 'Prayer of Manasseh': 'MAN'
+        }
+        
+        # Insert books first
+        books_to_insert = []
+        verses_to_insert = []
+        
+        for book in bible_data['books']:
+            book_name = book['name']
             
-            # Book ID mapping
-            book_id_map = {
-                'Genesis': 'GENE', 'Exodus': 'EXOD', 'Leviticus': 'LEVI', 'Numbers': 'NUMB',
-                'Deuteronomy': 'DEUT', 'Joshua': 'JOSH', 'Judges': 'JUDG', 'Ruth': 'RUTH',
-                '1 Samuel': '1SAM', '2 Samuel': '2SAM', '1 Kings': '1KIN', '2 Kings': '2KIN',
-                '1 Chronicles': '1CHR', '2 Chronicles': '2CHR', 'Ezra': 'EZRA', 'Nehemiah': 'NEHE',
-                'Esther': 'ESTH', 'Job': 'JOB', 'Psalms': 'PSAL', 'Proverbs': 'PROV',
-                'Ecclesiastes': 'ECCL', 'Song of Solomon': 'SONG', 'Isaiah': 'ISAI', 'Jeremiah': 'JERE',
-                'Lamentations': 'LAME', 'Ezekiel': 'EZEK', 'Daniel': 'DANI', 'Hosea': 'HOSE',
-                'Joel': 'JOEL', 'Amos': 'AMOS', 'Obadiah': 'OBAD', 'Jonah': 'JONA',
-                'Micah': 'MICA', 'Nahum': 'NAHU', 'Habakkuk': 'HABA', 'Zephaniah': 'ZEPH',
-                'Haggai': 'HAGG', 'Zechariah': 'ZECH', 'Malachi': 'MALA', 'Matthew': 'MATT',
-                'Mark': 'MARK', 'Luke': 'LUKE', 'John': 'JOHN', 'Acts': 'ACTS',
-                'Romans': 'ROMA', '1 Corinthians': '1COR', '2 Corinthians': '2COR', 'Galatians': 'GALA',
-                'Ephesians': 'EPHE', 'Philippians': 'PHIL', 'Colossians': 'COLO', '1 Thessalonians': '1THE',
-                '2 Thessalonians': '2THE', '1 Timothy': '1TIM', '2 Timothy': '2TIM', 'Titus': 'TITU',
-                'Philemon': 'PHLE', 'Hebrews': 'HEBR', 'James': 'JAME', '1 Peter': '1PET',
-                '2 Peter': '2PET', '1 John': '1JOH', '2 John': '2JOH', '3 John': '3JOH',
-                'Jude': 'JUDE', 'Revelation': 'REVE'
-            }
-            
-            # Process Protestant canon books
-            protestant_books = [b for b in bible_data['books'] if b['canonicalAffiliation'] in ['All', 'Protestant']]
-            
-            # Use psycopg2.extras for batch insert
-            from psycopg2.extras import execute_values
-            
-            verses_to_insert = []
-            for book in protestant_books:
-                book_name = book['name']
-                book_id = book_id_map.get(book_name, book_name[:4].upper())
-                testament = book['testament']
-                book_group = book['bookGroup']
+            # Skip books with canonicalAffiliation NONE
+            if book.get('canonicalAffiliation') == 'NONE':
+                continue
                 
-                for chapter_num, verse_count in enumerate(book['chapters'], 1):
-                    for verse_num in range(1, verse_count + 1):
-                        verse_code = f"{book_id}-{chapter_num:03d}-{verse_num:03d}"
-                        verses_to_insert.append((
-                            verse_code, book_id, book_name, testament, 
-                            book_group, chapter_num, verse_num
-                        ))
+            book_id = book_id_map.get(book_name)
+            if not book_id:
+                logging.warning(f"No book ID found for {book_name}, skipping...")
+                continue
+                
+            book_code_3 = book_code_3_map.get(book_name, book_name[:3].upper())
+            testament = book['testament']
+            book_group = book['bookGroup']
+            canonical_affiliation = book.get('canonicalAffiliation', 'All')
+            chapter_count = len(book['chapters'])
             
-            # Batch insert
-            execute_values(
-                cur,
-                """INSERT INTO bible_verses (verse_code, book_id, book_name, testament, 
-                                           book_group, chapter_number, verse_number)
-                   VALUES %s""",
-                verses_to_insert,
-                template="(%s, %s, %s, %s, %s, %s, %s)"
-            )
+            books_to_insert.append((
+                book_id, book_name, book_code_3, None,
+                testament, book_group, canonical_affiliation, chapter_count
+            ))
             
-            logging.info(f"✓ Inserted {len(verses_to_insert)} Bible verses")
+            # Create verses for this book
+            for chapter_num, verse_count in enumerate(book['chapters'], 1):
+                for verse_num in range(1, verse_count + 1):
+                    verse_code = f"{book_id}-{chapter_num}-{verse_num}"
+                    
+                    # Check if this chapter/verse is apocryphal
+                    is_apocryphal = False
+                    if book_name == 'Psalms' and chapter_num == 151:
+                        is_apocryphal = True
+                    elif canonical_affiliation in ['Catholic', 'Eastern Orthodox']:
+                        is_apocryphal = True
+                    
+                    verses_to_insert.append((
+                        verse_code, book_id, chapter_num, verse_num, is_apocryphal
+                    ))
+        
+        # Insert books
+        execute_values(
+            cur,
+            """INSERT INTO bible_books (book_id, book_name, book_code_3, book_code_4, 
+                                       testament, book_group, canonical_affiliation, chapter_count)
+               VALUES %s ON CONFLICT (book_id) DO NOTHING""",
+            books_to_insert,
+            template="(%s, %s, %s, %s, %s, %s, %s, %s)"
+        )
+        
+        logging.info(f"✓ Inserted {len(books_to_insert)} Bible books")
+        
+        # Insert verses
+        execute_values(
+            cur,
+            """INSERT INTO bible_verses (verse_code, book_id, chapter_number, verse_number, is_apocryphal)
+               VALUES %s ON CONFLICT (verse_code) DO NOTHING""",
+            verses_to_insert,
+            template="(%s, %s, %s, %s, %s)"
+        )
+        
+        logging.info(f"✓ Inserted {len(verses_to_insert)} Bible verses")
         
         conn.commit()
-        logging.info(f"✓ {filepath} executed successfully")
         
     except Exception as e:
         conn.rollback()
-        logging.error(f"✗ Error executing {filepath}: {e}")
+        logging.error(f"✗ Error populating Bible data: {e}")
         raise
     finally:
         cur.close()
@@ -127,18 +178,10 @@ def main():
     """Main setup function"""
     logging.info("Starting database setup...")
     
-    # Create drop schema file if it doesn't exist
-    if not os.path.exists('01-drop-schema.sql'):
-        logging.info("Creating 01-drop-schema.sql...")
-        with open('01-drop-schema.sql', 'w') as f:
-            f.write("-- Drop existing schema if it exists\nDROP SCHEMA IF EXISTS wellversed01dev CASCADE;")
-    
     # SQL files to execute in order
     sql_files = [
         '01-drop-schema.sql',
-        '02-create-schema.sql',
-        '03-populate-bible-verses.sql',
-        '04-test-data.sql'
+        '02-create-schema.sql'
     ]
     
     conn = get_db_connection()
@@ -147,9 +190,12 @@ def main():
         # Execute SQL files
         for sql_file in sql_files:
             if os.path.exists(sql_file):
-                execute_sql_with_bible_data(conn, sql_file)
+                execute_sql_file(conn, sql_file)
             else:
                 logging.warning(f"File {sql_file} not found, skipping...")
+        
+        # Populate Bible data
+        populate_bible_data(conn)
         
         logging.info("✓ Database setup completed successfully!")
         

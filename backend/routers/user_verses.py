@@ -13,7 +13,7 @@ router = APIRouter()
 
 # Pydantic models
 class VerseDetail(BaseModel):
-    verse_id: str  # This is the verse_code (e.g., "1-1-1" for Genesis 1:1)
+    verse_id: str  # This is the verse_code (e.g., "40-1-1" for Matthew 1:1)
     book_id: int   # Numerical book ID
     chapter_number: int
     verse_number: int
@@ -104,7 +104,7 @@ async def save_verse(
     
     if not verse:
         logger.error(f"Verse {verse_code} not found")
-        raise HTTPException(status_code=404, detail="Verse not found")
+        raise HTTPException(status_code=404, detail=f"Verse {verse_code} not found")
     
     verse_id = verse['id']
     
@@ -184,7 +184,8 @@ async def save_chapter(
         VALUES (%s, %s, %s, %s)
         ON CONFLICT (user_id, verse_id) DO UPDATE SET
             practice_count = EXCLUDED.practice_count,
-            last_practiced = EXCLUDED.last_practiced
+            last_practiced = EXCLUDED.last_practiced,
+            updated_at = CURRENT_TIMESTAMP
     """
     
     db.execute_many(query, params_list)
@@ -244,7 +245,8 @@ async def save_book(
         VALUES (%s, %s, %s, %s)
         ON CONFLICT (user_id, verse_id) DO UPDATE SET
             practice_count = EXCLUDED.practice_count,
-            last_practiced = EXCLUDED.last_practiced
+            last_practiced = EXCLUDED.last_practiced,
+            updated_at = CURRENT_TIMESTAMP
     """
     
     db.execute_many(query, params_list)

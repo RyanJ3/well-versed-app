@@ -67,52 +67,32 @@ export class BibleService {
 
     // If practice count is 0, delete the verse
     if (practiceCount === 0) {
-      return this.deleteVerse(userId, verseId);
+      return this.deleteVerse(userId, bookId, chapterNum, verseNum);
     }
 
-    // Otherwise, try PUT first, if it fails with 404, then POST
+    // Otherwise, save/update the verse
     const payload = {
       practice_count: practiceCount,
       last_practiced: new Date().toISOString()
     };
 
-    return this.http.put(`${this.apiUrl}/user-verses/${userId}/${verseId}`, payload).pipe(
+    return this.http.put(`${this.apiUrl}/user-verses/${userId}/${bookId}/${chapterNum}/${verseNum}`, payload).pipe(
       tap(response => console.log('Verse updated:', response)),
       catchError((error: HttpErrorResponse) => {
-        // If verse doesn't exist (404), create it with POST
-        if (error.status === 404) {
-          console.log('Verse not found, creating new verse');
-          return this.http.post(`${this.apiUrl}/user-verses/${userId}/${verseId}`, payload).pipe(
-            tap(response => console.log('Verse created:', response))
-          );
-        }
         console.error('Error saving verse:', error);
         return throwError(() => error);
       })
     );
   }
 
-  /**
-   * Delete a verse (unmemorize)
-   */
-  deleteVerse(userId: number, verseId: string): Observable<any> {
-    console.log(`Deleting verse: ${verseId}`);
+  // Fixed deleteVerse method in bible.service.ts
+  deleteVerse(userId: number, bookId: number, chapterNum: number, verseNum: number): Observable<any> {
+    console.log(`Deleting verse: ${bookId}-${chapterNum}-${verseNum}`);
 
-    // Convert verse ID format from "BOOK-CHAPTER-VERSE" to "BOOK/CHAPTER/VERSE" for DELETE endpoint
-    const verseIdParts = verseId.split('-');
-    if (verseIdParts.length === 3) {
-      const deleteUrl = `${this.apiUrl}/user-verses/${userId}/${verseIdParts[0]}/${verseIdParts[1]}/${verseIdParts[2]}`;
-      return this.http.delete(deleteUrl).pipe(
-        tap(response => console.log('Verse deleted:', response)),
-        catchError((error: HttpErrorResponse) => {
-          console.error('Error deleting verse:', error);
-          return throwError(() => error);
-        })
-      );
-    }
+    // Use the correct URL format that matches your backend route
+    const deleteUrl = `${this.apiUrl}/user-verses/${userId}/${bookId}/${chapterNum}/${verseNum}`;
 
-    // Fallback to original format if not in expected format
-    return this.http.delete(`${this.apiUrl}/user-verses/${userId}/${verseId}`).pipe(
+    return this.http.delete(deleteUrl).pipe(
       tap(response => console.log('Verse deleted:', response)),
       catchError((error: HttpErrorResponse) => {
         console.error('Error deleting verse:', error);

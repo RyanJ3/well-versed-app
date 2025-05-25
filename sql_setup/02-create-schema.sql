@@ -21,8 +21,8 @@ CREATE TABLE users (
 CREATE TABLE bible_books (
     book_id INTEGER PRIMARY KEY,
     book_name VARCHAR(50) NOT NULL,
-    book_code_3 VARCHAR(3),      -- 3-char code for compatibility
-    book_code_4 VARCHAR(4),      -- 4-char code for compatibility
+    book_code_3 VARCHAR(3),
+    book_code_4 VARCHAR(4),
     testament VARCHAR(20) NOT NULL,
     book_group VARCHAR(50) NOT NULL,
     canonical_affiliation VARCHAR(50) NOT NULL DEFAULT 'All',
@@ -33,7 +33,7 @@ CREATE TABLE bible_books (
 -- Bible verses table with numerical book_id
 CREATE TABLE bible_verses (
     id SERIAL PRIMARY KEY,
-    verse_code VARCHAR(20) UNIQUE NOT NULL, -- Format: BookID-Chapter-Verse (e.g., '1-1-1' for Genesis 1:1)
+    verse_code VARCHAR(20) UNIQUE NOT NULL,
     book_id INTEGER NOT NULL REFERENCES bible_books(book_id),
     chapter_number INTEGER NOT NULL,
     verse_number INTEGER NOT NULL,
@@ -51,6 +51,11 @@ CREATE TABLE user_verses (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, verse_id)
 );
+
+-- Insert test user
+INSERT INTO users (email, name, first_name, last_name, include_apocrypha) 
+VALUES ('test@example.com', 'Test User', 'Test', 'User', false)
+ON CONFLICT (email) DO NOTHING;
 
 -- Indexes for performance
 CREATE INDEX idx_bible_verses_code ON bible_verses(verse_code);
