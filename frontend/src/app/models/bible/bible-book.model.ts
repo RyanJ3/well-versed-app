@@ -1,14 +1,38 @@
-// src/app/models/bible/bible-book.model.ts
+// frontend/src/app/models/bible/bible-book.model.ts
 import { BibleChapter } from './bible-chapter.model';
 import { BibleGroup } from './bible-group.modle';
 import { BibleTestament } from './bible-testament.model';
+
+// Book name to numerical ID mapping
+const BOOK_ID_MAP: Record<string, number> = {
+  'Genesis': 1, 'Exodus': 2, 'Leviticus': 3, 'Numbers': 4, 'Deuteronomy': 5,
+  'Joshua': 6, 'Judges': 7, 'Ruth': 8, '1 Samuel': 9, '2 Samuel': 10,
+  '1 Kings': 11, '2 Kings': 12, '1 Chronicles': 13, '2 Chronicles': 14,
+  'Ezra': 15, 'Nehemiah': 16, 'Esther': 17, 'Job': 18, 'Psalms': 19,
+  'Proverbs': 20, 'Ecclesiastes': 21, 'Song of Solomon': 22, 'Isaiah': 23,
+  'Jeremiah': 24, 'Lamentations': 25, 'Ezekiel': 26, 'Daniel': 27,
+  'Hosea': 28, 'Joel': 29, 'Amos': 30, 'Obadiah': 31, 'Jonah': 32,
+  'Micah': 33, 'Nahum': 34, 'Habakkuk': 35, 'Zephaniah': 36,
+  'Haggai': 37, 'Zechariah': 38, 'Malachi': 39, 'Matthew': 40,
+  'Mark': 41, 'Luke': 42, 'John': 43, 'Acts': 44, 'Romans': 45,
+  '1 Corinthians': 46, '2 Corinthians': 47, 'Galatians': 48,
+  'Ephesians': 49, 'Philippians': 50, 'Colossians': 51,
+  '1 Thessalonians': 52, '2 Thessalonians': 53, '1 Timothy': 54,
+  '2 Timothy': 55, 'Titus': 56, 'Philemon': 57, 'Hebrews': 58,
+  'James': 59, '1 Peter': 60, '2 Peter': 61, '1 John': 62,
+  '2 John': 63, '3 John': 64, 'Jude': 65, 'Revelation': 66,
+  // Apocryphal books
+  'Tobit': 67, 'Judith': 68, '1 Maccabees': 69, '2 Maccabees': 70,
+  'Wisdom of Solomon': 71, 'Sirach': 72, 'Baruch': 73,
+  '1 Esdras': 74, '3 Maccabees': 75, 'Prayer of Manasseh': 76
+};
 
 /**
  * Model class representing a Bible book
  */
 export class BibleBook {
     public readonly chapters: BibleChapter[];
-    public readonly id: string;
+    public readonly id: number; // Changed to number
 
     constructor(
         public readonly name: string,
@@ -19,8 +43,11 @@ export class BibleBook {
         public readonly canonicalAffiliation: string = 'All',
         public readonly order: number = 0
     ) {
-        // Generate appropriate ID based on book name
-        this.id = this.generateBookId(name);
+        // Get numerical ID from book name
+        this.id = BOOK_ID_MAP[name] || 0;
+        if (this.id === 0) {
+            console.warn(`No ID mapping found for book: ${name}`);
+        }
 
         // Create chapters with memorization data and parent reference
         this.chapters = versesPerChapter.map((verseCount, idx) => {
@@ -35,107 +62,17 @@ export class BibleBook {
         });
     }
 
-    // Generate book ID (shorthand code like GEN, MAT, etc.)
-    // frontend/src/app/models/bible/bible-book.model.ts
-    // Fix the generateBookId method
-
-    private generateBookId(bookName: string): string {
+    // Getter for string-based book code (for display purposes)
+    get bookCode(): string {
+        // Generate a 3-letter code from the name for display
         const specialCases: Record<string, string> = {
             'Psalms': 'PSA',
-            'Psalm': 'PSA',
-            'Psalm 151': 'PS151',
             'Genesis': 'GEN',
             'Exodus': 'EXO',
-            'Leviticus': 'LEV',
-            'Numbers': 'NUM',
-            'Deuteronomy': 'DEU',
-            'Joshua': 'JOS',
-            'Judges': 'JDG',
-            'Ruth': 'RUT',
-            'Esther': 'EST',
-            'Job': 'JOB',
-            'Proverbs': 'PRO',
-            'Ecclesiastes': 'ECC',
-            'Isaiah': 'ISA',
-            'Jeremiah': 'JER',
-            'Lamentations': 'LAM',
-            'Ezekiel': 'EZK',
-            'Daniel': 'DAN',
-            'Hosea': 'HOS',
-            'Joel': 'JOL',
-            'Amos': 'AMO',
-            'Obadiah': 'OBA',
-            'Jonah': 'JON',
-            'Micah': 'MIC',
-            'Nahum': 'NAH',
-            'Habakkuk': 'HAB',
-            'Zephaniah': 'ZEP',
-            'Haggai': 'HAG',
-            'Zechariah': 'ZEC',
-            'Malachi': 'MAL',
-            'Matthew': 'MAT',
-            'Mark': 'MRK',
-            'Luke': 'LUK',
-            'John': 'JHN',
-            'Acts': 'ACT',
-            'Romans': 'ROM',
-            'Revelation': 'REV',
-            // FIX: Distinguish between Philippians and Philemon
-            'Philippians': 'PHP',
-            'Philemon': 'PHM',
-            // Other specific cases
-            '1 Samuel': '1SA',
-            '2 Samuel': '2SA',
-            '1 Kings': '1KI',
-            '2 Kings': '2KI',
-            '1 Chronicles': '1CH',
-            '2 Chronicles': '2CH',
-            '1 Corinthians': '1CO',
-            '2 Corinthians': '2CO',
-            '1 Thessalonians': '1TH',
-            '2 Thessalonians': '2TH',
-            '1 Timothy': '1TI',
-            '2 Timothy': '2TI',
-            '1 Peter': '1PE',
-            '2 Peter': '2PE',
-            '1 John': '1JN',
-            '2 John': '2JN',
-            '3 John': '3JN',
-            'Jude': 'JDE',
-            'Titus': 'TIT',
-            'Galatians': 'GAL',
-            'Ephesians': 'EPH',
-            'Colossians': 'COL',
-            'Hebrews': 'HEB',
-            'James': 'JAS',
-            // Apocryphal books
-            'Wisdom of Solomon': 'WIS',
-            'Sirach': 'SIR',
-            'Baruch': 'BAR',
-            'Tobit': 'TOB',
-            'Judith': 'JDT',
-            'Prayer of Manasseh': 'PAM',
-            '1 Esdras': '1ES',
-            '2 Esdras': '2ES',
-            '1 Maccabees': '1MA',
-            '2 Maccabees': '2MA',
-            '3 Maccabees': '3MA',
-            '4 Maccabees': '4MA'
+            // ... add more if needed for display
         };
-
-        if (specialCases[bookName]) {
-            return specialCases[bookName];
-        }
-
-        // Handle numbered books
-        if (bookName.match(/^\d+\s/)) {
-            const parts = bookName.split(' ');
-            const number = parts[0];
-            const abbr = parts.slice(1).join(' ').substring(0, 3).toUpperCase();
-            return `${number}${abbr}`;
-        }
-
-        return bookName.substring(0, 3).toUpperCase();
+        
+        return specialCases[this.name] || this.name.substring(0, 3).toUpperCase();
     }
 
     /**

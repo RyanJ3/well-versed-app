@@ -1,5 +1,5 @@
 -- sql_setup/02-create-schema.sql
--- Create schema
+-- Create schema with numerical book IDs
 CREATE SCHEMA IF NOT EXISTS wellversed01DEV;
 SET search_path TO wellversed01DEV;
 
@@ -12,20 +12,32 @@ CREATE TABLE users (
     last_name VARCHAR(100),
     denomination VARCHAR(100),
     preferred_bible VARCHAR(50),
+    include_apocrypha BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Bible verses table (Protestant canon only)
+-- Books reference table (for lookups)
+CREATE TABLE bible_books (
+    book_id INTEGER PRIMARY KEY,
+    book_name VARCHAR(50) NOT NULL,
+    book_code_3 VARCHAR(3),      -- 3-char code for compatibility
+    book_code_4 VARCHAR(4),      -- 4-char code for compatibility
+    testament VARCHAR(20) NOT NULL,
+    book_group VARCHAR(50) NOT NULL,
+    canonical_affiliation VARCHAR(50) NOT NULL DEFAULT 'All',
+    chapter_count INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Bible verses table with numerical book_id
 CREATE TABLE bible_verses (
     id SERIAL PRIMARY KEY,
-    verse_code VARCHAR(20) UNIQUE NOT NULL, -- Format: BOOK-CHAPTER-VERSE (e.g., 'GENE-001-001')
-    book_id VARCHAR(4) NOT NULL,            -- 4-char book ID
-    book_name VARCHAR(50) NOT NULL,
-    testament VARCHAR(20) NOT NULL,         -- 'Old Testament' or 'New Testament'
-    book_group VARCHAR(50) NOT NULL,
+    verse_code VARCHAR(20) UNIQUE NOT NULL, -- Format: BookID-Chapter-Verse (e.g., '1-1-1' for Genesis 1:1)
+    book_id INTEGER NOT NULL REFERENCES bible_books(book_id),
     chapter_number INTEGER NOT NULL,
     verse_number INTEGER NOT NULL,
+    is_apocryphal BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -44,6 +56,7 @@ CREATE TABLE user_verses (
 CREATE INDEX idx_bible_verses_code ON bible_verses(verse_code);
 CREATE INDEX idx_bible_verses_book ON bible_verses(book_id);
 CREATE INDEX idx_bible_verses_chapter ON bible_verses(book_id, chapter_number);
+CREATE INDEX idx_bible_verses_location ON bible_verses(book_id, chapter_number, verse_number);
 CREATE INDEX idx_user_verses_user ON user_verses(user_id);
 CREATE INDEX idx_user_verses_practice ON user_verses(last_practiced);
 

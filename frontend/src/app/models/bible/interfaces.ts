@@ -1,15 +1,12 @@
-// src/app/models/bible/interfaces.ts
-// API Interface Models
-
 /**
  * Represents a verse as returned from the API
  */
 export interface BibleVerse {
-  verse_id: string;
-  book_id: string;
+  verse_id: string;     // Format: "bookId-chapter-verse" (e.g., "1-1-1" for Genesis 1:1)
+  book_id: number;      // Changed to number (e.g., 1 for Genesis, 40 for Matthew)
   chapter_number: number;
   verse_number: number;
-  isApocryphal: boolean; // Added field from database
+  isApocryphal: boolean;
 }
 
 /**

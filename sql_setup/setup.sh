@@ -3,8 +3,16 @@
 
 echo "Setting up Well Versed..."
 
+# Load environment variables from backend/.env
+if [ -f "../backend/.env" ]; then
+    export $(grep -v '^#' ../backend/.env | xargs)
+else
+    echo "Error: backend/.env not found"
+    exit 1
+fi
+
 # Check if PostgreSQL is running
-if pg_isready -h localhost -p 5432 -q 2>/dev/null || docker compose exec -T db pg_isready -U postgres 2>/dev/null; then
+if pg_isready -h $DATABASE_HOST -p $DATABASE_PORT -q 2>/dev/null || docker compose exec -T db pg_isready -U $DATABASE_USER 2>/dev/null; then
     echo "PostgreSQL is running"
 else
     echo "PostgreSQL is not running. Starting with Docker..."
@@ -14,7 +22,7 @@ fi
 
 # Create database
 echo "Creating database..."
-PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE wellversed01DEV;" 2>/dev/null || echo "Database already exists"
+PGPASSWORD=$DATABASE_PASSWORD psql -h $DATABASE_HOST -p $DATABASE_PORT -U $DATABASE_USER -c "CREATE DATABASE $DATABASE_NAME;" 2>/dev/null || echo "Database already exists"
 
 # Run database setup
 echo "Setting up database..."

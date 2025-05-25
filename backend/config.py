@@ -10,20 +10,20 @@ load_dotenv()
 
 class Config:
     # Database
-    DATABASE_HOST = os.getenv('DATABASE_HOST', 'localhost')
-    DATABASE_NAME = os.getenv('DATABASE_NAME', 'wellversed01DEV')
-    DATABASE_USER = os.getenv('DATABASE_USER', 'postgres')
-    DATABASE_PASSWORD = os.getenv('DATABASE_PASSWORD', 'postgres')
-    DATABASE_PORT = int(os.getenv('DATABASE_PORT', '5432'))
+    DATABASE_HOST = os.getenv('DATABASE_HOST')
+    DATABASE_NAME = os.getenv('DATABASE_NAME')
+    DATABASE_USER = os.getenv('DATABASE_USER')
+    DATABASE_PASSWORD = os.getenv('DATABASE_PASSWORD')
+    DATABASE_PORT = int(os.getenv('DATABASE_PORT'))
     
     # API
-    API_HOST = os.getenv('API_HOST', '0.0.0.0')
-    API_PORT = int(os.getenv('API_PORT', '8000'))
-    LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+    API_HOST = os.getenv('API_HOST')
+    API_PORT = int(os.getenv('API_PORT'))
+    LOG_LEVEL = os.getenv('LOG_LEVEL')
     
     # CORS
-    FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:4200')
-    
+    FRONTEND_URL = os.getenv('FRONTEND_URL')
+
     @classmethod
     def get_database_url(cls):
         return f"postgresql://{cls.DATABASE_USER}:{cls.DATABASE_PASSWORD}@{cls.DATABASE_HOST}:{cls.DATABASE_PORT}/{cls.DATABASE_NAME}"

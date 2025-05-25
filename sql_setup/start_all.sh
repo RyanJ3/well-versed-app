@@ -1,31 +1,49 @@
-#!/bin/bash
-# start_all.sh - Complete startup script
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - "${DATABASE_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-echo "Starting Well Versed..."
+  backend:
+    build: ./backend
+    ports:
+      - "${API_PORT}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      FRONTEND_URL: ${FRONTEND_URL}
+    volumes:
+      - ./backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
-# 1. Clean up any existing containers/volumes
-echo "Cleaning up old containers..."
-docker compose down -v --remove-orphans
+  frontend:
+    build: ./frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
 
-# 2. Start all services with docker compose
-echo "Starting services..."
-docker compose up -d
-
-# 3. Wait for database to be ready
-echo "Waiting for database..."
-sleep 10
-until docker compose exec -T db pg_isready -U postgres; do
-    sleep 2
-done
-
-# 4. Setup database
-echo "Setting up database..."
-cd sql_setup
-python3 setup_database.py
-cd ..
-
-echo ""
-echo "All services started!"
-echo "Frontend: http://localhost:4200"
-echo "Backend: http://localhost:8000"
-echo "API Docs: http://localhost:8000/docs"
+volumes:
+  postgres_data:
