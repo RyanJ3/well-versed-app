@@ -10,6 +10,16 @@ import { BibleBook, BibleChapter, BibleData, BibleTestament, UserVerseDetail } f
 import { BibleGroup } from '../models/bible/bible-group.modle';
 import { BibleVerse } from '../models/bible/bible-verse.model';
 
+interface ConfirmationDialogConfig {
+  visible: boolean;
+  title: string;
+  message: string;
+  details?: string;
+  confirmText: string;
+  confirmAction: () => void;
+  isDestructive?: boolean;
+}
+
 @Component({
   selector: 'app-bible-tracker',
   templateUrl: './bible-tracker.component.html',
@@ -40,14 +50,16 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   userId = 1; // Default test user
   includeApocrypha = false;
 
-  // Dialog properties
-  showConfirmDialog = false;
-  dialogTitle = '';
-  dialogMessage = '';
-  dialogDetails = '';
-  confirmButtonText = 'Confirm';
-  confirmButtonClass = 'k-primary';
-  private pendingAction: (() => void) | null = null;
+  // Dialog configuration
+  confirmDialog: ConfirmationDialogConfig = {
+    visible: false,
+    title: '',
+    message: '',
+    details: '',
+    confirmText: 'Confirm',
+    confirmAction: () => {},
+    isDestructive: false
+  };
 
   constructor(
     private bibleService: BibleService,
@@ -242,68 +254,94 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Book-level operations with confirmation
+  // Book-level operations with confirmation modals
   selectAllBookVerses(): void {
     if (!this.selectedBook) return;
     
-    console.log('selectAllBookVerses called for book:', this.selectedBook.name);
-
     const totalVerses = this.selectedBook.totalVerses;
     
-    // For now, let's use simple confirm to debug
-    if (confirm(`Mark all ${totalVerses} verses in ${this.selectedBook.name} as memorized?${totalVerses > 500 ? '\n\nThis is a large book and may take a moment to process.' : ''}`)) {
-      console.log('User confirmed, starting book save...');
-      this.isSavingBulk = true;
-      this.bibleService.saveBook(this.userId, this.selectedBook.id).subscribe({
-        next: () => {
-          console.log('Book saved successfully');
-          this.selectedBook!.chapters.forEach(chapter => {
-            chapter.verses.forEach(verse => {
-              verse.memorized = true;
-              verse.practiceCount = 1;
-              verse.lastPracticed = new Date();
-            });
+    this.confirmDialog = {
+      visible: true,
+      title: 'Memorize Entire Book',
+      message: `Mark all ${totalVerses} verses in ${this.selectedBook.name} as memorized?`,
+      details: totalVerses > 500 ? 'This is a large book and may take a moment to process.' : '',
+      confirmText: 'Memorize Book',
+      isDestructive: false,
+      confirmAction: () => {
+        this.executeSelectAllBookVerses();
+        this.closeConfirmDialog();
+      }
+    };
+  }
+
+  private executeSelectAllBookVerses(): void {
+    if (!this.selectedBook) return;
+
+    this.isSavingBulk = true;
+    this.bibleService.saveBook(this.userId, this.selectedBook.id).subscribe({
+      next: () => {
+        this.selectedBook!.chapters.forEach(chapter => {
+          chapter.verses.forEach(verse => {
+            verse.memorized = true;
+            verse.practiceCount = 1;
+            verse.lastPracticed = new Date();
           });
-          this.isSavingBulk = false;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error('Error saving book:', error);
-          this.isSavingBulk = false;
-          this.cdr.detectChanges();
-        }
-      });
-    }
+        });
+        this.isSavingBulk = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error saving book:', error);
+        this.isSavingBulk = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   clearAllBookVerses(): void {
     if (!this.selectedBook) return;
-    
-    console.log('clearAllBookVerses called for book:', this.selectedBook.name);
 
-    if (confirm(`Clear all memorized verses in ${this.selectedBook.name}?\n\nThis action cannot be undone.`)) {
-      console.log('User confirmed, starting book clear...');
-      this.isSavingBulk = true;
-      this.bibleService.clearBook(this.userId, this.selectedBook.id).subscribe({
-        next: () => {
-          console.log('Book cleared successfully');
-          this.selectedBook!.chapters.forEach(chapter => {
-            chapter.verses.forEach(verse => {
-              verse.memorized = false;
-              verse.practiceCount = 0;
-              verse.lastPracticed = undefined;
-            });
+    this.confirmDialog = {
+      visible: true,
+      title: 'Clear Entire Book',
+      message: `Clear all memorized verses in ${this.selectedBook.name}?`,
+      details: 'This action cannot be undone.',
+      confirmText: 'Clear Book',
+      isDestructive: true,
+      confirmAction: () => {
+        this.executeClearAllBookVerses();
+        this.closeConfirmDialog();
+      }
+    };
+  }
+
+  private executeClearAllBookVerses(): void {
+    if (!this.selectedBook) return;
+
+    this.isSavingBulk = true;
+    this.bibleService.clearBook(this.userId, this.selectedBook.id).subscribe({
+      next: () => {
+        this.selectedBook!.chapters.forEach(chapter => {
+          chapter.verses.forEach(verse => {
+            verse.memorized = false;
+            verse.practiceCount = 0;
+            verse.lastPracticed = undefined;
           });
-          this.isSavingBulk = false;
-          this.cdr.detectChanges();
-        },
-        error: (error) => {
-          console.error('Error clearing book:', error);
-          this.isSavingBulk = false;
-          this.cdr.detectChanges();
-        }
-      });
-    }
+        });
+        this.isSavingBulk = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error clearing book:', error);
+        this.isSavingBulk = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // Dialog management
+  closeConfirmDialog(): void {
+    this.confirmDialog.visible = false;
   }
 
   // Helper methods

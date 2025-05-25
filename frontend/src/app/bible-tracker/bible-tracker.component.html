@@ -104,8 +104,6 @@
       </div>
     </div>
 
-
-    
     <!-- Add this section to show a message when apocrypha is disabled and the book has apocryphal chapters -->
     <div *ngIf="hasApocryphalChapters(selectedBook) && !includeApocrypha" 
          class="apocrypha-info text-sm text-gray-500 mb-4">
@@ -238,6 +236,34 @@
         <span *ngIf="!isLoading">Refresh</span>
         <span *ngIf="isLoading">Loading...</span>
       </button>
+    </div>
+  </div>
+
+  <!-- Custom Confirmation Dialog -->
+  <div *ngIf="confirmDialog.visible" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">{{ confirmDialog.title }}</h3>
+        <button class="modal-close" (click)="closeConfirmDialog()">×</button>
+      </div>
+      
+      <div class="modal-body">
+        <p class="modal-message">{{ confirmDialog.message }}</p>
+        <p *ngIf="confirmDialog.details" class="modal-details">
+          {{ confirmDialog.details }}
+        </p>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeConfirmDialog()">
+          Cancel
+        </button>
+        <button 
+          [class]="confirmDialog.isDestructive ? 'btn btn-danger' : 'btn btn-primary'"
+          (click)="confirmDialog.confirmAction()">
+          {{ confirmDialog.confirmText }}
+        </button>
+      </div>
     </div>
   </div>
 </div>
