@@ -88,3 +88,5 @@ backend/app/api/__pycache__/__init__.cpython-311.pyc
 backend/app/api/__pycache__/router.cpython-311.pyc
 backend/app/api/__pycache__/users.cpython-311.pyc
 backend/app/api/__pycache__/verses.cpython-311.pyc
+frontend/telerik-license.txt
+frontend/kendo-ui-license.txt

@@ -2,13 +2,22 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
+import { ChartsModule } from '@progress/kendo-angular-charts';
+import { ProgressBarModule } from '@progress/kendo-angular-progressbar';
+import { LayoutModule } from '@progress/kendo-angular-layout';
 import { UserService } from '../services/user.service';
 import { BibleService } from '../services/bible.service';
 
 @Component({
   selector: 'app-stats',
   standalone: true,
-  imports: [CommonModule, ButtonsModule],
+  imports: [
+    CommonModule, 
+    ButtonsModule, 
+    ChartsModule, 
+    ProgressBarModule,
+    LayoutModule
+  ],
   template: `
     <div class="stats-container">
       <h1 class="page-title">My Scripture Stats</h1>
@@ -19,72 +28,123 @@ import { BibleService } from '../services/bible.service';
       </div>
 
       <div *ngIf="!isLoading" class="stats-content">
-        <!-- Overview Cards -->
+        <!-- Overview Cards with Kendo Cards -->
         <div class="stats-overview">
-          <div class="stat-card">
-            <div class="stat-number">{{ totalVerses }}</div>
-            <div class="stat-label">Total Verses</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number">{{ memorizedVerses }}</div>
-            <div class="stat-label">Memorized</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number">{{ Math.round(completionPercentage) }}%</div>
-            <div class="stat-label">Complete</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number">{{ booksStarted }}</div>
-            <div class="stat-label">Books Started</div>
-          </div>
+          <kendo-card class="stat-card" *ngFor="let stat of overviewStats">
+            <kendo-card-body>
+              <div class="stat-number">{{ stat.value }}</div>
+              <div class="stat-label">{{ stat.label }}</div>
+            </kendo-card-body>
+          </kendo-card>
         </div>
 
-        <!-- Test Kendo Button -->
-        <div class="kendo-test">
-          <h2 class="section-title">Kendo Integration Test</h2>
-          <button kendoButton (click)="refreshStats()" [primary]="true">
-            Refresh Stats
-          </button>
-        </div>
+        <!-- Kendo Integration Test Section -->
+        <kendo-card class="kendo-test-section">
+          <kendo-card-header>
+            <h2>Kendo Integration Test</h2>
+          </kendo-card-header>
+          <kendo-card-body>
+            <kendo-buttongroup>
+              <button kendoButton (click)="refreshStats()" [primary]="true" [icon]="'refresh'">
+                Refresh Stats
+              </button>
+              <button kendoButton (click)="exportData()" [look]="'outline'" [icon]="'file-excel'">
+                Export Data
+              </button>
+              <button kendoButton (click)="viewDetails()" [look]="'flat'" [icon]="'hyperlink-open'">
+                View Details
+              </button>
+            </kendo-buttongroup>
+          </kendo-card-body>
+        </kendo-card>
 
-        <!-- Chart Section -->
-        <div class="chart-section">
-          <h2 class="section-title">Progress by Testament</h2>
-          <div class="custom-chart">
-            <div *ngFor="let item of chartData" class="chart-bar">
-              <div class="chart-label">{{ item.testament }}</div>
-              <div class="bar-container">
-                <div class="bar memorized" [style.width.%]="getBarPercentage(item.memorized, item.memorized + item.remaining)">
-                  <span class="bar-label">{{ item.memorized }} memorized</span>
+        <!-- Progress by Testament with Kendo Progress Bars -->
+        <kendo-card class="chart-section">
+          <kendo-card-header>
+            <h2>Progress by Testament</h2>
+          </kendo-card-header>
+          <kendo-card-body>
+            <div class="testament-progress">
+              <div *ngFor="let testament of testamentData" class="testament-item">
+                <div class="testament-header">
+                  <span class="testament-name">{{ testament.name }}</span>
+                  <span class="testament-stats">{{ testament.memorized }} / {{ testament.total }} verses ({{ testament.percentage }}%)</span>
                 </div>
-                <div class="bar remaining" [style.width.%]="getBarPercentage(item.remaining, item.memorized + item.remaining)">
-                  <span class="bar-label">{{ item.remaining }} remaining</span>
-                </div>
-              </div>
-              <div class="chart-stats">
-                {{ item.memorized }} / {{ item.memorized + item.remaining }} verses
-                ({{ Math.round((item.memorized / (item.memorized + item.remaining)) * 100) }}%)
+                <kendo-progressbar 
+                  [value]="testament.percentage" 
+                  [max]="100"
+                  [animation]="true"
+                  class="testament-progress-bar">
+                </kendo-progressbar>
               </div>
             </div>
-          </div>
-        </div>
+          </kendo-card-body>
+        </kendo-card>
 
-        <!-- Book Groups Progress -->
-        <div class="book-groups-section">
-          <h2 class="section-title">Progress by Book Group</h2>
-          <div class="book-groups-grid">
-            <div *ngFor="let group of bookGroupsData" class="group-card">
-              <h3 class="group-name">{{ group.name }}</h3>
-              <div class="progress-bar">
-                <div class="progress-fill" [style.width.%]="group.percentage"></div>
-              </div>
-              <div class="group-stats">
-                <span>{{ group.memorized }} / {{ group.total }} verses</span>
-                <span class="percentage">{{ Math.round(group.percentage) }}%</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- Book Groups Progress with Kendo Chart -->
+        <kendo-card class="book-groups-section">
+          <kendo-card-header>
+            <h2>Progress by Book Group</h2>
+          </kendo-card-header>
+          <kendo-card-body>
+            <kendo-chart [style.height.px]="400">
+              <kendo-chart-series>
+                <kendo-chart-series-item
+                  [data]="bookGroupsChartData"
+                  type="bar"
+                  [field]="'percentage'"
+                  [categoryField]="'name'"
+                  [color]="'#3b82f6'">
+                  <kendo-chart-series-item-labels
+                    [visible]="true"
+                    [format]="'{0}%'"
+                    [position]="'insideEnd'">
+                  </kendo-chart-series-item-labels>
+                </kendo-chart-series-item>
+              </kendo-chart-series>
+              <kendo-chart-category-axis>
+                <kendo-chart-category-axis-item>
+                  <kendo-chart-category-axis-item-labels
+                    [rotation]="-45">
+                  </kendo-chart-category-axis-item-labels>
+                </kendo-chart-category-axis-item>
+              </kendo-chart-category-axis>
+              <kendo-chart-value-axis>
+                <kendo-chart-value-axis-item
+                  [max]="100"
+                  [title]="{ text: 'Percentage Complete' }">
+                </kendo-chart-value-axis-item>
+              </kendo-chart-value-axis>
+              <kendo-chart-tooltip [visible]="true" [format]="'{0}% complete'"></kendo-chart-tooltip>
+            </kendo-chart>
+          </kendo-card-body>
+        </kendo-card>
+
+        <!-- Additional Stats with Kendo Donut Chart -->
+        <kendo-card class="additional-stats">
+          <kendo-card-header>
+            <h2>Memorization Overview</h2>
+          </kendo-card-header>
+          <kendo-card-body>
+            <kendo-chart [style.height.px]="300">
+              <kendo-chart-series>
+                <kendo-chart-series-item
+                  type="donut"
+                  [data]="donutData"
+                  [field]="'value'"
+                  [categoryField]="'category'"
+                  [startAngle]="150">
+                  <kendo-chart-series-item-labels
+                    [visible]="true"
+                    [position]="'outsideEnd'"
+                    [format]="'{0:N0}'">
+                  </kendo-chart-series-item-labels>
+                </kendo-chart-series-item>
+              </kendo-chart-series>
+              <kendo-chart-legend [position]="'bottom'"></kendo-chart-legend>
+            </kendo-chart>
+          </kendo-card-body>
+        </kendo-card>
       </div>
     </div>
   `,
@@ -127,23 +187,17 @@ import { BibleService } from '../services/bible.service';
 
     .stats-overview {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 1.5rem;
-      margin-bottom: 3rem;
+      margin-bottom: 2rem;
     }
 
     .stat-card {
-      background-color: white;
-      padding: 2rem;
-      border-radius: 0.75rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      text-align: center;
       transition: transform 0.2s;
     }
 
     .stat-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+      transform: translateY(-4px);
     }
 
     .stat-number {
@@ -152,6 +206,7 @@ import { BibleService } from '../services/bible.service';
       color: #2563eb;
       line-height: 1;
       margin-bottom: 0.5rem;
+      text-align: center;
     }
 
     .stat-label {
@@ -160,133 +215,68 @@ import { BibleService } from '../services/bible.service';
       text-transform: uppercase;
       letter-spacing: 0.05em;
       font-size: 0.875rem;
-    }
-
-    .chart-section {
-      background-color: white;
-      border-radius: 0.75rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      padding: 2rem;
-      margin-bottom: 3rem;
-    }
-
-    .section-title {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #1f2937;
-      margin-bottom: 1.5rem;
-    }
-
-    .chart-container {
-      height: 400px;
-    }
-
-    .custom-chart {
-      padding: 1rem 0;
-    }
-
-    .chart-bar {
-      margin-bottom: 2rem;
-    }
-
-    .chart-label {
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: #1f2937;
-    }
-
-    .bar-container {
-      display: flex;
-      height: 40px;
-      background-color: #f3f4f6;
-      border-radius: 6px;
-      overflow: hidden;
-      margin-bottom: 0.5rem;
-    }
-
-    .bar {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-      font-weight: 500;
-      color: white;
-      transition: width 0.3s ease;
-    }
-
-    .bar.memorized {
-      background-color: #3b82f6;
-    }
-
-    .bar.remaining {
-      background-color: #9ca3af;
-    }
-
-    .bar-label {
-      white-space: nowrap;
-      overflow: hidden;
-    }
-
-    .chart-stats {
-      font-size: 0.875rem;
-      color: #4b5563;
       text-align: center;
     }
 
-    .book-groups-section {
-      background-color: white;
-      border-radius: 0.75rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      padding: 2rem;
+    .kendo-test-section, .chart-section, .book-groups-section, .additional-stats {
+      margin-bottom: 2rem;
     }
 
-    .book-groups-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .group-card {
-      background-color: #f9fafb;
-      padding: 1.5rem;
-      border-radius: 0.5rem;
-      border: 1px solid #e5e7eb;
-    }
-
-    .group-name {
-      font-size: 1.125rem;
+    .kendo-test-section h2, .chart-section h2, .book-groups-section h2, .additional-stats h2 {
+      margin: 0;
+      font-size: 1.5rem;
       font-weight: 600;
       color: #1f2937;
-      margin-bottom: 1rem;
     }
 
-    .progress-bar {
-      width: 100%;
-      height: 0.75rem;
-      background-color: #e5e7eb;
-      border-radius: 9999px;
-      overflow: hidden;
-      margin-bottom: 0.75rem;
+    .testament-progress {
+      padding: 1rem 0;
     }
 
-    .progress-fill {
-      height: 100%;
-      background-color: #3b82f6;
-      border-radius: 9999px;
-      transition: width 0.3s ease;
+    .testament-item {
+      margin-bottom: 2rem;
     }
 
-    .group-stats {
+    .testament-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .testament-name {
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .testament-stats {
       font-size: 0.875rem;
       color: #4b5563;
     }
 
-    .percentage {
-      font-weight: 600;
-      color: #2563eb;
+    .testament-progress-bar {
+      height: 24px;
+    }
+
+    :host ::ng-deep .k-progressbar-value {
+      background-color: #3b82f6;
+    }
+
+    :host ::ng-deep .k-button-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    :host ::ng-deep .k-card {
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    :host ::ng-deep .k-card-header {
+      background-color: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    :host ::ng-deep .k-chart {
+      font-family: inherit;
     }
 
     @media (max-width: 768px) {
@@ -302,33 +292,37 @@ import { BibleService } from '../services/bible.service';
         font-size: 2rem;
       }
 
-      .chart-container {
-        height: 300px;
+      :host ::ng-deep .k-button-group {
+        flex-direction: column;
+      }
+
+      :host ::ng-deep .k-button {
+        width: 100%;
       }
     }
   `]
 })
 export class StatsComponent implements OnInit {
   isLoading = true;
-  totalVerses = 0;
-  memorizedVerses = 0;
-  completionPercentage = 0;
-  booksStarted = 0;
   
-  chartData: any[] = [];
-  bookGroupsData: any[] = [];
-  
-  categoryAxisItems = [{
-    categories: ['Old Testament', 'New Testament']
-  }];
-  
-  valueAxisItems = [{
-    labels: {
-      format: '{0}'
-    }
-  }];
+  overviewStats = [
+    { label: 'TOTAL VERSES', value: '31,177' },
+    { label: 'MEMORIZED', value: '2,963' },
+    { label: 'COMPLETE', value: '10%' },
+    { label: 'BOOKS STARTED', value: '37' }
+  ];
 
-  // Expose Math for template
+  testamentData = [
+    { name: 'Old Testament', memorized: 919, total: 27930, percentage: 3 },
+    { name: 'New Testament', memorized: 2044, total: 7958, percentage: 26 }
+  ];
+  
+  bookGroupsChartData: any[] = [];
+  donutData = [
+    { category: 'Memorized', value: 2963 },
+    { category: 'Remaining', value: 28214 }
+  ];
+
   Math = Math;
 
   constructor(
@@ -340,26 +334,31 @@ export class StatsComponent implements OnInit {
     this.loadStats();
   }
 
-  getBarPercentage(value: number, total: number): number {
-    return total > 0 ? (value / total) * 100 : 0;
+  refreshStats() {
+    console.log('Refreshing stats...');
+    this.loadStats();
   }
 
-  refreshStats() {
-    this.loadStats();
+  exportData() {
+    console.log('Exporting data...');
+    // TODO: Implement export functionality
+  }
+
+  viewDetails() {
+    console.log('Viewing details...');
+    // TODO: Navigate to detailed view
   }
 
   loadStats() {
     this.isLoading = true;
     
-    // Get user data and Bible data
     this.userService.currentUser$.subscribe(user => {
       if (user) {
-        this.memorizedVerses = user.versesMemorized || 0;
-        this.booksStarted = user.booksStarted || 0;
+        this.overviewStats[1].value = user.versesMemorized?.toString() || '0';
+        this.overviewStats[3].value = user.booksStarted?.toString() || '0';
       }
     });
 
-    // Load user verses to calculate detailed stats
     this.bibleService.getUserVerses(1, true).subscribe(verses => {
       this.calculateStats(verses);
       this.isLoading = false;
@@ -369,35 +368,42 @@ export class StatsComponent implements OnInit {
   calculateStats(userVerses: any[]) {
     const bibleData = this.bibleService.getBibleData();
     
-    // Calculate totals
-    this.totalVerses = bibleData.totalVerses;
-    this.memorizedVerses = userVerses.length;
-    this.completionPercentage = this.totalVerses > 0 ? (this.memorizedVerses / this.totalVerses) * 100 : 0;
+    const totalVerses = bibleData.totalVerses;
+    const memorizedVerses = userVerses.length;
+    const completionPercentage = totalVerses > 0 ? Math.round((memorizedVerses / totalVerses) * 100) : 0;
     
-    // Get testaments
+    this.overviewStats[0].value = totalVerses.toLocaleString();
+    this.overviewStats[1].value = memorizedVerses.toLocaleString();
+    this.overviewStats[2].value = `${completionPercentage}%`;
+    
+    this.donutData = [
+      { category: 'Memorized', value: memorizedVerses },
+      { category: 'Remaining', value: totalVerses - memorizedVerses }
+    ];
+
     const oldTestament = bibleData.getTestamentByName('OLD');
     const newTestament = bibleData.getTestamentByName('NEW');
     
-    // Calculate testament stats
     const oldTestamentVerses = userVerses.filter(v => v.verse.book_id <= 39);
     const newTestamentVerses = userVerses.filter(v => v.verse.book_id >= 40);
     
-    this.chartData = [
+    this.testamentData = [
       {
-        testament: 'Old Testament',
+        name: 'Old Testament',
         memorized: oldTestamentVerses.length,
-        remaining: oldTestament.totalVerses - oldTestamentVerses.length
+        total: oldTestament.totalVerses,
+        percentage: Math.round((oldTestamentVerses.length / oldTestament.totalVerses) * 100)
       },
       {
-        testament: 'New Testament',
+        name: 'New Testament',
         memorized: newTestamentVerses.length,
-        remaining: newTestament.totalVerses - newTestamentVerses.length
+        total: newTestament.totalVerses,
+        percentage: Math.round((newTestamentVerses.length / newTestament.totalVerses) * 100)
       }
     ];
 
-    // Calculate book groups stats
     const allGroups = oldTestament.groups.concat(newTestament.groups);
-    this.bookGroupsData = allGroups.map(group => {
+    this.bookGroupsChartData = allGroups.map(group => {
       const groupVerses = userVerses.filter(v => {
         const book = bibleData.getBookById(v.verse.book_id);
         return book && book.group.name === group.name;
@@ -407,7 +413,7 @@ export class StatsComponent implements OnInit {
         name: group.name,
         memorized: groupVerses.length,
         total: group.totalVerses,
-        percentage: group.totalVerses > 0 ? (groupVerses.length / group.totalVerses) * 100 : 0
+        percentage: Math.round(group.totalVerses > 0 ? (groupVerses.length / group.totalVerses) * 100 : 0)
       };
     });
   }
