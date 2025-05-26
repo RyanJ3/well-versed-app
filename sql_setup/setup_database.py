@@ -181,7 +181,8 @@ def main():
     # SQL files to execute in order
     sql_files = [
         '01-drop-schema.sql',
-        '02-create-schema.sql'
+        '02-create-schema.sql',
+        '05-create-decks.sql'
     ]
     
     conn = get_db_connection()
