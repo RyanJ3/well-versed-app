@@ -2,13 +2,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { DeckService, DeckResponse, DeckCreate } from '../services/deck.service';
 import { UserService } from '../services/user.service';
 
 @Component({
   selector: 'app-flashcard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './flashcard.component.html',
   styleUrls: ['./flashcard.component.scss']
 })

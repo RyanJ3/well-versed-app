@@ -182,7 +182,8 @@ def main():
     sql_files = [
         '01-drop-schema.sql',
         '02-create-schema.sql',
-        '05-create-decks.sql'
+        '05-create-decks.sql',
+        '06-create-confidence-tracking.sql'
     ]
     
     conn = get_db_connection()

@@ -165,8 +165,9 @@
 
       <div class="deck-actions">
         <!-- My Decks Actions -->
+<!-- My Decks Actions -->
         <ng-container *ngIf="activeTab === 'my-decks'">
-          <button class="action-button primary">
+          <button class="action-button primary" [routerLink]="['/flashcards/study', deck.deck_id]">
             <span class="button-icon">🎯</span>
             Study
           </button>
@@ -182,7 +183,7 @@
 
         <!-- Public/Saved Decks Actions -->
         <ng-container *ngIf="activeTab !== 'my-decks'">
-          <button class="action-button primary">
+          <button class="action-button primary" [routerLink]="['/flashcards/study', deck.deck_id]">
             <span class="button-icon">🎯</span>
             Study
           </button>

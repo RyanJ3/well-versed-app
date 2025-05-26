@@ -42,6 +42,25 @@ class DeckListResponse(BaseModel):
     total: int
     decks: List[DeckResponse]
 
+# Verse-related models
+class VerseWithText(BaseModel):
+    verse_id: int
+    verse_code: str
+    book_id: int
+    book_name: str
+    chapter_number: int
+    verse_number: int
+    reference: str
+    text: str
+    confidence_score: Optional[int] = None
+    last_reviewed: Optional[str] = None
+    
+class DeckVersesResponse(BaseModel):
+    deck_id: int
+    deck_name: str
+    total_verses: int
+    verses: List[VerseWithText]
+
 def get_db():
     """Dependency to get database connection"""
     return DatabaseConnection(db_pool.db_pool)
@@ -308,6 +327,66 @@ async def get_deck(deck_id: int, db: DatabaseConnection = Depends(get_db)):
         verse_count=verse_count,
         tags=[],  # TODO: implement tags
         is_saved=False  # TODO: check if current user saved this deck
+    )
+
+@router.get("/{deck_id}/verses", response_model=DeckVersesResponse)
+async def get_deck_verses(deck_id: int, user_id: int = 1, db: DatabaseConnection = Depends(get_db)):
+    """Get all verses in a deck with their text content and user's confidence scores"""
+    logger.info(f"Getting verses for deck {deck_id} for user {user_id}")
+    
+    # First check if deck exists
+    deck_query = "SELECT name FROM decks WHERE deck_id = %s"
+    deck = db.fetch_one(deck_query, (deck_id,))
+    
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    
+    # Get verses with text - for now using placeholder text
+    # In a real implementation, you'd join with a verse_text table
+    verses_query = """
+        SELECT 
+            bv.id as verse_id,
+            bv.verse_code,
+            bv.book_id,
+            bb.book_name,
+            bv.chapter_number,
+            bv.verse_number,
+            uv.confidence_score,
+            uv.last_reviewed::text
+        FROM deck_verses dv
+        JOIN bible_verses bv ON dv.verse_id = bv.id
+        JOIN bible_books bb ON bv.book_id = bb.book_id
+        LEFT JOIN user_verse_confidence uv ON uv.verse_id = bv.id AND uv.user_id = %s
+        WHERE dv.deck_id = %s
+        ORDER BY dv.position, bb.book_id, bv.chapter_number, bv.verse_number
+    """
+    
+    verses = db.fetch_all(verses_query, (user_id, deck_id))
+    
+    verse_responses = []
+    for verse in verses:
+        reference = f"{verse['book_name']} {verse['chapter_number']}:{verse['verse_number']}"
+        # Placeholder text - in production, you'd fetch actual verse text
+        text = f"This is the text of {reference}. In a real implementation, this would contain the actual scripture text."
+        
+        verse_responses.append(VerseWithText(
+            verse_id=verse['verse_id'],
+            verse_code=verse['verse_code'],
+            book_id=verse['book_id'],
+            book_name=verse['book_name'],
+            chapter_number=verse['chapter_number'],
+            verse_number=verse['verse_number'],
+            reference=reference,
+            text=text,
+            confidence_score=verse['confidence_score'],
+            last_reviewed=verse['last_reviewed']
+        ))
+    
+    return DeckVersesResponse(
+        deck_id=deck_id,
+        deck_name=deck['name'],
+        total_verses=len(verse_responses),
+        verses=verse_responses
     )
 
 @router.post("/{deck_id}/verses")

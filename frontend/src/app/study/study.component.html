@@ -1,0 +1,106 @@
+<!-- frontend/src/app/study/study.component.html -->
+<div class="study-container">
+  <!-- Header -->
+  <div class="study-header">
+    <button class="exit-button" (click)="exitStudy()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    
+    <h1 class="deck-title">{{ deckName }}</h1>
+    
+    <div class="progress-info">
+      {{ currentIndex + 1 }} / {{ verses.length }}
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-bar-container">
+    <div class="progress-bar" [style.width.%]="progress"></div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading verses...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="error-container">
+    <p class="error-message">{{ error }}</p>
+    <button class="btn btn-primary" (click)="loadDeckVerses()">Try Again</button>
+  </div>
+
+  <!-- Card Display -->
+  <div *ngIf="!isLoading && !error && currentVerse" class="card-container">
+    <div class="flash-card">
+      <!-- Verse Reference (Always visible) -->
+      <div class="verse-reference">
+        {{ currentVerse.reference }}
+      </div>
+
+      <!-- Verse Text (Show/Hide) -->
+      <div class="verse-text-container" [class.revealed]="currentVerse.isRevealed">
+        <button *ngIf="!currentVerse.isRevealed" class="reveal-button" (click)="toggleReveal()">
+          Click to reveal verse
+        </button>
+        
+        <div *ngIf="currentVerse.isRevealed" class="verse-text">
+          {{ currentVerse.text }}
+        </div>
+      </div>
+
+      <!-- Confidence Slider (shown after reveal) -->
+      <div *ngIf="currentVerse.isRevealed" class="confidence-container">
+        <label class="confidence-label">How well do you know this verse?</label>
+        <div class="slider-container">
+          <span class="slider-value-left">0</span>
+          <input 
+            type="range" 
+            class="confidence-slider"
+            min="0" 
+            max="100" 
+            [(ngModel)]="currentVerse.confidence_score"
+            (change)="onConfidenceChange()">
+          <span class="slider-value-right">100</span>
+        </div>
+        <div class="confidence-value">
+          Confidence: <strong>{{ currentVerse.confidence_score }}%</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Controls -->
+  <div *ngIf="!isLoading && !error && currentVerse" class="navigation-controls">
+    <button class="nav-button" (click)="previousVerse()" [disabled]="currentIndex === 0">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      Previous
+    </button>
+
+    <button class="nav-button skip-button" (click)="skipVerse()" [disabled]="currentIndex === verses.length - 1">
+      Skip
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+      </svg>
+    </button>
+
+    <button class="nav-button primary" (click)="nextVerse()" [disabled]="currentIndex === verses.length - 1">
+      Next
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Complete State -->
+  <div *ngIf="!isLoading && !error && verses.length > 0 && currentIndex === verses.length - 1 && currentVerse?.isRevealed" 
+       class="complete-container">
+    <h2>Study Session Complete!</h2>
+    <p>You've reviewed all {{ verses.length }} verses in this deck.</p>
+    <button class="btn btn-primary" (click)="exitStudy()">Back to Decks</button>
+  </div>
+</div>

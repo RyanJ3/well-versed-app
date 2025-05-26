@@ -51,6 +51,30 @@ export interface DeckProgressResponse {
   confidence_breakdown: Record<number, number>;
 }
 
+export interface VerseWithText {
+  verse_id: number;
+  verse_code: string;
+  book_id: number;
+  book_name: string;
+  chapter_number: number;
+  verse_number: number;
+  reference: string;
+  text: string;
+  confidence_score?: number;
+  last_reviewed?: string;
+}
+
+export interface DeckVersesResponse {
+  deck_id: number;
+  deck_name: string;
+  total_verses: number;
+  verses: VerseWithText[];
+}
+
+export interface DeckDetailResponse extends DeckResponse {
+  verses: any[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -121,5 +145,10 @@ export class DeckService {
   // Progress
   getDeckProgress(deckId: number): Observable<DeckProgressResponse> {
     return this.http.get<DeckProgressResponse>(`${this.apiUrl}/${deckId}/progress`);
+  }
+
+  // Get deck verses with text
+  getDeckVerses(deckId: number, userId: number): Observable<DeckVersesResponse> {
+    return this.http.get<DeckVersesResponse>(`${this.apiUrl}/${deckId}/verses?user_id=${userId}`);
   }
 }
