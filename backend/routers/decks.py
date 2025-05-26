@@ -54,24 +54,43 @@ async def create_deck(deck: DeckCreate, db: DatabaseConnection = Depends(get_db)
     # For now, use user_id = 1 (test user)
     user_id = 1
     
-    # Insert the deck
-    deck_query = """
-        INSERT INTO decks (user_id, name, description, is_public)
-        VALUES (%s, %s, %s, %s)
-        RETURNING deck_id, created_at, updated_at
-    """
-    
-    result = db.fetch_one(deck_query, (user_id, deck.name, deck.description, deck.is_public))
-    deck_id = result['deck_id']
-    
-    # Add verses if provided
-    if deck.verse_codes:
-        await add_verses_to_deck(deck_id, deck.verse_codes, db)
-    
-    # Get user name
-    user_query = "SELECT name FROM users WHERE user_id = %s"
-    user_result = db.fetch_one(user_query, (user_id,))
-    creator_name = user_result['name'] if user_result else "Unknown"
+    with db.get_db() as conn:
+        with conn.cursor() as cur:
+            # Insert the deck
+            cur.execute("""
+                INSERT INTO decks (user_id, name, description, is_public)
+                VALUES (%s, %s, %s, %s)
+                RETURNING deck_id, created_at, updated_at
+            """, (user_id, deck.name, deck.description, deck.is_public))
+            
+            result = cur.fetchone()
+            deck_id = result[0]
+            created_at = result[1]
+            updated_at = result[2]
+            
+            # Add verses if provided
+            verse_count = 0
+            if deck.verse_codes:
+                # Get verse IDs from verse codes
+                verse_placeholders = ','.join(['%s'] * len(deck.verse_codes))
+                cur.execute(f"SELECT id FROM bible_verses WHERE verse_code IN ({verse_placeholders})", deck.verse_codes)
+                verses = cur.fetchall()
+                verse_count = len(verses)
+                
+                # Insert verses into deck_verses
+                for verse in verses:
+                    cur.execute("""
+                        INSERT INTO deck_verses (deck_id, verse_id)
+                        VALUES (%s, %s)
+                        ON CONFLICT (deck_id, verse_id) DO NOTHING
+                    """, (deck_id, verse[0]))
+            
+            # Get user name
+            cur.execute("SELECT name FROM users WHERE user_id = %s", (user_id,))
+            user_result = cur.fetchone()
+            creator_name = user_result[0] if user_result else "Unknown"
+            
+            conn.commit()
     
     return DeckResponse(
         deck_id=deck_id,
@@ -81,9 +100,9 @@ async def create_deck(deck: DeckCreate, db: DatabaseConnection = Depends(get_db)
         description=deck.description,
         is_public=deck.is_public,
         save_count=0,
-        created_at=result['created_at'].isoformat(),
-        updated_at=result['updated_at'].isoformat(),
-        verse_count=len(deck.verse_codes) if deck.verse_codes else 0,
+        created_at=created_at.isoformat(),
+        updated_at=updated_at.isoformat(),
+        verse_count=verse_count,
         tags=deck.tags or [],
         is_saved=False
     )
@@ -238,3 +257,81 @@ async def add_verses_to_deck(deck_id: int, verse_codes: List[str], db: DatabaseC
     
     for verse_insert in verse_inserts:
         db.execute(insert_query, verse_insert)
+
+@router.get("/{deck_id}", response_model=DeckResponse)
+async def get_deck(deck_id: int, db: DatabaseConnection = Depends(get_db)):
+    """Get a single deck with its details"""
+    logger.info(f"Getting deck {deck_id}")
+    
+    # Get deck details
+    deck_query = """
+        SELECT 
+            d.deck_id,
+            d.user_id as creator_id,
+            u.name as creator_name,
+            d.name,
+            d.description,
+            d.is_public,
+            d.created_at,
+            d.updated_at
+        FROM decks d
+        JOIN users u ON d.user_id = u.user_id
+        WHERE d.deck_id = %s
+    """
+    
+    deck = db.fetch_one(deck_query, (deck_id,))
+    
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    
+    # Get verse count
+    verse_count_query = """
+        SELECT COUNT(*) as count
+        FROM deck_verses
+        WHERE deck_id = %s
+    """
+    verse_count_result = db.fetch_one(verse_count_query, (deck_id,))
+    verse_count = verse_count_result['count'] if verse_count_result else 0
+    
+    # TODO: Get tags when implemented
+    
+    return DeckResponse(
+        deck_id=deck['deck_id'],
+        creator_id=deck['creator_id'],
+        creator_name=deck['creator_name'],
+        name=deck['name'],
+        description=deck['description'],
+        is_public=deck['is_public'],
+        save_count=0,  # TODO: implement save count
+        created_at=deck['created_at'].isoformat(),
+        updated_at=deck['updated_at'].isoformat(),
+        verse_count=verse_count,
+        tags=[],  # TODO: implement tags
+        is_saved=False  # TODO: check if current user saved this deck
+    )
+
+@router.post("/{deck_id}/verses")
+async def add_verses_to_deck(deck_id: int, verse_codes: List[str], db: DatabaseConnection = Depends(get_db)):
+    """Add verses to a deck"""
+    logger.info(f"Adding {len(verse_codes)} verses to deck {deck_id}")
+    
+    # Get verse IDs from verse codes
+    verse_placeholders = ','.join(['%s'] * len(verse_codes))
+    verse_query = f"SELECT id, verse_code FROM bible_verses WHERE verse_code IN ({verse_placeholders})"
+    verses = db.fetch_all(verse_query, verse_codes)
+    
+    if not verses:
+        raise HTTPException(status_code=404, detail="No valid verses found")
+    
+    # Insert into deck_verses
+    verse_inserts = [(deck_id, verse['id']) for verse in verses]
+    insert_query = """
+        INSERT INTO deck_verses (deck_id, verse_id)
+        VALUES (%s, %s)
+        ON CONFLICT (deck_id, verse_id) DO NOTHING
+    """
+    
+    for verse_insert in verse_inserts:
+        db.execute(insert_query, verse_insert)
+    
+    return {"message": f"Added {len(verses)} verses to deck"}
