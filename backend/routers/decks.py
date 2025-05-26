@@ -414,3 +414,78 @@ async def add_verses_to_deck(deck_id: int, verse_codes: List[str], db: DatabaseC
         db.execute(insert_query, verse_insert)
     
     return {"message": f"Added {len(verses)} verses to deck"}
+
+@router.put("/{deck_id}", response_model=DeckResponse)
+async def update_deck(deck_id: int, deck_update: DeckUpdate, db: DatabaseConnection = Depends(get_db)):
+    """Update deck information"""
+    logger.info(f"Updating deck {deck_id}")
+    
+    # TODO: Add user ownership check
+    
+    # Build update query dynamically
+    update_fields = []
+    params = []
+    
+    if deck_update.name is not None:
+        update_fields.append("name = %s")
+        params.append(deck_update.name)
+    
+    if deck_update.description is not None:
+        update_fields.append("description = %s")
+        params.append(deck_update.description)
+    
+    if deck_update.is_public is not None:
+        update_fields.append("is_public = %s")
+        params.append(deck_update.is_public)
+    
+    if not update_fields:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    
+    params.append(deck_id)
+    
+    query = f"""
+        UPDATE decks 
+        SET {', '.join(update_fields)}, updated_at = CURRENT_TIMESTAMP
+        WHERE deck_id = %s
+    """
+    
+    db.execute(query, tuple(params))
+    
+    # Return updated deck
+    return await get_deck(deck_id, db)
+
+@router.delete("/{deck_id}/verses/{verse_code}")
+async def remove_verse_from_deck(deck_id: int, verse_code: str, db: DatabaseConnection = Depends(get_db)):
+    """Remove a specific verse from a deck"""
+    logger.info(f"Removing verse {verse_code} from deck {deck_id}")
+    
+    # Get verse ID from verse code
+    verse = db.fetch_one("SELECT id FROM bible_verses WHERE verse_code = %s", (verse_code,))
+    
+    if not verse:
+        raise HTTPException(status_code=404, detail="Verse not found")
+    
+    query = "DELETE FROM deck_verses WHERE deck_id = %s AND verse_id = %s"
+    db.execute(query, (deck_id, verse['id']))
+    
+    return {"message": "Verse removed from deck"}
+
+@router.post("/{deck_id}/verses/remove-multiple")
+async def remove_multiple_verses_from_deck(deck_id: int, verse_codes: List[str], db: DatabaseConnection = Depends(get_db)):
+    """Remove multiple verses from a deck"""
+    logger.info(f"Removing {len(verse_codes)} verses from deck {deck_id}")
+    
+    # Get verse IDs from verse codes
+    verse_placeholders = ','.join(['%s'] * len(verse_codes))
+    verse_query = f"SELECT id FROM bible_verses WHERE verse_code IN ({verse_placeholders})"
+    verses = db.fetch_all(verse_query, verse_codes)
+    
+    if not verses:
+        raise HTTPException(status_code=404, detail="No valid verses found")
+    
+    # Delete from deck_verses
+    for verse in verses:
+        query = "DELETE FROM deck_verses WHERE deck_id = %s AND verse_id = %s"
+        db.execute(query, (deck_id, verse['id']))
+    
+    return {"message": f"Removed {len(verses)} verses from deck"}

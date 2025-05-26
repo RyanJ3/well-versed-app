@@ -127,15 +127,19 @@ export class DeckService {
     return this.http.get<DeckListResponse>(`${this.apiUrl}/saved/${userId}`);
   }
 
-  // Verse management
+// Verse management
   addVersesToDeck(deckId: number, verseCodes: string[]): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${deckId}/verses`, { verse_codes: verseCodes });
+    return this.http.post(`${this.apiUrl}/${deckId}/verses`, verseCodes);
   }
 
   removeVersesFromDeck(deckId: number, verseCodes: string[]): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${deckId}/verses`, { 
-      body: { verse_codes: verseCodes } 
-    });
+    if (verseCodes.length === 1) {
+      // Use single verse removal endpoint
+      return this.http.delete(`${this.apiUrl}/${deckId}/verses/${verseCodes[0]}`);
+    } else {
+      // Use multiple verse removal endpoint
+      return this.http.post(`${this.apiUrl}/${deckId}/verses/remove-multiple`, verseCodes);
+    }
   }
 
   reorderDeckVerses(deckId: number, verseOrders: any[]): Observable<any> {

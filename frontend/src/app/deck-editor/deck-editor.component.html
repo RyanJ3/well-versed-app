@@ -1,0 +1,159 @@
+<!-- frontend/src/app/deck-editor/deck-editor.component.html -->
+<div class="deck-editor-container">
+  <!-- Header -->
+  <div class="editor-header">
+    <button class="back-button" (click)="goBack()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+      Back to Decks
+    </button>
+    
+    <h1 class="editor-title">Edit Deck: {{ deck?.name }}</h1>
+    
+    <div class="header-actions">
+      <button class="save-button" (click)="updateDeckInfo()" *ngIf="editMode === 'info'" [disabled]="isSaving">
+        <span *ngIf="!isSaving">Save Info</span>
+        <span *ngIf="isSaving">Saving...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-navigation">
+    <button 
+      class="tab-button" 
+      [class.active]="editMode === 'verses'"
+      (click)="editMode = 'verses'">
+      Manage Verses
+    </button>
+    <button 
+      class="tab-button"
+      [class.active]="editMode === 'info'"
+      (click)="editMode = 'info'">
+      Deck Settings
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading deck...</p>
+  </div>
+
+  <!-- Deck Info Tab -->
+  <div *ngIf="!isLoading && editMode === 'info'" class="tab-content">
+    <div class="form-section">
+      <div class="form-group">
+        <label for="deck-name">Deck Name</label>
+        <input 
+          id="deck-name"
+          type="text" 
+          [(ngModel)]="deckName" 
+          placeholder="Enter deck name..."
+          class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="deck-description">Description</label>
+        <textarea 
+          id="deck-description"
+          [(ngModel)]="deckDescription" 
+          placeholder="Enter deck description..."
+          rows="4"
+          class="form-control"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input 
+            type="checkbox" 
+            [(ngModel)]="isDeckPublic">
+          <span>Make this deck public</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verses Tab -->
+  <div *ngIf="!isLoading && editMode === 'verses'" class="tab-content">
+    <!-- Search Section -->
+    <div class="search-section">
+      <h2>Add Verses to Deck</h2>
+      <div class="search-container">
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (keyup.enter)="searchVerses()"
+          placeholder="Search by book name or reference..."
+          class="search-input">
+        <button class="search-button" (click)="searchVerses()" [disabled]="isSearching">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Search Results -->
+      <div *ngIf="searchResults.length > 0" class="search-results">
+        <h3>Search Results</h3>
+        <div class="verse-list">
+          <div *ngFor="let result of searchResults" class="verse-item" [class.selected]="result.isSelected">
+            <div class="verse-content">
+              <div class="verse-reference">{{ result.reference }}</div>
+              <div class="verse-text">{{ result.text }}</div>
+            </div>
+            <button 
+              class="add-button" 
+              (click)="toggleSearchVerse(result)"
+              [class.remove]="result.isSelected">
+              <span *ngIf="!result.isSelected">Add</span>
+              <span *ngIf="result.isSelected">Remove</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Current Verses Section -->
+    <div class="current-verses-section">
+      <div class="section-header">
+        <h2>Current Verses ({{ deckVerses.length }})</h2>
+        <button 
+          class="remove-selected-button" 
+          (click)="removeSelectedVerses()"
+          [disabled]="selectedVerses.size === 0">
+          Remove Selected ({{ selectedVerses.size }})
+        </button>
+      </div>
+
+      <div *ngIf="deckVerses.length === 0" class="empty-state">
+        <p>No verses in this deck yet. Use the search above to add verses.</p>
+      </div>
+
+      <div *ngIf="deckVerses.length > 0" class="verse-list">
+        <div *ngFor="let verse of deckVerses" 
+             class="verse-item" 
+             [class.selected]="selectedVerses.has(verse.verse_code)">
+          <input 
+            type="checkbox" 
+            [checked]="selectedVerses.has(verse.verse_code)"
+            (change)="toggleVerseSelection(verse.verse_code)"
+            class="verse-checkbox">
+          <div class="verse-content">
+            <div class="verse-reference">{{ verse.reference }}</div>
+            <div class="verse-text">{{ verse.text }}</div>
+          </div>
+          <button 
+            class="remove-button" 
+            (click)="removeVerseFromDeck(verse.verse_code)"
+            title="Remove verse">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

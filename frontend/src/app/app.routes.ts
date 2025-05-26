@@ -6,6 +6,7 @@ import { HomeComponent } from './home/home.component';
 import { StatsComponent } from './stats/stats.component';
 import { FlashcardComponent } from './flashcard/flashcard.component';
 import { StudyComponent } from './study/study.component';
+import { DeckEditorComponent } from './deck-editor/deck-editor.component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent }, // Home page
@@ -14,6 +15,7 @@ export const routes: Routes = [
   { path: 'stats', component: StatsComponent }, // Stats page
   { path: 'flashcards', component: FlashcardComponent }, // Flashcard decks page
   { path: 'flashcards/study/:deckId', component: StudyComponent }, // Study interface
+  { path: 'deck-editor/:deckId', component: DeckEditorComponent }, // Deck editor
   // Other routes...
   { path: '**', redirectTo: '' },
 ];
