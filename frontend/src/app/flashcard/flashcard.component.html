@@ -1,6 +1,18 @@
 <!-- frontend/src/app/flashcard/flashcard.component.html -->
 <div class="flashcard-container">
-  <h1>Flashcard Decks</h1>
+  <div class="page-header">
+    <h1>Flashcard Decks</h1>
+    
+    <!-- Demo mode toggle -->
+    <div class="demo-mode-toggle">
+      <label class="toggle-label">
+        <input type="checkbox" [checked]="useDemoData" (change)="toggleDemoMode()">
+        <span class="toggle-slider"></span>
+        Demo Mode
+      </label>
+      <span class="demo-indicator" *ngIf="useDemoData">🎭 Using Demo Data</span>
+    </div>
+  </div>
 
   <!-- Tab Navigation -->
   <div class="tab-navigation">
@@ -8,19 +20,19 @@
       class="tab-button" 
       [class.active]="activeTab === 'my-decks'"
       (click)="setActiveTab('my-decks')">
-      My Decks
+      My Decks <span class="count">({{ myDecks.length }})</span>
     </button>
     <button 
       class="tab-button"
       [class.active]="activeTab === 'public'"
       (click)="setActiveTab('public')">
-      Public Decks
+      Public Decks <span class="count">({{ publicDecks.length }})</span>
     </button>
     <button 
       class="tab-button"
       [class.active]="activeTab === 'saved'"
       (click)="setActiveTab('saved')">
-      Saved Decks
+      Saved Decks <span class="count">({{ savedDecks.length }})</span>
     </button>
   </div>
 
@@ -33,7 +45,11 @@
 
   <!-- Create Deck Form -->
   <div class="create-deck-form" *ngIf="showCreateForm">
-    <h2>Create New Deck</h2>
+    <div class="form-header">
+      <h2>Create New Deck</h2>
+      <button class="close-button" (click)="toggleCreateForm()">×</button>
+    </div>
+    
     <form (ngSubmit)="createDeck()">
       <div class="form-group">
         <label for="deck-name">Deck Name *</label>
@@ -76,20 +92,22 @@
       </div>
 
       <div class="form-group checkbox-group">
-        <label>
+        <label class="checkbox-label">
           <input 
             type="checkbox" 
             [(ngModel)]="newDeck.is_public" 
             name="is_public">
+          <span class="checkmark"></span>
           Make deck public
         </label>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="submit-button" [disabled]="!newDeck.name.trim() || isLoading">
-          Create Deck
+        <button type="submit" class="btn btn-primary" [disabled]="!newDeck.name.trim() || isLoading">
+          <span *ngIf="!isLoading">Create Deck</span>
+          <span *ngIf="isLoading">Creating...</span>
         </button>
-        <button type="button" class="cancel-button" (click)="toggleCreateForm()">
+        <button type="button" class="btn btn-secondary" (click)="toggleCreateForm()">
           Cancel
         </button>
       </div>
@@ -97,35 +115,63 @@
   </div>
 
   <!-- Loading State -->
-  <div class="loading-container" *ngIf="isLoading">
+  <div class="loading-container" *ngIf="isLoading && !useDemoData">
     <div class="loading-spinner"></div>
     <p>Loading decks...</p>
   </div>
 
+  <!-- Success message for demo mode -->
+  <div class="demo-success" *ngIf="useDemoData && activeTab === 'my-decks'">
+    <div class="demo-message">
+      <span class="demo-icon">✨</span>
+      Demo mode is active! Try creating, editing, or deleting decks to see the interface in action.
+    </div>
+  </div>
+
   <!-- Decks Grid -->
-  <div class="decks-grid" *ngIf="!isLoading">
+  <div class="decks-grid" *ngIf="!isLoading || useDemoData">
     <!-- Empty State -->
     <div class="empty-state" *ngIf="getDisplayDecks().length === 0">
-      <p *ngIf="activeTab === 'my-decks'">You haven't created any decks yet.</p>
-      <p *ngIf="activeTab === 'public'">No public decks available.</p>
-      <p *ngIf="activeTab === 'saved'">You haven't saved any decks yet.</p>
+      <div class="empty-icon">📚</div>
+      <h3>No decks found</h3>
+      <p *ngIf="activeTab === 'my-decks'">You haven't created any decks yet. Create your first deck to get started!</p>
+      <p *ngIf="activeTab === 'public'">No public decks are available at the moment.</p>
+      <p *ngIf="activeTab === 'saved'">You haven't saved any decks yet. Browse public decks to find some to save!</p>
+      <button *ngIf="activeTab === 'my-decks'" class="btn btn-primary" (click)="toggleCreateForm()">
+        Create Your First Deck
+      </button>
     </div>
 
     <!-- Deck Cards -->
-    <div class="deck-card" *ngFor="let deck of getDisplayDecks()">
+    <div class="deck-card" *ngFor="let deck of getDisplayDecks(); trackBy: trackByDeckId">
       <div class="deck-header">
         <h3 class="deck-name">{{ deck.name }}</h3>
-        <span class="deck-privacy" [class.public]="deck.is_public">
-          {{ deck.is_public ? 'Public' : 'Private' }}
-        </span>
+        <div class="deck-meta">
+          <span class="deck-privacy" [class.public]="deck.is_public">
+            {{ deck.is_public ? 'Public' : 'Private' }}
+          </span>
+          <span class="deck-date">{{ deck.created_at | date:'shortDate' }}</span>
+        </div>
       </div>
 
       <p class="deck-description">{{ deck.description || 'No description' }}</p>
 
-      <div class="deck-meta">
-        <span class="verse-count">{{ deck.verse_count }} verses</span>
-        <span class="creator" *ngIf="activeTab !== 'my-decks'">by {{ deck.creator_name }}</span>
-        <span class="save-count" *ngIf="deck.is_public">{{ deck.save_count }} saves</span>
+      <div class="deck-stats">
+        <div class="stat">
+          <span class="stat-icon">📖</span>
+          <span class="stat-value">{{ deck.verse_count }}</span>
+          <span class="stat-label">verses</span>
+        </div>
+        <div class="stat" *ngIf="activeTab !== 'my-decks'">
+          <span class="stat-icon">👤</span>
+          <span class="stat-value">{{ deck.creator_name }}</span>
+          <span class="stat-label">by</span>
+        </div>
+        <div class="stat" *ngIf="deck.is_public">
+          <span class="stat-icon">💾</span>
+          <span class="stat-value">{{ deck.save_count }}</span>
+          <span class="stat-label">saves</span>
+        </div>
       </div>
 
       <div class="deck-tags" *ngIf="deck.tags && deck.tags.length > 0">
@@ -135,24 +181,38 @@
       <div class="deck-actions">
         <!-- My Decks Actions -->
         <ng-container *ngIf="activeTab === 'my-decks'">
-          <button class="action-button primary">Study</button>
-          <button class="action-button">Edit</button>
-          <button class="action-button danger" (click)="deleteDeck(deck.deck_id)">Delete</button>
+          <button class="action-button primary">
+            <span class="button-icon">🎯</span>
+            Study
+          </button>
+          <button class="action-button">
+            <span class="button-icon">✏️</span>
+            Edit
+          </button>
+          <button class="action-button danger" (click)="deleteDeck(deck.deck_id)">
+            <span class="button-icon">🗑️</span>
+            Delete
+          </button>
         </ng-container>
 
         <!-- Public/Saved Decks Actions -->
         <ng-container *ngIf="activeTab !== 'my-decks'">
-          <button class="action-button primary">Study</button>
+          <button class="action-button primary">
+            <span class="button-icon">🎯</span>
+            Study
+          </button>
           <button 
             class="action-button"
             *ngIf="!deck.is_saved"
             (click)="saveDeck(deck)">
+            <span class="button-icon">💾</span>
             Save to Collection
           </button>
           <button 
             class="action-button danger"
             *ngIf="deck.is_saved"
             (click)="unsaveDeck(deck)">
+            <span class="button-icon">💔</span>
             Remove from Collection
           </button>
         </ng-container>
