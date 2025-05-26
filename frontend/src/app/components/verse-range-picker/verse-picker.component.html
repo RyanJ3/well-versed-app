@@ -1,0 +1,124 @@
+<!-- frontend/src/app/components/verse-picker/verse-picker.component.html -->
+<div class="verse-picker" [ngClass]="'theme-' + theme">
+  <!-- Mode Selector -->
+  <div class="mode-selector">
+    <button 
+      class="mode-option" 
+      [class.active]="mode === 'single'"
+      (click)="onModeChange('single')">
+      Single Verse
+    </button>
+    <button 
+      class="mode-option" 
+      [class.active]="mode === 'range'"
+      (click)="onModeChange('range')">
+      Verse Range
+    </button>
+  </div>
+
+  <!-- Picker Controls -->
+  <div class="picker-container">
+    <!-- Start/Single Verse Selection -->
+    <div class="picker-group start-group">
+      <label class="group-label">
+        {{ mode === 'single' ? 'Select Verse' : 'Start Verse' }}
+      </label>
+      
+      <div class="picker-controls">
+        <div class="control-group">
+          <label class="control-label">Book</label>
+          <select 
+            [(ngModel)]="selectedBook" 
+            (ngModelChange)="onBookChange()"
+            class="select-control book-select">
+            <option *ngFor="let book of books" [ngValue]="book">
+              {{ book.name }}
+            </option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Chapter</label>
+          <select 
+            [(ngModel)]="selectedChapter" 
+            (ngModelChange)="onChapterChange()"
+            class="select-control">
+            <option *ngFor="let chapter of chapters" [value]="chapter">
+              {{ chapter }}
+            </option>
+          </select>
+        </div>
+
+        <span class="separator">:</span>
+
+        <div class="control-group">
+          <label class="control-label">Verse</label>
+          <select 
+            [(ngModel)]="selectedVerse" 
+            (ngModelChange)="onVerseChange()"
+            class="select-control">
+            <option *ngFor="let verse of verses" [value]="verse">
+              {{ verse }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Range Arrow -->
+    <div class="range-connector" *ngIf="mode === 'range'">
+      <span class="arrow">→</span>
+    </div>
+
+    <!-- End Verse Selection (Range Mode) -->
+    <div class="picker-group end-group" *ngIf="mode === 'range'">
+      <label class="group-label">End Verse</label>
+      
+      <div class="picker-controls">
+        <div class="control-group">
+          <label class="control-label">Chapter</label>
+          <select 
+            [(ngModel)]="selectedEndChapter" 
+            (ngModelChange)="onEndChapterChange()"
+            class="select-control">
+            <option *ngFor="let chapter of endChapters" [value]="chapter">
+              {{ chapter }}
+            </option>
+          </select>
+        </div>
+
+        <span class="separator">:</span>
+
+        <div class="control-group">
+          <label class="control-label">Verse</label>
+          <select 
+            [(ngModel)]="selectedEndVerse" 
+            (ngModelChange)="onEndVerseChange()"
+            class="select-control">
+            <option *ngFor="let verse of endVerses" [value]="verse">
+              {{ verse }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Selection Display -->
+  <div class="selection-display">
+    <div class="reference-display">
+      <span class="reference-text">
+        {{ selectedBook?.name }} {{ selectedChapter }}:{{ selectedVerse }}<!--
+        --><span *ngIf="mode === 'range' && (selectedEndChapter !== selectedChapter || selectedEndVerse !== selectedVerse)"><!--
+          --><span *ngIf="selectedEndChapter === selectedChapter">-{{ selectedEndVerse }}</span><!--
+          --><span *ngIf="selectedEndChapter !== selectedChapter">-{{ selectedEndChapter }}:{{ selectedEndVerse }}</span><!--
+        --></span>
+      </span>
+    </div>
+    
+    <div class="verse-count" *ngIf="mode === 'range'">
+      <span class="count-number">{{ verseCount }}</span>
+      <span class="count-label">{{ verseCount === 1 ? 'verse' : 'verses' }} selected</span>
+    </div>
+  </div>
+</div>

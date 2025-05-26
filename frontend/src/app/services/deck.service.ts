@@ -12,12 +12,6 @@ export interface DeckCreate {
   tags?: string[];
 }
 
-export interface DeckUpdate {
-  name?: string;
-  description?: string;
-  is_public?: boolean;
-}
-
 export interface DeckResponse {
   deck_id: number;
   creator_id: number;
@@ -28,13 +22,9 @@ export interface DeckResponse {
   save_count: number;
   created_at: string;
   updated_at: string;
-  verse_count: number;
+  card_count: number; // Changed from verse_count
   tags: string[];
   is_saved: boolean;
-}
-
-export interface DeckDetailResponse extends DeckResponse {
-  verses: any[];
 }
 
 export interface DeckListResponse {
@@ -42,16 +32,8 @@ export interface DeckListResponse {
   decks: DeckResponse[];
 }
 
-export interface DeckProgressResponse {
-  deck_id: number;
-  deck_name: string;
-  total_verses: number;
-  memorized_verses: number;
-  progress_percentage: number;
-  confidence_breakdown: Record<number, number>;
-}
-
-export interface VerseWithText {
+// Card-related interfaces
+export interface VerseInCard {
   verse_id: number;
   verse_code: string;
   book_id: number;
@@ -60,19 +42,23 @@ export interface VerseWithText {
   verse_number: number;
   reference: string;
   text: string;
+  verse_order: number;
+}
+
+export interface CardWithVerses {
+  card_id: number;
+  card_type: string;
+  reference: string;
+  verses: VerseInCard[];
   confidence_score?: number;
   last_reviewed?: string;
 }
 
-export interface DeckVersesResponse {
+export interface DeckCardsResponse {
   deck_id: number;
   deck_name: string;
-  total_verses: number;
-  verses: VerseWithText[];
-}
-
-export interface DeckDetailResponse extends DeckResponse {
-  verses: any[];
+  total_cards: number;
+  cards: CardWithVerses[];
 }
 
 @Injectable({
@@ -83,76 +69,46 @@ export class DeckService {
 
   constructor(private http: HttpClient) {}
 
-  // CRUD operations
   createDeck(deck: DeckCreate): Observable<DeckResponse> {
     return this.http.post<DeckResponse>(this.apiUrl, deck);
   }
 
-  getDeck(deckId: number): Observable<DeckDetailResponse> {
-    return this.http.get<DeckDetailResponse>(`${this.apiUrl}/${deckId}`);
+  getUserDecks(userId: number): Observable<DeckListResponse> {
+    return this.http.get<DeckListResponse>(`${this.apiUrl}/user/${userId}`);
   }
 
-  updateDeck(deckId: number, updates: DeckUpdate): Observable<DeckResponse> {
+  getPublicDecks(skip: number = 0, limit: number = 20): Observable<DeckListResponse> {
+    return this.http.get<DeckListResponse>(`${this.apiUrl}/public?skip=${skip}&limit=${limit}`);
+  }
+
+  getDeck(deckId: number): Observable<DeckResponse> {
+    return this.http.get<DeckResponse>(`${this.apiUrl}/${deckId}`);
+  }
+
+  getDeckCards(deckId: number, userId: number): Observable<DeckCardsResponse> {
+    return this.http.get<DeckCardsResponse>(`${this.apiUrl}/${deckId}/verses?user_id=${userId}`);
+  }
+
+  addVersesToDeck(deckId: number, verseCodes: string[], reference?: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${deckId}/verses`, {
+      verse_codes: verseCodes,
+      reference: reference
+    });
+  }
+
+  removeCardFromDeck(deckId: number, cardId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${deckId}/cards/${cardId}`);
+  }
+
+  removeMultipleCardsFromDeck(deckId: number, cardIds: number[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${deckId}/cards/remove-multiple`, cardIds);
+  }
+
+  updateDeck(deckId: number, updates: any): Observable<DeckResponse> {
     return this.http.put<DeckResponse>(`${this.apiUrl}/${deckId}`, updates);
   }
 
   deleteDeck(deckId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${deckId}`);
-  }
-
-  // User decks
-  getUserDecks(userId: number): Observable<DeckListResponse> {
-    return this.http.get<DeckListResponse>(`${this.apiUrl}/user/${userId}`);
-  }
-
-  // Public decks
-  getPublicDecks(skip = 0, limit = 20, tag?: string): Observable<DeckListResponse> {
-    let url = `${this.apiUrl}/public?skip=${skip}&limit=${limit}`;
-    if (tag) {
-      url += `&tag=${encodeURIComponent(tag)}`;
-    }
-    return this.http.get<DeckListResponse>(url);
-  }
-
-  // Save/unsave
-  saveDeck(deckId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${deckId}/save`, {});
-  }
-
-  unsaveDeck(deckId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${deckId}/save`);
-  }
-
-  getSavedDecks(userId: number): Observable<DeckListResponse> {
-    return this.http.get<DeckListResponse>(`${this.apiUrl}/saved/${userId}`);
-  }
-
-// Verse management
-  addVersesToDeck(deckId: number, verseCodes: string[]): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${deckId}/verses`, verseCodes);
-  }
-
-  removeVersesFromDeck(deckId: number, verseCodes: string[]): Observable<any> {
-    if (verseCodes.length === 1) {
-      // Use single verse removal endpoint
-      return this.http.delete(`${this.apiUrl}/${deckId}/verses/${verseCodes[0]}`);
-    } else {
-      // Use multiple verse removal endpoint
-      return this.http.post(`${this.apiUrl}/${deckId}/verses/remove-multiple`, verseCodes);
-    }
-  }
-
-  reorderDeckVerses(deckId: number, verseOrders: any[]): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${deckId}/verses/order`, { verse_orders: verseOrders });
-  }
-
-  // Progress
-  getDeckProgress(deckId: number): Observable<DeckProgressResponse> {
-    return this.http.get<DeckProgressResponse>(`${this.apiUrl}/${deckId}/progress`);
-  }
-
-  // Get deck verses with text
-  getDeckVerses(deckId: number, userId: number): Observable<DeckVersesResponse> {
-    return this.http.get<DeckVersesResponse>(`${this.apiUrl}/${deckId}/verses?user_id=${userId}`);
   }
 }

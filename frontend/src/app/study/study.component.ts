@@ -46,28 +46,31 @@ export class StudyComponent implements OnInit {
     });
   }
 
-  loadDeckVerses() {
+    loadDeckVerses() {
     this.isLoading = true;
-    this.deckService.getDeckVerses(this.deckId, this.userId).subscribe({
-      next: (response: any) => {
+    this.deckService.getDeckCards(this.deckId, this.userId).subscribe({
+        next: (response: any) => {
         this.deckName = response.deck_name;
-        this.verses = response.verses.map((v: any) => ({
-          ...v,
-          confidence_score: v.confidence_score || 50, // Default to 50 if no score
-          isRevealed: false
-        }));
+        // Flatten cards to verses for study mode
+        this.verses = response.cards.flatMap((card: any) => 
+            card.verses.map((verse: any) => ({
+            ...verse,
+            confidence_score: card.confidence_score || 50,
+            isRevealed: false
+            }))
+        );
         this.orderVersesBySpacedRepetition();
         this.isLoading = false;
-      },
-      error: (error: any) => {
-        console.error('Error loading deck verses:', error);
-        this.error = 'Failed to load deck verses';
+        },
+        error: (error: any) => {
+        console.error('Error loading deck cards:', error);
+        this.error = 'Failed to load deck cards';
         this.isLoading = false;
-      }
+        }
     });
-  }
+    }
 
-  orderVersesBySpacedRepetition() {
+    orderVersesBySpacedRepetition() {
     // Simple spaced repetition ordering
     // Prioritize: low confidence scores and older reviews
     this.verses.sort((a, b) => {
@@ -145,4 +148,5 @@ export class StudyComponent implements OnInit {
       console.log(`Confidence changed to ${this.currentVerse.confidence_score}%`);
       // TODO: Save to backend
     }
-}}
+}
+}

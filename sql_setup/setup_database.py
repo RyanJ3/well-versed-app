@@ -184,7 +184,8 @@ def main():
         '02-create-schema.sql',
         '05-create-decks.sql',
         '06-create-confidence-tracking.sql',
-        '07-test-data-generation.sql'
+        '07-test-data-generation.sql',
+        '08-create-deck-cards.sql'
     ]
     
     conn = get_db_connection()

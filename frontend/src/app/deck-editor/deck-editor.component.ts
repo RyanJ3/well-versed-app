@@ -3,32 +3,24 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DeckService, DeckResponse, VerseWithText } from '../services/deck.service';
+import { DeckService, DeckResponse, CardWithVerses } from '../services/deck.service';
 import { BibleService } from '../services/bible.service';
-
-interface SearchResult {
-  verse_code: string;
-  reference: string;
-  text: string;
-  book_id: number;
-  chapter_number: number;
-  verse_number: number;
-  isSelected: boolean;
-}
+import { VersePickerComponent, VerseSelection } from '../components/verse-range-picker/verse-range-picker.component';
 
 @Component({
   selector: 'app-deck-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, VersePickerComponent],
   templateUrl: './deck-editor.component.html',
   styleUrls: ['./deck-editor.component.scss']
 })
 export class DeckEditorComponent implements OnInit {
   deckId: number = 0;
   deck: DeckResponse | null = null;
-  deckVerses: VerseWithText[] = [];
+  deckCards: CardWithVerses[] = [];
   isLoading = true;
   isSaving = false;
+  isAddingVerses = false;
   userId = 1; // TODO: Get from UserService
 
   // Edit mode
@@ -39,13 +31,11 @@ export class DeckEditorComponent implements OnInit {
   deckDescription = '';
   isDeckPublic = false;
 
-  // Search functionality
-  searchQuery = '';
-  searchResults: SearchResult[] = [];
-  isSearching = false;
+  // Verse picker selection
+  currentSelection: VerseSelection | null = null;
   
-  // Selected verses for bulk operations
-  selectedVerses: Set<string> = new Set();
+  // Selected cards for bulk operations
+  selectedCards: Set<number> = new Set();
 
   constructor(
     private route: ActivatedRoute,
@@ -58,7 +48,7 @@ export class DeckEditorComponent implements OnInit {
     this.route.params.subscribe(params => {
       this.deckId = +params['deckId'];
       this.loadDeck();
-      this.loadDeckVerses();
+      this.loadDeckCards();
     });
   }
 
@@ -76,15 +66,15 @@ export class DeckEditorComponent implements OnInit {
     });
   }
 
-  loadDeckVerses() {
+  loadDeckCards() {
     this.isLoading = true;
-    this.deckService.getDeckVerses(this.deckId, this.userId).subscribe({
+    this.deckService.getDeckCards(this.deckId, this.userId).subscribe({
       next: (response) => {
-        this.deckVerses = response.verses;
+        this.deckCards = response.cards;
         this.isLoading = false;
       },
       error: (error) => {
-        console.error('Error loading deck verses:', error);
+        console.error('Error loading deck cards:', error);
         this.isLoading = false;
       }
     });
@@ -113,147 +103,96 @@ export class DeckEditorComponent implements OnInit {
     });
   }
 
-searchVerses() {
-    if (!this.searchQuery.trim()) {
-      this.searchResults = [];
+  onVerseSelectionChanged(selection: VerseSelection) {
+    this.currentSelection = selection;
+  }
+
+  addSelectedVerses() {
+    if (!this.currentSelection || this.currentSelection.verseCodes.length === 0) {
       return;
     }
 
-    this.isSearching = true;
-    const query = this.searchQuery.toLowerCase();
-    const bibleData = this.bibleService.getBibleData();
-    this.searchResults = [];
-    
-    // Parse search query - could be book name, reference, or keyword
-    const referenceMatch = this.searchQuery.match(/^(.+?)\s+(\d+):?(\d*)-?(\d*)$/);
-    
-    if (referenceMatch) {
-      // Search by reference (e.g., "John 3:16" or "Psalm 23:1-6")
-      const bookQuery = referenceMatch[1].toLowerCase();
-      const chapter = parseInt(referenceMatch[2]);
-      const startVerse = referenceMatch[3] ? parseInt(referenceMatch[3]) : 1;
-      const endVerse = referenceMatch[4] ? parseInt(referenceMatch[4]) : startVerse;
-      
-      // Find matching book
-      const matchingBook = bibleData.books.find(book => 
-        book.name.toLowerCase().includes(bookQuery)
-      );
-      
-      if (matchingBook && chapter <= matchingBook.chapters.length) {
-        const chapterData = matchingBook.chapters[chapter - 1];
-        for (let v = startVerse; v <= Math.min(endVerse, chapterData.verses.length); v++) {
-          const verseCode = `${matchingBook.id}-${chapter}-${v}`;
-          this.searchResults.push({
-            verse_code: verseCode,
-            reference: `${matchingBook.name} ${chapter}:${v}`,
-            text: this.getVerseText(matchingBook.name, chapter, v),
-            book_id: matchingBook.id,
-            chapter_number: chapter,
-            verse_number: v,
-            isSelected: this.isVerseInDeck(verseCode)
-          });
+    // Check if any verses are already in the deck
+    const existingVerseCodes = new Set();
+    this.deckCards.forEach(card => {
+      card.verses.forEach(verse => {
+        existingVerseCodes.add(verse.verse_code);
+      });
+    });
+
+    const newVerseCodes = this.currentSelection.verseCodes.filter(code => 
+      !existingVerseCodes.has(code)
+    );
+
+    if (newVerseCodes.length === 0) {
+      alert('All selected verses are already in this deck.');
+      return;
+    }
+
+    this.isAddingVerses = true;
+    this.deckService.addVersesToDeck(this.deckId, newVerseCodes, this.currentSelection.reference).subscribe({
+      next: () => {
+        this.loadDeckCards();
+        this.isAddingVerses = false;
+        
+        // Show success message
+        const addedCount = newVerseCodes.length;
+        const skippedCount = this.currentSelection!.verseCodes.length - addedCount;
+        let message = `Added flashcard with ${addedCount} verse${addedCount !== 1 ? 's' : ''}.`;
+        if (skippedCount > 0) {
+          message += ` (${skippedCount} verses already in deck)`;
         }
-      }
-    } else {
-      // Search by book name
-      for (const book of bibleData.books) {
-        if (book.name.toLowerCase().includes(query)) {
-          // Show first chapter's first 5 verses as suggestions
-          const chapter = 1;
-          const maxVerses = Math.min(5, book.chapters[0].verses.length);
-          
-          for (let v = 1; v <= maxVerses; v++) {
-            const verseCode = `${book.id}-${chapter}-${v}`;
-            this.searchResults.push({
-              verse_code: verseCode,
-              reference: `${book.name} ${chapter}:${v}`,
-              text: this.getVerseText(book.name, chapter, v),
-              book_id: book.id,
-              chapter_number: chapter,
-              verse_number: v,
-              isSelected: this.isVerseInDeck(verseCode)
-            });
-          }
-        }
-      }
-    }
-    
-    this.isSearching = false;
-  }
-
-   private getVerseText(bookName: string, chapter: number, verse: number): string {
-    // In production, this would fetch from a Bible API or database
-    // For now, return informative placeholder text
-    const verseTexts: { [key: string]: string } = {
-      'John 3:16': 'For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.',
-      'Psalm 23:1': 'The Lord is my shepherd, I lack nothing.',
-      'Genesis 1:1': 'In the beginning God created the heavens and the earth.',
-      'Romans 3:23': 'For all have sinned and fall short of the glory of God.',
-      'Philippians 4:13': 'I can do all this through him who gives me strength.'
-    };
-    
-    const key = `${bookName} ${chapter}:${verse}`;
-    return verseTexts[key] || `[Verse text for ${key} would appear here]`;
-  }
-  
-  isVerseInDeck(verseCode: string): boolean {
-    return this.deckVerses.some(v => v.verse_code === verseCode);
-  }
-
-  toggleSearchVerse(result: SearchResult) {
-    result.isSelected = !result.isSelected;
-    
-    if (result.isSelected) {
-      this.addVerseToDeck(result.verse_code);
-    } else {
-      this.removeVerseFromDeck(result.verse_code);
-    }
-  }
-
-  addVerseToDeck(verseCode: string) {
-    this.deckService.addVersesToDeck(this.deckId, [verseCode]).subscribe({
-      next: () => {
-        this.loadDeckVerses();
+        alert(message);
       },
       error: (error) => {
-        console.error('Error adding verse:', error);
+        console.error('Error adding verses:', error);
+        this.isAddingVerses = false;
+        alert('Error adding verses to deck. Please try again.');
       }
     });
   }
 
-  removeVerseFromDeck(verseCode: string) {
-    this.deckService.removeVersesFromDeck(this.deckId, [verseCode]).subscribe({
+  removeCardFromDeck(cardId: number) {
+    this.deckService.removeCardFromDeck(this.deckId, cardId).subscribe({
       next: () => {
-        this.deckVerses = this.deckVerses.filter(v => v.verse_code !== verseCode);
-        this.selectedVerses.delete(verseCode);
+        this.deckCards = this.deckCards.filter(c => c.card_id !== cardId);
+        this.selectedCards.delete(cardId);
       },
       error: (error) => {
-        console.error('Error removing verse:', error);
+        console.error('Error removing card:', error);
       }
     });
   }
 
-  toggleVerseSelection(verseCode: string) {
-    if (this.selectedVerses.has(verseCode)) {
-      this.selectedVerses.delete(verseCode);
+  toggleCardSelection(cardId: number) {
+    if (this.selectedCards.has(cardId)) {
+      this.selectedCards.delete(cardId);
     } else {
-      this.selectedVerses.add(verseCode);
+      this.selectedCards.add(cardId);
     }
   }
 
-  removeSelectedVerses() {
-    if (this.selectedVerses.size === 0) return;
+  removeSelectedCards() {
+    if (this.selectedCards.size === 0) return;
     
-    const verseCodes = Array.from(this.selectedVerses);
-    this.deckService.removeVersesFromDeck(this.deckId, verseCodes).subscribe({
+    const cardIds = Array.from(this.selectedCards);
+    this.deckService.removeMultipleCardsFromDeck(this.deckId, cardIds).subscribe({
       next: () => {
-        this.deckVerses = this.deckVerses.filter(v => !this.selectedVerses.has(v.verse_code));
-        this.selectedVerses.clear();
+        this.deckCards = this.deckCards.filter(c => !this.selectedCards.has(c.card_id));
+        this.selectedCards.clear();
       },
       error: (error) => {
-        console.error('Error removing verses:', error);
+        console.error('Error removing cards:', error);
       }
     });
+  }
+
+  getCardVersesText(card: CardWithVerses): string {
+    if (card.verses.length === 0) return 'No verses';
+    if (card.verses.length === 1) return card.verses[0].text;
+    
+    // For multiple verses, show first verse + indicator
+    return `${card.verses[0].text} ... (+${card.verses.length - 1} more verse${card.verses.length - 1 !== 1 ? 's' : ''})`;
   }
 
   goBack() {

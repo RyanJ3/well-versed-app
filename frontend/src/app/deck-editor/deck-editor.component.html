@@ -25,7 +25,7 @@
       class="tab-button" 
       [class.active]="editMode === 'verses'"
       (click)="editMode = 'verses'">
-      Manage Verses
+      Manage Cards
     </button>
     <button 
       class="tab-button"
@@ -75,79 +75,115 @@
     </div>
   </div>
 
-  <!-- Verses Tab -->
+  <!-- Cards Tab -->
   <div *ngIf="!isLoading && editMode === 'verses'" class="tab-content">
-    <!-- Search Section -->
-    <div class="search-section">
+    <!-- Verse Picker Section -->
+    <div class="verse-picker-section">
       <h2>Add Verses to Deck</h2>
-      <div class="search-container">
-        <input 
-          type="text" 
-          [(ngModel)]="searchQuery" 
-          (keyup.enter)="searchVerses()"
-          placeholder="Search by book name or reference..."
-          class="search-input">
-        <button class="search-button" (click)="searchVerses()" [disabled]="isSearching">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </button>
-      </div>
+      <p class="section-description">
+        Select individual verses or verse ranges to add as flashcards. Verse ranges will be saved as a single card.
+      </p>
+      
+      <app-verse-picker 
+        [theme]="'minimal'"
+        (selectionChanged)="onVerseSelectionChanged($event)">
+      </app-verse-picker>
 
-      <!-- Search Results -->
-      <div *ngIf="searchResults.length > 0" class="search-results">
-        <h3>Search Results</h3>
-        <div class="verse-list">
-          <div *ngFor="let result of searchResults" class="verse-item" [class.selected]="result.isSelected">
-            <div class="verse-content">
-              <div class="verse-reference">{{ result.reference }}</div>
-              <div class="verse-text">{{ result.text }}</div>
-            </div>
-            <button 
-              class="add-button" 
-              (click)="toggleSearchVerse(result)"
-              [class.remove]="result.isSelected">
-              <span *ngIf="!result.isSelected">Add</span>
-              <span *ngIf="result.isSelected">Remove</span>
-            </button>
+      <!-- Selection Preview -->
+      <div *ngIf="currentSelection" class="selection-preview">
+        <div class="preview-header">
+          <h3>Selection Preview</h3>
+          <div class="selection-info">
+            <span class="selection-reference">{{ currentSelection.reference }}</span>
+            <span class="selection-count">{{ currentSelection.verseCount }} verse{{ currentSelection.verseCount !== 1 ? 's' : '' }} → 1 card</span>
           </div>
+        </div>
+        
+        <div class="preview-actions">
+          <button 
+            class="add-verses-button" 
+            (click)="addSelectedVerses()"
+            [disabled]="isAddingVerses || currentSelection.verseCodes.length === 0">
+            <span *ngIf="!isAddingVerses">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Add as Flashcard
+            </span>
+            <span *ngIf="isAddingVerses">
+              Adding card...
+            </span>
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Current Verses Section -->
-    <div class="current-verses-section">
+    <!-- Current Cards Section -->
+    <div class="current-cards-section">
       <div class="section-header">
-        <h2>Current Verses ({{ deckVerses.length }})</h2>
+        <h2>Current Cards ({{ deckCards.length }})</h2>
         <button 
           class="remove-selected-button" 
-          (click)="removeSelectedVerses()"
-          [disabled]="selectedVerses.size === 0">
-          Remove Selected ({{ selectedVerses.size }})
+          (click)="removeSelectedCards()"
+          [disabled]="selectedCards.size === 0">
+          Remove Selected ({{ selectedCards.size }})
         </button>
       </div>
 
-      <div *ngIf="deckVerses.length === 0" class="empty-state">
-        <p>No verses in this deck yet. Use the search above to add verses.</p>
+      <div *ngIf="deckCards.length === 0" class="empty-state">
+        <div class="empty-icon">🃏</div>
+        <h3>No cards in this deck yet</h3>
+        <p>Use the verse picker above to add flashcards to your deck.</p>
       </div>
 
-      <div *ngIf="deckVerses.length > 0" class="verse-list">
-        <div *ngFor="let verse of deckVerses" 
-             class="verse-item" 
-             [class.selected]="selectedVerses.has(verse.verse_code)">
+      <div *ngIf="deckCards.length > 0" class="card-list">
+        <div *ngFor="let card of deckCards" 
+             class="card-item" 
+             [class.selected]="selectedCards.has(card.card_id)">
           <input 
             type="checkbox" 
-            [checked]="selectedVerses.has(verse.verse_code)"
-            (change)="toggleVerseSelection(verse.verse_code)"
-            class="verse-checkbox">
-          <div class="verse-content">
-            <div class="verse-reference">{{ verse.reference }}</div>
-            <div class="verse-text">{{ verse.text }}</div>
+            [checked]="selectedCards.has(card.card_id)"
+            (change)="toggleCardSelection(card.card_id)"
+            class="card-checkbox">
+          
+          <div class="card-content">
+            <div class="card-header">
+              <div class="card-reference">{{ card.reference }}</div>
+              <div class="card-type-badge" [class]="card.card_type">
+                {{ card.card_type === 'single_verse' ? 'Single Verse' : 'Verse Range' }}
+              </div>
+            </div>
+            
+            <div class="card-verses">
+              <div *ngIf="card.card_type === 'single_verse'" class="single-verse-text">
+                {{ card.verses[0]?.text }}
+              </div>
+              
+              <div *ngIf="card.card_type === 'verse_range'" class="verse-range-content">
+                <div class="verse-summary">
+                  {{ card.verses.length }} verses: {{ card.verses[0]?.reference }} 
+                  <span *ngIf="card.verses.length > 1">
+                    → {{ card.verses[card.verses.length - 1]?.reference }}
+                  </span>
+                </div>
+                <div class="first-verse-preview">
+                  "{{ card.verses[0]?.text }}"
+                  <span *ngIf="card.verses.length > 1" class="more-indicator">
+                    ... (+{{ card.verses.length - 1 }} more)
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="card.confidence_score !== null" class="confidence-display">
+              Confidence: {{ card.confidence_score }}%
+            </div>
           </div>
+          
           <button 
             class="remove-button" 
-            (click)="removeVerseFromDeck(verse.verse_code)"
-            title="Remove verse">
+            (click)="removeCardFromDeck(card.card_id)"
+            title="Remove card">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
