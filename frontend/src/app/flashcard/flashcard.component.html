@@ -2,16 +2,6 @@
 <div class="flashcard-container">
   <div class="page-header">
     <h1>Flashcard Decks</h1>
-    
-    <!-- Demo mode toggle -->
-    <div class="demo-mode-toggle">
-      <label class="toggle-label">
-        <input type="checkbox" [checked]="useDemoData" (change)="toggleDemoMode()">
-        <span class="toggle-slider"></span>
-        Demo Mode
-      </label>
-      <span class="demo-indicator" *ngIf="useDemoData">🎭 Using Demo Data</span>
-    </div>
   </div>
 
   <!-- Tab Navigation -->
@@ -115,21 +105,13 @@
   </div>
 
   <!-- Loading State -->
-  <div class="loading-container" *ngIf="isLoading && !useDemoData">
+  <div class="loading-container" *ngIf="isLoading">
     <div class="loading-spinner"></div>
     <p>Loading decks...</p>
   </div>
 
-  <!-- Success message for demo mode -->
-  <div class="demo-success" *ngIf="useDemoData && activeTab === 'my-decks'">
-    <div class="demo-message">
-      <span class="demo-icon">✨</span>
-      Demo mode is active! Try creating, editing, or deleting decks to see the interface in action.
-    </div>
-  </div>
-
   <!-- Decks Grid -->
-  <div class="decks-grid" *ngIf="!isLoading || useDemoData">
+  <div class="decks-grid" *ngIf="!isLoading">
     <!-- Empty State -->
     <div class="empty-state" *ngIf="getDisplayDecks().length === 0">
       <div class="empty-icon">📚</div>
@@ -150,11 +132,14 @@
           <span class="deck-privacy" [class.public]="deck.is_public">
             {{ deck.is_public ? 'Public' : 'Private' }}
           </span>
-          <span class="deck-date">{{ deck.created_at | date:'shortDate' }}</span>
         </div>
       </div>
 
       <p class="deck-description">{{ deck.description || 'No description' }}</p>
+
+      <div class="deck-info">
+        <div class="deck-date">{{ deck.created_at | date:'shortDate' }}</div>
+      </div>
 
       <div class="deck-stats">
         <div class="stat">
