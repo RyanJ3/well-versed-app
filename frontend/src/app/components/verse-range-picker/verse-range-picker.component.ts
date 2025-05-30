@@ -1,11 +1,12 @@
-// frontend/src/app/components/verse-picker/verse-picker.component.ts
+// frontend/src/app/components/verse-range-picker/verse-range-picker.component.ts
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BibleService } from '../../services/bible.service';
+import { UserService } from '../../services/user.service';
 
 export interface VerseSelection {
-  mode: 'single' | 'range';
+  mode: 'single' | 'range' | 'chapter';
   startVerse: {
     book: string;
     bookId: number;
@@ -30,9 +31,16 @@ export interface VerseSelection {
 })
 export class VersePickerComponent implements OnInit {
   @Input() theme: 'enhanced' | 'minimal' | 'cyberpunk' = 'enhanced';
+  @Input() showFilters = true;
+  @Input() minimumVerses = 0;
   @Output() selectionChanged = new EventEmitter<VerseSelection>();
 
-  mode: 'single' | 'range' = 'range';
+  mode: 'single' | 'range' | 'chapter' = 'range';
+  
+  // Filters
+  showMemorizedOnly = false;
+  userId = 1;
+  memorizedVerses: Set<string> = new Set();
   
   // Available options
   books: any[] = [];
@@ -50,11 +58,25 @@ export class VersePickerComponent implements OnInit {
 
   // Computed properties
   verseCount = 1;
+  isValidSelection = true;
+  validationMessage = '';
 
-  constructor(private bibleService: BibleService) {}
+  constructor(
+    private bibleService: BibleService,
+    private userService: UserService
+  ) {}
 
   ngOnInit() {
     this.loadBooks();
+    this.loadUserMemorizedVerses();
+    
+    // Get user ID
+    this.userService.currentUser$.subscribe(user => {
+      if (user) {
+        this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+        this.loadUserMemorizedVerses();
+      }
+    });
   }
 
   loadBooks() {
@@ -65,6 +87,16 @@ export class VersePickerComponent implements OnInit {
       this.selectedBook = this.books[0];
       this.loadChapters();
     }
+  }
+
+  loadUserMemorizedVerses() {
+    this.bibleService.getUserVerses(this.userId).subscribe(userVerses => {
+      this.memorizedVerses = new Set(
+        userVerses.map(v => 
+          `${v.verse.book_id}-${v.verse.chapter_number}-${v.verse.verse_number}`
+        )
+      );
+    });
   }
 
   onBookChange() {
@@ -140,8 +172,13 @@ export class VersePickerComponent implements OnInit {
     this.emitSelection();
   }
 
-  onModeChange(newMode: 'single' | 'range') {
+  onModeChange(newMode: 'single' | 'range' | 'chapter') {
     this.mode = newMode;
+    this.emitSelection();
+  }
+
+  toggleMemorizedFilter() {
+    this.showMemorizedOnly = !this.showMemorizedOnly;
     this.emitSelection();
   }
 
@@ -161,6 +198,17 @@ export class VersePickerComponent implements OnInit {
 
     if (this.mode === 'single') {
       verseCodes = [`${this.selectedBook.id}-${this.selectedChapter}-${this.selectedVerse}`];
+    } else if (this.mode === 'chapter') {
+      // Chapter mode - all verses in the chapter
+      const chapterData = this.selectedBook.chapters[this.selectedChapter - 1];
+      reference = `${this.selectedBook.name} ${this.selectedChapter}`;
+      
+      for (let v = 1; v <= chapterData.verses.length; v++) {
+        const verseCode = `${this.selectedBook.id}-${this.selectedChapter}-${v}`;
+        verseCodes.push(verseCode);
+      }
+      
+      verseCount = verseCodes.length;
     } else {
       // Range mode
       const endChapter = this.selectedEndChapter;
@@ -182,11 +230,27 @@ export class VersePickerComponent implements OnInit {
         const endV = ch === endChapter ? endVerse : this.selectedBook.chapters[ch - 1].verses.length;
         
         for (let v = startV; v <= endV; v++) {
-          verseCodes.push(`${this.selectedBook.id}-${ch}-${v}`);
+          const verseCode = `${this.selectedBook.id}-${ch}-${v}`;
+          verseCodes.push(verseCode);
         }
       }
       
       verseCount = verseCodes.length;
+    }
+
+    // Apply memorized filter if enabled
+    if (this.showMemorizedOnly) {
+      verseCodes = verseCodes.filter(code => this.memorizedVerses.has(code));
+      verseCount = verseCodes.length;
+    }
+
+    // Validate minimum verses
+    this.isValidSelection = true;
+    this.validationMessage = '';
+    
+    if (this.minimumVerses > 0 && this.mode === 'range' && verseCount < this.minimumVerses) {
+      this.isValidSelection = false;
+      this.validationMessage = `Please select at least ${this.minimumVerses} verses for range mode`;
     }
 
     this.verseCount = verseCount;

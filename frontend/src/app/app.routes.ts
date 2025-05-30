@@ -1,21 +1,21 @@
-// src/app/app.routes.ts
+// frontend/src/app/app.routes.ts
 import { Routes } from '@angular/router';
+import { HomeComponent } from './home/home.component';
 import { BibleTrackerComponent } from './bible-tracker/bible-tracker.component';
 import { ProfileComponent } from './profile/profile.component';
-import { HomeComponent } from './home/home.component';
-import { StatsComponent } from './stats/stats.component';
 import { FlashcardComponent } from './flashcard/flashcard.component';
 import { StudyComponent } from './study/study.component';
 import { DeckEditorComponent } from './deck-editor/deck-editor.component';
+import { FlowComponent } from './flow/flow.component';
 
 export const routes: Routes = [
-  { path: '', component: HomeComponent }, // Home page
-  { path: 'tracker', component: BibleTrackerComponent }, // Bible tracker page
-  { path: 'profile', component: ProfileComponent }, // Profile page
-  { path: 'stats', component: StatsComponent }, // Stats page
-  { path: 'flashcards', component: FlashcardComponent }, // Flashcard decks page
-  { path: 'flashcards/study/:deckId', component: StudyComponent }, // Study interface
-  { path: 'deck-editor/:deckId', component: DeckEditorComponent }, // Deck editor
-  // Other routes...
-  { path: '**', redirectTo: '' },
+  { path: '', component: HomeComponent },
+  { path: 'tracker', component: BibleTrackerComponent },
+  { path: 'profile', component: ProfileComponent },
+  { path: 'flashcard', component: FlashcardComponent },
+  { path: 'flashcards', component: FlashcardComponent },
+  { path: 'flashcards/study/:deckId', component: StudyComponent },
+  { path: 'deck-editor/:deckId', component: DeckEditorComponent },
+  { path: 'flow', component: FlowComponent },
+  { path: '**', redirectTo: '' }
 ];

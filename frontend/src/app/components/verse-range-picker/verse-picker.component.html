@@ -1,4 +1,4 @@
-<!-- frontend/src/app/components/verse-picker/verse-picker.component.html -->
+<!-- frontend/src/app/components/verse-range-picker/verse-picker.component.html -->
 <div class="verse-picker" [ngClass]="'theme-' + theme">
   <!-- Mode Selector -->
   <div class="mode-selector">
@@ -14,6 +14,24 @@
       (click)="onModeChange('range')">
       Verse Range
     </button>
+    <button 
+      class="mode-option" 
+      [class.active]="mode === 'chapter'"
+      (click)="onModeChange('chapter')">
+      Whole Chapter
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section" *ngIf="showFilters">
+    <label class="filter-option">
+      <input 
+        type="checkbox" 
+        [(ngModel)]="showMemorizedOnly"
+        (change)="toggleMemorizedFilter()">
+      <span class="checkbox-custom"></span>
+      Show memorized verses only
+    </label>
   </div>
 
   <!-- Picker Controls -->
@@ -21,7 +39,9 @@
     <!-- Start/Single Verse Selection -->
     <div class="picker-group start-group">
       <label class="group-label">
-        {{ mode === 'single' ? 'Select Verse' : 'Start Verse' }}
+        <span *ngIf="mode === 'single'">Select Verse</span>
+        <span *ngIf="mode === 'range'">Start Verse</span>
+        <span *ngIf="mode === 'chapter'">Select Chapter</span>
       </label>
       
       <div class="picker-controls">
@@ -49,9 +69,9 @@
           </select>
         </div>
 
-        <span class="separator">:</span>
+        <span class="separator" *ngIf="mode !== 'chapter'">:</span>
 
-        <div class="control-group">
+        <div class="control-group" *ngIf="mode !== 'chapter'">
           <label class="control-label">Verse</label>
           <select 
             [(ngModel)]="selectedVerse" 
@@ -104,21 +124,31 @@
     </div>
   </div>
 
+  <!-- Validation Message -->
+  <div class="validation-warning" *ngIf="!isValidSelection && validationMessage">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+    </svg>
+    {{ validationMessage }}
+  </div>
+
   <!-- Selection Display -->
   <div class="selection-display">
     <div class="reference-display">
       <span class="reference-text">
-        {{ selectedBook?.name }} {{ selectedChapter }}:{{ selectedVerse }}<!--
+        {{ selectedBook?.name }} {{ selectedChapter }}<!--
+        --><span *ngIf="mode === 'single'">:{{ selectedVerse }}</span><!--
         --><span *ngIf="mode === 'range' && (selectedEndChapter !== selectedChapter || selectedEndVerse !== selectedVerse)"><!--
-          --><span *ngIf="selectedEndChapter === selectedChapter">-{{ selectedEndVerse }}</span><!--
-          --><span *ngIf="selectedEndChapter !== selectedChapter">-{{ selectedEndChapter }}:{{ selectedEndVerse }}</span><!--
+          --><span *ngIf="selectedEndChapter === selectedChapter">:{{ selectedVerse }}-{{ selectedEndVerse }}</span><!--
+          --><span *ngIf="selectedEndChapter !== selectedChapter">:{{ selectedVerse }}-{{ selectedEndChapter }}:{{ selectedEndVerse }}</span><!--
         --></span>
       </span>
     </div>
     
-    <div class="verse-count" *ngIf="mode === 'range'">
+    <div class="verse-count">
       <span class="count-number">{{ verseCount }}</span>
       <span class="count-label">{{ verseCount === 1 ? 'verse' : 'verses' }} selected</span>
+      <span class="memorized-label" *ngIf="showMemorizedOnly">(memorized only)</span>
     </div>
   </div>
 </div>

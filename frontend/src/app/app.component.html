@@ -1,8 +1,9 @@
+<!-- frontend/src/app/app.component.html -->
 <div class="app-container">
   <header class="app-header">
     <div class="logo-container">
       <h1 class="app-title">
-        <a routerLink="/" class="app-title-text">Well Versed</a>
+        <span class="app-title-text">Well Versed</span>
       </h1>
     </div>
 
@@ -13,43 +14,27 @@
     </button>
 
     <nav class="app-nav" [class.active]="menuActive">
-      <a routerLink="/" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
-        (click)="closeMenu()">Home</a>
-      <a routerLink="/tracker" class="nav-link" routerLinkActive="active" (click)="closeMenu()">Tracker</a>
-      <a routerLink="/flashcards" class="nav-link" routerLinkActive="active">Flashcards</a>
+      <a routerLink="/" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" 
+         (click)="closeMenu()">Home</a>
 
-      <!-- User profile menu -->
-      <div class="user-profile-container" *ngIf="currentUser">
-        <button class="user-profile-button" (click)="toggleUserMenu()">
-          <div class="user-avatar">
-            <span>{{ currentUser.name }}</span>
-          </div>
-          <span class="user-name">{{ currentUser.name }}</span>
+      <a routerLink="/tracker" class="nav-link" routerLinkActive="active" (click)="closeMenu()">Tracker</a>
+
+      <!-- Memorize dropdown menu -->
+      <div class="nav-dropdown">
+        <button class="nav-link dropdown-toggle" [class.active]="memorizeMenuActive"
+          (click)="toggleMemorizeMenu($event)">
+          Memorize
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="dropdown-icon"
-            [class.rotate]="userMenuActive">
+            [class.rotate]="memorizeMenuActive">
             <path fill-rule="evenodd"
               d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
               clip-rule="evenodd" />
           </svg>
         </button>
 
-        <div class="user-menu-dropdown" [class.active]="userMenuActive">
-          <div class="user-menu-header">
-            <div class="user-menu-avatar">
-              <span>{{ currentUser.name }}</span>
-            </div>
-            <div class="user-menu-info">
-              <div class="user-menu-name">{{ currentUser.name }}</div>
-              <div class="user-menu-email">{{ currentUser.email }}</div>
-            </div>
-          </div>
-          <div class="user-menu-items">
-            <a routerLink="/profile" class="user-menu-item" routerLinkActive="active" (click)="closeUserMenu()">My
-              Profile</a>
-            <a routerLink="/stats" class="user-menu-item" routerLinkActive="active" (click)="closeUserMenu()">My
-              Stats</a>
-            <button class="user-menu-item logout-button" (click)="logout()">Logout</button>
-          </div>
+        <div class="dropdown-menu" [class.active]="memorizeMenuActive">
+          <a routerLink="/flow" class="dropdown-item" routerLinkActive="active" (click)="closeMenu()">FLOW</a>
+          <a routerLink="/flashcard" class="dropdown-item" routerLinkActive="active" (click)="closeMenu()">Flashcard</a>
         </div>
       </div>
     </nav>
@@ -58,8 +43,8 @@
   <main class="app-content">
     <router-outlet></router-outlet>
   </main>
-
+ 
   <footer class="app-footer">
-    <!-- Footer content here -->
+    <!--        <p>&copy; 2025 TODO WellVersed App. All rights reserved.</p>-->
   </footer>
 </div>
