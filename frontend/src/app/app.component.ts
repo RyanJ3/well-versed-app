@@ -1,28 +1,19 @@
-// src/app/app.component.ts
-import { Component, OnInit, HostListener  } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+// frontend/src/app/app.component.ts
+import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { User } from './models/user';
 import { RouterModule } from '@angular/router';
-import { UserService } from './services/user.service';
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
   standalone: true,
-  imports: [CommonModule, RouterModule, RouterOutlet, RouterLink, RouterLinkActive]
+  imports: [CommonModule, RouterModule],
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
-  title = 'Well Versed';
+export class AppComponent {
+  title = 'frontend';
   menuActive = false;
-  userMenuActive = false;
   memorizeMenuActive = false;
-  currentUser: User | undefined | null = null;
-
-  constructor(private userService: UserService) {
-    this.currentUser = this.userService.getCurrentUser();
-  }
 
   toggleMenu() {
     this.menuActive = !this.menuActive;
@@ -46,28 +37,5 @@ export class AppComponent implements OnInit {
     if (!dropdown) {
       this.memorizeMenuActive = false;
     }
-  }
-
-  ngOnInit(): void {
-    // Subscribe to user changes
-    this.userService.currentUser$.subscribe((user: any) => {
-      this.currentUser = user;
-    });
-  }
-
-  toggleUserMenu(): void {
-    this.userMenuActive = !this.userMenuActive;
-    // Close other menus when user menu is toggled
-    this.menuActive = false;
-  }
-
-
-  closeUserMenu(): void {
-    this.userMenuActive = false;
-  }
-
-  logout(): void {
-    this.userService.logout();
-    this.closeUserMenu();
   }
 }

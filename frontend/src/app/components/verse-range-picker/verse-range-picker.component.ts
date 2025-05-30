@@ -31,16 +31,13 @@ export interface VerseSelection {
 })
 export class VersePickerComponent implements OnInit {
   @Input() theme: 'enhanced' | 'minimal' | 'cyberpunk' = 'enhanced';
-  @Input() showFilters = true;
+  @Input() showFilters = false;
   @Input() minimumVerses = 0;
   @Output() selectionChanged = new EventEmitter<VerseSelection>();
 
   mode: 'single' | 'range' | 'chapter' = 'range';
   
-  // Filters
-  showMemorizedOnly = false;
   userId = 1;
-  memorizedVerses: Set<string> = new Set();
   
   // Available options
   books: any[] = [];
@@ -68,13 +65,11 @@ export class VersePickerComponent implements OnInit {
 
   ngOnInit() {
     this.loadBooks();
-    this.loadUserMemorizedVerses();
     
     // Get user ID
     this.userService.currentUser$.subscribe(user => {
       if (user) {
         this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
-        this.loadUserMemorizedVerses();
       }
     });
   }
@@ -87,16 +82,6 @@ export class VersePickerComponent implements OnInit {
       this.selectedBook = this.books[0];
       this.loadChapters();
     }
-  }
-
-  loadUserMemorizedVerses() {
-    this.bibleService.getUserVerses(this.userId).subscribe(userVerses => {
-      this.memorizedVerses = new Set(
-        userVerses.map(v => 
-          `${v.verse.book_id}-${v.verse.chapter_number}-${v.verse.verse_number}`
-        )
-      );
-    });
   }
 
   onBookChange() {
@@ -121,9 +106,16 @@ export class VersePickerComponent implements OnInit {
     this.selectedVerse = 1;
     
     if (this.mode === 'range') {
-      this.selectedEndChapter = this.selectedChapter;
-      this.selectedEndVerse = 1;
+      // Auto-adjust if end chapter is before start chapter
+      if (this.selectedEndChapter < this.selectedChapter) {
+        this.selectedEndChapter = this.selectedChapter;
+        this.selectedEndVerse = this.selectedVerse;
+      } else if (this.selectedEndChapter === this.selectedChapter && this.selectedEndVerse < this.selectedVerse) {
+        this.selectedEndVerse = this.selectedVerse;
+      }
+      
       this.loadEndVerses();
+      // this.autoAdjustForMinimumVerses();
     }
     
     this.emitSelection();
@@ -177,11 +169,6 @@ export class VersePickerComponent implements OnInit {
     this.emitSelection();
   }
 
-  toggleMemorizedFilter() {
-    this.showMemorizedOnly = !this.showMemorizedOnly;
-    this.emitSelection();
-  }
-
   private emitSelection() {
     if (!this.selectedBook) return;
 
@@ -198,6 +185,7 @@ export class VersePickerComponent implements OnInit {
 
     if (this.mode === 'single') {
       verseCodes = [`${this.selectedBook.id}-${this.selectedChapter}-${this.selectedVerse}`];
+      verseCount = 1;
     } else if (this.mode === 'chapter') {
       // Chapter mode - all verses in the chapter
       const chapterData = this.selectedBook.chapters[this.selectedChapter - 1];
@@ -225,9 +213,11 @@ export class VersePickerComponent implements OnInit {
       }
 
       // Generate verse codes for range
+      verseCodes = [];
       for (let ch = this.selectedChapter; ch <= endChapter; ch++) {
         const startV = ch === this.selectedChapter ? this.selectedVerse : 1;
-        const endV = ch === endChapter ? endVerse : this.selectedBook.chapters[ch - 1].verses.length;
+        const chapterData = this.selectedBook.chapters[ch - 1];
+        const endV = ch === endChapter ? endVerse : chapterData.verses.length;
         
         for (let v = startV; v <= endV; v++) {
           const verseCode = `${this.selectedBook.id}-${ch}-${v}`;
@@ -238,20 +228,9 @@ export class VersePickerComponent implements OnInit {
       verseCount = verseCodes.length;
     }
 
-    // Apply memorized filter if enabled
-    if (this.showMemorizedOnly) {
-      verseCodes = verseCodes.filter(code => this.memorizedVerses.has(code));
-      verseCount = verseCodes.length;
-    }
-
-    // Validate minimum verses
+    // Clear any previous validation messages
     this.isValidSelection = true;
     this.validationMessage = '';
-    
-    if (this.minimumVerses > 0 && this.mode === 'range' && verseCount < this.minimumVerses) {
-      this.isValidSelection = false;
-      this.validationMessage = `Please select at least ${this.minimumVerses} verses for range mode`;
-    }
 
     this.verseCount = verseCount;
 

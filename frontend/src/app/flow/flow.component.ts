@@ -34,7 +34,7 @@ export class FlowComponent implements OnInit {
   layoutMode: 'grid' | 'single' = 'grid';
   showVerseText = false;
   highlightFifthVerse = true;
-  showMemorizedOnly = false;
+  showSavedMessage = false;
   
   // Data
   verses: FlowVerse[] = [];
@@ -63,11 +63,13 @@ export class FlowComponent implements OnInit {
   onVerseSelectionChanged(selection: VerseSelection) {
     this.currentSelection = selection;
     
-    // Validate minimum verses for range mode
-    if (selection.mode === 'range' && selection.verseCount < 10) {
-      return;
+    // Store selected book
+    if (selection.startVerse) {
+      const book = this.bibleService.getBibleData().getBookById(selection.startVerse.bookId);
+      this.selectedBook = book;
     }
     
+    // No validation needed - verse picker auto-adjusts
     this.loadVerses();
   }
 
@@ -148,7 +150,7 @@ export class FlowComponent implements OnInit {
   }
 
   async saveProgress() {
-    if (!this.verses.length) return;
+    if (!this.verses.length || !this.selectedBook) return;
     
     this.isSaving = true;
     
@@ -156,16 +158,33 @@ export class FlowComponent implements OnInit {
       // Convert confidence to practice count (percentage/10)
       const practiceCount = Math.ceil(this.confidenceLevel / 10);
       
-      // Save all verses with same confidence
-      const savePromises = this.verses.map(verse => {
-        const [bookId, chapter, verseNum] = verse.verseCode.split('-').map(Number);
-        return this.bibleService.saveVerse(
-          this.userId,
-          bookId,
-          chapter,
-          verseNum,
-          practiceCount
-        ).toPromise();
+      // Use bulk save for better performance
+      const verseCodes = this.verses.map(v => v.verseCode);
+      const bookId = this.selectedBook.id;
+      
+      // Group by chapter for bulk operations
+      const chapterGroups: Map<number, number[]> = new Map();
+      
+      verseCodes.forEach(code => {
+        const [_, chapter, verse] = code.split('-').map(Number);
+        if (!chapterGroups.has(chapter)) {
+          chapterGroups.set(chapter, []);
+        }
+        chapterGroups.get(chapter)!.push(verse);
+      });
+      
+      // Save each chapter as a batch
+      const savePromises = Array.from(chapterGroups.entries()).map(([chapter, verses]) => {
+        // If it's a full chapter, use chapter save endpoint
+        const chapterData = this.selectedBook.chapters[chapter - 1];
+        if (verses.length === chapterData.verses.length) {
+          return this.bibleService.saveChapter(this.userId, bookId, chapter).toPromise();
+        } else {
+          // Otherwise save individual verses
+          return Promise.all(verses.map(verse => 
+            this.bibleService.saveVerse(this.userId, bookId, chapter, verse, practiceCount).toPromise()
+          ));
+        }
       });
       
       await Promise.all(savePromises);
@@ -175,7 +194,12 @@ export class FlowComponent implements OnInit {
         verse.isMemorized = true;
       });
       
-      console.log('Progress saved successfully');
+      // Show saved message
+      this.showSavedMessage = true;
+      setTimeout(() => {
+        this.showSavedMessage = false;
+      }, 3000);
+      
     } catch (error) {
       console.error('Error saving progress:', error);
     } finally {
@@ -184,23 +208,39 @@ export class FlowComponent implements OnInit {
   }
 
   clearProgress() {
-    if (!this.verses.length) return;
+    if (!this.verses.length || !this.selectedBook) return;
     
     this.isSaving = true;
     
     try {
-      // Delete all verses
-      const deletePromises = this.verses.map(verse => {
-        const [bookId, chapter, verseNum] = verse.verseCode.split('-').map(Number);
-        return this.bibleService.deleteVerse(
-          this.userId,
-          bookId,
-          chapter,
-          verseNum
-        ).toPromise();
+      const bookId = this.selectedBook.id;
+      
+      // Group by chapter for bulk operations
+      const chapterGroups: Map<number, number[]> = new Map();
+      
+      this.verses.forEach(verse => {
+        const [_, chapter, verseNum] = verse.verseCode.split('-').map(Number);
+        if (!chapterGroups.has(chapter)) {
+          chapterGroups.set(chapter, []);
+        }
+        chapterGroups.get(chapter)!.push(verseNum);
       });
       
-      Promise.all(deletePromises).then(() => {
+      // Clear each chapter as a batch
+      const clearPromises = Array.from(chapterGroups.entries()).map(([chapter, verses]) => {
+        // If it's a full chapter, use chapter clear endpoint
+        const chapterData = this.selectedBook.chapters[chapter - 1];
+        if (verses.length === chapterData.verses.length) {
+          return this.bibleService.clearChapter(this.userId, bookId, chapter).toPromise();
+        } else {
+          // Otherwise clear individual verses
+          return Promise.all(verses.map(verse => 
+            this.bibleService.deleteVerse(this.userId, bookId, chapter, verse).toPromise()
+          ));
+        }
+      });
+      
+      Promise.all(clearPromises).then(() => {
         // Update memorization status
         this.verses.forEach(verse => {
           verse.isMemorized = false;
@@ -209,7 +249,6 @@ export class FlowComponent implements OnInit {
         // Reset confidence
         this.confidenceLevel = 50;
         
-        console.log('Progress cleared successfully');
         this.isSaving = false;
       });
     } catch (error) {
@@ -275,9 +314,10 @@ export class FlowComponent implements OnInit {
     if (verse.isFifth && this.highlightFifthVerse) {
       classes.push('fifth-verse');
     }
-    if (verse.isMemorized) {
-      classes.push('memorized');
-    }
+    // Removed memorized class to keep cells white
     return classes.join(' ');
   }
+
+  // Add property for selected book
+  selectedBook: any = null;
 }

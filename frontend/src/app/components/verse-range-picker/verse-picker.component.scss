@@ -1,4 +1,4 @@
-// frontend/src/app/components/verse-picker/verse-picker.component.scss
+// frontend/src/app/components/verse-range-picker/verse-picker.component.scss
 
 .verse-picker {
   background: white;
@@ -147,6 +147,26 @@
   50% { opacity: 1; }
 }
 
+// Validation Warning
+.validation-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fbbf24;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+}
+
 // Selection Display
 .selection-display {
   margin-top: 20px;
@@ -191,9 +211,6 @@
   color: #64748b;
   font-weight: 500;
 }
-
-// Theme Variations
-// Only keeping clean light theme - dark themes removed
 
 // Responsive Design
 @media (max-width: 768px) {
