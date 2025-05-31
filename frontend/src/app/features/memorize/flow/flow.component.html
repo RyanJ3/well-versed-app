@@ -8,13 +8,8 @@
   <!-- Verse Selection Section -->
   <div class="verse-selection-section">
     <h2>Select Verses</h2>
-    <app-verse-picker 
-      [theme]="'minimal'"
-      [disabledModes]="['single']"
-      [pageType]="'FLOW'"
-      [minimumVerses]="10"
-      [maximumVerses]="80"
-      (selectionChanged)="onVerseSelectionChanged($event)">
+    <app-verse-picker [theme]="'minimal'" [disabledModes]="['single']" [pageType]="'FLOW'" [minimumVerses]="10"
+      [maximumVerses]="80" (selectionChanged)="onVerseSelectionChanged($event)">
     </app-verse-picker>
   </div>
 
@@ -22,19 +17,14 @@
   <div *ngIf="verses.length > 0" class="controls-section">
     <div class="layout-controls">
       <div class="button-group">
-        <button 
-          class="layout-button" 
-          [class.active]="layoutMode === 'grid'" 
-          (click)="toggleLayout()">
+        <button class="layout-button" [class.active]="layoutMode === 'grid'" (click)="toggleLayout()">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
           </svg>
           5-Column Grid
         </button>
-        <button 
-          class="layout-button" 
-          [class.active]="layoutMode === 'single'" 
-          (click)="toggleLayout()">
+        <button class="layout-button" [class.active]="layoutMode === 'single'" (click)="toggleLayout()">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
@@ -68,8 +58,12 @@
         <div *ngFor="let verse of row" [class]="getVerseClass(verse)">
           <ng-container *ngIf="verse">
             <div class="verse-reference">{{ verse.reference }}</div>
-            <div class="first-letters">{{ verse.firstLetters }}</div>
-            <div class="verse-text" *ngIf="showVerseText">{{ verse.text }}</div>
+            <div class="first-letters" *ngIf="verse.firstLetters">{{ verse.firstLetters }}</div>
+            <div class="first-letters error" *ngIf="!verse.firstLetters && !verse.text">No verse text available</div>
+            <div class="verse-text" *ngIf="showVerseText">
+              <span *ngIf="verse.text">{{ verse.text }}</span>
+              <span *ngIf="!verse.text" class="error-text">Verse text could not be loaded</span>
+            </div>
           </ng-container>
         </div>
       </div>
@@ -91,32 +85,27 @@
     <p class="confidence-description">
       How well do you know {{ verses.length === 1 ? 'this verse' : 'these verses' }}?
     </p>
-    
+
     <div class="slider-container">
       <span class="slider-label">0%</span>
-      <input 
-        type="range" 
-        class="confidence-slider"
-        [(ngModel)]="confidenceLevel"
-        min="0"
-        max="100"
-        step="1">
+      <input type="range" class="confidence-slider" [(ngModel)]="confidenceLevel" min="0" max="100" step="1">
       <span class="slider-label">100%</span>
     </div>
-    
+
     <div class="confidence-value">
       Current confidence: <strong>{{ confidenceLevel }}%</strong>
     </div>
-    
+
     <div class="action-buttons">
       <button class="btn btn-primary" (click)="saveProgress()" [disabled]="isSaving">
         <svg *ngIf="!isSaving" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
         </svg>
         <span *ngIf="isSaving">Saving...</span>
         <span *ngIf="!isSaving">Save Progress</span>
       </button>
-      
+
       <button class="btn btn-secondary" (click)="clearProgress()" [disabled]="isSaving">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -124,7 +113,7 @@
         Clear Progress
       </button>
     </div>
-    
+
     <div class="saved-indicator" [class.show]="showSavedMessage">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />

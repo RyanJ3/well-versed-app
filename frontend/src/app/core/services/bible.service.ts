@@ -160,4 +160,27 @@ export class BibleService {
       })
     );
   }
+
+  /**
+   * Get verse texts from API.Bible through backend
+   */
+  getVerseTexts(userId: number, verseCodes: string[], bibleId?: string): Observable<Record<string, string>> {
+    console.log(`Getting texts for ${verseCodes.length} verses`);
+    
+    const payload = {
+      verse_codes: verseCodes,
+      bible_id: bibleId
+    };
+
+    return this.http.post<Record<string, string>>(`${this.apiUrl}/user-verses/${userId}/verses/texts`, payload).pipe(
+      tap(texts => console.log(`Received texts for ${Object.keys(texts).length} verses`)),
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error getting verse texts:', error);
+        // Return empty texts on error
+        const emptyTexts: Record<string, string> = {};
+        verseCodes.forEach(code => emptyTexts[code] = '');
+        return of(emptyTexts);
+      })
+    );
+  }
 }

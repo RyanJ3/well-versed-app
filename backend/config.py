@@ -23,6 +23,10 @@ class Config:
     
     # CORS
     FRONTEND_URL = os.getenv('FRONTEND_URL')
+    
+    # API.Bible
+    API_BIBLE_KEY = os.getenv('API_BIBLE_KEY')
+    DEFAULT_BIBLE_ID = os.getenv('DEFAULT_BIBLE_ID', 'de4e12af7f28f599-02')  # KJV
 
     @classmethod
     def get_database_url(cls):

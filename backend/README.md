@@ -51,3 +51,14 @@ python3 test_api.py
 ## Docker
 
 Use with main docker-compose.yml in project root.
+
+# API Bible Integration
+
+## Setup
+1. Get API key from https://scripture.api.bible/
+2. Add to `.env`: `API_BIBLE_KEY=your_key_here`
+3. Restart backend
+
+## Files
+- `backend/services/api_bible.py` - API Bible service
+- `backend/routers/user_verses.py` - Includes `/verses/texts` endpoint

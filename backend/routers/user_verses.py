@@ -1,7 +1,7 @@
 # backend/routers/user_verses.py
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 import logging
 from datetime import datetime
 from database import DatabaseConnection
@@ -29,6 +29,10 @@ class UserVerseResponse(BaseModel):
 class VerseUpdate(BaseModel):
     practice_count: int
     last_practiced: Optional[str] = None
+
+class VerseTextsRequest(BaseModel):
+    verse_codes: List[str]
+    bible_id: Optional[str] = None
 
 def get_db():
     """Dependency to get database connection"""
@@ -275,3 +279,33 @@ async def clear_book(
     db.execute(query, (user_id, book_id))
     logger.info(f"Cleared book {book_id} for user {user_id}")
     return {"message": "Book cleared successfully"}
+
+@router.post("/{user_id}/verses/texts")
+async def get_verse_texts(
+    user_id: int,
+    request: VerseTextsRequest,
+    db: DatabaseConnection = Depends(get_db)
+) -> Dict[str, str]:
+    """Get verse texts from API.Bible"""
+    from services.api_bible import APIBibleService
+    from config import Config
+    
+    verse_codes = request.verse_codes
+    bible_id = request.bible_id or Config.DEFAULT_BIBLE_ID
+    
+    logger.info(f"Getting texts for {len(verse_codes)} verses for user {user_id}")
+    
+    try:
+        # Initialize API.Bible service
+        api_bible = APIBibleService(Config.API_BIBLE_KEY, bible_id)
+        
+        # Get verse texts
+        verse_texts = api_bible.get_verses_batch(verse_codes, bible_id)
+        
+        logger.info(f"Successfully retrieved {len(verse_texts)} verse texts")
+        return verse_texts
+        
+    except Exception as e:
+        logger.error(f"Error getting verse texts: {e}")
+        # Return empty texts for all requested verses
+        return {code: "" for code in verse_codes}

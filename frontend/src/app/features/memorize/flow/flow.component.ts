@@ -85,13 +85,21 @@ export class FlowComponent implements OnInit {
     this.verses = [];
     
     try {
-      // Get verse texts (mocked for now - will be replaced with API)
-      const verseTexts = await this.getVerseTexts(this.currentSelection.verseCodes);
+      // Get verse texts from API.Bible through backend
+      const verseTexts = await this.bibleService.getVerseTexts(
+        this.userId, 
+        this.currentSelection.verseCodes
+      ).toPromise();
       
       // Process verses
       this.verses = this.currentSelection.verseCodes.map((verseCode: string, index: number) => {
         const [bookId, chapter, verse] = verseCode.split('-').map(Number);
-        const verseText = verseTexts[verseCode] || this.generateMockText(verseCode);
+        const verseText = verseTexts?.[verseCode] || '';
+        
+        // Show error if no text found
+        if (!verseText) {
+          console.error(`No text found for verse ${verseCode}`);
+        }
         
         return {
           verseCode,
@@ -106,6 +114,13 @@ export class FlowComponent implements OnInit {
         };
       });
       
+      // Check if any verses failed to load
+      const failedVerses = this.verses.filter(v => !v.text);
+      if (failedVerses.length > 0) {
+        console.warn(`Failed to load ${failedVerses.length} verses`);
+        // You could show a user-friendly error here
+      }
+      
       // Update memorization status from user data
       this.updateMemorizationStatus();
       
@@ -114,12 +129,17 @@ export class FlowComponent implements OnInit {
       
     } catch (error) {
       console.error('Error loading verses:', error);
+      // Show user-friendly error
+      this.verses = [];
+      alert('Failed to load verses. Please check your internet connection and try again.');
     } finally {
       this.isLoading = false;
     }
   }
 
   extractFirstLetters(text: string): string {
+    if (!text) return '';
+    
     // Extract first letter of each word while preserving punctuation
     const words = text.split(/\s+/);
     return words.map(word => {
@@ -263,29 +283,6 @@ export class FlowComponent implements OnInit {
   }
 
   // Helper methods
-  private async getVerseTexts(verseCodes: string[]): Promise<Record<string, string>> {
-    // TODO: Replace with actual API call
-    const texts: Record<string, string> = {};
-    verseCodes.forEach(code => {
-      texts[code] = this.generateMockText(code);
-    });
-    return texts;
-  }
-
-  private generateMockText(verseCode: string): string {
-    // Mock verse text generator
-    const templates = [
-      "In the beginning God created the heaven and the earth.",
-      "And God said, Let there be light: and there was light.",
-      "For God so loved the world, that he gave his only begotten Son.",
-      "The Lord is my shepherd; I shall not want.",
-      "Trust in the Lord with all thine heart; and lean not unto thine own understanding."
-    ];
-    
-    const hash = verseCode.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return templates[hash % templates.length];
-  }
-
   private getVerseReference(bookId: number, chapter: number, verse: number): string {
     const book = this.bibleService.getBibleData().getBookById(bookId);
     return book ? `${book.name} ${chapter}:${verse}` : `${bookId}-${chapter}:${verse}`;
