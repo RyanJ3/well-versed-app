@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { DialogsModule } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
-import { BibleService } from '../services/bible.service';
-import { UserService } from '../services/user.service';
 import { Subscription } from 'rxjs';
-import { BibleBook, BibleChapter, BibleData, BibleTestament, UserVerseDetail } from '../models/bible';
-import { BibleGroup } from '../models/bible/bible-group.modle';
-import { BibleVerse } from '../models/bible/bible-verse.model';
+import { BibleBook, BibleChapter, BibleData, BibleTestament, UserVerseDetail } from '../core/models/bible';
+import { BibleGroup } from '../core/models/bible/bible-group.modle';
+import { BibleService } from '../core/services/bible.service';
+import { UserService } from '../core/services/user.service';
+import { BibleVerse } from '../core/models/bible/bible-verse.model';
 
 interface ConfirmationDialogConfig {
   visible: boolean;

@@ -4,8 +4,9 @@ import { CommonModule } from '@angular/common';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { ChartsModule } from '@progress/kendo-angular-charts';
 import { LayoutModule } from '@progress/kendo-angular-layout';
-import { UserService } from '../services/user.service';
-import { BibleService } from '../services/bible.service';
+import { UserService } from '../core/services/user.service';
+import { BibleService } from '../core/services/bible.service';
+import { BibleBook } from '../core/models/bible';
 
 @Component({
   selector: 'app-stats',
@@ -94,7 +95,7 @@ export class StatsComponent implements OnInit {
     this.overviewStats[2].value = `${completionPercentage}%`;
 
     // Generate heatmap data
-    this.booksHeatmapData = bibleData.books.map(book => ({
+    this.booksHeatmapData = bibleData.books.map((book: BibleBook) => ({
       name: book.name,
       abbr: book.name.substring(0, 3).toUpperCase(),
       percentage: book.percentComplete,

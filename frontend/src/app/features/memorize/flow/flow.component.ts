@@ -1,10 +1,12 @@
-// frontend/src/app/flow/flow.component.ts
+// frontend/src/app/features/memorize/flow/flow.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { VersePickerComponent, VerseSelection } from '../components/verse-range-picker/verse-range-picker.component';
-import { BibleService } from '../services/bible.service';
-import { UserService } from '../services/user.service';
+import { VersePickerComponent, VerseSelection } from '../../../shared/components/verse-range-picker/verse-range-picker.component';
+import { BibleService } from '../../../core/services/bible.service';
+import { UserService } from '../../../core/services/user.service';
+import { User } from '../../../core/models/user';
+import { UserVerseDetail } from '../../../core/models/bible';
 
 interface FlowVerse {
   verseCode: string;
@@ -47,13 +49,16 @@ export class FlowComponent implements OnInit {
   // Grid rows for manual grid
   gridRows: FlowVerse[][] = [];
   
+  // Add property for selected book
+  selectedBook: any = null;
+  
   constructor(
     private bibleService: BibleService,
     private userService: UserService
   ) {}
 
   ngOnInit() {
-    this.userService.currentUser$.subscribe(user => {
+    this.userService.currentUser$.subscribe((user: User | null) => {
       if (user) {
         this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
       }
@@ -84,7 +89,7 @@ export class FlowComponent implements OnInit {
       const verseTexts = await this.getVerseTexts(this.currentSelection.verseCodes);
       
       // Process verses
-      this.verses = this.currentSelection.verseCodes.map((verseCode, index) => {
+      this.verses = this.currentSelection.verseCodes.map((verseCode: string, index: number) => {
         const [bookId, chapter, verse] = verseCode.split('-').map(Number);
         const verseText = verseTexts[verseCode] || this.generateMockText(verseCode);
         
@@ -293,8 +298,8 @@ export class FlowComponent implements OnInit {
 
   private updateMemorizationStatus() {
     // Check each verse against user's memorized verses
-    this.bibleService.getUserVerses(this.userId).subscribe(userVerses => {
-      const memorizedSet = new Set(userVerses.map(v => 
+    this.bibleService.getUserVerses(this.userId).subscribe((userVerses: UserVerseDetail[]) => {
+      const memorizedSet = new Set(userVerses.map((v: UserVerseDetail) => 
         `${v.verse.book_id}-${v.verse.chapter_number}-${v.verse.verse_number}`
       ));
       
@@ -317,7 +322,4 @@ export class FlowComponent implements OnInit {
     // Removed memorized class to keep cells white
     return classes.join(' ');
   }
-
-  // Add property for selected book
-  selectedBook: any = null;
 }

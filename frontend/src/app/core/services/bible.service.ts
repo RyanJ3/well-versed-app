@@ -4,7 +4,7 @@ import { Observable, of, throwError, BehaviorSubject } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { BibleData, UserVerseDetail } from '../models/bible';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'

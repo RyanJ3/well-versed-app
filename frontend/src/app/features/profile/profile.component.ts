@@ -3,9 +3,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { BibleService } from '../services/bible.service';
-import { User } from '../models/user';
-import { UserService } from '../services/user.service';
+import { User } from '../../core/models/user';
+import { UserService } from '../../core/services/user.service';
+import { BibleService } from '../../core/services/bible.service';
 
 @Component({
   selector: 'app-profile',

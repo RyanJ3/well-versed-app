@@ -3,9 +3,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { DeckService, DeckResponse, DeckCreate } from '../services/deck.service';
-import { UserService } from '../services/user.service';
-import { forkJoin } from 'rxjs';
+import { DeckCreate, DeckResponse, DeckService } from '../../../core/services/deck.service';
+import { UserService } from '../../../core/services/user.service';
 
 interface DeckWithCounts extends DeckResponse {
   verse_count?: number;

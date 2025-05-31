@@ -3,7 +3,7 @@ import { BibleBook } from './bible-book.model';
 import { BibleTestament } from './bible-testament.model';
 import { UserVerseDetail } from './interfaces';
 import { TestamentType } from './enums';
-import BIBLE_DATA from '../bible_base_data.json';
+import BIBLE_DATA from './../bible_base_data.json';
 import { BibleGroup } from './bible-group.modle';
 
 export class BibleData {

@@ -1,9 +1,9 @@
-// frontend/src/app/components/verse-range-picker/verse-range-picker.component.ts
+// frontend/src/app/shared/components/verse-range-picker/verse-range-picker.component.ts
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { BibleService } from '../../services/bible.service';
-import { UserService } from '../../services/user.service';
+import { UserService } from '../../../core/services/user.service';
+import { BibleService } from '../../../core/services/bible.service';
 
 export interface VerseSelection {
   mode: 'single' | 'range' | 'chapter';
@@ -33,6 +33,10 @@ export class VersePickerComponent implements OnInit {
   @Input() theme: 'enhanced' | 'minimal' | 'cyberpunk' = 'enhanced';
   @Input() showFilters = false;
   @Input() minimumVerses = 0;
+  @Input() maximumVerses = 0; // 0 means no maximum
+  @Input() disabledModes: ('single' | 'range' | 'chapter')[] = [];
+  @Input() pageType: 'FLOW' | 'flashcard' | 'general' = 'general';
+  
   @Output() selectionChanged = new EventEmitter<VerseSelection>();
 
   mode: 'single' | 'range' | 'chapter' = 'range';
@@ -65,6 +69,16 @@ export class VersePickerComponent implements OnInit {
 
   ngOnInit() {
     this.loadBooks();
+    
+    // Set default mode based on disabled modes
+    if (this.disabledModes.includes(this.mode)) {
+      // Find first available mode
+      const modes: ('single' | 'range' | 'chapter')[] = ['single', 'range', 'chapter'];
+      const availableMode = modes.find(m => !this.disabledModes.includes(m));
+      if (availableMode) {
+        this.mode = availableMode;
+      }
+    }
     
     // Get user ID
     this.userService.currentUser$.subscribe(user => {
@@ -115,7 +129,7 @@ export class VersePickerComponent implements OnInit {
       }
       
       this.loadEndVerses();
-      // this.autoAdjustForMinimumVerses();
+      this.autoAdjustForMinimumVerses();
     }
     
     this.emitSelection();
@@ -165,8 +179,123 @@ export class VersePickerComponent implements OnInit {
   }
 
   onModeChange(newMode: 'single' | 'range' | 'chapter') {
+    // Check if mode is disabled
+    if (this.disabledModes.includes(newMode)) {
+      return;
+    }
+    
     this.mode = newMode;
+    
+    // Auto-adjust for minimum verses if in range mode
+    if (newMode === 'range' && this.minimumVerses > 0) {
+      this.autoAdjustForMinimumVerses();
+    }
+    
     this.emitSelection();
+  }
+
+  isModeDisabled(mode: 'single' | 'range' | 'chapter'): boolean {
+    return this.disabledModes.includes(mode);
+  }
+
+  getModeButtonClass(mode: 'single' | 'range' | 'chapter'): string {
+    let classes = 'mode-option';
+    if (this.mode === mode) {
+      classes += ' active';
+    }
+    if (this.isModeDisabled(mode)) {
+      classes += ' disabled';
+    }
+    return classes;
+  }
+
+  private autoAdjustForMinimumVerses() {
+    if (this.mode !== 'range' || this.minimumVerses === 0 || !this.selectedBook) return;
+    
+    // Calculate current verse count
+    let currentCount = this.calculateVerseCount();
+    
+    // If we already meet the minimum, don't adjust
+    if (currentCount >= this.minimumVerses) return;
+    
+    // Try to extend to meet minimum
+    const bookChapters = this.selectedBook.chapters;
+    let endChapter = this.selectedEndChapter;
+    let endVerse = this.selectedEndVerse;
+    
+    while (currentCount < this.minimumVerses && endChapter <= bookChapters.length) {
+      const chapterData = bookChapters[endChapter - 1];
+      
+      if (endChapter === this.selectedEndChapter) {
+        // Extend within current chapter
+        if (endVerse < chapterData.verses.length) {
+          endVerse++;
+        } else if (endChapter < bookChapters.length) {
+          // Move to next chapter
+          endChapter++;
+          endVerse = 1;
+        } else {
+          break; // Reached end of book
+        }
+      } else {
+        // We're in a new chapter
+        if (endVerse < chapterData.verses.length) {
+          endVerse++;
+        } else if (endChapter < bookChapters.length) {
+          endChapter++;
+          endVerse = 1;
+        } else {
+          break;
+        }
+      }
+      
+      currentCount++;
+    }
+    
+    // Update the selections
+    this.selectedEndChapter = endChapter;
+    this.selectedEndVerse = endVerse;
+    this.loadEndVerses();
+  }
+
+  private calculateVerseCount(): number {
+    if (!this.selectedBook) return 0;
+    
+    if (this.mode === 'single') {
+      return 1;
+    } else if (this.mode === 'chapter') {
+      const chapterData = this.selectedBook.chapters[this.selectedChapter - 1];
+      return chapterData.verses.length;
+    } else {
+      // Range mode
+      let count = 0;
+      for (let ch = this.selectedChapter; ch <= this.selectedEndChapter; ch++) {
+        const startV = ch === this.selectedChapter ? this.selectedVerse : 1;
+        const chapterData = this.selectedBook.chapters[ch - 1];
+        const endV = ch === this.selectedEndChapter ? this.selectedEndVerse : chapterData.verses.length;
+        count += (endV - startV + 1);
+      }
+      return count;
+    }
+  }
+
+  private validateSelection(): boolean {
+    const count = this.calculateVerseCount();
+    
+    // Check minimum
+    if (this.minimumVerses > 0 && count < this.minimumVerses) {
+      this.validationMessage = `Please select at least ${this.minimumVerses} verses`;
+      return false;
+    }
+    
+    // Check maximum
+    if (this.maximumVerses > 0 && count > this.maximumVerses) {
+      this.validationMessage = `Please select no more than ${this.maximumVerses} verses`;
+      return false;
+    }
+    
+    this.validationMessage = '';
+    return true;
   }
 
   private emitSelection() {
@@ -228,11 +357,9 @@ export class VersePickerComponent implements OnInit {
       verseCount = verseCodes.length;
     }
 
-    // Clear any previous validation messages
-    this.isValidSelection = true;
-    this.validationMessage = '';
-
+    // Update validation
     this.verseCount = verseCount;
+    this.isValidSelection = this.validateSelection();
 
     const selection: VerseSelection = {
       mode: this.mode,

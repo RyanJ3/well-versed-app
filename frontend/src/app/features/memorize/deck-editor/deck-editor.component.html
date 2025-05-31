@@ -86,6 +86,9 @@
       
       <app-verse-picker 
         [theme]="'minimal'"
+        [disabledModes]="['chapter']"
+        [pageType]="'flashcard'"
+        [maximumVerses]="7"
         (selectionChanged)="onVerseSelectionChanged($event)">
       </app-verse-picker>
 

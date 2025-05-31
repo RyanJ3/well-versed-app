@@ -13,9 +13,10 @@
       <span class="bar"></span>
     </button>
 
+    <!-- Updated navigation section for app.component.html -->
     <nav class="app-nav" [class.active]="menuActive">
-      <a routerLink="/" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" 
-         (click)="closeMenu()">Home</a>
+      <a routerLink="/" class="nav-link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}"
+        (click)="closeMenu()">Home</a>
 
       <a routerLink="/tracker" class="nav-link" routerLinkActive="active" (click)="closeMenu()">Tracker</a>
 
@@ -37,13 +38,19 @@
           <a routerLink="/flashcard" class="dropdown-item" routerLinkActive="active" (click)="closeMenu()">Flashcard</a>
         </div>
       </div>
+
+      <a routerLink="/stats" class="nav-link" routerLinkActive="active" (click)="closeMenu()">Stats</a>
+
+      <a routerLink="/profile" class="nav-link" routerLinkActive="active" (click)="closeMenu()">Profile</a>
+
+      <!-- Future: Add logout button here or in a user menu dropdown -->
     </nav>
   </header>
 
   <main class="app-content">
     <router-outlet></router-outlet>
   </main>
- 
+
   <footer class="app-footer">
     <!--        <p>&copy; 2025 TODO WellVersed App. All rights reserved.</p>-->
   </footer>
