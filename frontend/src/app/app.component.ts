@@ -1,14 +1,15 @@
-// frontend/src/app/app.component.ts
+
 import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { UserService } from './core/services/user.service';
 import { User } from './core/models/user';
+import { ModalComponent } from './shared/components/modal/modal.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ModalComponent],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })

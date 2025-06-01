@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { DeckCreate, DeckResponse, DeckService } from '../../../core/services/deck.service';
 import { UserService } from '../../../core/services/user.service';
+import { ModalService } from '../../../core/services/modal.service';
 
 interface DeckWithCounts extends DeckResponse {
   verse_count?: number;
@@ -40,19 +41,10 @@ export class FlashcardComponent implements OnInit {
   };
   tagInput = '';
 
-  // Modal states
-  showDeleteModal = false;
-  deleteModalTitle = '';
-  deleteModalMessage = '';
-  deckToDelete: number | null = null;
-  
-  showSuccessModal = false;
-  successModalTitle = '';
-  successModalMessage = '';
-
   constructor(
     private deckService: DeckService,
-    private userService: UserService
+    private userService: UserService,
+    private modalService: ModalService
   ) {}
 
   ngOnInit() {
@@ -97,6 +89,11 @@ export class FlashcardComponent implements OnInit {
       error: (error) => {
         console.error('Error loading decks:', error);
         this.isLoading = false;
+        this.modalService.alert(
+          'Error Loading Decks',
+          'Unable to load your decks. Please check your connection and try again.',
+          'danger'
+        );
       }
     });
   }
@@ -113,6 +110,11 @@ export class FlashcardComponent implements OnInit {
       error: (error) => {
         console.error('Error loading public decks:', error);
         this.isLoading = false;
+        this.modalService.alert(
+          'Error Loading Public Decks',
+          'Unable to load public decks. Please check your connection and try again.',
+          'danger'
+        );
       }
     });
   }
@@ -120,7 +122,6 @@ export class FlashcardComponent implements OnInit {
   loadSavedDecks() {
     this.isLoading = true;
     
-    // Actual implementation that would work with a real backend endpoint
     this.deckService.getSavedDecks(this.userId).subscribe({
       next: (response) => {
         this.savedDecks = response.decks.map(deck => ({ 
@@ -139,13 +140,17 @@ export class FlashcardComponent implements OnInit {
         // Fallback to empty array if endpoint doesn't exist yet
         this.savedDecks = [];
         
-        // Optionally show error message to user
+        // Show appropriate error message
         if (error.status === 404) {
           // Endpoint not implemented yet, silently handle
           console.log('Saved decks endpoint not implemented yet');
         } else {
           // Real error occurred
-          this.showModal('Error', 'Unable to load saved decks. Please try again later.');
+          this.modalService.alert(
+            'Error Loading Saved Decks',
+            'Unable to load saved decks. Please try again later.',
+            'danger'
+          );
         }
       }
     });
@@ -165,7 +170,6 @@ export class FlashcardComponent implements OnInit {
       this.deckService.getDeckCards(deck.deck_id, this.userId).subscribe({
         next: (response) => {
           // Calculate total verse count from all cards
-          // Each card can be either single_verse (1 verse) or verse_range (multiple verses)
           const totalVerses = response.cards.reduce((total, card) => {
             if (card.card_type === 'single_verse') {
               return total + 1;
@@ -231,7 +235,14 @@ export class FlashcardComponent implements OnInit {
   }
 
   createDeck() {
-    if (!this.newDeck.name.trim()) return;
+    if (!this.newDeck.name.trim()) {
+      this.modalService.alert(
+        'Validation Error',
+        'Please enter a name for your deck.',
+        'warning'
+      );
+      return;
+    }
 
     this.isLoading = true;
 
@@ -241,40 +252,53 @@ export class FlashcardComponent implements OnInit {
         this.myDecks.unshift(deckWithCounts);
         this.toggleCreateForm();
         this.isLoading = false;
+        
+        this.modalService.success(
+          'Deck Created',
+          `Your deck "${deck.name}" has been created successfully!`
+        );
       },
       error: (error) => {
         console.error('Error creating deck:', error);
         this.isLoading = false;
+        this.modalService.alert(
+          'Error Creating Deck',
+          'Unable to create deck. Please try again.',
+          'danger'
+        );
       }
     });
   }
 
-  deleteDeck(deckId: number) {
-    this.deleteModalTitle = 'Delete Deck';
-    this.deleteModalMessage = 'Are you sure you want to delete this deck? This action cannot be undone.';
-    this.deckToDelete = deckId;
-    this.showDeleteModal = true;
-  }
+  async deleteDeck(deckId: number) {
+    const deck = this.myDecks.find(d => d.deck_id === deckId);
+    if (!deck) return;
 
-  confirmDeleteDeck() {
-    if (this.deckToDelete) {
-      this.deckService.deleteDeck(this.deckToDelete).subscribe({
-        next: () => {
-          this.myDecks = this.myDecks.filter(d => d.deck_id !== this.deckToDelete);
-          this.closeDeleteModal();
-        },
-        error: (error) => {
-          console.error('Error deleting deck:', error);
-          this.closeDeleteModal();
-          this.showModal('Error', 'Error deleting deck. Please try again.');
-        }
-      });
-    }
-  }
+    const confirmed = await this.modalService.danger(
+      'Delete Deck',
+      `Are you sure you want to delete "${deck.name}"? This action cannot be undone and all cards in this deck will be permanently removed.`,
+      'Delete Deck'
+    );
 
-  closeDeleteModal() {
-    this.showDeleteModal = false;
-    this.deckToDelete = null;
+    if (!confirmed) return;
+
+    this.deckService.deleteDeck(deckId).subscribe({
+      next: () => {
+        this.myDecks = this.myDecks.filter(d => d.deck_id !== deckId);
+        this.modalService.success(
+          'Deck Deleted',
+          `"${deck.name}" has been deleted successfully.`
+        );
+      },
+      error: (error) => {
+        console.error('Error deleting deck:', error);
+        this.modalService.alert(
+          'Error Deleting Deck',
+          'Unable to delete deck. Please try again.',
+          'danger'
+        );
+      }
+    });
   }
 
   saveDeck(deck: DeckWithCounts) {
@@ -291,17 +315,34 @@ export class FlashcardComponent implements OnInit {
           this.savedDecks.push({ ...deck });
         }
         
-        this.showModal('Success', `"${deck.name}" has been added to your collection!`);
+        this.modalService.success(
+          'Deck Saved',
+          `"${deck.name}" has been added to your collection!`
+        );
       },
       error: (error: any) => {
         console.error('Error saving deck:', error);
         deck.saving = false;
-        this.showModal('Error', 'Unable to save deck. Please try again.');
+        this.modalService.alert(
+          'Error Saving Deck',
+          'Unable to save deck to your collection. Please try again.',
+          'danger'
+        );
       }
     });
   }
 
-  unsaveDeck(deck: DeckWithCounts) {
+  async unsaveDeck(deck: DeckWithCounts) {
+    const confirmed = await this.modalService.confirm({
+      title: 'Remove from Collection',
+      message: `Are you sure you want to remove "${deck.name}" from your saved decks?`,
+      type: 'warning',
+      confirmText: 'Remove',
+      showCancel: true
+    });
+
+    if (!confirmed.confirmed) return;
+
     deck.saving = true;
     
     this.deckService.unsaveDeck(deck.deck_id, this.userId).subscribe({
@@ -320,12 +361,19 @@ export class FlashcardComponent implements OnInit {
           publicDeck.save_count = deck.save_count;
         }
         
-        this.showModal('Success', `"${deck.name}" has been removed from your collection.`);
+        this.modalService.success(
+          'Deck Removed',
+          `"${deck.name}" has been removed from your collection.`
+        );
       },
       error: (error) => {
         console.error('Error unsaving deck:', error);
         deck.saving = false;
-        this.showModal('Error', 'Unable to remove deck from collection. Please try again.');
+        this.modalService.alert(
+          'Error Removing Deck',
+          'Unable to remove deck from your collection. Please try again.',
+          'danger'
+        );
       }
     });
   }
@@ -344,16 +392,5 @@ export class FlashcardComponent implements OnInit {
   // TrackBy function for better performance
   trackByDeckId(index: number, deck: DeckWithCounts): number {
     return deck.deck_id;
-  }
-
-  // Modal methods
-  showModal(title: string, message: string) {
-    this.successModalTitle = title;
-    this.successModalMessage = message;
-    this.showSuccessModal = true;
-  }
-
-  closeSuccessModal() {
-    this.showSuccessModal = false;
   }
 }

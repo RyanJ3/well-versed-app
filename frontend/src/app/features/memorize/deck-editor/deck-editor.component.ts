@@ -6,6 +6,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CardWithVerses, DeckResponse, DeckService } from '../../../core/services/deck.service';
 import { VersePickerComponent, VerseSelection } from '../../../shared/components/verse-range-picker/verse-range-picker.component';
 import { BibleService } from '../../../core/services/bible.service';
+import { ModalService } from '../../../core/services/modal.service';
 
 @Component({
   selector: 'app-deck-editor',
@@ -41,7 +42,8 @@ export class DeckEditorComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private deckService: DeckService,
-    private bibleService: BibleService
+    private bibleService: BibleService,
+    private modalService: ModalService
   ) {}
 
   ngOnInit() {
@@ -62,6 +64,7 @@ export class DeckEditorComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading deck:', error);
+        this.modalService.alert('Error Loading Deck', 'Unable to load deck details. Please try again.', 'danger');
       }
     });
   }
@@ -76,12 +79,16 @@ export class DeckEditorComponent implements OnInit {
       error: (error) => {
         console.error('Error loading deck cards:', error);
         this.isLoading = false;
+        this.modalService.alert('Error Loading Cards', 'Unable to load deck cards. Please try again.', 'danger');
       }
     });
   }
 
   updateDeckInfo() {
-    if (!this.deckName.trim()) return;
+    if (!this.deckName.trim()) {
+      this.modalService.alert('Validation Error', 'Deck name cannot be empty.', 'warning');
+      return;
+    }
     
     this.isSaving = true;
     const updates = {
@@ -95,10 +102,12 @@ export class DeckEditorComponent implements OnInit {
         this.deck = updatedDeck;
         this.isSaving = false;
         this.editMode = 'verses';
+        this.modalService.success('Deck Updated', 'Your deck settings have been saved successfully.');
       },
       error: (error) => {
         console.error('Error updating deck:', error);
         this.isSaving = false;
+        this.modalService.alert('Error Updating Deck', 'Unable to save deck settings. Please try again.', 'danger');
       }
     });
   }
@@ -107,7 +116,7 @@ export class DeckEditorComponent implements OnInit {
     this.currentSelection = selection;
   }
 
-  addSelectedVerses() {
+  async addSelectedVerses() {
     if (!this.currentSelection || this.currentSelection.verseCodes.length === 0) {
       return;
     }
@@ -125,7 +134,11 @@ export class DeckEditorComponent implements OnInit {
     );
 
     if (newVerseCodes.length === 0) {
-      alert('All selected verses are already in this deck.');
+      await this.modalService.alert(
+        'Duplicate Verses', 
+        'All selected verses are already in this deck.',
+        'warning'
+      );
       return;
     }
 
@@ -140,26 +153,39 @@ export class DeckEditorComponent implements OnInit {
         const skippedCount = this.currentSelection!.verseCodes.length - addedCount;
         let message = `Added flashcard with ${addedCount} verse${addedCount !== 1 ? 's' : ''}.`;
         if (skippedCount > 0) {
-          message += ` (${skippedCount} verses already in deck)`;
+          message += ` (${skippedCount} verse${skippedCount !== 1 ? 's' : ''} already in deck)`;
         }
-        alert(message);
+        
+        this.modalService.success('Card Added', message);
       },
       error: (error) => {
         console.error('Error adding verses:', error);
         this.isAddingVerses = false;
-        alert('Error adding verses to deck. Please try again.');
+        this.modalService.alert('Error Adding Verses', 'Unable to add verses to deck. Please try again.', 'danger');
       }
     });
   }
 
-  removeCardFromDeck(cardId: number) {
+  async removeCardFromDeck(cardId: number) {
+    const confirmed = await this.modalService.confirm({
+      title: 'Remove Card',
+      message: 'Are you sure you want to remove this card from the deck?',
+      type: 'warning',
+      confirmText: 'Remove',
+      showCancel: true
+    });
+
+    if (!confirmed.confirmed) return;
+
     this.deckService.removeCardFromDeck(this.deckId, cardId).subscribe({
       next: () => {
         this.deckCards = this.deckCards.filter(c => c.card_id !== cardId);
         this.selectedCards.delete(cardId);
+        this.modalService.success('Card Removed', 'The card has been removed from the deck.');
       },
       error: (error) => {
         console.error('Error removing card:', error);
+        this.modalService.alert('Error Removing Card', 'Unable to remove card. Please try again.', 'danger');
       }
     });
   }
@@ -172,17 +198,27 @@ export class DeckEditorComponent implements OnInit {
     }
   }
 
-  removeSelectedCards() {
+  async removeSelectedCards() {
     if (this.selectedCards.size === 0) return;
     
+    const confirmed = await this.modalService.danger(
+      'Remove Selected Cards',
+      `Are you sure you want to remove ${this.selectedCards.size} selected card${this.selectedCards.size !== 1 ? 's' : ''} from the deck? This action cannot be undone.`,
+      'Remove Cards'
+    );
+
+    if (!confirmed) return;
+
     const cardIds = Array.from(this.selectedCards);
     this.deckService.removeMultipleCardsFromDeck(this.deckId, cardIds).subscribe({
       next: () => {
         this.deckCards = this.deckCards.filter(c => !this.selectedCards.has(c.card_id));
         this.selectedCards.clear();
+        this.modalService.success('Cards Removed', `${cardIds.length} card${cardIds.length !== 1 ? 's' : ''} removed from the deck.`);
       },
       error: (error) => {
         console.error('Error removing cards:', error);
+        this.modalService.alert('Error Removing Cards', 'Unable to remove selected cards. Please try again.', 'danger');
       }
     });
   }
