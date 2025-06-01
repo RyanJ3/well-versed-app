@@ -1,4 +1,7 @@
--- sql_setup/02-create-schema.sql
+-- =====================================================
+-- 02-create-schema.sql
+-- Core tables: users, bible_books, bible_verses, user_verses
+-- =====================================================
 -- Create schema with numerical book IDs
 CREATE SCHEMA IF NOT EXISTS wellversed01DEV;
 SET search_path TO wellversed01DEV;

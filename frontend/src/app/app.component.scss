@@ -612,3 +612,180 @@
 .app-title-text:hover {
   opacity: 0.9;
 }
+
+// Profile dropdown styles
+.nav-dropdown.profile {
+  .profile-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .user-avatar-small {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+  }
+
+  .user-name-nav {
+    font-weight: 500;
+    display: none;
+    
+    @media (min-width: 768px) {
+      display: inline;
+    }
+  }
+}
+
+.profile-menu {
+  min-width: 280px;
+  
+  .profile-menu-header {
+    padding: 1rem;
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .user-avatar-large {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #60a5fa);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+
+  .user-info {
+    overflow: hidden;
+  }
+
+  .user-full-name {
+    font-weight: 600;
+    color: #1f2937;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-email {
+    font-size: 0.875rem;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0.5rem 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: #4b5563;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  
+  svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background-color: #f3f4f6;
+    color: #1f2937;
+  }
+
+  &.active {
+    background-color: #e0f2fe;
+    color: #1d4ed8;
+    font-weight: 600;
+  }
+
+  &.logout-item {
+    color: #dc2626;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-size: inherit;
+    font-family: inherit;
+
+    &:hover {
+      background-color: #fef2f2;
+      color: #b91c1c;
+    }
+  }
+}
+
+// Footer update
+.app-footer {
+  margin-top: auto;
+  padding: 2rem 0;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.875rem;
+  background: linear-gradient(to bottom, #ffffff, #f9fafb);
+  
+  p {
+    margin: 0;
+  }
+}
+
+// Mobile menu adjustments
+@media (max-width: 768px) {
+  .nav-dropdown {
+    width: 100%;
+  }
+
+  .dropdown-menu {
+    position: static;
+    width: 100%;
+    box-shadow: none;
+    border-radius: 0;
+    background-color: #f7f9fc;
+    margin-bottom: 0.5rem;
+    border: none;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    width: calc(100% - 2rem);
+  }
+
+  .dropdown-item {
+    padding-left: 2rem;
+  }
+
+  .profile-menu {
+    width: 100%;
+    min-width: auto;
+    
+    .profile-menu-header {
+      padding: 1rem 1rem 1rem 2rem;
+    }
+  }
+}

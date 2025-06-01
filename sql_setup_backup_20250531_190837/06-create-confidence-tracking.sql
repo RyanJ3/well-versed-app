@@ -1,4 +1,7 @@
--- sql_setup/06-create-confidence-tracking.sql
+-- =====================================================
+-- 06-create-confidence-tracking.sql
+-- Track user confidence/mastery of verses
+-- =====================================================
 SET search_path TO wellversed01DEV;
 
 -- Table to track user confidence scores for verses

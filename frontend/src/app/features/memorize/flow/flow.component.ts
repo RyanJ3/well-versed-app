@@ -1,5 +1,5 @@
 // frontend/src/app/features/memorize/flow/flow.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { VersePickerComponent, VerseSelection } from '../../../shared/components/verse-range-picker/verse-range-picker.component';
@@ -7,6 +7,7 @@ import { BibleService } from '../../../core/services/bible.service';
 import { UserService } from '../../../core/services/user.service';
 import { User } from '../../../core/models/user';
 import { UserVerseDetail } from '../../../core/models/bible';
+import { Subject, takeUntil } from 'rxjs';
 
 interface FlowVerse {
   verseCode: string;
@@ -31,7 +32,7 @@ interface FlowVerse {
   templateUrl: './flow.component.html',
   styleUrls: ['./flow.component.scss']
 })
-export class FlowComponent implements OnInit {
+export class FlowComponent implements OnInit, OnDestroy {
   // View state
   layoutMode: 'grid' | 'single' = 'grid';
   showVerseText = false;
@@ -52,17 +53,30 @@ export class FlowComponent implements OnInit {
   // Add property for selected book
   selectedBook: any = null;
   
+  // Request management
+  private destroy$ = new Subject<void>();
+  private loadVersesCancel$ = new Subject<void>();
+  private requestCounter = 0;
+  
   constructor(
     private bibleService: BibleService,
     private userService: UserService
   ) {}
 
   ngOnInit() {
-    this.userService.currentUser$.subscribe((user: User | null) => {
-      if (user) {
-        this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
-      }
-    });
+    this.userService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((user: User | null) => {
+        if (user) {
+          this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+        }
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.loadVersesCancel$.complete();
   }
 
   onVerseSelectionChanged(selection: VerseSelection) {
@@ -74,7 +88,10 @@ export class FlowComponent implements OnInit {
       this.selectedBook = book;
     }
     
-    // No validation needed - verse picker auto-adjusts
+    // Cancel any pending verse loads
+    this.loadVersesCancel$.next();
+    
+    // Load new verses
     this.loadVerses();
   }
 
@@ -84,12 +101,23 @@ export class FlowComponent implements OnInit {
     this.isLoading = true;
     this.verses = [];
     
+    // Increment request counter to track which request is latest
+    const currentRequestId = ++this.requestCounter;
+    
     try {
       // Get verse texts from API.Bible through backend
       const verseTexts = await this.bibleService.getVerseTexts(
         this.userId, 
         this.currentSelection.verseCodes
+      ).pipe(
+        takeUntil(this.loadVersesCancel$)  // Cancel if new request comes in
       ).toPromise();
+      
+      // Check if this is still the latest request
+      if (currentRequestId !== this.requestCounter) {
+        console.log('Ignoring outdated request', currentRequestId);
+        return;
+      }
       
       // Process verses
       this.verses = this.currentSelection.verseCodes.map((verseCode: string, index: number) => {
@@ -118,7 +146,6 @@ export class FlowComponent implements OnInit {
       const failedVerses = this.verses.filter(v => !v.text);
       if (failedVerses.length > 0) {
         console.warn(`Failed to load ${failedVerses.length} verses`);
-        // You could show a user-friendly error here
       }
       
       // Update memorization status from user data
@@ -127,13 +154,22 @@ export class FlowComponent implements OnInit {
       // Prepare grid data
       this.prepareGridRows();
       
-    } catch (error) {
+    } catch (error: any) {
+      // Check if error is due to cancellation
+      if (error?.name === 'EmptyError') {
+        console.log('Request cancelled');
+        return;
+      }
+      
       console.error('Error loading verses:', error);
       // Show user-friendly error
       this.verses = [];
       alert('Failed to load verses. Please check your internet connection and try again.');
     } finally {
-      this.isLoading = false;
+      // Only update loading state if this is the latest request
+      if (currentRequestId === this.requestCounter) {
+        this.isLoading = false;
+      }
     }
   }
 
@@ -295,18 +331,20 @@ export class FlowComponent implements OnInit {
 
   private updateMemorizationStatus() {
     // Check each verse against user's memorized verses
-    this.bibleService.getUserVerses(this.userId).subscribe((userVerses: UserVerseDetail[]) => {
-      const memorizedSet = new Set(userVerses.map((v: UserVerseDetail) => 
-        `${v.verse.book_id}-${v.verse.chapter_number}-${v.verse.verse_number}`
-      ));
-      
-      this.verses.forEach(verse => {
-        verse.isMemorized = memorizedSet.has(verse.verseCode);
+    this.bibleService.getUserVerses(this.userId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((userVerses: UserVerseDetail[]) => {
+        const memorizedSet = new Set(userVerses.map((v: UserVerseDetail) => 
+          `${v.verse.book_id}-${v.verse.chapter_number}-${v.verse.verse_number}`
+        ));
+        
+        this.verses.forEach(verse => {
+          verse.isMemorized = memorizedSet.has(verse.verseCode);
+        });
+        
+        // Update grid data after status change
+        this.prepareGridRows();
       });
-      
-      // Update grid data after status change
-      this.prepareGridRows();
-    });
   }
 
   getVerseClass(verse: FlowVerse | null): string {

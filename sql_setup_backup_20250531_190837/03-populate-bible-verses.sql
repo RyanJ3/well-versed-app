@@ -1,3 +1,7 @@
+-- =====================================================
+-- 03-populate-bible-verses.sql
+-- (This is handled by Python script to insert bible data)
+-- =====================================================
 -- Set schema
 SET search_path TO wellversed01dev, public;
 

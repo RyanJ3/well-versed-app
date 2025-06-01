@@ -133,10 +133,20 @@
         </button>
       </div>
 
-      <div *ngIf="deckCards.length === 0" class="empty-state">
-        <div class="empty-icon">🃏</div>
+      <div *ngIf="deckCards.length === 0 && !isLoading" class="empty-state">
+        <svg class="empty-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+          <line x1="9" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="2"/>
+          <line x1="9" y1="12" x2="15" y2="12" stroke="currentColor" stroke-width="2"/>
+          <line x1="9" y1="16" x2="11" y2="16" stroke="currentColor" stroke-width="2"/>
+        </svg>
         <h3>No cards in this deck yet</h3>
         <p>Use the verse picker above to add flashcards to your deck.</p>
+      </div>
+
+      <div *ngIf="isLoading" class="loading-message">
+        <div class="loading-spinner-small"></div>
+        <span>Loading deck cards with verse texts...</span>
       </div>
 
       <div *ngIf="deckCards.length > 0" class="card-list">
@@ -160,8 +170,11 @@
             <div class="card-verses">
               <!-- Single Verse Display with Proper Guard -->
               <ng-container *ngIf="card.card_type === 'single_verse' && card.verses.length > 0">
-                <div class="single-verse-text">
+                <div class="single-verse-text" *ngIf="card.verses[0].text && !card.verses[0].text.startsWith('Unable to load')">
                   {{ card.verses[0].text }}
+                </div>
+                <div class="single-verse-text error" *ngIf="!card.verses[0].text || card.verses[0].text.startsWith('Unable to load')">
+                  <em>Verse text could not be loaded</em>
                 </div>
               </ng-container>
               
@@ -174,11 +187,14 @@
                       → {{ card.verses[card.verses.length - 1].reference }}
                     </span>
                   </div>
-                  <div class="first-verse-preview">
+                  <div class="first-verse-preview" *ngIf="card.verses[0].text && !card.verses[0].text.startsWith('Unable to load')">
                     "{{ card.verses[0].text }}"
                     <span *ngIf="card.verses.length > 1" class="more-indicator">
                       ... (+{{ card.verses.length - 1 }} more)
                     </span>
+                  </div>
+                  <div class="first-verse-preview error" *ngIf="!card.verses[0].text || card.verses[0].text.startsWith('Unable to load')">
+                    <em>Verse texts could not be loaded</em>
                   </div>
                 </div>
               </ng-container>

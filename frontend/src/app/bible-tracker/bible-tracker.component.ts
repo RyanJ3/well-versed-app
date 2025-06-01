@@ -1,3 +1,4 @@
+// frontend/src/app/bible-tracker/bible-tracker.component.ts
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
@@ -9,16 +10,7 @@ import { BibleGroup } from '../core/models/bible/bible-group.modle';
 import { BibleService } from '../core/services/bible.service';
 import { UserService } from '../core/services/user.service';
 import { BibleVerse } from '../core/models/bible/bible-verse.model';
-
-interface ConfirmationDialogConfig {
-  visible: boolean;
-  title: string;
-  message: string;
-  details?: string;
-  confirmText: string;
-  confirmAction: () => void;
-  isDestructive?: boolean;
-}
+import { ModalService } from '../core/services/modal.service';
 
 @Component({
   selector: 'app-bible-tracker',
@@ -50,20 +42,10 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   userId = 1; // Default test user
   includeApocrypha = false;
 
-  // Dialog configuration
-  confirmDialog: ConfirmationDialogConfig = {
-    visible: false,
-    title: '',
-    message: '',
-    details: '',
-    confirmText: 'Confirm',
-    confirmAction: () => {},
-    isDestructive: false
-  };
-
   constructor(
     private bibleService: BibleService,
     private userService: UserService,
+    private modalService: ModalService,
     private cdr: ChangeDetectorRef,
     private router: Router
   ) {
@@ -109,6 +91,11 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('Error loading verses:', error);
         this.isLoading = false;
+        this.modalService.alert(
+          'Error Loading Verses',
+          'Unable to load your saved verses. Please check your connection and try again.',
+          'danger'
+        );
         this.cdr.detectChanges();
       }
     });
@@ -144,11 +131,16 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Error saving verse:', error);
           verse.toggle();
+          this.modalService.alert(
+            'Error Saving Verse',
+            'Unable to save this verse. Please try again.',
+            'danger'
+          );
           this.cdr.detectChanges();
         }
       });
     } else {
-      // Delete the verse - now using separate parameters
+      // Delete the verse
       this.bibleService.deleteVerse(
         this.userId,
         verse.book.id,
@@ -164,6 +156,11 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Error deleting verse:', error);
           verse.toggle();
+          this.modalService.alert(
+            'Error Removing Verse',
+            'Unable to remove this verse. Please try again.',
+            'danger'
+          );
           this.cdr.detectChanges();
         }
       });
@@ -219,17 +216,34 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
           verse.lastPracticed = new Date();
         });
         this.isSavingBulk = false;
+        this.modalService.success(
+          'Chapter Saved',
+          `All verses in ${this.selectedBook!.name} ${this.selectedChapter!.chapterNumber} have been marked as memorized.`
+        );
         this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Error saving chapter:', error);
         this.isSavingBulk = false;
+        this.modalService.alert(
+          'Error Saving Chapter',
+          'Unable to save all verses in this chapter. Please try again.',
+          'danger'
+        );
       }
     });
   }
 
-  clearAllVerses(): void {
+  async clearAllVerses(): Promise<void> {
     if (!this.selectedChapter || !this.selectedBook) return;
+
+    const confirmed = await this.modalService.danger(
+      'Clear All Verses?',
+      `Are you sure you want to clear all memorized verses in ${this.selectedBook.name} ${this.selectedChapter.chapterNumber}? This action cannot be undone.`,
+      'Clear Verses'
+    );
+
+    if (!confirmed) return;
 
     this.isSavingBulk = true;
 
@@ -245,37 +259,41 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
           verse.lastPracticed = undefined;
         });
         this.isSavingBulk = false;
+        this.modalService.success(
+          'Chapter Cleared',
+          `All verses in ${this.selectedBook!.name} ${this.selectedChapter!.chapterNumber} have been cleared.`
+        );
         this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Error clearing chapter:', error);
         this.isSavingBulk = false;
+        this.modalService.alert(
+          'Error Clearing Chapter',
+          'Unable to clear verses in this chapter. Please try again.',
+          'danger'
+        );
       }
     });
   }
 
   // Book-level operations with confirmation modals
-  selectAllBookVerses(): void {
+  async selectAllBookVerses(): Promise<void> {
     if (!this.selectedBook) return;
     
     const totalVerses = this.selectedBook.totalVerses;
+    const message = totalVerses > 500 
+      ? `Mark all ${totalVerses} verses in ${this.selectedBook.name} as memorized? This is a large book and may take a moment to process.`
+      : `Mark all ${totalVerses} verses in ${this.selectedBook.name} as memorized?`;
     
-    this.confirmDialog = {
-      visible: true,
+    const confirmed = await this.modalService.confirm({
       title: 'Memorize Entire Book',
-      message: `Mark all ${totalVerses} verses in ${this.selectedBook.name} as memorized?`,
-      details: totalVerses > 500 ? 'This is a large book and may take a moment to process.' : '',
+      message,
       confirmText: 'Memorize Book',
-      isDestructive: false,
-      confirmAction: () => {
-        this.executeSelectAllBookVerses();
-        this.closeConfirmDialog();
-      }
-    };
-  }
+      type: 'info'
+    });
 
-  private executeSelectAllBookVerses(): void {
-    if (!this.selectedBook) return;
+    if (!confirmed.confirmed) return;
 
     this.isSavingBulk = true;
     this.bibleService.saveBook(this.userId, this.selectedBook.id).subscribe({
@@ -288,35 +306,35 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
           });
         });
         this.isSavingBulk = false;
+        this.modalService.success(
+          'Book Saved',
+          `All verses in ${this.selectedBook!.name} have been marked as memorized!`
+        );
         this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Error saving book:', error);
         this.isSavingBulk = false;
+        this.modalService.alert(
+          'Error Saving Book',
+          'Unable to save all verses in this book. Please try again.',
+          'danger'
+        );
         this.cdr.detectChanges();
       }
     });
   }
 
-  clearAllBookVerses(): void {
+  async clearAllBookVerses(): Promise<void> {
     if (!this.selectedBook) return;
 
-    this.confirmDialog = {
-      visible: true,
-      title: 'Clear Entire Book',
-      message: `Clear all memorized verses in ${this.selectedBook.name}?`,
-      details: 'This action cannot be undone.',
-      confirmText: 'Clear Book',
-      isDestructive: true,
-      confirmAction: () => {
-        this.executeClearAllBookVerses();
-        this.closeConfirmDialog();
-      }
-    };
-  }
+    const confirmed = await this.modalService.danger(
+      'Clear Entire Book?',
+      `Are you sure you want to clear all memorized verses in ${this.selectedBook.name}? This action cannot be undone.`,
+      'Clear Book'
+    );
 
-  private executeClearAllBookVerses(): void {
-    if (!this.selectedBook) return;
+    if (!confirmed) return;
 
     this.isSavingBulk = true;
     this.bibleService.clearBook(this.userId, this.selectedBook.id).subscribe({
@@ -329,19 +347,23 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
           });
         });
         this.isSavingBulk = false;
+        this.modalService.success(
+          'Book Cleared',
+          `All verses in ${this.selectedBook!.name} have been cleared.`
+        );
         this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Error clearing book:', error);
         this.isSavingBulk = false;
+        this.modalService.alert(
+          'Error Clearing Book',
+          'Unable to clear verses in this book. Please try again.',
+          'danger'
+        );
         this.cdr.detectChanges();
       }
     });
-  }
-
-  // Dialog management
-  closeConfirmDialog(): void {
-    this.confirmDialog.visible = false;
   }
 
   // Helper methods

@@ -407,6 +407,11 @@ textarea.form-control {
   color: #4b5563;
   line-height: 1.6;
   font-size: 0.95rem;
+  
+  &.error {
+    color: #dc2626;
+    font-style: italic;
+  }
 }
 
 .verse-range-content {
@@ -426,6 +431,10 @@ textarea.form-control {
     .more-indicator {
       color: #9ca3af;
       font-weight: 500;
+    }
+    
+    &.error {
+      color: #dc2626;
     }
   }
 }
@@ -545,4 +554,39 @@ textarea.form-control {
     width: 100%;
     justify-content: center;
   }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #6b7280;
+
+  .empty-icon {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto 1rem;
+    color: #d1d5db;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    font-size: 1rem;
+  }
+}
+
+// Loading message
+.loading-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: #6b7280;
+  font-size: 0.95rem;
 }

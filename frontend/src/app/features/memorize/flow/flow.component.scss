@@ -492,3 +492,185 @@
     }
   }
 }
+
+// Update the verse selection section
+.verse-selection-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  padding: 2.5rem;
+  border-radius: 1rem;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  margin-bottom: 2rem;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #10b981, #f59e0b);
+    opacity: 0.8;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    &::before {
+      content: '📖';
+      font-size: 1.5rem;
+    }
+  }
+
+  .section-description {
+    color: #64748b;
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  // Override verse picker theme for FLOW page
+  ::ng-deep app-verse-picker {
+    .verse-picker {
+      background: rgba(255, 255, 255, 0.8);
+      border: 2px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      
+      &:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    .mode-selector {
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      border: 1px solid #cbd5e1;
+      padding: 6px;
+      box-shadow: 
+        inset 0 1px 2px rgba(0, 0, 0, 0.06),
+        0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .mode-option {
+      font-weight: 600;
+      padding: 10px 20px;
+      
+      &.active {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        box-shadow: 
+          0 2px 4px rgba(16, 185, 129, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+    }
+
+    .picker-controls {
+      background: linear-gradient(135deg, #fafbfc 0%, #f1f5f9 100%);
+      border: 2px solid #e2e8f0;
+      padding: 20px;
+      
+      &:focus-within {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+      }
+    }
+
+    .select-control {
+      border: 2px solid #e2e8f0;
+      font-weight: 600;
+      
+      &:hover {
+        border-color: #10b981;
+      }
+      
+      &:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+      }
+    }
+
+    .selection-display {
+      background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+      border: 2px solid #86efac;
+      padding: 20px;
+      
+      .reference-text {
+        color: #065f46;
+        font-size: 1.25rem;
+      }
+      
+      .count-number {
+        background: #10b981;
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+      }
+      
+      .count-label {
+        color: #047857;
+        font-weight: 600;
+      }
+    }
+
+    .page-message.flow-message {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      color: #78350f;
+      border: 2px solid #fbbf24;
+      font-weight: 500;
+      padding: 1rem;
+      
+      svg {
+        color: #f59e0b;
+      }
+    }
+  }
+}
+
+// Update the controls section
+.controls-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  padding: 1.75rem;
+  border-radius: 0.75rem;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  
+  .layout-button {
+    font-weight: 600;
+    padding: 0.625rem 1.25rem;
+    
+    &.active {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      box-shadow: 
+        0 2px 4px rgba(59, 130, 246, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+  }
+  
+  .checkbox-option {
+    font-weight: 500;
+    
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #d1d5db;
+      border-radius: 4px;
+      
+      &:checked {
+        background-color: #10b981;
+        border-color: #10b981;
+      }
+    }
+  }
+}

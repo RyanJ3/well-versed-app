@@ -1,49 +1,171 @@
-<div class="app-container">
-  <header class="app-header">
-    <div class="logo-container">
-      <h1 class="app-title">
-        <span class="app-title-text">Well Versed</span>
-      </h1>
+<!-- frontend/src/app/features/home/home.component.html -->
+<div class="home-container">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-background">
+      <div class="hero-gradient"></div>
+      <div class="hero-pattern"></div>
     </div>
-
-    <button class="menu-toggle" (click)="toggleMenu()">
-      <span class="bar"></span>
-      <span class="bar"></span>
-      <span class="bar"></span>
-    </button>
-
-    <nav class="app-nav" [class.active]="menuActive">
-      (click)="closeMenu()">Home</a>
-
-      <a routerLink="/tracker" class="nav-link" routerLinkActive="active" (click)="closeMenu()">Tracker</a>
-
-      <!-- Memorize dropdown menu -->
-      <div class="nav-dropdown">
-        <button class="nav-link dropdown-toggle" [class.active]="memorizeMenuActive"
-          (click)="toggleMemorizeMenu($event)">
-          Memorize
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="dropdown-icon"
-            [class.rotate]="memorizeMenuActive">
-            <path fill-rule="evenodd"
-              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-              clip-rule="evenodd" />
-          </svg>
-        </button>
-
-        <div class="dropdown-menu" [class.active]="memorizeMenuActive">
-          <a routerLink="/flow" class="dropdown-item" routerLinkActive="active" (click)="closeMenu()">FLOW</a>
-          <a routerLink="/flashcard" class="dropdown-item" routerLinkActive="active" (click)="closeMenu()">Flashcard</a>
-          <!-- Add other memorization tools here in the future -->
+    
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Master Scripture with <span class="app-name">Well Versed</span>
+      </h1>
+      <p class="hero-subtitle">
+        Transform your Bible memorization journey with powerful tools, proven techniques, and visual progress tracking
+      </p>
+      <div class="hero-stats">
+        <div class="stat-item" *ngFor="let stat of stats">
+          <span class="stat-icon">{{ stat.icon }}</span>
+          <div class="stat-content">
+            <span class="stat-value">{{ stat.value }}</span>
+            <span class="stat-label">{{ stat.label }}</span>
+          </div>
         </div>
       </div>
-    </nav>
-  </header>
+      <div class="hero-actions">
+        <a routerLink="/tracker" class="cta-button primary large">
+          Start Your Journey
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+        </a>
+        <button (click)="scrollToFeatures()" class="cta-button secondary large">
+          Explore Features
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
 
-  <main class="app-content">
-    <router-outlet></router-outlet>
-  </main>
- 
-  <footer class="app-footer">
-    <!--        <p>&copy; 2025 TODO WellVersed App. All rights reserved.</p>-->
-  </footer>
+  <!-- Features Section -->
+  <section id="features-section" class="features-section">
+    <div class="section-header">
+      <h2 class="section-title">Powerful Memorization Tools</h2>
+      <p class="section-subtitle">Everything you need to memorize scripture effectively</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card" *ngFor="let feature of features; let i = index" 
+           [style.animation-delay.ms]="i * 100"
+           [routerLink]="feature.route">
+        <div class="feature-icon" [style.background-color]="feature.color + '20'" 
+             [style.color]="feature.color" [innerHTML]="feature.icon">
+        </div>
+        
+        <div class="feature-content">
+          <h3 class="feature-title">{{ feature.title }}</h3>
+          <p class="feature-subtitle">{{ feature.subtitle }}</p>
+          <p class="feature-description">{{ feature.description }}</p>
+          
+          <div class="feature-benefits">
+            <div class="benefit-item" *ngFor="let benefit of feature.benefits">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <span>{{ benefit }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature-action">
+          <span class="action-text">Get Started</span>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="how-it-works-section">
+    <div class="section-header">
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-subtitle">Start memorizing scripture in three simple steps</p>
+    </div>
+
+    <div class="steps-container">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3>Choose Your Verses</h3>
+        <p>Select individual verses, ranges, or entire chapters from any book of the Bible</p>
+      </div>
+      
+      <div class="step-connector">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3>Practice & Memorize</h3>
+        <p>Use FLOW method, flashcards, or traditional tracking to memorize at your pace</p>
+      </div>
+      
+      <div class="step-connector">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3>Track Progress</h3>
+        <p>Watch your memorization journey unfold with beautiful visualizations and insights</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="testimonials-section">
+    <div class="section-header">
+      <h2 class="section-title">Loved by Scripture Memorizers</h2>
+      <p class="section-subtitle">Join thousands who have transformed their Bible study</p>
+    </div>
+
+    <div class="testimonials-grid">
+      <div class="testimonial-card" *ngFor="let testimonial of testimonials">
+        <div class="testimonial-rating">
+          <svg *ngFor="let star of [1,2,3,4,5]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+          </svg>
+        </div>
+        
+        <blockquote class="testimonial-text">
+          "{{ testimonial.text }}"
+        </blockquote>
+        
+        <div class="testimonial-author">
+          <div class="author-avatar">{{ testimonial.author.charAt(0) }}</div>
+          <div class="author-info">
+            <div class="author-name">{{ testimonial.author }}</div>
+            <div class="author-role">{{ testimonial.role }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2 class="cta-title">Ready to Transform Your Scripture Memory?</h2>
+      <p class="cta-text">
+        Join Well Versed today and start your journey to memorizing God's Word like never before.
+      </p>
+      <div class="cta-actions">
+        <a routerLink="/tracker" class="cta-button primary large">
+          Get Started Free
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+        </a>
+      </div>
+      <p class="cta-note">No credit card required • Free forever • Start in seconds</p>
+    </div>
+  </section>
 </div>

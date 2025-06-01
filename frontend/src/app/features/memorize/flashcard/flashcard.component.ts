@@ -40,6 +40,16 @@ export class FlashcardComponent implements OnInit {
   };
   tagInput = '';
 
+  // Modal states
+  showDeleteModal = false;
+  deleteModalTitle = '';
+  deleteModalMessage = '';
+  deckToDelete: number | null = null;
+  
+  showSuccessModal = false;
+  successModalTitle = '';
+  successModalMessage = '';
+
   constructor(
     private deckService: DeckService,
     private userService: UserService
@@ -109,22 +119,36 @@ export class FlashcardComponent implements OnInit {
 
   loadSavedDecks() {
     this.isLoading = true;
-    // TODO: Replace with actual saved decks endpoint when backend is ready
-    // this.deckService.getSavedDecks(this.userId).subscribe({
-    //   next: (response) => {
-    //     this.savedDecks = response.decks.map(deck => ({ ...deck, loading_counts: false }));
-    //     this.isLoading = false;
-    //     this.loadDetailedCounts(this.savedDecks);
-    //   },
-    //   error: (error) => {
-    //     console.error('Error loading saved decks:', error);
-    //     this.isLoading = false;
-    //   }
-    // });
-
-    // Temporary implementation - filter public decks that are marked as saved
-    this.savedDecks = this.publicDecks.filter(deck => deck.is_saved);
-    this.isLoading = false;
+    
+    // Actual implementation that would work with a real backend endpoint
+    this.deckService.getSavedDecks(this.userId).subscribe({
+      next: (response) => {
+        this.savedDecks = response.decks.map(deck => ({ 
+          ...deck, 
+          loading_counts: false,
+          is_saved: true // Mark all as saved since they're in the saved list
+        }));
+        this.isLoading = false;
+        // Load detailed counts for each deck
+        this.loadDetailedCounts(this.savedDecks);
+      },
+      error: (error) => {
+        console.error('Error loading saved decks:', error);
+        this.isLoading = false;
+        
+        // Fallback to empty array if endpoint doesn't exist yet
+        this.savedDecks = [];
+        
+        // Optionally show error message to user
+        if (error.status === 404) {
+          // Endpoint not implemented yet, silently handle
+          console.log('Saved decks endpoint not implemented yet');
+        } else {
+          // Real error occurred
+          this.showModal('Error', 'Unable to load saved decks. Please try again later.');
+        }
+      }
+    });
   }
 
   /**
@@ -226,105 +250,84 @@ export class FlashcardComponent implements OnInit {
   }
 
   deleteDeck(deckId: number) {
-    if (!confirm('Are you sure you want to delete this deck? This action cannot be undone.')) return;
+    this.deleteModalTitle = 'Delete Deck';
+    this.deleteModalMessage = 'Are you sure you want to delete this deck? This action cannot be undone.';
+    this.deckToDelete = deckId;
+    this.showDeleteModal = true;
+  }
 
-    this.deckService.deleteDeck(deckId).subscribe({
-      next: () => {
-        this.myDecks = this.myDecks.filter(d => d.deck_id !== deckId);
-      },
-      error: (error) => {
-        console.error('Error deleting deck:', error);
-        alert('Error deleting deck. Please try again.');
-      }
-    });
+  confirmDeleteDeck() {
+    if (this.deckToDelete) {
+      this.deckService.deleteDeck(this.deckToDelete).subscribe({
+        next: () => {
+          this.myDecks = this.myDecks.filter(d => d.deck_id !== this.deckToDelete);
+          this.closeDeleteModal();
+        },
+        error: (error) => {
+          console.error('Error deleting deck:', error);
+          this.closeDeleteModal();
+          this.showModal('Error', 'Error deleting deck. Please try again.');
+        }
+      });
+    }
+  }
+
+  closeDeleteModal() {
+    this.showDeleteModal = false;
+    this.deckToDelete = null;
   }
 
   saveDeck(deck: DeckWithCounts) {
     deck.saving = true;
     
-    // TODO: Replace with actual backend endpoint when ready
-    // this.deckService.saveDeck(deck.deck_id, this.userId).subscribe({
-    //   next: () => {
-    //     deck.is_saved = true;
-    //     deck.save_count = (deck.save_count || 0) + 1;
-    //     deck.saving = false;
-    //     
-    //     // Add to saved decks if not already there
-    //     if (!this.savedDecks.find(d => d.deck_id === deck.deck_id)) {
-    //       this.savedDecks.push({ ...deck });
-    //     }
-    //     
-    //     alert(`"${deck.name}" has been added to your collection!`);
-    //   },
-    //   error: (error) => {
-    //     console.error('Error saving deck:', error);
-    //     deck.saving = false;
-    //     alert('Unable to save deck. Please try again.');
-    //   }
-    // });
-
-    // Temporary implementation with simulated delay
-    setTimeout(() => {
-      deck.is_saved = true;
-      deck.save_count = (deck.save_count || 0) + 1;
-      deck.saving = false;
-      
-      // Add to saved decks if not already there
-      if (!this.savedDecks.find(d => d.deck_id === deck.deck_id)) {
-        this.savedDecks.push({ ...deck });
+    this.deckService.saveDeck(deck.deck_id, this.userId).subscribe({
+      next: () => {
+        deck.is_saved = true;
+        deck.save_count = (deck.save_count || 0) + 1;
+        deck.saving = false;
+        
+        // Add to saved decks if not already there
+        if (!this.savedDecks.find(d => d.deck_id === deck.deck_id)) {
+          this.savedDecks.push({ ...deck });
+        }
+        
+        this.showModal('Success', `"${deck.name}" has been added to your collection!`);
+      },
+      error: (error: any) => {
+        console.error('Error saving deck:', error);
+        deck.saving = false;
+        this.showModal('Error', 'Unable to save deck. Please try again.');
       }
-      
-      console.log(`"${deck.name}" added to your collection!`);
-    }, 500);
+    });
   }
 
   unsaveDeck(deck: DeckWithCounts) {
     deck.saving = true;
     
-    // TODO: Replace with actual backend endpoint when ready
-    // this.deckService.unsaveDeck(deck.deck_id, this.userId).subscribe({
-    //   next: () => {
-    //     deck.is_saved = false;
-    //     deck.save_count = Math.max(0, (deck.save_count || 1) - 1);
-    //     deck.saving = false;
-    //     
-    //     // Remove from saved decks
-    //     this.savedDecks = this.savedDecks.filter(d => d.deck_id !== deck.deck_id);
-    //     
-    //     // Update the deck in public decks list if it exists there
-    //     const publicDeck = this.publicDecks.find(d => d.deck_id === deck.deck_id);
-    //     if (publicDeck) {
-    //       publicDeck.is_saved = false;
-    //       publicDeck.save_count = deck.save_count;
-    //     }
-    //     
-    //     alert(`"${deck.name}" has been removed from your collection.`);
-    //   },
-    //   error: (error) => {
-    //     console.error('Error unsaving deck:', error);
-    //     deck.saving = false;
-    //     alert('Unable to remove deck from collection. Please try again.');
-    //   }
-    // });
-
-    // Temporary implementation with simulated delay
-    setTimeout(() => {
-      deck.is_saved = false;
-      deck.save_count = Math.max(0, (deck.save_count || 1) - 1);
-      deck.saving = false;
-      
-      // Remove from saved decks
-      this.savedDecks = this.savedDecks.filter(d => d.deck_id !== deck.deck_id);
-      
-      // Update the deck in public decks list if it exists there
-      const publicDeck = this.publicDecks.find(d => d.deck_id === deck.deck_id);
-      if (publicDeck) {
-        publicDeck.is_saved = false;
-        publicDeck.save_count = deck.save_count;
+    this.deckService.unsaveDeck(deck.deck_id, this.userId).subscribe({
+      next: () => {
+        deck.is_saved = false;
+        deck.save_count = Math.max(0, (deck.save_count || 1) - 1);
+        deck.saving = false;
+        
+        // Remove from saved decks
+        this.savedDecks = this.savedDecks.filter(d => d.deck_id !== deck.deck_id);
+        
+        // Update the deck in public decks list if it exists there
+        const publicDeck = this.publicDecks.find(d => d.deck_id === deck.deck_id);
+        if (publicDeck) {
+          publicDeck.is_saved = false;
+          publicDeck.save_count = deck.save_count;
+        }
+        
+        this.showModal('Success', `"${deck.name}" has been removed from your collection.`);
+      },
+      error: (error) => {
+        console.error('Error unsaving deck:', error);
+        deck.saving = false;
+        this.showModal('Error', 'Unable to remove deck from collection. Please try again.');
       }
-      
-      console.log(`"${deck.name}" removed from your collection.`);
-    }, 500);
+    });
   }
 
   getDisplayDecks(): DeckWithCounts[] {
@@ -341,5 +344,16 @@ export class FlashcardComponent implements OnInit {
   // TrackBy function for better performance
   trackByDeckId(index: number, deck: DeckWithCounts): number {
     return deck.deck_id;
+  }
+
+  // Modal methods
+  showModal(title: string, message: string) {
+    this.successModalTitle = title;
+    this.successModalMessage = message;
+    this.showSuccessModal = true;
+  }
+
+  closeSuccessModal() {
+    this.showSuccessModal = false;
   }
 }

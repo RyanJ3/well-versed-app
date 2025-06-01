@@ -1,4 +1,4 @@
-
+// frontend/src/app/features/profile/profile.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,6 +22,7 @@ export class ProfileComponent implements OnInit {
   user: User | null = null;
   isLoading = true;
   showSuccess = false;
+  isSaving = false;
 
   // Form data (always available for editing)
   profileForm: any = {
@@ -60,18 +61,6 @@ export class ProfileComponent implements OnInit {
     { text: 'The Message (MSG)', value: 'MSG' },
     { text: 'Amplified Bible (AMP)', value: 'AMP' }
   ];
-  
-  // Chart data
-  memorizationData = [
-    { category: 'Genesis', count: 15 },
-    { category: 'Psalms', count: 28 },
-    { category: 'Proverbs', count: 12 },
-    { category: 'John', count: 8 },
-    { category: 'Romans', count: 10 }
-  ];
-
-  // Tab selection state
-  selectedTab = 'current';
   
   constructor(
     private userService: UserService,
@@ -115,7 +104,6 @@ export class ProfileComponent implements OnInit {
       lastName: nameParts.slice(1).join(' ') || '',
       denomination: user.denomination || '',
       preferredBible: user.preferredBible || '',
-      // FIXED: Handle boolean correctly - don't use || with booleans
       includeApocrypha: user.includeApocrypha !== undefined ? user.includeApocrypha : false
     };
     
@@ -123,10 +111,10 @@ export class ProfileComponent implements OnInit {
   }
   
   saveProfile(): void {
-    if (!this.profileForm) return;
+    if (!this.profileForm || this.isSaving) return;
     
     console.log('Saving profile with data:', this.profileForm);
-    this.isLoading = true;
+    this.isSaving = true;
     
     // Create a clean user profile update object
     const profileUpdate = {
@@ -157,17 +145,14 @@ export class ProfileComponent implements OnInit {
           this.dismissSuccess();
         }, 5000);
         
-        this.isLoading = false;
+        this.isSaving = false;
       },
       error: (error: any) => {
         console.error('Error updating profile:', error);
-        this.isLoading = false;
+        this.isSaving = false;
+        // TODO: Show error message using modal service
       }
     });
-  }
-  
-  selectTab(tabId: string): void {
-    this.selectedTab = tabId;
   }
   
   dismissSuccess(): void {

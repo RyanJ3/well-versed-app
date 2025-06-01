@@ -1,3 +1,4 @@
+
 -- =====================================================
 -- 01-drop-schema.sql
 -- WARNING: This drops everything! Use with caution.

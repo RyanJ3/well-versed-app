@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DeckService } from '../../../core/services/deck.service';
 import { BibleService } from '../../../core/services/bible.service';
+import { UserService } from '../../../core/services/user.service';
 
 interface StudyVerse {
   verse_id: number;
@@ -30,47 +31,71 @@ export class StudyComponent implements OnInit {
   currentIndex: number = 0;
   isLoading: boolean = true;
   error: string = '';
-  userId: number = 1; // TODO: Get from UserService
+  userId: number = 1;
+  preferredBibleId: string = '';
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private deckService: DeckService,
-    private bibleService: BibleService
+    private bibleService: BibleService,
+    private userService: UserService
   ) {}
 
   ngOnInit() {
+    // Get user preferences first
+    this.userService.currentUser$.subscribe(user => {
+      if (user) {
+        this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+        // Map preferred Bible to API Bible ID if needed
+        // For now, we'll use the default from the backend
+        this.preferredBibleId = ''; // Let backend use its default
+      }
+    });
+
     this.route.params.subscribe(params => {
       this.deckId = +params['deckId'];
       this.loadDeckVerses();
     });
   }
 
-    loadDeckVerses() {
+  loadDeckVerses() {
     this.isLoading = true;
-    this.deckService.getDeckCards(this.deckId, this.userId).subscribe({
-        next: (response: any) => {
+    this.error = '';
+    
+    this.deckService.getDeckCards(this.deckId, this.userId, this.preferredBibleId).subscribe({
+      next: (response: any) => {
         this.deckName = response.deck_name;
+        
         // Flatten cards to verses for study mode
         this.verses = response.cards.flatMap((card: any) => 
-            card.verses.map((verse: any) => ({
+          card.verses.map((verse: any) => ({
             ...verse,
             confidence_score: card.confidence_score || 50,
-            isRevealed: false
-            }))
+            isRevealed: false,
+            // Ensure we have text or a fallback
+            text: verse.text || `Unable to load text for ${verse.reference}`
+          }))
         );
+        
+        // Check if any verses failed to load
+        const failedVerses = this.verses.filter(v => v.text.startsWith('Unable to load'));
+        if (failedVerses.length > 0) {
+          console.warn(`${failedVerses.length} verses failed to load properly`);
+        }
+        
         this.orderVersesBySpacedRepetition();
         this.isLoading = false;
-        },
-        error: (error: any) => {
+      },
+      error: (error: any) => {
         console.error('Error loading deck cards:', error);
-        this.error = 'Failed to load deck cards';
+        this.error = 'Failed to load deck cards. Please check your internet connection and try again.';
         this.isLoading = false;
-        }
+      }
     });
-    }
+  }
 
-    orderVersesBySpacedRepetition() {
+  orderVersesBySpacedRepetition() {
     // Simple spaced repetition ordering
     // Prioritize: low confidence scores and older reviews
     this.verses.sort((a, b) => {
@@ -138,15 +163,17 @@ export class StudyComponent implements OnInit {
     this.nextVerse();
   }
 
-    exitStudy() {
-        this.router.navigate(['/flashcards']);
-    }
+  exitStudy() {
+    this.router.navigate(['/flashcards']);
+  }
 
   onConfidenceChange() {
     // Save confidence score immediately when changed
     if (this.currentVerse) {
       console.log(`Confidence changed to ${this.currentVerse.confidence_score}%`);
-      // TODO: Save to backend
+      // TODO: Save confidence to backend using a new endpoint
+      // This would require creating a new endpoint to save confidence scores
+      // for individual verses or cards
     }
-}
+  }
 }

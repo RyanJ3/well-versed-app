@@ -6,6 +6,8 @@ import logging
 from datetime import datetime
 from database import DatabaseConnection
 import db_pool
+from services.api_bible import APIBibleService  # Add this import
+from config import Config  # Add this import
 
 logger = logging.getLogger(__name__)
 
@@ -256,7 +258,7 @@ async def get_deck(deck_id: int, db: DatabaseConnection = Depends(get_db)):
     )
 
 @router.get("/{deck_id}/verses", response_model=DeckCardsResponse)
-async def get_deck_verses(deck_id: int, user_id: int = 1, db: DatabaseConnection = Depends(get_db)):
+async def get_deck_verses(deck_id: int, user_id: int = 1, bible_id: Optional[str] = None, db: DatabaseConnection = Depends(get_db)):
     """Get all cards in a deck with their verse content and user's confidence scores"""
     logger.info(f"Getting cards for deck {deck_id} for user {user_id}")
     
@@ -291,8 +293,10 @@ async def get_deck_verses(deck_id: int, user_id: int = 1, db: DatabaseConnection
     
     results = db.fetch_all(cards_query, (deck_id,))
     
-    # Group results by card
+    # Group results by card and collect verse codes
     cards_dict = {}
+    all_verse_codes = []
+    
     for row in results:
         card_id = row['card_id']
         if card_id not in cards_dict:
@@ -304,20 +308,46 @@ async def get_deck_verses(deck_id: int, user_id: int = 1, db: DatabaseConnection
             }
         
         if row['verse_id']:  # If there are verses for this card
+            verse_code = row['verse_code']
+            all_verse_codes.append(verse_code)
+            
             verse_reference = f"{row['book_name']} {row['chapter_number']}:{row['verse_number']}"
-            verse_text = f"This is the text of {verse_reference}. In a real implementation, this would contain the actual scripture text."
             
             cards_dict[card_id]['verses'].append({
                 'verse_id': row['verse_id'],
-                'verse_code': row['verse_code'],
+                'verse_code': verse_code,
                 'book_id': row['book_id'],
                 'book_name': row['book_name'],
                 'chapter_number': row['chapter_number'],
                 'verse_number': row['verse_number'],
                 'reference': verse_reference,
-                'text': verse_text,
+                'text': '',  # Will be filled in later
                 'verse_order': row['verse_order']
             })
+    
+    # Fetch actual verse texts from API.Bible
+    verse_texts = {}
+    if all_verse_codes:
+        try:
+            # Initialize API Bible service
+            api_bible = APIBibleService(Config.API_BIBLE_KEY, bible_id or Config.DEFAULT_BIBLE_ID)
+            
+            # Get verse texts in batch
+            verse_texts = api_bible.get_verses_batch(all_verse_codes, bible_id or Config.DEFAULT_BIBLE_ID)
+            logger.info(f"Fetched texts for {len(verse_texts)} verses from API.Bible")
+        except Exception as e:
+            logger.error(f"Error fetching verse texts from API.Bible: {e}")
+            # Continue without verse texts rather than failing completely
+    
+    # Update verse texts in the cards
+    for card_data in cards_dict.values():
+        for verse in card_data['verses']:
+            verse_code = verse['verse_code']
+            if verse_code in verse_texts:
+                verse['text'] = verse_texts[verse_code]
+            else:
+                # Fallback text if API.Bible fetch failed
+                verse['text'] = f"Unable to load verse text for {verse['reference']}"
     
     # Convert to list and add confidence scores
     card_responses = []
@@ -517,3 +547,147 @@ async def remove_multiple_cards_from_deck(deck_id: int, card_ids: List[int], db:
         db.execute(query, (deck_id, card_id))
     
     return {"message": f"Removed {len(card_ids)} cards from deck"}
+
+# Add these routes to backend/routers/decks.py
+
+@router.get("/saved/{user_id}", response_model=DeckListResponse)
+async def get_saved_decks(user_id: int, db: DatabaseConnection = Depends(get_db)):
+    """Get all decks saved by a user"""
+    logger.info(f"Getting saved decks for user {user_id}")
+    
+    query = """
+        SELECT 
+            d.deck_id,
+            d.user_id as creator_id,
+            u.name as creator_name,
+            d.name,
+            d.description,
+            d.is_public,
+            d.created_at,
+            d.updated_at,
+            COUNT(DISTINCT dc.card_id) as card_count,
+            COUNT(DISTINCT sd2.user_id) as save_count,
+            TRUE as is_saved
+        FROM saved_decks sd
+        JOIN decks d ON sd.deck_id = d.deck_id
+        JOIN users u ON d.user_id = u.user_id
+        LEFT JOIN deck_cards dc ON d.deck_id = dc.deck_id
+        LEFT JOIN saved_decks sd2 ON d.deck_id = sd2.deck_id
+        WHERE sd.user_id = %s
+        GROUP BY d.deck_id, d.user_id, u.name, d.name, d.description, d.is_public, d.created_at, d.updated_at
+        ORDER BY sd.saved_at DESC
+    """
+    
+    decks = db.fetch_all(query, (user_id,))
+    
+    deck_responses = []
+    for deck in decks:
+        deck_responses.append(DeckResponse(
+            deck_id=deck['deck_id'],
+            creator_id=deck['creator_id'],
+            creator_name=deck['creator_name'],
+            name=deck['name'],
+            description=deck['description'],
+            is_public=deck['is_public'],
+            save_count=deck['save_count'],
+            created_at=deck['created_at'].isoformat(),
+            updated_at=deck['updated_at'].isoformat(),
+            card_count=deck['card_count'],
+            tags=[],  # TODO: implement tags
+            is_saved=True
+        ))
+    
+    return DeckListResponse(total=len(deck_responses), decks=deck_responses)
+
+@router.post("/{deck_id}/save")
+async def save_deck(deck_id: int, request: dict, db: DatabaseConnection = Depends(get_db)):
+    """Save a deck to user's collection"""
+    user_id = request.get('user_id')
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id is required")
+    
+    logger.info(f"User {user_id} saving deck {deck_id}")
+    
+    # Check if deck exists
+    deck = db.fetch_one("SELECT deck_id FROM decks WHERE deck_id = %s", (deck_id,))
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    
+    # Check if already saved
+    existing = db.fetch_one(
+        "SELECT * FROM saved_decks WHERE user_id = %s AND deck_id = %s",
+        (user_id, deck_id)
+    )
+    
+    if existing:
+        return {"message": "Deck already saved"}
+    
+    # Save the deck
+    query = """
+        INSERT INTO saved_decks (user_id, deck_id, saved_at)
+        VALUES (%s, %s, CURRENT_TIMESTAMP)
+    """
+    db.execute(query, (user_id, deck_id))
+    
+    return {"message": "Deck saved successfully"}
+
+@router.delete("/{deck_id}/save/{user_id}")
+async def unsave_deck(deck_id: int, user_id: int, db: DatabaseConnection = Depends(get_db)):
+    """Remove a deck from user's saved collection"""
+    logger.info(f"User {user_id} removing saved deck {deck_id}")
+    
+    query = "DELETE FROM saved_decks WHERE user_id = %s AND deck_id = %s"
+    db.execute(query, (user_id, deck_id))
+    
+    return {"message": "Deck removed from saved collection"}
+
+# Also update the get_public_decks method to include is_saved status for the current user
+@router.get("/public", response_model=DeckListResponse)
+async def get_public_decks(skip: int = 0, limit: int = 20, user_id: Optional[int] = None, tag: Optional[str] = None, db: DatabaseConnection = Depends(get_db)):
+    """Get public decks"""
+    logger.info(f"Getting public decks, skip={skip}, limit={limit}, user_id={user_id}")
+    
+    query = """
+        SELECT 
+            d.deck_id,
+            d.user_id as creator_id,
+            u.name as creator_name,
+            d.name,
+            d.description,
+            d.is_public,
+            d.created_at,
+            d.updated_at,
+            COUNT(DISTINCT dc.card_id) as card_count,
+            COUNT(DISTINCT sd.user_id) as save_count,
+            CASE WHEN usd.user_id IS NOT NULL THEN TRUE ELSE FALSE END as is_saved
+        FROM decks d
+        JOIN users u ON d.user_id = u.user_id
+        LEFT JOIN deck_cards dc ON d.deck_id = dc.deck_id
+        LEFT JOIN saved_decks sd ON d.deck_id = sd.deck_id
+        LEFT JOIN saved_decks usd ON d.deck_id = usd.deck_id AND usd.user_id = %s
+        WHERE d.is_public = TRUE
+        GROUP BY d.deck_id, d.user_id, u.name, d.name, d.description, d.is_public, d.created_at, d.updated_at, usd.user_id
+        ORDER BY d.created_at DESC
+        LIMIT %s OFFSET %s
+    """
+    
+    decks = db.fetch_all(query, (user_id or 0, limit, skip))
+    
+    deck_responses = []
+    for deck in decks:
+        deck_responses.append(DeckResponse(
+            deck_id=deck['deck_id'],
+            creator_id=deck['creator_id'],
+            creator_name=deck['creator_name'],
+            name=deck['name'],
+            description=deck['description'],
+            is_public=deck['is_public'],
+            save_count=deck['save_count'],
+            created_at=deck['created_at'].isoformat(),
+            updated_at=deck['updated_at'].isoformat(),
+            card_count=deck['card_count'],
+            tags=[],
+            is_saved=deck['is_saved'] if user_id else False
+        ))
+    
+    return DeckListResponse(total=len(deck_responses), decks=deck_responses)

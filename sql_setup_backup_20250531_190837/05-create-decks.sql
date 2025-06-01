@@ -1,7 +1,10 @@
--- sql_setup/08-create-deck-cards.sql
+-- =====================================================
+-- 05-create-deck-cards.sql
+-- Flashcard system for decks
+-- =====================================================
 SET search_path TO wellversed01DEV;
 
--- New table for flashcards (replaces individual verse entries)
+-- Table for flashcards
 CREATE TABLE deck_cards (
     card_id SERIAL PRIMARY KEY,
     deck_id INTEGER NOT NULL REFERENCES decks(deck_id) ON DELETE CASCADE,
@@ -26,26 +29,3 @@ CREATE INDEX idx_deck_cards_deck ON deck_cards(deck_id);
 CREATE INDEX idx_deck_cards_position ON deck_cards(deck_id, position);
 CREATE INDEX idx_card_verses_card ON card_verses(card_id);
 CREATE INDEX idx_card_verses_order ON card_verses(card_id, verse_order);
-
--- Migrate existing deck_verses to deck_cards (single verse cards)
-INSERT INTO deck_cards (deck_id, card_type, reference, start_verse_id, position)
-SELECT 
-    dv.deck_id,
-    'single_verse',
-    bb.book_name || ' ' || bv.chapter_number || ':' || bv.verse_number,
-    dv.verse_id,
-    dv.position
-FROM deck_verses dv
-JOIN bible_verses bv ON dv.verse_id = bv.id
-JOIN bible_books bb ON bv.book_id = bb.book_id;
-
--- Migrate card_verses entries
-INSERT INTO card_verses (card_id, verse_id, verse_order)
-SELECT 
-    dc.card_id,
-    dc.start_verse_id,
-    1
-FROM deck_cards dc;
-
--- Drop old table after migration
-DROP TABLE deck_verses;

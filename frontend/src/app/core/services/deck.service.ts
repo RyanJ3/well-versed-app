@@ -85,8 +85,12 @@ export class DeckService {
     return this.http.get<DeckResponse>(`${this.apiUrl}/${deckId}`);
   }
 
-  getDeckCards(deckId: number, userId: number): Observable<DeckCardsResponse> {
-    return this.http.get<DeckCardsResponse>(`${this.apiUrl}/${deckId}/verses?user_id=${userId}`);
+  getDeckCards(deckId: number, userId: number, bibleId?: string): Observable<DeckCardsResponse> {
+    let url = `${this.apiUrl}/${deckId}/verses?user_id=${userId}`;
+    if (bibleId) {
+      url += `&bible_id=${bibleId}`;
+    }
+    return this.http.get<DeckCardsResponse>(url);
   }
 
   addVersesToDeck(deckId: number, verseCodes: string[], reference?: string): Observable<any> {
@@ -110,5 +114,18 @@ export class DeckService {
 
   deleteDeck(deckId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${deckId}`);
+  }
+
+  // Saved deck methods
+  getSavedDecks(userId: number): Observable<DeckListResponse> {
+    return this.http.get<DeckListResponse>(`${this.apiUrl}/saved/${userId}`);
+  }
+
+  saveDeck(deckId: number, userId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${deckId}/save`, { user_id: userId });
+  }
+
+  unsaveDeck(deckId: number, userId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${deckId}/save/${userId}`);
   }
 }
