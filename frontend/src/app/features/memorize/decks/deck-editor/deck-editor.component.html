@@ -149,76 +149,56 @@
         <span>Loading deck cards with verse texts...</span>
       </div>
 
-      <div *ngIf="deckCards.length > 0" class="card-list">
-        <div *ngFor="let card of deckCards" 
-             class="card-item" 
-             [class.selected]="selectedCards.has(card.card_id)">
-          <input 
-            type="checkbox" 
-            [checked]="selectedCards.has(card.card_id)"
-            (change)="toggleCardSelection(card.card_id)"
-            class="card-checkbox">
-          
-          <div class="card-content">
-            <div class="card-header">
-              <div class="card-reference">{{ card.reference }}</div>
-              <div class="card-type-badge" [class]="card.card_type">
-                {{ card.card_type === 'single_verse' ? 'Single Verse' : 'Verse Range' }}
-              </div>
-            </div>
-            
-            <div class="card-verses">
-              <!-- Single Verse Display with Proper Guard -->
-              <ng-container *ngIf="card.card_type === 'single_verse' && card.verses.length > 0">
-                <div class="single-verse-text" *ngIf="card.verses[0].text && !card.verses[0].text.startsWith('Unable to load')">
-                  {{ card.verses[0].text }}
-                </div>
-                <div class="single-verse-text error" *ngIf="!card.verses[0].text || card.verses[0].text.startsWith('Unable to load')">
-                  <em>Verse text could not be loaded</em>
-                </div>
-              </ng-container>
-              
-              <!-- Verse Range Display with Proper Guards -->
-              <ng-container *ngIf="card.card_type === 'verse_range' && card.verses.length > 0">
-                <div class="verse-range-content">
-                  <div class="verse-summary">
-                    {{ card.verses.length }} verses: {{ card.verses[0].reference }}
-                    <span *ngIf="card.verses.length > 1">
-                      → {{ card.verses[card.verses.length - 1].reference }}
-                    </span>
-                  </div>
-                  <div class="first-verse-preview" *ngIf="card.verses[0].text && !card.verses[0].text.startsWith('Unable to load')">
-                    "{{ card.verses[0].text }}"
-                    <span *ngIf="card.verses.length > 1" class="more-indicator">
-                      ... (+{{ card.verses.length - 1 }} more)
-                    </span>
-                  </div>
-                  <div class="first-verse-preview error" *ngIf="!card.verses[0].text || card.verses[0].text.startsWith('Unable to load')">
-                    <em>Verse texts could not be loaded</em>
+      <div *ngIf="deckCards.length > 0" class="card-table-wrapper">
+        <table class="card-table">
+          <thead>
+            <tr>
+              <th>Reference</th>
+              <th>Book</th>
+              <th class="center">Verses</th>
+              <th class="center">Confidence</th>
+              <th class="right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let card of deckCards" [class.selected]="selectedCards.has(card.card_id)">
+              <td>
+                <div class="reference-cell">
+                  <input
+                    type="checkbox"
+                    [checked]="selectedCards.has(card.card_id)"
+                    (change)="toggleCardSelection(card.card_id)"
+                    class="card-checkbox">
+                  <button class="reference-btn" (click)="toggleEditCard(card.card_id)">
+                    {{ card.reference }}
+                    <span class="chevron" [class.open]="editingCardId === card.card_id">▼</span>
+                  </button>
+                  <div *ngIf="editingCardId === card.card_id" class="edit-dropdown">
+                    <app-verse-picker
+                      [theme]="'minimal'"
+                      [disabledModes]="['chapter']"
+                      (selectionChanged)="onCardVerseSelection(card.card_id, $event)">
+                    </app-verse-picker>
+                    <div class="edit-actions">
+                      <button (click)="confirmCardEdit(card.card_id)">Confirm</button>
+                      <button (click)="toggleEditCard(card.card_id)">Cancel</button>
+                    </div>
                   </div>
                 </div>
-              </ng-container>
-
-              <!-- Fallback for cards with no verses (should not happen, but defensive programming) -->
-              <div *ngIf="card.verses.length === 0" class="no-verses-warning">
-                <em>No verse data available for this card</em>
-              </div>
-            </div>
-            
-            <div *ngIf="card.confidence_score !== null" class="confidence-display">
-              Confidence: {{ card.confidence_score }}%
-            </div>
-          </div>
-          
-          <button 
-            class="remove-button" 
-            (click)="removeCardFromDeck(card.card_id)"
-            title="Remove card">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        </div>
+              </td>
+              <td>{{ card.verses[0]?.book_name || card.verses[0]?.book }}</td>
+              <td class="center">{{ card.verses.length }}</td>
+              <td class="center">{{ card.confidence_score ?? 0 }}%</td>
+              <td class="right">
+                <button class="remove-button" (click)="removeCardFromDeck(card.card_id)" title="Remove card">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
