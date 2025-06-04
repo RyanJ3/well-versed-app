@@ -6,29 +6,31 @@
   <!-- Gradient Header Bar -->
   <div class="deck-header-gradient"></div>
   
-  <!-- Save Count Badge (Top Right) -->
-  <div class="save-count-badge" *ngIf="deck.is_public">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M21 8.5c0 2.485-2.239 5.318-5.443 7.667C13.478 17.654 12 18.897 12 18.897s-1.478-1.243-3.557-2.73C5.239 13.818 3 10.985 3 8.5 3 5.462 5.462 3 8.5 3c1.352 0 2.59.49 3.5 1.3.91-.81 2.148-1.3 3.5-1.3C18.538 3 21 5.462 21 8.5z"/>
-    </svg>
-    <span>{{ deck.save_count || 0 }}</span>
-  </div>
-  
   <div class="deck-content">
-    <!-- Header Section -->
-    <div class="deck-header">
-      <h3 class="deck-name">{{ deck.name }}</h3>
-      <div class="deck-privacy-badge" [class.public]="deck.is_public">
-        <svg *ngIf="deck.is_public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-        </svg>
-        <svg *ngIf="!deck.is_public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <circle cx="12" cy="16" r="1"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-        {{ deck.is_public ? 'Public' : 'Private' }}
+    <!-- Header Section with badges -->
+    <div class="deck-header-wrapper">
+      <div class="deck-header">
+        <h3 class="deck-name">{{ deck.name }}</h3>
+      </div>
+      <div class="deck-badges">
+        <div class="deck-privacy-badge" [class.public]="deck.is_public">
+          <svg *ngIf="deck.is_public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          <svg *ngIf="!deck.is_public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <circle cx="12" cy="16" r="1"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          {{ deck.is_public ? 'Public' : 'Private' }}
+        </div>
+        <div class="save-count-badge" *ngIf="deck.is_public">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 8.5c0 2.485-2.239 5.318-5.443 7.667C13.478 17.654 12 18.897 12 18.897s-1.478-1.243-3.557-2.73C5.239 13.818 3 10.985 3 8.5 3 5.462 5.462 3 8.5 3c1.352 0 2.59.49 3.5 1.3.91-.81 2.148-1.3 3.5-1.3C18.538 3 21 5.462 21 8.5z"/>
+          </svg>
+          <span>{{ deck.save_count || 0 }}</span>
+        </div>
       </div>
     </div>
     
@@ -36,7 +38,11 @@
     <p class="deck-description">{{ deck.description || 'No description provided' }}</p>
     
     <!-- Stats Row -->
-    <div class="deck-stats-row">
+    <div class="deck-stats-row" 
+         [class.show-tooltip]="showStatsTooltip"
+         (mouseenter)="viewMode === 'my-decks' && !isMobileView && (showStatsTooltip = true)"
+         (mouseleave)="showStatsTooltip = false"
+         (click)="onStatsClick($event)">
       <div class="stat-item">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <rect x="3" y="7" width="18" height="14" rx="2"/>
@@ -61,6 +67,50 @@
         </svg>
         <span class="stat-value">{{ deck.memorized_count || 0 }}</span>
         <span class="stat-label">memorized</span>
+      </div>
+      
+      <!-- Info icon for mobile -->
+      <div class="stats-info-icon" *ngIf="viewMode === 'my-decks' && isMobileView">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+      </div>
+      
+      <!-- Stats Tooltip with Progress Chart -->
+      <div class="stats-tooltip" *ngIf="viewMode === 'my-decks' && showStatsTooltip">
+        <div class="tooltip-arrow"></div>
+        <div class="tooltip-content">
+          <h4>Memorization Progress</h4>
+          <div class="progress-chart">
+            <svg viewBox="0 0 36 36" class="circular-chart">
+              <path class="circle-bg"
+                d="M18 2.0845
+                  a 15.9155 15.9155 0 0 1 0 31.831
+                  a 15.9155 15.9155 0 0 1 0 -31.831"
+              />
+              <path class="circle"
+                [style.stroke-dasharray]="getProgressDashArray()"
+                [attr.stroke]="'url(#progress-gradient-' + deck.deck_id + ')'"
+                d="M18 2.0845
+                  a 15.9155 15.9155 0 0 1 0 31.831
+                  a 15.9155 15.9155 0 0 1 0 -31.831"
+              />
+              <text x="18" y="20.35" class="percentage">{{ getMemorizationPercentage() }}%</text>
+            </svg>
+          </div>
+          <div class="stats-details">
+            <div class="detail-row">
+              <span class="detail-label">Memorized:</span>
+              <span class="detail-value">{{ deck.memorized_count || 0 }} / {{ deck.card_count }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Remaining:</span>
+              <span class="detail-value">{{ deck.card_count - (deck.memorized_count || 0) }}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     
@@ -147,4 +197,14 @@
       </ng-container>
     </div>
   </div>
+  
+  <!-- SVG Definitions for Progress Gradient -->
+  <svg width="0" height="0">
+    <defs>
+      <linearGradient [id]="'progress-gradient-' + deck.deck_id" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+      </linearGradient>
+    </defs>
+  </svg>
 </div>
