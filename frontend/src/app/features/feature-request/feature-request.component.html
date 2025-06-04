@@ -1,0 +1,339 @@
+<!-- frontend/src/app/features/feature-request/feature-request.component.html -->
+<div class="feature-request-page">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-info">
+        <h1 class="page-title">Feature Requests & Bug Reports</h1>
+        <p class="page-subtitle">Help us improve Well Versed by sharing your ideas and reporting issues</p>
+      </div>
+      <button class="btn btn-primary btn-create" (click)="openCreateModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        New Request
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-container">
+    <div class="stat-card">
+      <div class="stat-icon bugs">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.openBugs }}</div>
+        <div class="stat-label">Open Bugs</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon features">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.totalRequests }}</div>
+        <div class="stat-label">Total Requests</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon completed">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.completed }}</div>
+        <div class="stat-label">Completed</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon trending">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.trending }}</div>
+        <div class="stat-label">Trending</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-section">
+    <div class="filters-row">
+      <!-- Search -->
+      <div class="search-container">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="search-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input 
+          type="text" 
+          placeholder="Search requests..." 
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="onSearchChange()"
+          class="search-input">
+      </div>
+
+      <!-- Type Filter -->
+      <div class="filter-group">
+        <label class="filter-label">Type</label>
+        <select [(ngModel)]="selectedType" (ngModelChange)="onFilterChange()" class="filter-select">
+          <option value="">All Types</option>
+          <option value="bug">Bugs</option>
+          <option value="enhancement">Enhancements</option>
+          <option value="feature">Features</option>
+        </select>
+      </div>
+
+      <!-- Status Filter -->
+      <div class="filter-group">
+        <label class="filter-label">Status</label>
+        <select [(ngModel)]="selectedStatus" (ngModelChange)="onFilterChange()" class="filter-select">
+          <option value="">All Status</option>
+          <option value="open">Open</option>
+          <option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option>
+          <option value="closed">Closed</option>
+        </select>
+      </div>
+
+      <!-- Sort By -->
+      <div class="filter-group">
+        <label class="filter-label">Sort By</label>
+        <select [(ngModel)]="sortBy" (ngModelChange)="onFilterChange()" class="filter-select">
+          <option value="upvotes">Most Upvoted</option>
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="comments">Most Discussed</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Loading requests...</p>
+  </div>
+
+  <!-- Requests List -->
+  <div *ngIf="!isLoading" class="requests-container">
+    <!-- No Results -->
+    <div *ngIf="requests.length === 0" class="no-results">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <h3>No requests found</h3>
+      <p>Be the first to create a feature request or report a bug!</p>
+    </div>
+
+    <!-- Request Cards -->
+    <div class="request-card" *ngFor="let request of requests" [class.voted]="request.has_voted">
+      <!-- Vote Section -->
+      <div class="vote-section">
+        <button 
+          class="vote-btn upvote" 
+          [class.active]="request.user_vote === 'up'"
+          (click)="vote(request, 'up')"
+          [disabled]="!currentUser">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+          </svg>
+        </button>
+        <span class="vote-count">{{ request.upvotes - request.downvotes }}</span>
+        <button 
+          class="vote-btn downvote" 
+          [class.active]="request.user_vote === 'down'"
+          (click)="vote(request, 'down')"
+          [disabled]="!currentUser">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Content Section -->
+      <div class="request-content">
+        <div class="request-header">
+          <h3 class="request-title">{{ request.title }}</h3>
+          <div class="request-badges">
+            <span class="badge" [class]="'badge-' + request.type">
+              {{ formatType(request.type) }}
+            </span>
+            <span class="badge" [class]="'badge-status-' + request.status">
+              {{ formatStatus(request.status) }}
+            </span>
+            <span *ngIf="request.priority" class="badge" [class]="'badge-priority-' + request.priority">
+              {{ request.priority }}
+            </span>
+          </div>
+        </div>
+
+        <p class="request-description">{{ request.description }}</p>
+
+        <div class="request-tags" *ngIf="request.tags && request.tags.length > 0">
+          <span class="tag" *ngFor="let tag of request.tags">#{{ tag }}</span>
+        </div>
+
+        <div class="request-footer">
+          <div class="request-meta">
+            <span class="meta-item">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              {{ request.user_name }}
+            </span>
+            <span class="meta-item">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              {{ formatDate(request.created_at) }}
+            </span>
+            <span class="meta-item" *ngIf="request.comments_count">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              {{ request.comments_count }} {{ request.comments_count === 1 ? 'comment' : 'comments' }}
+            </span>
+          </div>
+
+          <button class="btn-view-details" (click)="viewDetails(request)">
+            View Details
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalPages > 1">
+      <button 
+        class="page-btn" 
+        (click)="goToPage(currentPage - 1)"
+        [disabled]="currentPage === 1">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+
+      <span class="page-info">
+        Page {{ currentPage }} of {{ totalPages }}
+      </span>
+
+      <button 
+        class="page-btn" 
+        (click)="goToPage(currentPage + 1)"
+        [disabled]="currentPage === totalPages">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Create/Edit Modal -->
+  <div class="modal-overlay" *ngIf="showCreateModal" (click)="closeModal($event)">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">{{ isEditing ? 'Edit Request' : 'Create New Request' }}</h2>
+        <button class="modal-close" (click)="closeModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form (ngSubmit)="submitRequest()" class="request-form">
+        <div class="form-group">
+          <label for="title">Title *</label>
+          <input 
+            type="text" 
+            id="title" 
+            [(ngModel)]="newRequest.title" 
+            name="title"
+            placeholder="Brief description of your request"
+            required
+            class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="type">Type *</label>
+          <select 
+            id="type" 
+            [(ngModel)]="newRequest.type" 
+            name="type"
+            required
+            class="form-control">
+            <option value="">Select type...</option>
+            <option value="bug">Bug Report</option>
+            <option value="enhancement">Enhancement</option>
+            <option value="feature">Feature Request</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description *</label>
+          <textarea 
+            id="description" 
+            [(ngModel)]="newRequest.description" 
+            name="description"
+            placeholder="Provide detailed information about your request..."
+            rows="6"
+            required
+            class="form-control">
+          </textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="tags">Tags (optional)</label>
+          <div class="tags-input-container">
+            <div class="selected-tags">
+              <span class="tag-chip" *ngFor="let tag of newRequest.tags; let i = index">
+                {{ tag }}
+                <button type="button" (click)="removeTag(i)" class="tag-remove">×</button>
+              </span>
+              <input 
+                type="text" 
+                [(ngModel)]="tagInput"
+                (keydown.enter)="addTag($event)"
+                name="tagInput"
+                placeholder="Add tags..."
+                class="tag-input">
+            </div>
+          </div>
+          <div class="suggested-tags">
+            <span class="suggested-label">Suggested:</span>
+            <button 
+              type="button"
+              class="suggested-tag" 
+              *ngFor="let tag of getSuggestedTags()"
+              (click)="addSuggestedTag(tag)"
+              [disabled]="newRequest.tags.includes(tag)">
+              {{ tag }}
+            </button>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="!isFormValid()">
+            {{ isEditing ? 'Update Request' : 'Create Request' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
