@@ -1,282 +1,126 @@
-<!-- frontend/src/app/flashcard/flashcard.component.html -->
+<!-- frontend/src/app/features/memorize/flashcard/flashcard.component.html -->
 <div class="flashcard-container">
-  <div class="page-header">
-    <h1>Flashcard Decks</h1>
-    <p class="page-subtitle">Organize and study your scripture verses with personalized flashcard decks</p>
-  </div>
-
-  <!-- Tab Navigation -->
-  <div class="tab-navigation">
-    <button 
-      class="tab-button" 
-      [class.active]="activeTab === 'my-decks'"
-      (click)="setActiveTab('my-decks')">
-      <span class="tab-icon">📚</span>
-      <span class="tab-text">My Decks</span>
-      <span class="tab-count">{{ myDecks.length }}</span>
-    </button>
-    <button 
-      class="tab-button"
-      [class.active]="activeTab === 'public'"
-      (click)="setActiveTab('public')">
-      <span class="tab-icon">🌐</span>
-      <span class="tab-text">Public Decks</span>
-      <span class="tab-count">{{ publicDecks.length }}</span>
-    </button>
-    <button 
-      class="tab-button"
-      [class.active]="activeTab === 'saved'"
-      (click)="setActiveTab('saved')">
-      <span class="tab-icon">💾</span>
-      <span class="tab-text">Saved Decks</span>
-      <span class="tab-count">{{ savedDecks.length }}</span>
-    </button>
-  </div>
-
-  <!-- Create Deck Button (only in My Decks tab) -->
-  <div class="actions-bar" *ngIf="activeTab === 'my-decks'">
-    <button class="create-button" (click)="toggleCreateForm()">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-      </svg>
-      Create New Deck
-    </button>
-  </div>
-
-  <!-- Create Deck Form -->
-  <div class="create-deck-form" *ngIf="showCreateForm">
-    <div class="form-header">
-      <h2>Create New Deck</h2>
-      <button class="close-button" (click)="toggleCreateForm()">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
+  <!-- Hero Section with Gradient Background -->
+  <div class="hero-section">
+    <div class="hero-background">
+      <div class="hero-gradient"></div>
+      <div class="hero-pattern"></div>
     </div>
     
-    <form (ngSubmit)="createDeck()">
-      <div class="form-row">
-        <div class="form-group">
-          <label for="deck-name">Deck Name *</label>
-          <input 
-            id="deck-name"
-            type="text" 
-            [(ngModel)]="newDeck.name" 
-            name="name"
-            placeholder="Enter deck name..."
-            required>
-        </div>
-
-        <div class="form-group">
-          <label>
-            <input 
-              type="checkbox" 
-              [(ngModel)]="newDeck.is_public" 
-              name="is_public">
-            <span class="checkbox-custom"></span>
-            Make deck public
-          </label>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="deck-description">Description</label>
-        <textarea 
-          id="deck-description"
-          [(ngModel)]="newDeck.description" 
-          name="description"
-          placeholder="Enter description..."
-          rows="3"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>Tags</label>
-        <div class="tag-input-container">
-          <input 
-            type="text" 
-            [(ngModel)]="tagInput" 
-            name="tagInput"
-            placeholder="Add a tag..."
-            (keyup.enter)="addTag()">
-          <button type="button" class="add-tag-button" (click)="addTag()">Add</button>
-        </div>
-        <div class="tags-list" *ngIf="newDeck.tags && newDeck.tags.length > 0">
-          <span class="tag" *ngFor="let tag of newDeck.tags">
-            {{ tag }}
-            <button type="button" class="remove-tag" (click)="removeTag(tag)">×</button>
-          </span>
-        </div>
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary" [disabled]="!newDeck.name.trim() || isLoading">
-          <span *ngIf="!isLoading">Create Deck</span>
-          <span *ngIf="isLoading">Creating...</span>
-        </button>
-        <button type="button" class="btn btn-secondary" (click)="toggleCreateForm()">
-          Cancel
-        </button>
-      </div>
-    </form>
+    <div class="hero-content">
+      <h1 class="hero-title">
+        <span class="gradient-text">Flashcard Decks</span>
+      </h1>
+      <p class="hero-subtitle">
+        Organize and study your scripture verses with personalized flashcard decks
+      </p>
+    </div>
   </div>
 
-  <!-- Loading State -->
-  <div class="loading-container" *ngIf="isLoading">
-    <div class="loading-spinner"></div>
-    <p>Loading decks...</p>
-  </div>
-
-  <!-- Decks Grid -->
-  <div class="decks-grid" *ngIf="!isLoading">
-    <!-- Empty State -->
-    <div class="empty-state" *ngIf="getDisplayDecks().length === 0">
-      <div class="empty-illustration">
-        <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
-          <rect x="20" y="20" width="50" height="80" rx="4" fill="#e5e7eb"/>
-          <rect x="80" y="20" width="50" height="80" rx="4" fill="#e5e7eb"/>
-          <rect x="140" y="20" width="50" height="80" rx="4" fill="#e5e7eb"/>
-          <text x="100" y="115" text-anchor="middle" fill="#9ca3af" font-size="12">📚</text>
-        </svg>
+  <div class="content-wrapper">
+    <!-- Tab Navigation -->
+    <div class="tab-container">
+      <div class="tab-navigation">
+        <button 
+          *ngFor="let tab of tabs"
+          class="tab-button" 
+          [class.active]="activeTab === tab.id"
+          (click)="setActiveTab(tab.id)">
+          <span class="tab-icon" [innerHTML]="tab.icon"></span>
+          <span class="tab-text">{{ tab.label }}</span>
+          <span class="tab-count">{{ getTabCount(tab.id) }}</span>
+        </button>
       </div>
-      <h3>No decks found</h3>
-      <p *ngIf="activeTab === 'my-decks'">You haven't created any decks yet. Create your first deck to get started!</p>
-      <p *ngIf="activeTab === 'public'">No public decks are available at the moment.</p>
-      <p *ngIf="activeTab === 'saved'">You haven't saved any decks yet. Browse public decks to find some to save!</p>
-      <button *ngIf="activeTab === 'my-decks'" class="btn btn-primary" (click)="toggleCreateForm()">
-        Create Your First Deck
+    </div>
+
+    <!-- Create Deck Button -->
+    <div class="actions-section" *ngIf="activeTab === 'my-decks'">
+      <button class="create-button" (click)="openCreateModal()">
+        <div class="button-icon-wrapper">
+          <!-- Card stack animation -->
+          <div class="card-stack">
+            <div class="card card-1"></div>
+            <div class="card card-2"></div>
+            <div class="card card-3"></div>
+          </div>
+          <!-- Plus icon -->
+          <svg class="plus-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+          </svg>
+        </div>
+        Create New Deck
       </button>
     </div>
 
-    <!-- Deck Cards -->
-    <div class="deck-card" *ngFor="let deck of getDisplayDecks(); trackBy: trackByDeckId">
-      <div class="deck-header">
-        <div class="deck-title-area">
-          <h3 class="deck-name">{{ deck.name }}</h3>
-          <div class="deck-privacy-badge" [class.public]="deck.is_public">
-            <svg *ngIf="deck.is_public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M2 12h20"/>
-              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-            </svg>
-            <svg *ngIf="!deck.is_public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <circle cx="12" cy="16" r="1"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            {{ deck.is_public ? 'Public' : 'Private' }}
-          </div>
+    <!-- Tag Filter Component -->
+    <app-deck-filter
+      [allTags]="getAllTags()"
+      [selectedTags]="selectedTags"
+      [tagCounts]="tagCounts"
+      (tagToggled)="toggleTagFilter($event)"
+      (clearFilters)="clearTagFilters()">
+    </app-deck-filter>
+
+    <!-- Loading State -->
+    <div class="loading-container" *ngIf="isLoading">
+      <div class="loading-spinner"></div>
+      <p>Loading decks...</p>
+    </div>
+
+    <!-- Decks Grid -->
+    <div class="decks-grid" *ngIf="!isLoading">
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="getFilteredDecks().length === 0">
+        <div class="empty-illustration">
+          <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="20" width="50" height="80" rx="8" fill="url(#gradient1)" opacity="0.3"/>
+            <rect x="80" y="20" width="50" height="80" rx="8" fill="url(#gradient2)" opacity="0.3"/>
+            <rect x="140" y="20" width="50" height="80" rx="8" fill="url(#gradient3)" opacity="0.3"/>
+            <defs>
+              <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+              </linearGradient>
+              <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#ec4899;stop-opacity:1" />
+              </linearGradient>
+              <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+          </svg>
         </div>
+        <h3>{{ getEmptyStateTitle() }}</h3>
+        <p>{{ getEmptyStateMessage() }}</p>
+        <button 
+          *ngIf="activeTab === 'my-decks' || selectedTags.length > 0" 
+          class="empty-state-button"
+          (click)="selectedTags.length > 0 ? clearTagFilters() : openCreateModal()">
+          {{ selectedTags.length > 0 ? 'Clear Filters' : 'Create Your First Deck' }}
+        </button>
       </div>
 
-      <p class="deck-description">{{ deck.description || 'No description provided' }}</p>
-
-      <div class="deck-stats">
-        <div class="stat-card">
-          <div class="stat-icon">📚</div>
-          <div class="stat-info">
-            <span class="stat-value">{{ getCountDisplay(deck).cards }}</span>
-            <span class="stat-label">cards</span>
-          </div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-icon">📖</div>
-          <div class="stat-info">
-            <span class="stat-value">{{ getCountDisplay(deck).verses }}</span>
-            <span class="stat-label">verses</span>
-          </div>
-        </div>
-        
-        <div class="stat-card" *ngIf="activeTab !== 'my-decks'">
-          <div class="stat-icon">👤</div>
-          <div class="stat-info">
-            <span class="stat-value">{{ deck.creator_name }}</span>
-            <span class="stat-label">creator</span>
-          </div>
-        </div>
-        
-        <div class="stat-card" *ngIf="deck.is_public">
-          <div class="stat-icon">💾</div>
-          <div class="stat-info">
-            <span class="stat-value">{{ deck.save_count }}</span>
-            <span class="stat-label">saves</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="deck-meta">
-        <span class="deck-date">Created {{ deck.created_at | date:'mediumDate' }}</span>
-      </div>
-
-      <div class="deck-tags" *ngIf="deck.tags && deck.tags.length > 0">
-        <span class="tag" *ngFor="let tag of deck.tags">{{ tag }}</span>
-      </div>
-
-      <div class="deck-actions">
-        <!-- My Decks Actions -->
-        <ng-container *ngIf="activeTab === 'my-decks'">
-          <button class="action-button primary" [routerLink]="['/flashcards/study', deck.deck_id]">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <circle cx="12" cy="12" r="10"/>
-              <polygon points="10,8 16,12 10,16 10,8"/>
-            </svg>
-            Study
-          </button>
-          <button class="action-button secondary" [routerLink]="['/deck-editor', deck.deck_id]">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
-            Edit
-          </button>
-          <button class="action-button danger" (click)="deleteDeck(deck.deck_id)">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <polyline points="3,6 5,6 21,6"/>
-              <path d="M19,6v14a2,2,0,0,1-2,2H7a2,2,0,0,1-2-2V6m3,0V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/>
-              <line x1="10" y1="11" x2="10" y2="17"/>
-              <line x1="14" y1="11" x2="14" y2="17"/>
-            </svg>
-            Delete
-          </button>
-        </ng-container>
-
-        <!-- Public/Saved Decks Actions -->
-        <ng-container *ngIf="activeTab !== 'my-decks'">
-          <button class="action-button primary" [routerLink]="['/flashcards/study', deck.deck_id]">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <circle cx="12" cy="12" r="10"/>
-              <polygon points="10,8 16,12 10,16 10,8"/>
-            </svg>
-            Study
-          </button>
-          <button 
-            class="action-button secondary"
-            *ngIf="!deck.is_saved"
-            (click)="saveDeck(deck)"
-            [disabled]="deck.saving">
-            <svg *ngIf="!deck.saving" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-            </svg>
-            <svg *ngIf="deck.saving" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="animate-spin">
-              <path d="M21 12a9 9 0 11-6.219-8.56"/>
-            </svg>
-            {{ deck.saving ? 'Saving...' : 'Save' }}
-          </button>
-          <button 
-            class="action-button danger"
-            *ngIf="deck.is_saved"
-            (click)="unsaveDeck(deck)"
-            [disabled]="deck.saving">
-            <svg *ngIf="!deck.saving" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-            </svg>
-            <svg *ngIf="deck.saving" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="animate-spin">
-              <path d="M21 12a9 9 0 11-6.219-8.56"/>
-            </svg>
-            {{ deck.saving ? 'Removing...' : 'Remove' }}
-          </button>
-        </ng-container>
-      </div>
+      <!-- Deck Cards -->
+      <app-deck-card
+        *ngFor="let deck of getFilteredDecks(); trackBy: trackByDeckId; let i = index"
+        [deck]="deck"
+        [viewMode]="activeTab"
+        [animationDelay]="i * 50"
+        (tagClicked)="toggleTagFilter($event)"
+        (deleteClicked)="deleteDeck($event)"
+        (saveClicked)="saveDeck($event)"
+        (unsaveClicked)="unsaveDeck($event)">
+      </app-deck-card>
     </div>
   </div>
 </div>
+
+<!-- Create Deck Modal -->
+<app-create-deck-modal
+  [show]="showCreateModal"
+  [isLoading]="isLoading"
+  (close)="closeCreateModal()"
+  (create)="createDeck($event)">
+</app-create-deck-modal>

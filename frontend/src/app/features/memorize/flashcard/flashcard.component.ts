@@ -1,4 +1,4 @@
-// frontend/src/app/flashcard/flashcard.component.ts
+// frontend/src/app/features/memorize/flashcard/flashcard.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,20 +7,54 @@ import { DeckCreate, DeckResponse, DeckService } from '../../../core/services/de
 import { UserService } from '../../../core/services/user.service';
 import { ModalService } from '../../../core/services/modal.service';
 
-interface DeckWithCounts extends DeckResponse {
-  verse_count?: number;
-  loading_counts?: boolean;
-  saving?: boolean;
+// Import sub-components
+import { DeckCardComponent, DeckWithCounts } from './components/deck-card/deck-card.component';
+import { CreateDeckModalComponent } from './components/create-deck-modal/create-deck-modal.component';
+import { DeckFilterComponent } from './components/deck-filter/deck-filter.component';
+
+interface Tab {
+  id: 'my-decks' | 'public' | 'saved';
+  label: string;
+  icon: string;
 }
 
 @Component({
   selector: 'app-flashcard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    RouterModule,
+    DeckCardComponent,
+    CreateDeckModalComponent,
+    DeckFilterComponent
+  ],
   templateUrl: './flashcard.component.html',
-  styleUrls: ['./flashcard.component.scss']
+  styleUrls: [
+    './flashcard.component.scss',
+    './flashcard-hero.component.scss'
+  ]
 })
 export class FlashcardComponent implements OnInit {
+  // Tab configuration
+  tabs: Tab[] = [
+    {
+      id: 'my-decks',
+      label: 'My Decks',
+      icon: '📚'
+    },
+    {
+      id: 'public',
+      label: 'Discover',
+      icon: '🌐'
+    },
+    {
+      id: 'saved',
+      label: 'Saved',
+      icon: '💾'
+    }
+  ];
+
   activeTab: 'my-decks' | 'public' | 'saved' = 'my-decks';
   isLoading = false;
   userId = 1; // Will be updated from UserService
@@ -30,16 +64,12 @@ export class FlashcardComponent implements OnInit {
   publicDecks: DeckWithCounts[] = [];
   savedDecks: DeckWithCounts[] = [];
 
-  // Create deck form
-  showCreateForm = false;
-  newDeck: DeckCreate = {
-    name: '',
-    description: '',
-    is_public: false,
-    verse_codes: [],
-    tags: []
-  };
-  tagInput = '';
+  // Tag filtering
+  selectedTags: string[] = [];
+  tagCounts = new Map<string, number>();
+  
+  // Create deck modal
+  showCreateModal = false;
 
   constructor(
     private deckService: DeckService,
@@ -57,6 +87,7 @@ export class FlashcardComponent implements OnInit {
     });
   }
 
+  // Tab Management
   setActiveTab(tab: 'my-decks' | 'public' | 'saved') {
     this.activeTab = tab;
     
@@ -77,14 +108,28 @@ export class FlashcardComponent implements OnInit {
     }
   }
 
+  getTabCount(tabId: string): number {
+    switch (tabId) {
+      case 'my-decks':
+        return this.myDecks.length;
+      case 'public':
+        return this.publicDecks.length;
+      case 'saved':
+        return this.savedDecks.length;
+      default:
+        return 0;
+    }
+  }
+
+  // Data Loading
   loadMyDecks() {
     this.isLoading = true;
     this.deckService.getUserDecks(this.userId).subscribe({
       next: (response) => {
         this.myDecks = response.decks.map(deck => ({ ...deck, loading_counts: false }));
         this.isLoading = false;
-        // Load detailed counts for each deck
         this.loadDetailedCounts(this.myDecks);
+        this.updateTagCounts();
       },
       error: (error) => {
         console.error('Error loading decks:', error);
@@ -104,8 +149,8 @@ export class FlashcardComponent implements OnInit {
       next: (response) => {
         this.publicDecks = response.decks.map(deck => ({ ...deck, loading_counts: false }));
         this.isLoading = false;
-        // Load detailed counts for each deck
         this.loadDetailedCounts(this.publicDecks);
+        this.updateTagCounts();
       },
       error: (error) => {
         console.error('Error loading public decks:', error);
@@ -127,25 +172,18 @@ export class FlashcardComponent implements OnInit {
         this.savedDecks = response.decks.map(deck => ({ 
           ...deck, 
           loading_counts: false,
-          is_saved: true // Mark all as saved since they're in the saved list
+          is_saved: true
         }));
         this.isLoading = false;
-        // Load detailed counts for each deck
         this.loadDetailedCounts(this.savedDecks);
+        this.updateTagCounts();
       },
       error: (error) => {
         console.error('Error loading saved decks:', error);
         this.isLoading = false;
-        
-        // Fallback to empty array if endpoint doesn't exist yet
         this.savedDecks = [];
         
-        // Show appropriate error message
-        if (error.status === 404) {
-          // Endpoint not implemented yet, silently handle
-          console.log('Saved decks endpoint not implemented yet');
-        } else {
-          // Real error occurred
+        if (error.status !== 404) {
           this.modalService.alert(
             'Error Loading Saved Decks',
             'Unable to load saved decks. Please try again later.',
@@ -156,12 +194,7 @@ export class FlashcardComponent implements OnInit {
     });
   }
 
-  /**
-   * Load detailed verse counts for decks by fetching their cards
-   * This provides accurate verse count vs card count
-   */
   private loadDetailedCounts(decks: DeckWithCounts[]) {
-    // Load counts for all decks that don't have verse_count yet
     const decksToLoad = decks.filter(deck => deck.verse_count === undefined);
     
     decksToLoad.forEach(deck => {
@@ -169,17 +202,15 @@ export class FlashcardComponent implements OnInit {
       
       this.deckService.getDeckCards(deck.deck_id, this.userId).subscribe({
         next: (response) => {
-          // Calculate total verse count from all cards
           const totalVerses = response.cards.reduce((total, card) => {
             if (card.card_type === 'single_verse') {
               return total + 1;
             } else if (card.card_type === 'verse_range' && card.verses) {
               return total + card.verses.length;
             } else if (card.verses) {
-              // Fallback: count actual verses array length
               return total + card.verses.length;
             }
-            return total + 1; // Default to 1 if unclear
+            return total + 1;
           }, 0);
           
           deck.verse_count = totalVerses;
@@ -188,54 +219,122 @@ export class FlashcardComponent implements OnInit {
         error: (error) => {
           console.error(`Error loading counts for deck ${deck.deck_id}:`, error);
           deck.loading_counts = false;
-          // Fallback: assume 1 verse per card
           deck.verse_count = deck.card_count;
         }
       });
     });
   }
 
-  /**
-   * Get formatted count display for a deck
-   */
-  getCountDisplay(deck: DeckWithCounts): { cards: number; verses: number | string } {
-    return {
-      cards: deck.card_count,
-      verses: deck.loading_counts ? '...' : (deck.verse_count ?? deck.card_count)
-    };
+  // Tag Management
+  getAllTags(): string[] {
+    const allDecks = this.getDisplayDecks();
+    const tagSet = new Set<string>();
+    
+    allDecks.forEach(deck => {
+      if (deck.tags && deck.tags.length > 0) {
+        deck.tags.forEach(tag => tagSet.add(tag));
+      }
+    });
+    
+    return Array.from(tagSet).sort();
   }
 
-  toggleCreateForm() {
-    this.showCreateForm = !this.showCreateForm;
-    if (this.showCreateForm) {
-      this.resetNewDeck();
+  updateTagCounts() {
+    this.tagCounts.clear();
+    const allDecks = this.getDisplayDecks();
+    
+    allDecks.forEach(deck => {
+      if (deck.tags) {
+        deck.tags.forEach(tag => {
+          this.tagCounts.set(tag, (this.tagCounts.get(tag) || 0) + 1);
+        });
+      }
+    });
+  }
+
+  toggleTagFilter(tag: string) {
+    const index = this.selectedTags.indexOf(tag);
+    if (index > -1) {
+      this.selectedTags.splice(index, 1);
+    } else {
+      this.selectedTags.push(tag);
     }
   }
 
-  resetNewDeck() {
-    this.newDeck = {
-      name: '',
-      description: '',
-      is_public: false,
-      verse_codes: [],
-      tags: []
-    };
-    this.tagInput = '';
+  clearTagFilters() {
+    this.selectedTags = [];
   }
 
-  addTag() {
-    if (this.tagInput.trim() && !this.newDeck.tags?.includes(this.tagInput.trim())) {
-      this.newDeck.tags = [...(this.newDeck.tags || []), this.tagInput.trim()];
-      this.tagInput = '';
+  getFilteredDecks(): DeckWithCounts[] {
+    let decks = this.getDisplayDecks();
+    
+    if (this.selectedTags.length > 0) {
+      decks = decks.filter(deck => {
+        if (!deck.tags || deck.tags.length === 0) return false;
+        return this.selectedTags.some(tag => deck.tags!.includes(tag));
+      });
+    }
+    
+    return decks;
+  }
+
+  getDisplayDecks(): DeckWithCounts[] {
+    switch (this.activeTab) {
+      case 'my-decks':
+        return this.myDecks;
+      case 'public':
+        return this.publicDecks;
+      case 'saved':
+        return this.savedDecks;
     }
   }
 
-  removeTag(tag: string) {
-    this.newDeck.tags = this.newDeck.tags?.filter(t => t !== tag) || [];
+  // Empty State
+  getEmptyStateTitle(): string {
+    if (this.selectedTags.length > 0) {
+      return 'No decks found with selected tags';
+    }
+    
+    switch (this.activeTab) {
+      case 'my-decks':
+        return 'No decks found';
+      case 'public':
+        return 'No public decks available';
+      case 'saved':
+        return 'No saved decks yet';
+      default:
+        return 'No decks found';
+    }
   }
 
-  createDeck() {
-    if (!this.newDeck.name.trim()) {
+  getEmptyStateMessage(): string {
+    if (this.selectedTags.length > 0) {
+      return 'Try selecting different tags or clear the filters to see all decks.';
+    }
+    
+    switch (this.activeTab) {
+      case 'my-decks':
+        return "You haven't created any decks yet. Create your first deck to get started!";
+      case 'public':
+        return 'No public decks are available at the moment. Check back later!';
+      case 'saved':
+        return "You haven't saved any decks yet. Browse public decks to find some to save!";
+      default:
+        return 'No decks available.';
+    }
+  }
+
+  // Create Deck
+  openCreateModal() {
+    this.showCreateModal = true;
+  }
+
+  closeCreateModal() {
+    this.showCreateModal = false;
+  }
+
+  createDeck(newDeck: DeckCreate) {
+    if (!newDeck.name.trim()) {
       this.modalService.alert(
         'Validation Error',
         'Please enter a name for your deck.',
@@ -246,12 +345,13 @@ export class FlashcardComponent implements OnInit {
 
     this.isLoading = true;
 
-    this.deckService.createDeck(this.newDeck).subscribe({
+    this.deckService.createDeck(newDeck).subscribe({
       next: (deck) => {
         const deckWithCounts: DeckWithCounts = { ...deck, loading_counts: false };
         this.myDecks.unshift(deckWithCounts);
-        this.toggleCreateForm();
+        this.closeCreateModal();
         this.isLoading = false;
+        this.updateTagCounts();
         
         this.modalService.success(
           'Deck Created',
@@ -270,6 +370,7 @@ export class FlashcardComponent implements OnInit {
     });
   }
 
+  // Deck Actions
   async deleteDeck(deckId: number) {
     const deck = this.myDecks.find(d => d.deck_id === deckId);
     if (!deck) return;
@@ -285,6 +386,7 @@ export class FlashcardComponent implements OnInit {
     this.deckService.deleteDeck(deckId).subscribe({
       next: () => {
         this.myDecks = this.myDecks.filter(d => d.deck_id !== deckId);
+        this.updateTagCounts();
         this.modalService.success(
           'Deck Deleted',
           `"${deck.name}" has been deleted successfully.`
@@ -310,7 +412,6 @@ export class FlashcardComponent implements OnInit {
         deck.save_count = (deck.save_count || 0) + 1;
         deck.saving = false;
         
-        // Add to saved decks if not already there
         if (!this.savedDecks.find(d => d.deck_id === deck.deck_id)) {
           this.savedDecks.push({ ...deck });
         }
@@ -351,10 +452,8 @@ export class FlashcardComponent implements OnInit {
         deck.save_count = Math.max(0, (deck.save_count || 1) - 1);
         deck.saving = false;
         
-        // Remove from saved decks
         this.savedDecks = this.savedDecks.filter(d => d.deck_id !== deck.deck_id);
         
-        // Update the deck in public decks list if it exists there
         const publicDeck = this.publicDecks.find(d => d.deck_id === deck.deck_id);
         if (publicDeck) {
           publicDeck.is_saved = false;
@@ -376,17 +475,6 @@ export class FlashcardComponent implements OnInit {
         );
       }
     });
-  }
-
-  getDisplayDecks(): DeckWithCounts[] {
-    switch (this.activeTab) {
-      case 'my-decks':
-        return this.myDecks;
-      case 'public':
-        return this.publicDecks;
-      case 'saved':
-        return this.savedDecks;
-    }
   }
 
   // TrackBy function for better performance

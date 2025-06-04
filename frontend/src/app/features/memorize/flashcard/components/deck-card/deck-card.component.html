@@ -1,0 +1,133 @@
+<!-- frontend/src/app/features/memorize/flashcard/components/deck-card/deck-card.component.html -->
+<div 
+  class="deck-card compact" 
+  [style.animation-delay.ms]="animationDelay">
+  
+  <!-- Gradient Header Bar -->
+  <div class="deck-header-gradient"></div>
+  
+  <div class="deck-content">
+    <!-- Top Row: Header + Stats -->
+    <div class="deck-top-row">
+      <div class="deck-info">
+        <div class="deck-header">
+          <h3 class="deck-name">{{ deck.name }}</h3>
+          <div class="deck-privacy-badge" [class.public]="deck.is_public">
+            <svg *ngIf="deck.is_public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+            <svg *ngIf="!deck.is_public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <circle cx="12" cy="16" r="1"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            {{ deck.is_public ? 'Public' : 'Private' }}
+          </div>
+        </div>
+        
+        <!-- Description -->
+        <p class="deck-description">{{ deck.description || 'No description provided' }}</p>
+        
+        <!-- Tags and Meta Info -->
+        <div class="deck-meta-row">
+          <div class="deck-tags" *ngIf="deck.tags && deck.tags.length > 0">
+            <span 
+              class="deck-tag" 
+              *ngFor="let tag of deck.tags | slice:0:3"
+              (click)="onTagClick(tag, $event)">
+              #{{ tag }}
+            </span>
+            <span class="deck-tag more" *ngIf="deck.tags.length > 3">
+              +{{ deck.tags.length - 3 }}
+            </span>
+          </div>
+          
+          <div class="deck-footer-info">
+            <span *ngIf="viewMode !== 'my-decks' && deck.creator_name" class="deck-creator">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              {{ deck.creator_name }}
+            </span>
+            <span class="deck-date">{{ deck.created_at | date:'MMM d' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compact Stats -->
+      <div class="deck-stats-compact">
+        <div class="stat-box cards">
+          <div class="stat-value">{{ getCountDisplay().cards }}</div>
+          <div class="stat-label">Cards</div>
+        </div>
+        <div class="stat-box verses">
+          <div class="stat-value">{{ getCountDisplay().verses }}</div>
+          <div class="stat-label">Verses</div>
+        </div>
+        <div class="stat-box saves" *ngIf="deck.is_public">
+          <div class="stat-value">{{ deck.save_count || 0 }}</div>
+          <div class="stat-label">Saves</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions Row -->
+    <div class="deck-actions-compact">
+      <!-- My Decks Actions -->
+      <ng-container *ngIf="viewMode === 'my-decks'">
+        <button class="action-button primary" [routerLink]="['/flashcards/study', deck.deck_id]">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Study
+        </button>
+        <div class="action-button-group">
+          <button class="action-button icon secondary" [routerLink]="['/deck-editor', deck.deck_id]" title="Edit">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+          <button class="action-button icon danger" (click)="onDelete()" title="Delete">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- Public/Saved Decks Actions -->
+      <ng-container *ngIf="viewMode !== 'my-decks'">
+        <button class="action-button primary" [routerLink]="['/flashcards/study', deck.deck_id]">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Study
+        </button>
+        <button 
+          class="action-button secondary icon"
+          *ngIf="!deck.is_saved"
+          (click)="onSave()"
+          [disabled]="deck.saving"
+          [title]="deck.saving ? 'Saving...' : 'Save to collection'">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </button>
+        <button 
+          class="action-button danger icon"
+          *ngIf="deck.is_saved"
+          (click)="onUnsave()"
+          [disabled]="deck.saving"
+          [title]="deck.saving ? 'Removing...' : 'Remove from collection'">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </button>
+      </ng-container>
+    </div>
+  </div>
+</div>

@@ -1,80 +1,309 @@
 <!-- src/app/stats/stats.component.html -->
 <div class="stats-container">
-  <h1 class="page-title">My Scripture Stats</h1>
-  
   <!-- Loading State -->
   <div *ngIf="isLoading" class="loading-container">
     <div class="loading-spinner"></div>
     <p>Loading your statistics...</p>
   </div>
 
-  <div *ngIf="!isLoading" class="stats-content">
-    <!-- Overview Cards -->
-    <div class="stats-overview">
-      <kendo-card class="stat-card" *ngFor="let stat of overviewStats">
-        <kendo-card-body>
-          <div class="stat-content">
-            <div class="stat-icon">{{ stat.icon }}</div>
-            <div class="stat-number">{{ stat.value }}</div>
-            <div class="stat-label">{{ stat.label }}</div>
-            <div class="stat-change" [class.positive]="stat.change > 0" [class.negative]="stat.change < 0">
-              {{ stat.change > 0 ? '+' : '' }}{{ stat.change }}% this week
-            </div>
+  <div *ngIf="!isLoading">
+    <!-- Header -->
+    <div class="stats-header">
+      <div class="header-content">
+        <div class="header-text">
+          <h1>Scripture Memory Statistics</h1>
+          <p>Track your progress in hiding God's word in your heart</p>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+          <div class="quick-stat">
+            <div class="stat-value text-blue">{{ stats.memorized.toLocaleString() }}</div>
+            <div class="stat-label">Verses</div>
           </div>
-        </kendo-card-body>
-      </kendo-card>
+          <div class="quick-stat">
+            <div class="stat-value text-green">{{ stats.currentStreak }}</div>
+            <div class="stat-label">Day Streak</div>
+          </div>
+          <div class="quick-stat">
+            <div class="stat-value text-purple">{{ stats.percentComplete }}%</div>
+            <div class="stat-label">Complete</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Daily Activity Chart -->
-    <kendo-card class="chart-section">
-      <kendo-card-header>
-        <h2>Daily Activity</h2>
-      </kendo-card-header>
-      <kendo-card-body>
-        <kendo-chart>
-          <kendo-chart-series>
-            <kendo-chart-series-item
-              [data]="dailyActivityData"
-              type="column"
-              field="verses"
-              categoryField="date"
-              [color]="'#3b82f6'">
-            </kendo-chart-series-item>
-          </kendo-chart-series>
-          <kendo-chart-category-axis>
-            <kendo-chart-category-axis-item [labels]="{ rotation: -45 }">
-            </kendo-chart-category-axis-item>
-          </kendo-chart-category-axis>
-        </kendo-chart>
-      </kendo-card-body>
-    </kendo-card>
+    <!-- Main Content -->
+    <div class="stats-content">
+      <!-- Today's Meditation -->
+      <div class="meditation-card">
+        <div class="meditation-content">
+          <div class="meditation-text">
+            <h3>TODAY'S MEDITATION</h3>
+            <p class="verse-text">"{{ dailyVerse.text }}"</p>
+            <p class="verse-reference">- {{ dailyVerse.reference }}</p>
+          </div>
+          <svg class="meditation-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+          </svg>
+        </div>
+      </div>
 
-    <!-- Book Completion Heatmap -->
-    <kendo-card class="heatmap-section">
-      <kendo-card-header>
-        <h2>Book Completion Status</h2>
-      </kendo-card-header>
-      <kendo-card-body>
-        <div class="books-heatmap">
-          <div *ngFor="let book of booksHeatmapData" 
-               class="book-tile" 
-               [style.background-color]="getHeatmapColor(book.percentage)"
-               [attr.data-percentage]="book.percentage">
-            <span class="book-abbr">{{ book.abbr }}</span>
-            <div class="book-tooltip">
-              <strong>{{ book.name }}</strong>
-              <span>{{ book.percentage }}% Complete</span>
-              <span>{{ book.verses }} verses</span>
+      <!-- Line Chart -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
+            Memorization Progress Over Time
+          </h3>
+          <div class="time-range-selector">
+            <button 
+              *ngFor="let range of timeRangeOptions"
+              [class.active]="selectedTimeRange === range"
+              (click)="onTimeRangeChange(range)">
+              {{ range }}
+            </button>
+          </div>
+        </div>
+        
+        <div class="chart-container">
+          <svg width="100%" height="300" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.3" />
+                <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0" />
+              </linearGradient>
+            </defs>
+            
+            <!-- Grid lines and axes will be drawn here -->
+            <g transform="translate(50, 20)">
+              <!-- Y-axis grid lines -->
+              <g *ngFor="let i of gridLineIndices">
+                <line 
+                  [attr.x1]="0" 
+                  [attr.y1]="getGridLineY(i)" 
+                  [attr.x2]="700" 
+                  [attr.y2]="getGridLineY(i)" 
+                  stroke="#e5e7eb" 
+                  stroke-dasharray="2 2" />
+              </g>
+              
+              <!-- Area path -->
+              <path 
+                *ngIf="timeSeriesData.length > 0"
+                [attr.d]="getAreaPath()"
+                fill="url(#areaGradient)" />
+              
+              <!-- Line path -->
+              <path 
+                *ngIf="timeSeriesData.length > 0"
+                [attr.d]="getLinePath()"
+                fill="none" 
+                stroke="#3b82f6" 
+                stroke-width="3" />
+              
+              <!-- Achievement markers -->
+              <g *ngFor="let point of timeSeriesData; let i = index">
+                <g *ngIf="point.achievements.length > 0">
+                  <circle 
+                    [attr.cx]="getChartX(i)" 
+                    [attr.cy]="getChartY(point.verses)"
+                    r="6" 
+                    fill="#f59e0b" 
+                    stroke="white" 
+                    stroke-width="2"
+                    class="achievement-marker" />
+                </g>
+              </g>
+              
+              <!-- Hover points -->
+              <circle 
+                *ngFor="let point of timeSeriesData; let i = index"
+                [attr.cx]="getChartX(i)" 
+                [attr.cy]="getChartY(point.verses)"
+                r="4" 
+                fill="#3b82f6"
+                class="chart-point"
+                (mouseenter)="onPointHover(point)"
+                (mouseleave)="onPointHover(null)" />
+            </g>
+          </svg>
+          
+          <!-- Hover tooltip -->
+          <div class="chart-tooltip" *ngIf="hoveredPoint" [style.display]="'block'">
+            <div class="tooltip-date">{{ formatDate(hoveredPoint.date) }}</div>
+            <div>Total: {{ hoveredPoint.verses }} verses</div>
+            <div class="tooltip-daily">+{{ hoveredPoint.dailyVerses }} that day</div>
+            <div *ngFor="let achievement of hoveredPoint.achievements" class="tooltip-achievement">
+              {{ achievement.name }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Two Column Layout -->
+      <div class="stats-grid">
+        <!-- Books Almost Complete -->
+        <div class="card">
+          <h3>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v6l4 2" />
+            </svg>
+            Books Almost Complete
+          </h3>
+          
+          <div class="almost-complete-list">
+            <div 
+              *ngFor="let book of almostCompleteBooks"
+              class="progress-item"
+              (mouseenter)="hoveredBook = book.name"
+              (mouseleave)="hoveredBook = null">
+              <div class="progress-header">
+                <div class="progress-info">
+                  <div class="progress-title">{{ book.name }}</div>
+                  <div class="progress-subtitle">
+                    {{ book.remaining }} of {{ book.totalVerses }} verses remaining • {{ book.chapters }} chapters
+                  </div>
+                </div>
+                <div class="progress-percent">{{ book.percent }}%</div>
+              </div>
+              <div class="progress-bar-container">
+                <div 
+                  class="progress-bar progress-bar-green"
+                  [style.width.%]="book.percent">
+                </div>
+                <div 
+                  class="progress-bar-overlay"
+                  [class.active]="hoveredBook === book.name">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <h4>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+            Chapters Nearly Complete
+          </h4>
+          
+          <div class="chapters-list">
+            <div *ngFor="let chapter of almostCompleteChapters" class="chapter-item">
+              <div class="chapter-info">
+                <span class="chapter-name">{{ chapter.book }} {{ chapter.chapter }}</span>
+                <span class="chapter-remaining">
+                  ({{ chapter.remaining }}/{{ chapter.total }} verses left)
+                </span>
+              </div>
+              <div class="chapter-stats">
+                <span class="chapter-percent">{{ chapter.percent }}%</span>
+                <span *ngIf="chapter.remaining === 1" class="last-verse-badge">
+                  Last verse!
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress by Section -->
+        <div class="card">
+          <h3>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <line x1="9" y1="9" x2="15" y2="9" />
+              <line x1="9" y1="15" x2="15" y2="15" />
+            </svg>
+            Progress by Section
+          </h3>
+          
+          <div class="section-progress-list">
+            <div *ngFor="let section of sectionProgress" class="section-item">
+              <div class="section-header">
+                <div class="section-name">
+                  {{ section.name }}
+                  <span class="section-books">({{ section.books }} books)</span>
+                </div>
+                <div class="section-verses">
+                  {{ section.memorized }}/{{ section.verses }} verses
+                </div>
+              </div>
+              <div class="section-bar-container">
+                <div 
+                  class="section-bar"
+                  [style.width.%]="section.percent"
+                  [style.background]="'linear-gradient(to right, ' + section.color + ', ' + section.gradientEnd + ')'">
+                </div>
+                <span class="section-percent">{{ section.percent }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="stats-summary">
+            <div class="summary-item">
+              <div class="summary-value text-purple">{{ stats.monthlyGrowth }}%</div>
+              <div class="summary-label">Monthly Growth</div>
+            </div>
+            <div class="summary-item">
+              <div class="summary-value text-blue">{{ stats.projectedCompletion }}</div>
+              <div class="summary-label">Projected Completion</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Heatmap -->
+      <div class="card heatmap-card">
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          90-Day Activity Heatmap
+        </h3>
+        
+        <div class="heatmap-container">
+          <div class="heatmap-grid">
+            <div 
+              *ngFor="let day of heatmapData"
+              class="heatmap-cell"
+              [style.background-color]="getHeatmapColor(day.intensity)"
+              [title]="getHeatmapTitle(day)">
+              <div class="heatmap-tooltip">
+                {{ day.date }}: {{ day.verses }} verses
+              </div>
             </div>
           </div>
         </div>
         
         <div class="heatmap-legend">
-          <span class="legend-label">0%</span>
-          <div class="gradient-bar"></div>
-          <span class="legend-label">100%</span>
+          <div class="legend-item">
+            <div class="legend-box" style="background: #f3f4f6"></div>
+            <span>No activity</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-box" style="background: #ddd6fe"></div>
+            <span>1-10 verses</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-box" style="background: #a78bfa"></div>
+            <span>11-25 verses</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-box" style="background: #7c3aed"></div>
+            <span>25+ verses</span>
+          </div>
         </div>
-      </kendo-card-body>
-    </kendo-card>
+      </div>
+    </div>
   </div>
-</div>
+</div>  
