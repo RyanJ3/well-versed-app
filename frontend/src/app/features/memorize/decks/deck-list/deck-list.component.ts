@@ -30,7 +30,7 @@ interface Tab {
   templateUrl: './deck-list.component.html',
   styleUrls: [
     './deck-list.component.scss',
-    // './flashcard-hero.component.scss'
+    './deck-list-hero.component.scss'
   ]
 })
 export class DeckListComponent implements OnInit {
