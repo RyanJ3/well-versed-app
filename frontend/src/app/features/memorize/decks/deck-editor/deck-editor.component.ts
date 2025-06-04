@@ -3,10 +3,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CardWithVerses, DeckResponse, DeckService } from '../../../core/services/deck.service';
-import { VersePickerComponent, VerseSelection } from '../../../shared/components/verse-range-picker/verse-range-picker.component';
-import { BibleService } from '../../../core/services/bible.service';
-import { ModalService } from '../../../core/services/modal.service';
+import { CardWithVerses, DeckResponse, DeckService } from '../../../../core/services/deck.service';
+import { VersePickerComponent, VerseSelection } from '../../../../shared/components/verse-range-picker/verse-range-picker.component';
+import { BibleService } from '../../../../core/services/bible.service';
+import { ModalService } from '../../../../core/services/modal.service';
 
 @Component({
   selector: 'app-deck-editor',

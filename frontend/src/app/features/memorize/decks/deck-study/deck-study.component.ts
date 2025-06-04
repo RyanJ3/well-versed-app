@@ -3,9 +3,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DeckService } from '../../../core/services/deck.service';
-import { BibleService } from '../../../core/services/bible.service';
-import { UserService } from '../../../core/services/user.service';
+import { DeckService } from '../../../../core/services/deck.service';
+import { BibleService } from '../../../../core/services/bible.service';
+import { UserService } from '../../../../core/services/user.service';
 
 interface StudyVerse {
   verse_id: number;
@@ -19,12 +19,12 @@ interface StudyVerse {
 
 @Component({
   selector: 'app-study',
-  templateUrl: './study.component.html',
-  styleUrls: ['./study.component.scss'],
+  templateUrl: './deck-study.component.html',
+  styleUrls: ['./deck-study.component.scss'],
   standalone: true,
   imports: [CommonModule, FormsModule]
 })
-export class StudyComponent implements OnInit {
+export class DeckStudyComponent implements OnInit {
   deckId: number = 0;
   deckName: string = '';
   verses: StudyVerse[] = [];

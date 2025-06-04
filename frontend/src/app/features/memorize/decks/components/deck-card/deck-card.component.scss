@@ -1,9 +1,8 @@
 // frontend/src/app/features/memorize/flashcard/components/deck-card/deck-card.component.scss
 
 
-@import '../../shared/styles/variables';
-@import '../../shared/styles/animations';
-
+@use '../../shared/styles/variables' as *;
+@use '../../shared/styles/animations' as *;
 // Deck Card
 .deck-card {
   background: white;

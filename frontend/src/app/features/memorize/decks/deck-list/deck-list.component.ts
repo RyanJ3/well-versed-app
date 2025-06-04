@@ -3,14 +3,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { DeckCreate, DeckResponse, DeckService } from '../../../core/services/deck.service';
-import { UserService } from '../../../core/services/user.service';
-import { ModalService } from '../../../core/services/modal.service';
-
-// Import sub-components
-import { DeckCardComponent, DeckWithCounts } from './components/deck-card/deck-card.component';
-import { CreateDeckModalComponent } from './components/create-deck-modal/create-deck-modal.component';
-import { DeckFilterComponent } from './components/deck-filter/deck-filter.component';
+import { DeckCardComponent, DeckWithCounts } from '../components/deck-card/deck-card.component';
+import { CreateDeckModalComponent } from '../components/create-deck-modal/create-deck-modal.component';
+import { DeckFilterComponent } from '../components/deck-filter/deck-filter.component';
+import { UserService } from '../../../../core/services/user.service';
+import { ModalService } from '../../../../core/services/modal.service';
+import { DeckCreate, DeckService } from '../../../../core/services/deck.service';
 
 interface Tab {
   id: 'my-decks' | 'public' | 'saved';
@@ -29,13 +27,13 @@ interface Tab {
     CreateDeckModalComponent,
     DeckFilterComponent
   ],
-  templateUrl: './flashcard.component.html',
+  templateUrl: './deck-list.component.html',
   styleUrls: [
-    './flashcard.component.scss',
-    './flashcard-hero.component.scss'
+    './deck-list.component.scss',
+    // './flashcard-hero.component.scss'
   ]
 })
-export class FlashcardComponent implements OnInit {
+export class DeckListComponent implements OnInit {
   // Tab configuration
   tabs: Tab[] = [
     {

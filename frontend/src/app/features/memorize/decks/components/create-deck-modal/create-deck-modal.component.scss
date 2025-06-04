@@ -1,7 +1,7 @@
 // frontend/src/app/features/memorize/flashcard/components/create-deck-modal/create-deck-modal.component.scss
 
-@import '../../shared/styles/variables';
-@import '../../shared/styles/animations';
+@use '../../shared/styles/variables' as *;
+@use '../../shared/styles/animations' as *;
 
 // Modal Styles
 .modal-backdrop {
