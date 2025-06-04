@@ -7,6 +7,7 @@ import { CardWithVerses, DeckResponse, DeckService } from '../../../../core/serv
 import { VersePickerComponent, VerseSelection } from '../../../../shared/components/verse-range-picker/verse-range-picker.component';
 import { BibleService } from '../../../../core/services/bible.service';
 import { ModalService } from '../../../../core/services/modal.service';
+import { switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-deck-editor',
@@ -37,6 +38,10 @@ export class DeckEditorComponent implements OnInit {
   
   // Selected cards for bulk operations
   selectedCards: Set<number> = new Set();
+
+  // Inline editing state
+  editingCardId: number | null = null;
+  cardSelections: { [cardId: number]: VerseSelection | null } = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -196,6 +201,38 @@ export class DeckEditorComponent implements OnInit {
     } else {
       this.selectedCards.add(cardId);
     }
+  }
+
+  toggleEditCard(cardId: number) {
+    this.editingCardId = this.editingCardId === cardId ? null : cardId;
+  }
+
+  onCardVerseSelection(cardId: number, selection: VerseSelection) {
+    this.cardSelections[cardId] = selection;
+  }
+
+  confirmCardEdit(cardId: number) {
+    const selection = this.cardSelections[cardId];
+    if (!selection) {
+      this.editingCardId = null;
+      return;
+    }
+
+    this.deckService.removeCardFromDeck(this.deckId, cardId)
+      .pipe(
+        switchMap(() => this.deckService.addVersesToDeck(this.deckId, selection.verseCodes, selection.reference))
+      )
+      .subscribe({
+        next: () => {
+          this.editingCardId = null;
+          this.loadDeckCards();
+          this.modalService.success('Card Updated', 'Card verses updated.');
+        },
+        error: (error) => {
+          console.error('Error updating card:', error);
+          this.modalService.alert('Error Updating Card', 'Unable to update card verses. Please try again.', 'danger');
+        }
+      });
   }
 
   async removeSelectedCards() {
