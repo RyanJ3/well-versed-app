@@ -1,5 +1,5 @@
 // frontend/src/app/deck-editor/deck-editor.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -7,7 +7,6 @@ import { CardWithVerses, DeckResponse, DeckService } from '../../../../core/serv
 import { VersePickerComponent, VerseSelection } from '../../../../shared/components/verse-range-picker/verse-range-picker.component';
 import { BibleService } from '../../../../core/services/bible.service';
 import { ModalService } from '../../../../core/services/modal.service';
-import { switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-deck-editor',
@@ -33,15 +32,11 @@ export class DeckEditorComponent implements OnInit {
   deckDescription = '';
   isDeckPublic = false;
 
-  // Verse picker selection
-  currentSelection: VerseSelection | null = null;
+  // Card editing state
+  editingCardId: number | null = null;
   
   // Selected cards for bulk operations
   selectedCards: Set<number> = new Set();
-
-  // Inline editing state
-  editingCardId: number | null = null;
-  cardSelections: { [cardId: number]: VerseSelection | null } = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -67,7 +62,7 @@ export class DeckEditorComponent implements OnInit {
         this.deckDescription = deck.description || '';
         this.isDeckPublic = deck.is_public;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading deck:', error);
         this.modalService.alert('Error Loading Deck', 'Unable to load deck details. Please try again.', 'danger');
       }
@@ -81,7 +76,7 @@ export class DeckEditorComponent implements OnInit {
         this.deckCards = response.cards;
         this.isLoading = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading deck cards:', error);
         this.isLoading = false;
         this.modalService.alert('Error Loading Cards', 'Unable to load deck cards. Please try again.', 'danger');
@@ -109,7 +104,7 @@ export class DeckEditorComponent implements OnInit {
         this.editMode = 'verses';
         this.modalService.success('Deck Updated', 'Your deck settings have been saved successfully.');
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error updating deck:', error);
         this.isSaving = false;
         this.modalService.alert('Error Updating Deck', 'Unable to save deck settings. Please try again.', 'danger');
@@ -117,82 +112,182 @@ export class DeckEditorComponent implements OnInit {
     });
   }
 
-  onVerseSelectionChanged(selection: VerseSelection) {
-    this.currentSelection = selection;
+  // Card editing methods
+  toggleCardEdit(cardId: number) {
+    this.editingCardId = this.editingCardId === cardId ? null : cardId;
+    
+    // If opening, calculate dropdown position after DOM update
+    if (this.editingCardId === cardId) {
+      setTimeout(() => {
+        this.calculateDropdownPosition(cardId);
+      }, 0);
+    }
+  }
+  
+  calculateDropdownPosition(cardId: number) {
+    // This method can be used to calculate if dropdown should open up or down
+    // based on available space. For now, we'll rely on CSS positioning.
   }
 
-  async addSelectedVerses() {
-    if (!this.currentSelection || this.currentSelection.verseCodes.length === 0) {
+  // Note: This method is for future use when VersePickerComponent supports initialSelection
+  getCardSelection(card: CardWithVerses): VerseSelection | null {
+    if (!card.verses || card.verses.length === 0) return null;
+    
+    const firstVerse = card.verses[0];
+    const lastVerse = card.verses[card.verses.length - 1];
+    
+    // Parse verse codes to get book, chapter, verse info
+    const [bookId, startChapter, startVerse] = firstVerse.verse_code.split('-').map(Number);
+    const [, endChapter, endVerse] = lastVerse.verse_code.split('-').map(Number);
+    
+    return {
+      mode: card.card_type === 'single_verse' ? 'single' : 'range',
+      startVerse: {
+        book: this.getBookName(bookId),
+        bookId: bookId,
+        chapter: startChapter,
+        verse: startVerse
+      },
+      endVerse: card.card_type === 'verse_range' ? {
+        chapter: endChapter,
+        verse: endVerse
+      } : undefined,
+      verseCodes: card.verses.map(v => v.verse_code),
+      verseCount: card.verses.length,
+      reference: card.reference
+    };
+  }
+
+  async updateCardVerses(card: CardWithVerses, selection: VerseSelection) {
+    // If it's a temporary card (negative ID), add it as new
+    if (card.card_id < 0) {
+      this.deckService.addVersesToDeck(this.deckId, selection.verseCodes, selection.reference).subscribe({
+        next: () => {
+          this.loadDeckCards();
+          this.editingCardId = null;
+          this.modalService.success('Card Added', 'The card has been added successfully.');
+        },
+        error: (error: any) => {
+          console.error('Error adding card:', error);
+          this.modalService.alert('Error Adding Card', 'Unable to add card. Please try again.', 'danger');
+        }
+      });
       return;
     }
 
-    // Check if any verses are already in the deck
+    // Check if verses are already in another card
     const existingVerseCodes = new Set();
-    this.deckCards.forEach(card => {
-      card.verses.forEach(verse => {
-        existingVerseCodes.add(verse.verse_code);
-      });
+    this.deckCards.forEach(c => {
+      if (c.card_id !== card.card_id) {
+        c.verses.forEach(verse => {
+          existingVerseCodes.add(verse.verse_code);
+        });
+      }
     });
 
-    const newVerseCodes = this.currentSelection.verseCodes.filter(code => 
-      !existingVerseCodes.has(code)
-    );
-
-    if (newVerseCodes.length === 0) {
-      await this.modalService.alert(
+    const duplicateVerses = selection.verseCodes.filter(code => existingVerseCodes.has(code));
+    
+    if (duplicateVerses.length > 0) {
+      this.modalService.alert(
         'Duplicate Verses', 
-        'All selected verses are already in this deck.',
+        'Some of the selected verses are already in another card in this deck.',
         'warning'
       );
       return;
     }
 
-    this.isAddingVerses = true;
-    this.deckService.addVersesToDeck(this.deckId, newVerseCodes, this.currentSelection.reference).subscribe({
-      next: () => {
-        this.loadDeckCards();
-        this.isAddingVerses = false;
-        
-        // Show success message
-        const addedCount = newVerseCodes.length;
-        const skippedCount = this.currentSelection!.verseCodes.length - addedCount;
-        let message = `Added flashcard with ${addedCount} verse${addedCount !== 1 ? 's' : ''}.`;
-        if (skippedCount > 0) {
-          message += ` (${skippedCount} verse${skippedCount !== 1 ? 's' : ''} already in deck)`;
-        }
-        
-        this.modalService.success('Card Added', message);
-      },
-      error: (error) => {
-        console.error('Error adding verses:', error);
-        this.isAddingVerses = false;
-        this.modalService.alert('Error Adding Verses', 'Unable to add verses to deck. Please try again.', 'danger');
-      }
-    });
-  }
-
-  async removeCardFromDeck(cardId: number) {
+    // To update a card, we need to remove it and add it again with new verses
+    // First, ask for confirmation
     const confirmed = await this.modalService.confirm({
-      title: 'Remove Card',
-      message: 'Are you sure you want to remove this card from the deck?',
-      type: 'warning',
-      confirmText: 'Remove',
+      title: 'Update Card',
+      message: 'To update this card, it will be removed and re-added with the new verses. Continue?',
+      type: 'info',
+      confirmText: 'Update',
       showCancel: true
     });
 
     if (!confirmed.confirmed) return;
 
-    this.deckService.removeCardFromDeck(this.deckId, cardId).subscribe({
+    // Remove the old card
+    this.deckService.removeCardFromDeck(this.deckId, card.card_id).subscribe({
       next: () => {
-        this.deckCards = this.deckCards.filter(c => c.card_id !== cardId);
-        this.selectedCards.delete(cardId);
-        this.modalService.success('Card Removed', 'The card has been removed from the deck.');
+        // Add the new card with updated verses
+        this.deckService.addVersesToDeck(this.deckId, selection.verseCodes, selection.reference).subscribe({
+          next: () => {
+            this.loadDeckCards();
+            this.editingCardId = null;
+            this.modalService.success('Card Updated', 'The card has been updated successfully.');
+          },
+          error: (error: any) => {
+            console.error('Error adding updated card:', error);
+            this.modalService.alert('Error Updating Card', 'Unable to update card. Please try again.', 'danger');
+            // Reload to restore the original state
+            this.loadDeckCards();
+          }
+        });
       },
-      error: (error) => {
-        console.error('Error removing card:', error);
-        this.modalService.alert('Error Removing Card', 'Unable to remove card. Please try again.', 'danger');
+      error: (error: any) => {
+        console.error('Error removing old card:', error);
+        this.modalService.alert('Error Updating Card', 'Unable to update card. Please try again.', 'danger');
       }
     });
+  }
+
+  getCardBook(card: CardWithVerses): string {
+    if (!card.verses || card.verses.length === 0) return '';
+    const firstVerse = card.verses[0];
+    const [bookId] = firstVerse.verse_code.split('-').map(Number);
+    return this.getBookName(bookId);
+  }
+
+  getBookName(bookId: number): string {
+    const book = this.bibleService.getBibleData().getBookById(bookId);
+    return book ? book.name : `Book ${bookId}`;
+  }
+
+  getTotalVerseCount(): number {
+    return this.deckCards.reduce((total, card) => total + card.verses.length, 0);
+  }
+
+  // Add new card
+  addNewCard() {
+    // Create a temporary new card and set it as editing
+    const tempCardId = -Date.now(); // Negative ID for temporary cards
+    const newCard: CardWithVerses = {
+      card_id: tempCardId,
+      card_type: 'single_verse',
+      reference: 'Select verses...',
+      verses: [],
+      confidence_score: undefined  // Changed from null to undefined
+    };
+    
+    this.deckCards.push(newCard);
+    this.editingCardId = tempCardId;
+  }
+
+  // Duplicate card
+  async duplicateCard(card: CardWithVerses) {
+    const verseCodes = card.verses.map(v => v.verse_code);
+    
+    this.deckService.addVersesToDeck(this.deckId, verseCodes, card.reference + ' (Copy)').subscribe({
+      next: () => {
+        this.loadDeckCards();
+        this.modalService.success('Card Duplicated', 'The card has been duplicated successfully.');
+      },
+      error: (error: any) => {
+        console.error('Error duplicating card:', error);
+        this.modalService.alert('Error Duplicating Card', 'Unable to duplicate card. Please try again.', 'danger');
+      }
+    });
+  }
+
+  // Bulk operations
+  toggleAllCards(event: any) {
+    if (event.target.checked) {
+      this.deckCards.forEach(card => this.selectedCards.add(card.card_id));
+    } else {
+      this.selectedCards.clear();
+    }
   }
 
   toggleCardSelection(cardId: number) {
@@ -203,36 +298,43 @@ export class DeckEditorComponent implements OnInit {
     }
   }
 
-  toggleEditCard(cardId: number) {
-    this.editingCardId = this.editingCardId === cardId ? null : cardId;
-  }
+  async removeCardFromDeck(cardId: number) {
+    const card = this.deckCards.find(c => c.card_id === cardId);
+    if (!card) return;
 
-  onCardVerseSelection(cardId: number, selection: VerseSelection) {
-    this.cardSelections[cardId] = selection;
-  }
+    const confirmed = await this.modalService.confirm({
+      title: 'Remove Card',
+      message: `Are you sure you want to remove "${card.reference}" from the deck?`,
+      type: 'warning',
+      confirmText: 'Remove',
+      showCancel: true
+    });
 
-  confirmCardEdit(cardId: number) {
-    const selection = this.cardSelections[cardId];
-    if (!selection) {
-      this.editingCardId = null;
+    if (!confirmed.confirmed) return;
+
+    // If it's a temporary card (negative ID), just remove from array
+    if (cardId < 0) {
+      this.deckCards = this.deckCards.filter(c => c.card_id !== cardId);
+      if (this.editingCardId === cardId) {
+        this.editingCardId = null;
+      }
       return;
     }
 
-    this.deckService.removeCardFromDeck(this.deckId, cardId)
-      .pipe(
-        switchMap(() => this.deckService.addVersesToDeck(this.deckId, selection.verseCodes, selection.reference))
-      )
-      .subscribe({
-        next: () => {
+    this.deckService.removeCardFromDeck(this.deckId, cardId).subscribe({
+      next: () => {
+        this.deckCards = this.deckCards.filter(c => c.card_id !== cardId);
+        this.selectedCards.delete(cardId);
+        if (this.editingCardId === cardId) {
           this.editingCardId = null;
-          this.loadDeckCards();
-          this.modalService.success('Card Updated', 'Card verses updated.');
-        },
-        error: (error) => {
-          console.error('Error updating card:', error);
-          this.modalService.alert('Error Updating Card', 'Unable to update card verses. Please try again.', 'danger');
         }
-      });
+        this.modalService.success('Card Removed', 'The card has been removed from the deck.');
+      },
+      error: (error: any) => {
+        console.error('Error removing card:', error);
+        this.modalService.alert('Error Removing Card', 'Unable to remove card. Please try again.', 'danger');
+      }
+    });
   }
 
   async removeSelectedCards() {
@@ -246,26 +348,32 @@ export class DeckEditorComponent implements OnInit {
 
     if (!confirmed) return;
 
-    const cardIds = Array.from(this.selectedCards);
-    this.deckService.removeMultipleCardsFromDeck(this.deckId, cardIds).subscribe({
-      next: () => {
-        this.deckCards = this.deckCards.filter(c => !this.selectedCards.has(c.card_id));
-        this.selectedCards.clear();
-        this.modalService.success('Cards Removed', `${cardIds.length} card${cardIds.length !== 1 ? 's' : ''} removed from the deck.`);
-      },
-      error: (error) => {
-        console.error('Error removing cards:', error);
-        this.modalService.alert('Error Removing Cards', 'Unable to remove selected cards. Please try again.', 'danger');
-      }
-    });
-  }
-
-  getCardVersesText(card: CardWithVerses): string {
-    if (card.verses.length === 0) return 'No verses';
-    if (card.verses.length === 1) return card.verses[0].text;
+    // Filter out temporary cards
+    const cardIds = Array.from(this.selectedCards).filter(id => id > 0);
+    const tempCardIds = Array.from(this.selectedCards).filter(id => id < 0);
     
-    // For multiple verses, show first verse + indicator
-    return `${card.verses[0].text} ... (+${card.verses.length - 1} more verse${card.verses.length - 1 !== 1 ? 's' : ''})`;
+    // Remove temporary cards immediately
+    if (tempCardIds.length > 0) {
+      this.deckCards = this.deckCards.filter(c => !tempCardIds.includes(c.card_id));
+      tempCardIds.forEach(id => this.selectedCards.delete(id));
+    }
+    
+    // Remove real cards through API
+    if (cardIds.length > 0) {
+      this.deckService.removeMultipleCardsFromDeck(this.deckId, cardIds).subscribe({
+        next: () => {
+          this.deckCards = this.deckCards.filter(c => !this.selectedCards.has(c.card_id));
+          this.selectedCards.clear();
+          this.modalService.success('Cards Removed', `${cardIds.length + tempCardIds.length} card${(cardIds.length + tempCardIds.length) !== 1 ? 's' : ''} removed from the deck.`);
+        },
+        error: (error: any) => {
+          console.error('Error removing cards:', error);
+          this.modalService.alert('Error Removing Cards', 'Unable to remove selected cards. Please try again.', 'danger');
+        }
+      });
+    } else if (tempCardIds.length > 0) {
+      this.modalService.success('Cards Removed', `${tempCardIds.length} card${tempCardIds.length !== 1 ? 's' : ''} removed from the deck.`);
+    }
   }
 
   goBack() {
