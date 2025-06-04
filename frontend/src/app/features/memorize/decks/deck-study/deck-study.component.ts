@@ -1,4 +1,4 @@
-// frontend/src/app/study/study.component.ts
+// frontend/src/app/features/memorize/decks/deck-study/deck-study.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -33,6 +33,7 @@ export class DeckStudyComponent implements OnInit {
   error: string = '';
   userId: number = 1;
   preferredBibleId: string = '';
+  sessionStartTime: Date = new Date();
 
   constructor(
     private route: ActivatedRoute,
@@ -175,5 +176,32 @@ export class DeckStudyComponent implements OnInit {
       // This would require creating a new endpoint to save confidence scores
       // for individual verses or cards
     }
+  }
+
+  getSessionTime(): string {
+    const now = new Date();
+    const diff = now.getTime() - this.sessionStartTime.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    
+    if (minutes === 0) {
+      return `${seconds}s`;
+    } else if (minutes < 60) {
+      return `${minutes}m ${seconds}s`;
+    } else {
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      return `${hours}h ${remainingMinutes}m`;
+    }
+  }
+
+  getAverageConfidence(): number {
+    if (this.verses.length === 0) return 0;
+    
+    const totalConfidence = this.verses.reduce((sum, verse) => {
+      return sum + (verse.confidence_score || 50);
+    }, 0);
+    
+    return Math.round(totalConfidence / this.verses.length);
   }
 }

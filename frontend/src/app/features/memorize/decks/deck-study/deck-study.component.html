@@ -1,17 +1,60 @@
-<!-- frontend/src/app/study/study.component.html -->
+<!-- frontend/src/app/features/memorize/decks/deck-study/deck-study.component.html -->
 <div class="study-container">
-  <!-- Header -->
-  <div class="study-header">
-    <button class="exit-button" (click)="exitStudy()">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </button>
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="hero-background">
+      <div class="hero-gradient"></div>
+      <div class="hero-pattern"></div>
+    </div>
     
-    <h1 class="deck-title">{{ deckName }}</h1>
-    
-    <div class="progress-info">
-      {{ currentIndex + 1 }} / {{ verses.length }}
+    <div class="hero-content">
+      <button class="back-button" (click)="exitStudy()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Decks
+      </button>
+      
+      <h1 class="hero-title">
+        <span class="gradient-text">{{ deckName }}</span>
+      </h1>
+      
+      <div class="study-stats">
+        <div class="stat-item">
+          <span class="stat-value">{{ currentIndex + 1 }}</span>
+          <span class="stat-divider">/</span>
+          <span class="stat-total">{{ verses.length }}</span>
+        </div>
+        <div class="progress-ring">
+          <svg viewBox="0 0 36 36">
+            <path class="progress-bg"
+              d="M18 2.0845
+                a 15.9155 15.9155 0 0 1 0 31.831
+                a 15.9155 15.9155 0 0 1 0 -31.831"
+              fill="none"
+              stroke="#e5e7eb"
+              stroke-width="3"
+            />
+            <path class="progress-fill"
+              d="M18 2.0845
+                a 15.9155 15.9155 0 0 1 0 31.831
+                a 15.9155 15.9155 0 0 1 0 -31.831"
+              fill="none"
+              stroke="url(#progress-gradient)"
+              stroke-width="3"
+              [style.stroke-dasharray]="'100, 100'"
+              [style.stroke-dashoffset]="100 - progress"
+            />
+            <defs>
+              <linearGradient id="progress-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <span class="progress-text">{{ progress | number:'1.0-0' }}%</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -28,68 +71,84 @@
 
   <!-- Error State -->
   <div *ngIf="error && !isLoading" class="error-container">
+    <svg class="error-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
     <p class="error-message">{{ error }}</p>
-    <button class="btn btn-primary" (click)="loadDeckVerses()">Try Again</button>
+    <button class="btn btn-primary" (click)="loadDeckVerses()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      Try Again
+    </button>
   </div>
 
   <!-- Card Display -->
   <div *ngIf="!isLoading && !error && currentVerse" class="card-container">
-    <div class="flash-card">
-      <!-- Verse Reference (Always visible) -->
-      <div class="verse-reference">
-        {{ currentVerse.reference }}
+    <div class="flash-card" [class.flipped]="currentVerse.isRevealed">
+      <!-- Card Front (Reference) -->
+      <div class="card-face card-front">
+        <div class="verse-reference">
+          {{ currentVerse.reference }}
+        </div>
+        <button class="reveal-hint">
+          Click to reveal verse
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </button>
       </div>
 
-      <!-- Verse Text (Show/Hide) -->
-      <div class="verse-text-container" [class.revealed]="currentVerse.isRevealed">
-        <button *ngIf="!currentVerse.isRevealed" class="reveal-button" (click)="toggleReveal()">
-          Click to reveal verse
-        </button>
-        
-        <div *ngIf="currentVerse.isRevealed" class="verse-text">
+      <!-- Card Back (Verse Text) -->
+      <div class="card-face card-back">
+        <div class="verse-text">
           {{ currentVerse.text }}
         </div>
+        
+        <!-- Confidence Slider -->
+        <div class="confidence-container">
+          <label class="confidence-label">How well do you know this verse?</label>
+          <div class="confidence-slider-wrapper">
+            <div class="confidence-emoji">😟</div>
+            <input 
+              type="range" 
+              class="confidence-slider"
+              min="0" 
+              max="100" 
+              [(ngModel)]="currentVerse.confidence_score"
+              (change)="onConfidenceChange()">
+            <div class="confidence-emoji">😄</div>
+          </div>
+          <div class="confidence-value">
+            <span class="confidence-score">{{ currentVerse.confidence_score }}%</span>
+            <span class="confidence-label-text">Confidence</span>
+          </div>
+        </div>
       </div>
 
-      <!-- Confidence Slider (shown after reveal) -->
-      <div *ngIf="currentVerse.isRevealed" class="confidence-container">
-        <label class="confidence-label">How well do you know this verse?</label>
-        <div class="slider-container">
-          <span class="slider-value-left">0</span>
-          <input 
-            type="range" 
-            class="confidence-slider"
-            min="0" 
-            max="100" 
-            [(ngModel)]="currentVerse.confidence_score"
-            (change)="onConfidenceChange()">
-          <span class="slider-value-right">100</span>
-        </div>
-        <div class="confidence-value">
-          Confidence: <strong>{{ currentVerse.confidence_score }}%</strong>
-        </div>
-      </div>
+      <!-- Click handler for flipping -->
+      <div class="card-click-area" (click)="toggleReveal()" *ngIf="!currentVerse.isRevealed"></div>
     </div>
   </div>
 
   <!-- Navigation Controls -->
   <div *ngIf="!isLoading && !error && currentVerse" class="navigation-controls">
-    <button class="nav-button" (click)="previousVerse()" [disabled]="currentIndex === 0">
+    <button class="nav-button secondary" (click)="previousVerse()" [disabled]="currentIndex === 0">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
-      Previous
+      <span class="button-text">Previous</span>
     </button>
 
-    <button class="nav-button skip-button" (click)="skipVerse()" [disabled]="currentIndex === verses.length - 1">
-      Skip
+    <button class="nav-button skip" (click)="skipVerse()" [disabled]="currentIndex === verses.length - 1">
+      <span class="button-text">Skip</span>
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
       </svg>
     </button>
 
     <button class="nav-button primary" (click)="nextVerse()" [disabled]="currentIndex === verses.length - 1">
-      Next
+      <span class="button-text">Next</span>
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
       </svg>
@@ -99,8 +158,59 @@
   <!-- Complete State -->
   <div *ngIf="!isLoading && !error && verses.length > 0 && currentIndex === verses.length - 1 && currentVerse?.isRevealed" 
        class="complete-container">
-    <h2>Study Session Complete!</h2>
-    <p>You've reviewed all {{ verses.length }} verses in this deck.</p>
-    <button class="btn btn-primary" (click)="exitStudy()">Back to Decks</button>
+    <div class="complete-content">
+      <div class="complete-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+        </svg>
+      </div>
+      <h2>Study Session Complete!</h2>
+      <p>You've reviewed all {{ verses.length }} verses in this deck.</p>
+      
+      <div class="session-stats">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Time Spent</span>
+            <span class="stat-value">{{ getSessionTime() }}</span>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Cards Reviewed</span>
+            <span class="stat-value">{{ verses.length }}</span>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Avg. Confidence</span>
+            <span class="stat-value">{{ getAverageConfidence() }}%</span>
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary large" (click)="exitStudy()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+        Back to Decks
+      </button>
+    </div>
   </div>
 </div>

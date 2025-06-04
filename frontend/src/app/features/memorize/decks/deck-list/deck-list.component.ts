@@ -1,4 +1,4 @@
-// frontend/src/app/features/memorize/flashcard/flashcard.component.ts
+// frontend/src/app/features/memorize/decks/deck-list/deck-list.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -17,7 +17,7 @@ interface Tab {
 }
 
 @Component({
-  selector: 'app-flashcard',
+  selector: 'app-deck-list',
   standalone: true,
   imports: [
     CommonModule, 
@@ -223,6 +223,11 @@ export class DeckListComponent implements OnInit {
           
           deck.verse_count = totalVerses;
           deck.loading_counts = false;
+          
+          // Load memorization counts for user's own decks
+          if (this.activeTab === 'my-decks') {
+            this.loadMemorizationCount(deck);
+          }
         },
         error: (error) => {
           console.error(`Error loading counts for deck ${deck.deck_id}:`, error);
@@ -231,6 +236,15 @@ export class DeckListComponent implements OnInit {
         }
       });
     });
+  }
+
+  private loadMemorizationCount(deck: DeckWithCounts) {
+    // This would require a new API endpoint to get memorization statistics
+    // For now, we'll simulate with random data
+    // TODO: Replace with actual API call when endpoint is available
+    setTimeout(() => {
+      deck.memorized_count = Math.floor(Math.random() * deck.card_count);
+    }, 500);
   }
 
   // Tag Management
@@ -496,5 +510,14 @@ export class DeckListComponent implements OnInit {
   // TrackBy function for better performance
   trackByDeckId(index: number, deck: DeckWithCounts): number {
     return deck.deck_id;
+  }
+
+  // Format tag for display
+  formatTag(tag: string): string {
+    // Format tag for display (e.g., "daily-devotion" -> "Daily Devotion")
+    return tag
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 }

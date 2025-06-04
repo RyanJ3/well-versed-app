@@ -1,4 +1,4 @@
-// frontend/src/app/features/memorize/flashcard/components/deck-card/deck-card.component.ts
+// frontend/src/app/features/memorize/decks/components/deck-card/deck-card.component.ts
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -12,6 +12,7 @@ export interface DeckWithCounts {
   card_count: number;
   verse_count?: number;
   save_count?: number;
+  memorized_count?: number;
   creator_name?: string;
   created_at: string;
   updated_at: string;
@@ -43,6 +44,14 @@ export class DeckCardComponent {
       cards: this.deck.card_count,
       verses: this.deck.loading_counts ? '...' : (this.deck.verse_count ?? this.deck.card_count)
     };
+  }
+
+  formatTag(tag: string): string {
+    // Format tag for display (e.g., "daily-devotion" -> "Daily Devotion")
+    return tag
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 
   onTagClick(tag: string, event: Event) {

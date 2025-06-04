@@ -1,4 +1,4 @@
-// frontend/src/app/features/memorize/flashcard/flashcard.component.scss
+// frontend/src/app/features/memorize/decks/deck-list/deck-list.component.scss
 
 @use '../shared/styles/variables' as *;
 @use '../shared/styles/animations' as *;
@@ -13,10 +13,10 @@
 .content-wrapper {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 2rem 4rem;
+  padding: 0 1.5rem 3rem;
   
   @media (max-width: 768px) {
-    padding: 0 1rem 3rem;
+    padding: 0 1rem 2rem;
   }
 }
 
@@ -24,53 +24,53 @@
 .tab-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
   animation: fadeIn 0.6s ease-out 0.5s both;
 }
 
 .tab-navigation {
   background: white;
-  padding: 0.375rem;
-  border-radius: 1rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 0.25rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   display: inline-flex;
-  gap: 0.25rem;
+  gap: 0.125rem;
 }
 
 .tab-button {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
   background: transparent;
   border: none;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: #64748b;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   white-space: nowrap;
   
   @media (max-width: 640px) {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
   }
 
   .tab-icon {
     display: flex;
     align-items: center;
-    font-size: 1.125rem;
+    font-size: 1rem;
   }
 
   .tab-count {
     background: #e2e8f0;
     color: #475569;
-    padding: 0.125rem 0.5rem;
-    border-radius: 0.75rem;
-    font-size: 0.75rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.5rem;
+    font-size: 0.7rem;
     font-weight: 600;
-    min-width: 1.5rem;
+    min-width: 1.25rem;
     text-align: center;
   }
 
@@ -82,8 +82,7 @@
   &.active {
     background: $gradient-primary;
     color: white;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
 
     .tab-count {
       background: rgba(255, 255, 255, 0.25);
@@ -96,8 +95,53 @@
 .actions-section {
   display: flex;
   justify-content: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   animation: fadeIn 0.6s ease-out 0.6s both;
+}
+
+// Create Button
+.create-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 0.625rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  .button-icon-wrapper {
+    width: 1rem;
+    height: 1rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .plus-icon {
+    width: 16px;
+    height: 16px;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 // Loading State
@@ -106,38 +150,33 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 6rem 2rem;
+  padding: 4rem 2rem;
+  
+  p {
+    color: #64748b;
+    font-size: 0.875rem;
+  }
 }
 
 .loading-spinner {
-  width: 3rem;
-  height: 3rem;
-  border: 3px solid #e2e8f0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 2.5px solid #e2e8f0;
   border-top-color: #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-  position: relative;
-  
-  &::after {
-    content: '📚';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 1.25rem;
-    animation: pulse 2s ease-in-out infinite;
-  }
+  margin-bottom: 0.75rem;
 }
 
 // Decks Grid
 .decks-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
   
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
 }
 
@@ -145,50 +184,51 @@
 .empty-state {
   grid-column: 1 / -1;
   text-align: center;
-  padding: 4rem 2rem;
+  padding: 3rem 2rem;
   color: #64748b;
 
   .empty-illustration {
     svg {
-      width: 200px;
-      height: 120px;
-      margin-bottom: 2rem;
+      width: 160px;
+      height: 100px;
+      margin-bottom: 1.5rem;
       opacity: 0.8;
     }
   }
 
   h3 {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: #334155;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
   }
 
   p {
-    font-size: 1.125rem;
-    margin-bottom: 2rem;
-    max-width: 500px;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    max-width: 400px;
     margin-left: auto;
     margin-right: auto;
-    line-height: 1.6;
+    line-height: 1.5;
   }
 
   .empty-state-button {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
     background: $gradient-primary;
     color: white;
     border: none;
-    border-radius: 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 
     &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
     }
   }
 }

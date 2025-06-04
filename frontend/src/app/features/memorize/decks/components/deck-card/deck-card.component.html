@@ -1,4 +1,4 @@
-<!-- frontend/src/app/features/memorize/flashcard/components/deck-card/deck-card.component.html -->
+<!-- frontend/src/app/features/memorize/decks/components/deck-card/deck-card.component.html -->
 <div 
   class="deck-card compact" 
   [style.animation-delay.ms]="animationDelay">
@@ -6,70 +6,87 @@
   <!-- Gradient Header Bar -->
   <div class="deck-header-gradient"></div>
   
+  <!-- Save Count Badge (Top Right) -->
+  <div class="save-count-badge" *ngIf="deck.is_public">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M21 8.5c0 2.485-2.239 5.318-5.443 7.667C13.478 17.654 12 18.897 12 18.897s-1.478-1.243-3.557-2.73C5.239 13.818 3 10.985 3 8.5 3 5.462 5.462 3 8.5 3c1.352 0 2.59.49 3.5 1.3.91-.81 2.148-1.3 3.5-1.3C18.538 3 21 5.462 21 8.5z"/>
+    </svg>
+    <span>{{ deck.save_count || 0 }}</span>
+  </div>
+  
   <div class="deck-content">
-    <!-- Top Row: Header + Stats -->
-    <div class="deck-top-row">
-      <div class="deck-info">
-        <div class="deck-header">
-          <h3 class="deck-name">{{ deck.name }}</h3>
-          <div class="deck-privacy-badge" [class.public]="deck.is_public">
-            <svg *ngIf="deck.is_public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-            </svg>
-            <svg *ngIf="!deck.is_public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <circle cx="12" cy="16" r="1"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            {{ deck.is_public ? 'Public' : 'Private' }}
-          </div>
-        </div>
-        
-        <!-- Description -->
-        <p class="deck-description">{{ deck.description || 'No description provided' }}</p>
-        
-        <!-- Tags and Meta Info -->
-        <div class="deck-meta-row">
-          <div class="deck-tags" *ngIf="deck.tags && deck.tags.length > 0">
-            <span 
-              class="deck-tag" 
-              *ngFor="let tag of deck.tags | slice:0:3"
-              (click)="onTagClick(tag, $event)">
-              #{{ tag }}
-            </span>
-            <span class="deck-tag more" *ngIf="deck.tags.length > 3">
-              +{{ deck.tags.length - 3 }}
-            </span>
-          </div>
-          
-          <div class="deck-footer-info">
-            <span *ngIf="viewMode !== 'my-decks' && deck.creator_name" class="deck-creator">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-              {{ deck.creator_name }}
-            </span>
-            <span class="deck-date">{{ deck.created_at | date:'MMM d' }}</span>
-          </div>
-        </div>
+    <!-- Header Section -->
+    <div class="deck-header">
+      <h3 class="deck-name">{{ deck.name }}</h3>
+      <div class="deck-privacy-badge" [class.public]="deck.is_public">
+        <svg *ngIf="deck.is_public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+        <svg *ngIf="!deck.is_public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <circle cx="12" cy="16" r="1"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        {{ deck.is_public ? 'Public' : 'Private' }}
       </div>
-
-      <!-- Compact Stats -->
-      <div class="deck-stats-compact">
-        <div class="stat-box cards">
-          <div class="stat-value">{{ getCountDisplay().cards }}</div>
-          <div class="stat-label">Cards</div>
-        </div>
-        <div class="stat-box verses">
-          <div class="stat-value">{{ getCountDisplay().verses }}</div>
-          <div class="stat-label">Verses</div>
-        </div>
-        <div class="stat-box saves" *ngIf="deck.is_public">
-          <div class="stat-value">{{ deck.save_count || 0 }}</div>
-          <div class="stat-label">Saves</div>
-        </div>
+    </div>
+    
+    <!-- Description -->
+    <p class="deck-description">{{ deck.description || 'No description provided' }}</p>
+    
+    <!-- Stats Row -->
+    <div class="deck-stats-row">
+      <div class="stat-item">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <rect x="3" y="7" width="18" height="14" rx="2"/>
+          <path d="M3 7V5a2 2 0 012-2h14a2 2 0 012 2v2M7 11h10M7 15h7"/>
+        </svg>
+        <span class="stat-value">{{ getCountDisplay().cards }}</span>
+        <span class="stat-label">cards</span>
+      </div>
+      
+      <div class="stat-item">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+        </svg>
+        <span class="stat-value">{{ getCountDisplay().verses }}</span>
+        <span class="stat-label">verses</span>
+      </div>
+      
+      <div class="stat-item memorized" *ngIf="viewMode === 'my-decks'">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M9 11l3 3L22 4"/>
+          <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+        </svg>
+        <span class="stat-value">{{ deck.memorized_count || 0 }}</span>
+        <span class="stat-label">memorized</span>
+      </div>
+    </div>
+    
+    <!-- Tags and Meta Info -->
+    <div class="deck-meta-row">
+      <div class="deck-tags" *ngIf="deck.tags && deck.tags.length > 0">
+        <span 
+          class="deck-tag" 
+          *ngFor="let tag of deck.tags | slice:0:3"
+          (click)="onTagClick(tag, $event)">
+          #{{ formatTag(tag) }}
+        </span>
+        <span class="deck-tag more" *ngIf="deck.tags.length > 3">
+          +{{ deck.tags.length - 3 }}
+        </span>
+      </div>
+      
+      <div class="deck-footer-info">
+        <span *ngIf="viewMode !== 'my-decks' && deck.creator_name" class="deck-creator">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          {{ deck.creator_name }}
+        </span>
+        <span class="deck-date">{{ deck.created_at | date:'MMM d' }}</span>
       </div>
     </div>
 

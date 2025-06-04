@@ -10,6 +10,7 @@ import { DeckEditorComponent } from './features/memorize/decks/deck-editor/deck-
 import { DeckStudyComponent } from './features/memorize/decks/deck-study/deck-study.component';
 import { DeckListComponent } from './features/memorize/decks/deck-list/deck-list.component';
 
+//TODO move /flashcard paths to be /deck instead
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'tracker', component: BibleTrackerComponent },

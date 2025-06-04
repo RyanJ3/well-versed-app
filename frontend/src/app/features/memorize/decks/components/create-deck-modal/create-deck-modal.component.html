@@ -1,5 +1,5 @@
-<!-- frontend/src/app/features/memorize/flashcard/components/create-deck-modal/create-deck-modal.component.html -->
-<div class="modal-backdrop" *ngIf="show" (click)="onClose()"></div>
+<!-- frontend/src/app/features/memorize/decks/components/create-deck-modal/create-deck-modal.component.html -->
+ <div class="modal-backdrop" *ngIf="show" (click)="onClose()"></div>
 
 <div class="modal-container" *ngIf="show">
   <div class="modal-content">
@@ -86,27 +86,43 @@
       </div>
 
       <div class="form-group">
-        <label for="tag-input">Tags</label>
-        <div class="tag-input-wrapper">
-          <input 
-            id="tag-input"
-            type="text" 
-            [(ngModel)]="tagInput" 
-            name="tagInput"
-            placeholder="Add tags (press Enter)"
-            class="form-input"
-            (keyup.enter)="addTag()">
-          <button type="button" class="tag-add-button" (click)="addTag()" [disabled]="!tagInput.trim()">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+        <label for="tag-select">Tags</label>
+        <div class="tag-dropdown-wrapper">
+          <button 
+            type="button"
+            class="tag-dropdown-button"
+            (click)="toggleTagDropdown()">
+            <span>Select tags for your deck</span>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" [class.rotated]="showTagDropdown">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
             </svg>
           </button>
+          
+          <div class="tag-dropdown" *ngIf="showTagDropdown">
+            <div class="tag-category" *ngFor="let category of tagCategories">
+              <h4 class="category-title">{{ category.name }}</h4>
+              <div class="tag-options">
+                <button 
+                  type="button"
+                  class="tag-option"
+                  *ngFor="let tag of category.tags"
+                  (click)="selectTag(tag)"
+                  [class.selected]="newDeck.tags?.includes(tag)">
+                  {{ formatTag(tag) }}
+                  <svg *ngIf="newDeck.tags?.includes(tag)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
+        
         <p class="form-help">Help others discover your deck with relevant tags</p>
         
         <div class="tags-preview" *ngIf="newDeck.tags && newDeck.tags.length > 0">
           <span class="tag-chip" *ngFor="let tag of newDeck.tags">
-            {{ tag }}
+            {{ formatTag(tag) }}
             <button type="button" class="tag-remove" (click)="removeTag(tag)">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
