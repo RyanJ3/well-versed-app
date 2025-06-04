@@ -126,7 +126,12 @@ export class FlashcardComponent implements OnInit {
     this.isLoading = true;
     this.deckService.getUserDecks(this.userId).subscribe({
       next: (response) => {
-        this.myDecks = response.decks.map(deck => ({ ...deck, loading_counts: false }));
+        this.myDecks = response.decks.map(deck => ({ 
+          ...deck, 
+          loading_counts: false,
+          creator_id: deck.creator_id || this.userId,
+          updated_at: deck.updated_at || deck.created_at
+        }));
         this.isLoading = false;
         this.loadDetailedCounts(this.myDecks);
         this.updateTagCounts();
@@ -147,7 +152,11 @@ export class FlashcardComponent implements OnInit {
     this.isLoading = true;
     this.deckService.getPublicDecks().subscribe({
       next: (response) => {
-        this.publicDecks = response.decks.map(deck => ({ ...deck, loading_counts: false }));
+        this.publicDecks = response.decks.map(deck => ({ 
+          ...deck, 
+          loading_counts: false,
+          updated_at: deck.updated_at || deck.created_at
+        }));
         this.isLoading = false;
         this.loadDetailedCounts(this.publicDecks);
         this.updateTagCounts();
@@ -172,7 +181,8 @@ export class FlashcardComponent implements OnInit {
         this.savedDecks = response.decks.map(deck => ({ 
           ...deck, 
           loading_counts: false,
-          is_saved: true
+          is_saved: true,
+          updated_at: deck.updated_at || deck.created_at
         }));
         this.isLoading = false;
         this.loadDetailedCounts(this.savedDecks);
@@ -347,7 +357,12 @@ export class FlashcardComponent implements OnInit {
 
     this.deckService.createDeck(newDeck).subscribe({
       next: (deck) => {
-        const deckWithCounts: DeckWithCounts = { ...deck, loading_counts: false };
+        const deckWithCounts: DeckWithCounts = { 
+          ...deck, 
+          loading_counts: false,
+          creator_id: deck.creator_id || this.userId,
+          updated_at: deck.updated_at || deck.created_at
+        };
         this.myDecks.unshift(deckWithCounts);
         this.closeCreateModal();
         this.isLoading = false;
@@ -413,7 +428,10 @@ export class FlashcardComponent implements OnInit {
         deck.saving = false;
         
         if (!this.savedDecks.find(d => d.deck_id === deck.deck_id)) {
-          this.savedDecks.push({ ...deck });
+          this.savedDecks.push({ 
+            ...deck,
+            updated_at: deck.updated_at || deck.created_at
+          });
         }
         
         this.modalService.success(

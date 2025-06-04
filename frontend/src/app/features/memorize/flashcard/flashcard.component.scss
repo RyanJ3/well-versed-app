@@ -25,6 +25,7 @@
   display: flex;
   justify-content: center;
   margin-bottom: 2.5rem;
+  animation: fadeIn 0.6s ease-out 0.5s both;
 }
 
 .tab-navigation {
@@ -96,6 +97,7 @@
   display: flex;
   justify-content: center;
   margin-bottom: 2rem;
+  animation: fadeIn 0.6s ease-out 0.6s both;
 }
 
 // Loading State

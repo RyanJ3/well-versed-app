@@ -5,7 +5,7 @@ import { RouterModule } from '@angular/router';
 
 export interface DeckWithCounts {
   deck_id: number;
-  user_id: number;
+  creator_id: number;
   name: string;
   description?: string;
   is_public: boolean;
@@ -14,6 +14,7 @@ export interface DeckWithCounts {
   save_count?: number;
   creator_name?: string;
   created_at: string;
+  updated_at: string;
   tags?: string[];
   is_saved?: boolean;
   loading_counts?: boolean;
