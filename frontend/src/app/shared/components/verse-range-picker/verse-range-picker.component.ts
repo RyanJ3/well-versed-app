@@ -1,4 +1,4 @@
-// frontend/src/app/shared/components/verse-range-picker/verse-range-picker.component.ts
+// frontend/src/app/shared/components/verse-range-picker/verse-picker.component.ts
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -43,12 +43,17 @@ export class VersePickerComponent implements OnInit {
   
   userId = 1;
   
+  // Hover state
+  isHovered = false;
+  hoverTimeout: any;
+  
   // Available options
   books: any[] = [];
   chapters: number[] = [];
   verses: number[] = [];
   endChapters: number[] = [];
   endVerses: number[] = [];
+  availableModes: ('single' | 'range' | 'chapter')[] = ['single', 'range', 'chapter'];
 
   // Selected values
   selectedBook: any = null;
@@ -70,11 +75,13 @@ export class VersePickerComponent implements OnInit {
   ngOnInit() {
     this.loadBooks();
     
+    // Filter available modes
+    this.availableModes = this.availableModes.filter(m => !this.disabledModes.includes(m));
+    
     // Set default mode based on disabled modes
     if (this.disabledModes.includes(this.mode)) {
       // Find first available mode
-      const modes: ('single' | 'range' | 'chapter')[] = ['single', 'range', 'chapter'];
-      const availableMode = modes.find(m => !this.disabledModes.includes(m));
+      const availableMode = this.availableModes[0];
       if (availableMode) {
         this.mode = availableMode;
       }
@@ -86,6 +93,66 @@ export class VersePickerComponent implements OnInit {
         this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
       }
     });
+    
+    // Emit initial selection
+    setTimeout(() => {
+      this.emitSelection();
+    }, 100);
+  }
+
+  // Hover handling
+  handleMouseEnter() {
+    clearTimeout(this.hoverTimeout);
+    this.isHovered = true;
+  }
+
+  handleMouseLeave() {
+    this.hoverTimeout = setTimeout(() => {
+      this.isHovered = false;
+    }, 300);
+  }
+
+  // Display helpers
+  getDisplayReference(): string {
+    if (!this.selectedBook) return 'Select verses';
+    
+    let reference = `${this.selectedBook.name} ${this.selectedChapter}`;
+    
+    if (this.mode === 'single') {
+      reference += `:${this.selectedVerse}`;
+    } else if (this.mode === 'range') {
+      reference += `:${this.selectedVerse}`;
+      if (this.selectedEndChapter !== this.selectedChapter || this.selectedEndVerse !== this.selectedVerse) {
+        if (this.selectedEndChapter === this.selectedChapter) {
+          reference += `-${this.selectedEndVerse}`;
+        } else {
+          reference += `-${this.selectedEndChapter}:${this.selectedEndVerse}`;
+        }
+      }
+    }
+    
+    return reference;
+  }
+
+  getModeLabel(mode?: 'single' | 'range' | 'chapter'): string {
+    const modeToCheck = mode || this.mode;
+    switch (modeToCheck) {
+      case 'single': return 'Single';
+      case 'range': return 'Range';
+      case 'chapter': return 'Chapter';
+      default: return '';
+    }
+  }
+
+  getModeButtonClass(mode: 'single' | 'range' | 'chapter'): string {
+    let classes = 'mode-button';
+    if (this.mode === mode) {
+      classes += ' active';
+    }
+    if (this.isModeDisabled(mode)) {
+      classes += ' disabled';
+    }
+    return classes;
   }
 
   loadBooks() {
@@ -198,15 +265,12 @@ export class VersePickerComponent implements OnInit {
     return this.disabledModes.includes(mode);
   }
 
-  getModeButtonClass(mode: 'single' | 'range' | 'chapter'): string {
-    let classes = 'mode-option';
-    if (this.mode === mode) {
-      classes += ' active';
-    }
-    if (this.isModeDisabled(mode)) {
-      classes += ' disabled';
-    }
-    return classes;
+  applySelection() {
+    // Close the hover panel
+    this.isHovered = false;
+    
+    // Emit the final selection
+    this.emitSelection();
   }
 
   private autoAdjustForMinimumVerses() {
