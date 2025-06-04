@@ -3,16 +3,31 @@
   <!-- Header -->
   <div class="editor-header">
     <button class="back-button" (click)="goBack()">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 19l-7-7m0 0l7-7m-7 7h18"
+        />
       </svg>
       Back to Decks
     </button>
-    
+
     <h1 class="editor-title">Edit Deck: {{ deck?.name }}</h1>
-    
+
     <div class="header-actions">
-      <button class="save-button" (click)="updateDeckInfo()" *ngIf="editMode === 'info'" [disabled]="isSaving">
+      <button
+        class="save-button"
+        (click)="updateDeckInfo()"
+        *ngIf="editMode === 'info'"
+        [disabled]="isSaving"
+      >
         <span *ngIf="!isSaving">Save Info</span>
         <span *ngIf="isSaving">Saving...</span>
       </button>
@@ -21,16 +36,18 @@
 
   <!-- Tab Navigation -->
   <div class="tab-navigation">
-    <button 
-      class="tab-button" 
+    <button
+      class="tab-button"
       [class.active]="editMode === 'verses'"
-      (click)="editMode = 'verses'">
+      (click)="editMode = 'verses'"
+    >
       Manage Cards
     </button>
-    <button 
+    <button
       class="tab-button"
       [class.active]="editMode === 'info'"
-      (click)="editMode = 'info'">
+      (click)="editMode = 'info'"
+    >
       Deck Settings
     </button>
   </div>
@@ -46,29 +63,29 @@
     <div class="form-section">
       <div class="form-group">
         <label for="deck-name">Deck Name</label>
-        <input 
+        <input
           id="deck-name"
-          type="text" 
-          [(ngModel)]="deckName" 
+          type="text"
+          [(ngModel)]="deckName"
           placeholder="Enter deck name..."
-          class="form-control">
+          class="form-control"
+        />
       </div>
 
       <div class="form-group">
         <label for="deck-description">Description</label>
-        <textarea 
+        <textarea
           id="deck-description"
-          [(ngModel)]="deckDescription" 
+          [(ngModel)]="deckDescription"
           placeholder="Enter deck description..."
           rows="4"
-          class="form-control"></textarea>
+          class="form-control"
+        ></textarea>
       </div>
 
       <div class="form-group">
         <label class="checkbox-label">
-          <input 
-            type="checkbox" 
-            [(ngModel)]="isDeckPublic">
+          <input type="checkbox" [(ngModel)]="isDeckPublic" />
           <span>Make this deck public</span>
         </label>
       </div>
@@ -77,19 +94,42 @@
 
   <!-- Cards Tab with Table Design -->
   <div *ngIf="!isLoading && editMode === 'verses'" class="tab-content">
-    <div class="cards-table-section" [class.has-open-dropdown]="editingCardId !== null">
+    <div
+      class="cards-table-section"
+      [class.has-open-dropdown]="editingCardId !== null"
+    >
       <div class="section-header">
         <h2>Deck Cards</h2>
         <div class="header-stats">
           <span class="stat-badge">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+              />
             </svg>
             {{ deckCards.length }} cards
           </span>
           <span class="stat-badge">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
             </svg>
             {{ getTotalVerseCount() }} verses
           </span>
@@ -102,11 +142,15 @@
           <thead>
             <tr>
               <th class="th-checkbox">
-                <input 
-                  type="checkbox" 
-                  [checked]="selectedCards.size === deckCards.length && deckCards.length > 0"
+                <input
+                  type="checkbox"
+                  [checked]="
+                    selectedCards.size === deckCards.length &&
+                    deckCards.length > 0
+                  "
                   (change)="toggleAllCards($event)"
-                  class="table-checkbox">
+                  class="table-checkbox"
+                />
               </th>
               <th class="th-reference">Reference</th>
               <th class="th-book">Book</th>
@@ -117,115 +161,191 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let card of deckCards; let i = index" 
-                [class.selected]="selectedCards.has(card.card_id)"
-                [class.editing]="editingCardId === card.card_id">
+            <tr
+              *ngFor="let card of deckCards; let i = index"
+              [class.selected]="selectedCards.has(card.card_id)"
+              [class.editing]="editingCardId === card.card_id"
+            >
               <td class="td-checkbox">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   [checked]="selectedCards.has(card.card_id)"
                   (change)="toggleCardSelection(card.card_id)"
-                  class="table-checkbox">
+                  class="table-checkbox"
+                />
               </td>
-              
+
               <td class="td-reference">
                 <div class="reference-cell">
-                  <button 
+                  <button
                     class="reference-button"
                     (click)="toggleCardEdit(card.card_id)"
-                    [class.active]="editingCardId === card.card_id">
+                    [class.active]="editingCardId === card.card_id"
+                  >
                     <span class="reference-text">{{ card.reference }}</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" 
-                         [class.rotated]="editingCardId === card.card_id">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      [class.rotated]="editingCardId === card.card_id"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </button>
-                  
-                  <!-- Dropdown Verse Picker -->
-                  <div class="dropdown-wrapper" *ngIf="editingCardId === card.card_id">
-                    <!-- Click backdrop to close -->
-                    <div class="dropdown-backdrop" (click)="editingCardId = null"></div>
-                    <div class="dropdown-container" (click)="$event.stopPropagation()" [attr.data-card-index]="i">
-                      <app-verse-picker 
-                        [theme]="'minimal'"
-                        [disabledModes]="['chapter']"
-                        [pageType]="'flashcard'"
-                        [maximumVerses]="7"
-                        (selectionChanged)="updateCardVerses(card, $event)">
-                      </app-verse-picker>
-                    </div>
-                  </div>
+
+                  <app-verse-picker
+                    *ngIf="editingCardId === card.card_id"
+                    class="inline-picker"
+                    [theme]="'minimal'"
+                    [disabledModes]="['chapter']"
+                    [pageType]="'flashcard'"
+                    [maximumVerses]="7"
+                    [warningMessage]="pickerWarnings[card.card_id]"
+                    (selectionApplied)="applyVerseSelection(card, $event)"
+                  >
+                  </app-verse-picker>
                 </div>
               </td>
-              
+
               <td class="td-book">
                 <span class="book-name">{{ getCardBook(card) }}</span>
               </td>
-              
+
               <td class="td-type">
                 <span class="type-badge" [class]="card.card_type">
-                  {{ card.card_type === 'single_verse' ? 'Single' : 'Range' }}
+                  {{ card.card_type === "single_verse" ? "Single" : "Range" }}
                 </span>
               </td>
-              
+
               <td class="td-verses">
                 <span class="verse-count">{{ card.verses.length }}</span>
               </td>
-              
+
               <td class="td-confidence">
                 <div class="confidence-display">
                   <div class="confidence-bar">
-                    <div class="confidence-fill" [style.width.%]="card.confidence_score || 0"></div>
+                    <div
+                      class="confidence-fill"
+                      [style.width.%]="card.confidence_score || 0"
+                    ></div>
                   </div>
-                  <span class="confidence-value">{{ card.confidence_score || 0 }}%</span>
+                  <span class="confidence-value"
+                    >{{ card.confidence_score || 0 }}%</span
+                  >
                 </div>
               </td>
-              
+
               <td class="td-actions">
                 <div class="action-buttons">
-                  <button 
+                  <button
                     class="action-btn duplicate"
                     (click)="duplicateCard(card)"
-                    title="Duplicate card">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    title="Duplicate card"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
                     </svg>
                   </button>
-                  <button 
+                  <button
                     class="action-btn delete"
                     (click)="removeCardFromDeck(card.card_id)"
-                    title="Delete card">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    title="Delete card"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
                     </svg>
                   </button>
                 </div>
               </td>
             </tr>
-            
+
             <!-- Empty State Row -->
             <tr *ngIf="deckCards.length === 0" class="empty-row">
               <td colspan="7" class="empty-cell">
                 <div class="empty-state-inline">
-                  <svg class="empty-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
-                    <line x1="9" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="2"/>
-                    <line x1="9" y1="12" x2="15" y2="12" stroke="currentColor" stroke-width="2"/>
+                  <svg
+                    class="empty-icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <rect
+                      x="5"
+                      y="3"
+                      width="14"
+                      height="18"
+                      rx="2"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                    <line
+                      x1="9"
+                      y1="8"
+                      x2="15"
+                      y2="8"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
+                    <line
+                      x1="9"
+                      y1="12"
+                      x2="15"
+                      y2="12"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    />
                   </svg>
-                  <p>No cards in this deck yet. Click the button below to add your first card.</p>
+                  <p>
+                    No cards in this deck yet. Click the button below to add
+                    your first card.
+                  </p>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
-        
+
         <!-- Add New Card Row -->
         <div class="add-card-section">
-          <button 
-            class="add-card-button"
-            (click)="addNewCard()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          <button class="add-card-button" (click)="addNewCard()">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
             </svg>
             Add New Card
           </button>
@@ -235,16 +355,37 @@
       <!-- Bulk Actions -->
       <div class="bulk-actions" *ngIf="selectedCards.size > 0">
         <div class="selection-info">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+            />
           </svg>
-          {{ selectedCards.size }} card{{ selectedCards.size !== 1 ? 's' : '' }} selected
+          {{ selectedCards.size }} card{{
+            selectedCards.size !== 1 ? "s" : ""
+          }}
+          selected
         </div>
-        <button 
-          class="bulk-action-button"
-          (click)="removeSelectedCards()">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        <button class="bulk-action-button" (click)="removeSelectedCards()">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+            />
           </svg>
           Remove Selected
         </button>
