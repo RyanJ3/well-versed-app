@@ -101,19 +101,29 @@ async def create_workflow(
 
 
 @router.get("/public", response_model=WorkflowListResponse)
-async def list_public_workflows(db: DatabaseConnection = Depends(get_db)):
-    query = """
+async def list_public_workflows(
+    search: Optional[str] = None,
+    db: DatabaseConnection = Depends(get_db),
+):
+    where_clause = "WHERE w.is_public = TRUE"
+    params: List[str] = []
+    if search:
+        where_clause += " AND (w.name ILIKE %s OR w.description ILIKE %s)"
+        like = f"%{search}%"
+        params.extend([like, like])
+
+    query = f"""
         SELECT w.workflow_id, w.user_id, u.name, w.name, w.description,
                w.is_public, w.created_at, w.updated_at,
                COUNT(l.lesson_id) as lesson_count
         FROM workflows w
         JOIN users u ON w.user_id = u.user_id
         LEFT JOIN workflow_lessons l ON w.workflow_id = l.workflow_id
-        WHERE w.is_public = TRUE
+        {where_clause}
         GROUP BY w.workflow_id, w.user_id, u.name, w.name, w.description, w.is_public, w.created_at, w.updated_at
         ORDER BY w.created_at DESC
     """
-    rows = db.fetch_all(query)
+    rows = db.fetch_all(query, tuple(params))
     workflows = []
     for r in rows:
         workflows.append(

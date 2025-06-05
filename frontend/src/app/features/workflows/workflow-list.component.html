@@ -1,12 +1,24 @@
 <!-- frontend/src/app/features/workflows/workflow-list.component.html -->
 <div class="workflow-list">
   <h2>Workflows</h2>
+  <div class="search-bar">
+    <input
+      type="text"
+      placeholder="Search workflows"
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="onSearch()"
+    />
+    <a routerLink="/workflows/new" class="create-link">Create Workflow</a>
+  </div>
   <div *ngIf="isLoading">Loading...</div>
-  <ul *ngIf="!isLoading">
+  <ul *ngIf="!isLoading && workflows.length > 0">
     <li *ngFor="let wf of workflows">
       <h3>{{ wf.name }}</h3>
       <p>{{ wf.description }}</p>
       <p>Lessons: {{ wf.lesson_count }}</p>
     </li>
   </ul>
+  <div *ngIf="!isLoading && workflows.length === 0">
+    No workflows found. <a routerLink="/workflows/new">Create one</a>.
+  </div>
 </div>

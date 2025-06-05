@@ -1,0 +1,19 @@
+<!-- frontend/src/app/features/workflows/workflow-builder.component.html -->
+<div class="workflow-builder">
+  <h2>Create Workflow</h2>
+  <form (ngSubmit)="createWorkflow()" #wfForm="ngForm">
+    <label>
+      Name:
+      <input name="name" [(ngModel)]="workflow.name" required />
+    </label>
+    <label>
+      Description:
+      <textarea name="description" [(ngModel)]="workflow.description"></textarea>
+    </label>
+    <label>
+      <input type="checkbox" name="is_public" [(ngModel)]="workflow.is_public" />
+      Public
+    </label>
+    <button type="submit" [disabled]="isSaving || wfForm.invalid">Create</button>
+  </form>
+</div>

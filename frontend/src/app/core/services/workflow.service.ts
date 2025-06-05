@@ -65,8 +65,9 @@ export class WorkflowService {
     return this.http.post<WorkflowResponse>(this.apiUrl, workflow);
   }
 
-  getPublicWorkflows(): Observable<WorkflowListResponse> {
-    return this.http.get<WorkflowListResponse>(`${this.apiUrl}/public`);
+  getPublicWorkflows(search?: string): Observable<WorkflowListResponse> {
+    const params = search ? { params: { search } } : {};
+    return this.http.get<WorkflowListResponse>(`${this.apiUrl}/public`, params);
   }
 
   getWorkflow(id: number): Observable<WorkflowResponse> {
