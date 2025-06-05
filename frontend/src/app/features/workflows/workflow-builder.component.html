@@ -363,9 +363,7 @@
               placeholder="Write your article content here..."
             ></textarea>
             <div class="char-count">
-              {{
-                lessonForm.get("article_text")?.value?.length || 0
-              }}
+              {{ lessonForm.get("article_text")?.value?.length || 0 }}
               characters
               <span
                 *ngIf="lessonForm.get('article_text')?.errors?.['minLength']"

@@ -16,7 +16,10 @@ import { UserService } from '../../core/services/user.service';
 import { ModalService } from '../../core/services/modal.service';
 
 import { LessonContent } from '../../core/models/workflow.model';
-import { VerseSelection } from '../shared/components/verse-range-picker/verse-range-picker.component';
+import {
+  VersePickerComponent,
+  VerseSelection,
+} from '../../shared/components/verse-range-picker/verse-range-picker.component';
 
 interface Lesson {
   id?: number;
@@ -47,7 +50,12 @@ interface Lesson {
 @Component({
   selector: 'app-workflow-builder',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    VersePickerComponent,
+  ],
   templateUrl: './workflow-builder.component.html',
   styleUrls: ['./workflow-builder.component.scss'],
 })
