@@ -99,6 +99,10 @@ SQL_FILES = [
         'file': '06-populate-test-data.sql',
         'description': 'Insert test data',
         'skip_on_production': True  # Can be skipped with --no-test-data
+    },
+    {
+        'file': '07-create-feature-requests.sql',
+        'description': 'Create feature request tables'
     }
 ]
 

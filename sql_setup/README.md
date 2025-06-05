@@ -101,6 +101,7 @@ sql_setup/
 ├── 04-create-deck-cards.sql     # Flashcard system
 ├── 05-create-confidence-tracking.sql  # User progress tracking
 ├── 06-populate-test-data.sql    # Sample data (optional)
+├── 07-create-feature-requests.sql  # Feature request system
 ├── bible_base_data.json         # Bible structure (books, chapters, verses)
 ├── requirements.txt             # Python dependencies
 ├── setup_database.py            # Main setup script

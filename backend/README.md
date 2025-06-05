@@ -41,6 +41,15 @@ uvicorn main:app --reload
 - `DELETE /api/user-verses/{user_id}/chapters/{book_id}/{chapter}` - Clear chapter
 - `POST /api/user-verses/{user_id}/books/{book_id}` - Save book
 - `DELETE /api/user-verses/{user_id}/books/{book_id}` - Clear book
+- `GET /api/feature-requests` - List feature requests
+- `GET /api/feature-requests/{id}` - Get a single request
+- `POST /api/feature-requests` - Create a new request
+- `POST /api/feature-requests/{id}/vote` - Vote on a request
+- `DELETE /api/feature-requests/{id}/vote/{user_id}` - Remove a vote
+- `GET /api/feature-requests/{id}/comments` - List comments
+- `POST /api/feature-requests/{id}/comments` - Add a comment
+- `GET /api/feature-requests/user/{user_id}` - Requests by user
+- `GET /api/feature-requests/trending` - Trending requests
 
 ## Testing
 
