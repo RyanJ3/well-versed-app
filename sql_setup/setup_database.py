@@ -103,6 +103,10 @@ SQL_FILES = [
     {
         'file': '07-create-feature-requests.sql',
         'description': 'Create feature request tables'
+    },
+    {
+        'file': '08-create-workflows.sql',
+        'description': 'Create workflow and lesson tables'
     }
 ]
 

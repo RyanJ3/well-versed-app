@@ -7,112 +7,267 @@
       </h1>
     </div>
 
-    <button class="menu-toggle" (click)="toggleMenu()" [class.active]="menuActive">
+    <button
+      class="menu-toggle"
+      (click)="toggleMenu()"
+      [class.active]="menuActive"
+    >
       <span class="bar"></span>
       <span class="bar"></span>
       <span class="bar"></span>
     </button>
 
     <nav class="app-nav" [class.active]="menuActive">
-      <a routerLink="/" class="nav-link" routerLinkActive="active" 
-         [routerLinkActiveOptions]="{exact: true}" (click)="closeMenu()">Home</a>
+      <a
+        routerLink="/"
+        class="nav-link"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="closeMenu()"
+        >Home</a
+      >
 
       <!-- Memorize dropdown menu -->
       <div class="nav-dropdown memorize">
-        <button class="nav-link dropdown-toggle" [class.active]="memorizeMenuActive"
-          (click)="toggleMemorizeMenu($event)">
+        <button
+          class="nav-link dropdown-toggle"
+          [class.active]="memorizeMenuActive"
+          (click)="toggleMemorizeMenu($event)"
+        >
           Memorize
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" 
-               class="dropdown-icon" [class.rotate]="memorizeMenuActive">
-            <path fill-rule="evenodd"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="dropdown-icon"
+            [class.rotate]="memorizeMenuActive"
+          >
+            <path
+              fill-rule="evenodd"
               d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-              clip-rule="evenodd" />
+              clip-rule="evenodd"
+            />
           </svg>
         </button>
 
         <div class="dropdown-menu" [class.active]="memorizeMenuActive">
-          <a routerLink="/flow" class="dropdown-item" routerLinkActive="active" (click)="closeMenu()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+          <a
+            routerLink="/flow"
+            class="dropdown-item"
+            routerLinkActive="active"
+            (click)="closeMenu()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 10V3L4 14h7v7l9-11h-7z"
+              />
             </svg>
             FLOW Method
           </a>
-          <a routerLink="/flashcard" class="dropdown-item" routerLinkActive="active" (click)="closeMenu()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          <a
+            routerLink="/flashcard"
+            class="dropdown-item"
+            routerLinkActive="active"
+            (click)="closeMenu()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
             </svg>
             Flashcards
+          </a>
+          <a
+            routerLink="/workflows"
+            class="dropdown-item"
+            routerLinkActive="active"
+            (click)="closeMenu()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+              />
+            </svg>
+            Workflows
           </a>
         </div>
       </div>
 
       <!-- Profile dropdown menu -->
       <div class="nav-dropdown profile">
-        <button class="nav-link profile-button dropdown-toggle" [class.active]="profileMenuActive"
-          (click)="toggleProfileMenu($event)">
+        <button
+          class="nav-link profile-button dropdown-toggle"
+          [class.active]="profileMenuActive"
+          (click)="toggleProfileMenu($event)"
+        >
           <div class="user-avatar-small">
             {{ getUserInitial() }}
           </div>
           <span class="user-name-nav">{{ getUserDisplayName() }}</span>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" 
-               class="dropdown-icon" [class.rotate]="profileMenuActive">
-            <path fill-rule="evenodd"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="dropdown-icon"
+            [class.rotate]="profileMenuActive"
+          >
+            <path
+              fill-rule="evenodd"
               d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-              clip-rule="evenodd" />
+              clip-rule="evenodd"
+            />
           </svg>
         </button>
 
-        <div class="dropdown-menu profile-menu" [class.active]="profileMenuActive">
+        <div
+          class="dropdown-menu profile-menu"
+          [class.active]="profileMenuActive"
+        >
           <div class="profile-menu-header">
             <div class="user-avatar-large">
               {{ getUserInitial() }}
             </div>
             <div class="user-info">
-              <div class="user-full-name">{{ currentUser?.name || 'User' }}</div>
-              <div class="user-email">{{ currentUser?.email || 'user@example.com' }}</div>
+              <div class="user-full-name">
+                {{ currentUser?.name || "User" }}
+              </div>
+              <div class="user-email">
+                {{ currentUser?.email || "user@example.com" }}
+              </div>
             </div>
           </div>
-          
+
           <div class="dropdown-divider"></div>
-          
-          <a routerLink="/tracker" class="dropdown-item" routerLinkActive="active" (click)="closeMenu()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+
+          <a
+            routerLink="/tracker"
+            class="dropdown-item"
+            routerLinkActive="active"
+            (click)="closeMenu()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
             </svg>
             Bible Tracker
           </a>
-          <a routerLink="/stats" class="dropdown-item" routerLinkActive="active" (click)="closeMenu()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zM13 19v-9a2 2 0 00-2-2H9a2 2 0 00-2 2v9a2 2 0 002 2h2a2 2 0 002-2zM21 19v-3a2 2 0 00-2-2h-2a2 2 0 00-2 2v3a2 2 0 002 2h2a2 2 0 002-2z" />
+          <a
+            routerLink="/stats"
+            class="dropdown-item"
+            routerLinkActive="active"
+            (click)="closeMenu()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zM13 19v-9a2 2 0 00-2-2H9a2 2 0 00-2 2v9a2 2 0 002 2h2a2 2 0 002-2zM21 19v-3a2 2 0 00-2-2h-2a2 2 0 00-2 2v3a2 2 0 002 2h2a2 2 0 002-2z"
+              />
             </svg>
             My Stats
           </a>
-          <a routerLink="/profile" class="dropdown-item" routerLinkActive="active" (click)="closeMenu()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <a
+            routerLink="/profile"
+            class="dropdown-item"
+            routerLinkActive="active"
+            (click)="closeMenu()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
             </svg>
             Settings
           </a>
-          <a routerLink="/feature-requests" class="dropdown-item" routerLinkActive="active" (click)="closeMenu()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          <a
+            routerLink="/feature-requests"
+            class="dropdown-item"
+            routerLinkActive="active"
+            (click)="closeMenu()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+              />
             </svg>
             Feature Requests
           </a>
-          
+
           <div class="dropdown-divider"></div>
           <button class="dropdown-item logout-item" (click)="logout()">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
             </svg>
             Sign Out
           </button>

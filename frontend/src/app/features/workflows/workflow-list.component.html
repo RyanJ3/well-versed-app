@@ -1,0 +1,12 @@
+<!-- frontend/src/app/features/workflows/workflow-list.component.html -->
+<div class="workflow-list">
+  <h2>Workflows</h2>
+  <div *ngIf="isLoading">Loading...</div>
+  <ul *ngIf="!isLoading">
+    <li *ngFor="let wf of workflows">
+      <h3>{{ wf.name }}</h3>
+      <p>{{ wf.description }}</p>
+      <p>Lessons: {{ wf.lesson_count }}</p>
+    </li>
+  </ul>
+</div>
