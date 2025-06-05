@@ -180,8 +180,9 @@ async def create_request(req: FeatureRequestCreate, db: DatabaseConnection = Dep
             )
             r = cur.fetchone()
             request_id = r[0]
-            created_at = r[2] if len(r) > 2 else r[1]
-            updated_at = r[3] if len(r) > 3 else r[2]
+            # RETURNING request_id, status, priority, created_at, updated_at
+            created_at = r[3] if len(r) > 3 else None
+            updated_at = r[4] if len(r) > 4 else None
             # Insert tags
             if req.tags:
                 for tag in req.tags:
@@ -210,8 +211,8 @@ async def create_request(req: FeatureRequestCreate, db: DatabaseConnection = Dep
         user_name=user_name,
         upvotes=0,
         downvotes=0,
-        created_at=created_at.isoformat(),
-        updated_at=updated_at.isoformat(),
+        created_at=created_at.isoformat() if created_at else None,
+        updated_at=updated_at.isoformat() if updated_at else None,
         tags=req.tags or [],
         comments_count=0
     )
