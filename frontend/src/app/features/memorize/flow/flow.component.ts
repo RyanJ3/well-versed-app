@@ -2,7 +2,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { VersePickerComponent, VerseSelection } from '../../../shared/components/verse-range-picker/verse-range-picker.component';
+import {
+  VersePickerComponent,
+  VerseSelection,
+} from '../../../shared/components/verse-range-picker/verse-range-picker.component';
 import { BibleService } from '../../../core/services/bible.service';
 import { UserService } from '../../../core/services/user.service';
 import { User } from '../../../core/models/user';
@@ -24,13 +27,9 @@ interface FlowVerse {
 @Component({
   selector: 'app-flow',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    VersePickerComponent
-  ],
+  imports: [CommonModule, FormsModule, VersePickerComponent],
   templateUrl: './flow.component.html',
-  styleUrls: ['./flow.component.scss']
+  styleUrls: ['./flow.component.scss'],
 })
 export class FlowComponent implements OnInit, OnDestroy {
   // View state
@@ -38,7 +37,8 @@ export class FlowComponent implements OnInit, OnDestroy {
   showVerseText = false;
   highlightFifthVerse = true;
   showSavedMessage = false;
-  
+  warningMessage: string | null = null;
+
   // Data
   verses: FlowVerse[] = [];
   currentSelection: VerseSelection | null = null;
@@ -46,21 +46,21 @@ export class FlowComponent implements OnInit, OnDestroy {
   isLoading = false;
   isSaving = false;
   userId = 1;
-  
+
   // Grid rows for manual grid
   gridRows: FlowVerse[][] = [];
-  
+
   // Add property for selected book
   selectedBook: any = null;
-  
+
   // Request management
   private destroy$ = new Subject<void>();
   private loadVersesCancel$ = new Subject<void>();
   private requestCounter = 0;
-  
+
   constructor(
     private bibleService: BibleService,
-    private userService: UserService
+    private userService: UserService,
   ) {}
 
   ngOnInit() {
@@ -68,7 +68,8 @@ export class FlowComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((user: User | null) => {
         if (user) {
-          this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+          this.userId =
+            typeof user.id === 'string' ? parseInt(user.id) : user.id;
         }
       });
   }
@@ -81,90 +82,106 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   onVerseSelectionChanged(selection: VerseSelection) {
     this.currentSelection = selection;
-    
+
     // Store selected book
     if (selection.startVerse) {
-      const book = this.bibleService.getBibleData().getBookById(selection.startVerse.bookId);
+      const book = this.bibleService
+        .getBibleData()
+        .getBookById(selection.startVerse.bookId);
       this.selectedBook = book;
     }
-    
+
+    // Validate FLOW requirements
+    const isChapter = selection.mode === 'chapter';
+    if (!isChapter && selection.verseCount < 10) {
+      this.warningMessage =
+        'Please select at least 10 verses or an entire chapter.';
+      this.verses = [];
+      return;
+    } else {
+      this.warningMessage = null;
+    }
+
     // Cancel any pending verse loads
     this.loadVersesCancel$.next();
-    
+
     // Load new verses
     this.loadVerses();
   }
 
   async loadVerses() {
     if (!this.currentSelection) return;
-    
+
     this.isLoading = true;
     this.verses = [];
-    
+
     // Increment request counter to track which request is latest
     const currentRequestId = ++this.requestCounter;
-    
+
     try {
       // Get verse texts from API.Bible through backend
-      const verseTexts = await this.bibleService.getVerseTexts(
-        this.userId, 
-        this.currentSelection.verseCodes
-      ).pipe(
-        takeUntil(this.loadVersesCancel$)  // Cancel if new request comes in
-      ).toPromise();
-      
+      const verseTexts = await this.bibleService
+        .getVerseTexts(this.userId, this.currentSelection.verseCodes)
+        .pipe(
+          takeUntil(this.loadVersesCancel$), // Cancel if new request comes in
+        )
+        .toPromise();
+
       // Check if this is still the latest request
       if (currentRequestId !== this.requestCounter) {
         console.log('Ignoring outdated request', currentRequestId);
         return;
       }
-      
+
       // Process verses
-      this.verses = this.currentSelection.verseCodes.map((verseCode: string, index: number) => {
-        const [bookId, chapter, verse] = verseCode.split('-').map(Number);
-        const verseText = verseTexts?.[verseCode] || '';
-        
-        // Show error if no text found
-        if (!verseText) {
-          console.error(`No text found for verse ${verseCode}`);
-        }
-        
-        return {
-          verseCode,
-          reference: this.getVerseReference(bookId, chapter, verse),
-          text: verseText,
-          firstLetters: this.extractFirstLetters(verseText),
-          isMemorized: false, // Will be updated from user data
-          isFifth: (index + 1) % 5 === 0,
-          bookName: this.getBookName(bookId),
-          chapter,
-          verse
-        };
-      });
-      
+      this.verses = this.currentSelection.verseCodes.map(
+        (verseCode: string, index: number) => {
+          const [bookId, chapter, verse] = verseCode.split('-').map(Number);
+          const verseText = verseTexts?.[verseCode] || '';
+
+          // Show error if no text found
+          if (!verseText) {
+            console.error(`No text found for verse ${verseCode}`);
+          }
+
+          return {
+            verseCode,
+            reference: this.getVerseReference(bookId, chapter, verse),
+            text: verseText,
+            firstLetters: this.extractFirstLetters(verseText),
+            isMemorized: false, // Will be updated from user data
+            isFifth: (index + 1) % 5 === 0,
+            bookName: this.getBookName(bookId),
+            chapter,
+            verse,
+          };
+        },
+      );
+
       // Check if any verses failed to load
-      const failedVerses = this.verses.filter(v => !v.text);
+      const failedVerses = this.verses.filter((v) => !v.text);
       if (failedVerses.length > 0) {
         console.warn(`Failed to load ${failedVerses.length} verses`);
       }
-      
+
       // Update memorization status from user data
       this.updateMemorizationStatus();
-      
+
       // Prepare grid data
       this.prepareGridRows();
-      
     } catch (error: any) {
       // Check if error is due to cancellation
       if (error?.name === 'EmptyError') {
         console.log('Request cancelled');
         return;
       }
-      
+
       console.error('Error loading verses:', error);
       // Show user-friendly error
       this.verses = [];
-      alert('Failed to load verses. Please check your internet connection and try again.');
+      alert(
+        'Failed to load verses. Please check your internet connection and try again.',
+      );
     } finally {
       // Only update loading state if this is the latest request
       if (currentRequestId === this.requestCounter) {
@@ -175,20 +192,22 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   extractFirstLetters(text: string): string {
     if (!text) return '';
-    
+
     // Extract first letter of each word while preserving punctuation
     const words = text.split(/\s+/);
-    return words.map(word => {
-      // Find first alphabetic character
-      const match = word.match(/[a-zA-Z]/);
-      if (match) {
-        const index = word.indexOf(match[0]);
-        // Include any leading punctuation with the first letter
-        return word.substring(0, index + 1);
-      }
-      // Return punctuation-only words as is
-      return word;
-    }).join(' ');
+    return words
+      .map((word) => {
+        // Find first alphabetic character
+        const match = word.match(/[a-zA-Z]/);
+        if (match) {
+          const index = word.indexOf(match[0]);
+          // Include any leading punctuation with the first letter
+          return word.substring(0, index + 1);
+        }
+        // Return punctuation-only words as is
+        return word;
+      })
+      .join(' ');
   }
 
   prepareGridRows() {
@@ -212,55 +231,62 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   async saveProgress() {
     if (!this.verses.length || !this.selectedBook) return;
-    
+
     this.isSaving = true;
-    
+
     try {
       // Convert confidence to practice count (percentage/10)
       const practiceCount = Math.ceil(this.confidenceLevel / 10);
-      
+
       // Use bulk save for better performance
-      const verseCodes = this.verses.map(v => v.verseCode);
+      const verseCodes = this.verses.map((v) => v.verseCode);
       const bookId = this.selectedBook.id;
-      
+
       // Group by chapter for bulk operations
       const chapterGroups: Map<number, number[]> = new Map();
-      
-      verseCodes.forEach(code => {
+
+      verseCodes.forEach((code) => {
         const [_, chapter, verse] = code.split('-').map(Number);
         if (!chapterGroups.has(chapter)) {
           chapterGroups.set(chapter, []);
         }
         chapterGroups.get(chapter)!.push(verse);
       });
-      
+
       // Save each chapter as a batch
-      const savePromises = Array.from(chapterGroups.entries()).map(([chapter, verses]) => {
-        // If it's a full chapter, use chapter save endpoint
-        const chapterData = this.selectedBook.chapters[chapter - 1];
-        if (verses.length === chapterData.verses.length) {
-          return this.bibleService.saveChapter(this.userId, bookId, chapter).toPromise();
-        } else {
-          // Otherwise save individual verses
-          return Promise.all(verses.map(verse => 
-            this.bibleService.saveVerse(this.userId, bookId, chapter, verse, practiceCount).toPromise()
-          ));
-        }
-      });
-      
+      const savePromises = Array.from(chapterGroups.entries()).map(
+        ([chapter, verses]) => {
+          // If it's a full chapter, use chapter save endpoint
+          const chapterData = this.selectedBook.chapters[chapter - 1];
+          if (verses.length === chapterData.verses.length) {
+            return this.bibleService
+              .saveChapter(this.userId, bookId, chapter)
+              .toPromise();
+          } else {
+            // Otherwise save individual verses
+            return Promise.all(
+              verses.map((verse) =>
+                this.bibleService
+                  .saveVerse(this.userId, bookId, chapter, verse, practiceCount)
+                  .toPromise(),
+              ),
+            );
+          }
+        },
+      );
+
       await Promise.all(savePromises);
-      
+
       // Update memorization status
-      this.verses.forEach(verse => {
+      this.verses.forEach((verse) => {
         verse.isMemorized = true;
       });
-      
+
       // Show saved message
       this.showSavedMessage = true;
       setTimeout(() => {
         this.showSavedMessage = false;
       }, 3000);
-      
     } catch (error) {
       console.error('Error saving progress:', error);
     } finally {
@@ -270,46 +296,54 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   clearProgress() {
     if (!this.verses.length || !this.selectedBook) return;
-    
+
     this.isSaving = true;
-    
+
     try {
       const bookId = this.selectedBook.id;
-      
+
       // Group by chapter for bulk operations
       const chapterGroups: Map<number, number[]> = new Map();
-      
-      this.verses.forEach(verse => {
+
+      this.verses.forEach((verse) => {
         const [_, chapter, verseNum] = verse.verseCode.split('-').map(Number);
         if (!chapterGroups.has(chapter)) {
           chapterGroups.set(chapter, []);
         }
         chapterGroups.get(chapter)!.push(verseNum);
       });
-      
+
       // Clear each chapter as a batch
-      const clearPromises = Array.from(chapterGroups.entries()).map(([chapter, verses]) => {
-        // If it's a full chapter, use chapter clear endpoint
-        const chapterData = this.selectedBook.chapters[chapter - 1];
-        if (verses.length === chapterData.verses.length) {
-          return this.bibleService.clearChapter(this.userId, bookId, chapter).toPromise();
-        } else {
-          // Otherwise clear individual verses
-          return Promise.all(verses.map(verse => 
-            this.bibleService.deleteVerse(this.userId, bookId, chapter, verse).toPromise()
-          ));
-        }
-      });
-      
+      const clearPromises = Array.from(chapterGroups.entries()).map(
+        ([chapter, verses]) => {
+          // If it's a full chapter, use chapter clear endpoint
+          const chapterData = this.selectedBook.chapters[chapter - 1];
+          if (verses.length === chapterData.verses.length) {
+            return this.bibleService
+              .clearChapter(this.userId, bookId, chapter)
+              .toPromise();
+          } else {
+            // Otherwise clear individual verses
+            return Promise.all(
+              verses.map((verse) =>
+                this.bibleService
+                  .deleteVerse(this.userId, bookId, chapter, verse)
+                  .toPromise(),
+              ),
+            );
+          }
+        },
+      );
+
       Promise.all(clearPromises).then(() => {
         // Update memorization status
-        this.verses.forEach(verse => {
+        this.verses.forEach((verse) => {
           verse.isMemorized = false;
         });
-        
+
         // Reset confidence
         this.confidenceLevel = 50;
-        
+
         this.isSaving = false;
       });
     } catch (error) {
@@ -319,9 +353,15 @@ export class FlowComponent implements OnInit, OnDestroy {
   }
 
   // Helper methods
-  private getVerseReference(bookId: number, chapter: number, verse: number): string {
+  private getVerseReference(
+    bookId: number,
+    chapter: number,
+    verse: number,
+  ): string {
     const book = this.bibleService.getBibleData().getBookById(bookId);
-    return book ? `${book.name} ${chapter}:${verse}` : `${bookId}-${chapter}:${verse}`;
+    return book
+      ? `${book.name} ${chapter}:${verse}`
+      : `${bookId}-${chapter}:${verse}`;
   }
 
   private getBookName(bookId: number): string {
@@ -331,17 +371,21 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   private updateMemorizationStatus() {
     // Check each verse against user's memorized verses
-    this.bibleService.getUserVerses(this.userId)
+    this.bibleService
+      .getUserVerses(this.userId)
       .pipe(takeUntil(this.destroy$))
       .subscribe((userVerses: UserVerseDetail[]) => {
-        const memorizedSet = new Set(userVerses.map((v: UserVerseDetail) => 
-          `${v.verse.book_id}-${v.verse.chapter_number}-${v.verse.verse_number}`
-        ));
-        
-        this.verses.forEach(verse => {
+        const memorizedSet = new Set(
+          userVerses.map(
+            (v: UserVerseDetail) =>
+              `${v.verse.book_id}-${v.verse.chapter_number}-${v.verse.verse_number}`,
+          ),
+        );
+
+        this.verses.forEach((verse) => {
           verse.isMemorized = memorizedSet.has(verse.verseCode);
         });
-        
+
         // Update grid data after status change
         this.prepareGridRows();
       });
@@ -349,7 +393,7 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   getVerseClass(verse: FlowVerse | null): string {
     if (!verse) return 'empty-cell';
-    
+
     const classes = ['verse-cell'];
     if (verse.isFifth && this.highlightFifthVerse) {
       classes.push('fifth-verse');
