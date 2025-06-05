@@ -134,7 +134,6 @@ import { CreateWorkflowRequest, CreateLessonRequest, Lesson } from '../../../cor
               *ngFor="let lesson of lessons.controls; let i = index" 
               [formGroupName]="i"
               class="lesson-item"
-              cdkDrag
             >
               <div class="lesson-header">
                 <div class="drag-handle">
@@ -184,6 +183,7 @@ import { CreateWorkflowRequest, CreateLessonRequest, Lesson } from '../../../cor
                     <option value="video">YouTube Video</option>
                     <option value="article">Text Article</option>
                     <option value="external_link">External Link</option>
+                    <option value="quiz">Quiz</option>
                   </select>
                 </div>
 
@@ -236,9 +236,63 @@ import { CreateWorkflowRequest, CreateLessonRequest, Lesson } from '../../../cor
                       >
                     </div>
                   </div>
+
+                  <!-- Quiz fields -->
+                  <div *ngSwitchCase="'quiz'" class="content-fields">
+                    <div class="quiz-info">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                      </svg>
+                      <p>Quiz will pull verses from previous lessons in this workflow</p>
+                    </div>
+                    
+                    <div class="form-group">
+                      <label>Number of Verses *</label>
+                      <input 
+                        type="number" 
+                        formControlName="quiz_verse_count" 
+                        min="2"
+                        max="7"
+                        placeholder="2-7"
+                        class="form-control small"
+                      >
+                      <p class="help-text">How many verses to include in the quiz (2-7)</p>
+                    </div>
+
+                    <div class="form-group">
+                      <label>Pass Threshold (%)</label>
+                      <input 
+                        type="number" 
+                        formControlName="quiz_pass_threshold" 
+                        min="50"
+                        max="100"
+                        placeholder="85"
+                        class="form-control small"
+                      >
+                      <p class="help-text">Minimum confidence score to pass (default: 85%)</p>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="checkbox-label">
+                        <input 
+                          type="checkbox" 
+                          formControlName="quiz_randomize"
+                        >
+                        Randomize verse selection
+                      </label>
+                      <p class="help-text">Pull different verses for each attempt</p>
+                    </div>
+
+                    <div class="quiz-source-warning" *ngIf="i === 0">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                      </svg>
+                      <span>Note: First lesson cannot be a quiz as there are no previous lessons to pull from</span>
+                    </div>
+                  </div>
                 </ng-container>
 
-                <div class="form-group">
+                <div class="form-group" *ngIf="lesson.get('content_type')?.value !== 'quiz'">
                   <label>Audio URL (Optional)</label>
                   <input 
                     type="url" 
@@ -249,14 +303,14 @@ import { CreateWorkflowRequest, CreateLessonRequest, Lesson } from '../../../cor
                   <p class="help-text">Add audio narration for this lesson</p>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" *ngIf="lesson.get('content_type')?.value !== 'quiz'">
                   <label>Required Flashcards</label>
                   <input 
                     type="number" 
                     formControlName="flashcards_required" 
                     min="1"
                     max="20"
-                    class="form-control"
+                    class="form-control small"
                   >
                   <p class="help-text">Number of flashcards students must select to complete this lesson</p>
                 </div>
@@ -281,258 +335,7 @@ import { CreateWorkflowRequest, CreateLessonRequest, Lesson } from '../../../cor
       </form>
     </div>
   `,
-  styles: [`
-    .workflow-editor {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
-
-    .editor-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-    }
-
-    .editor-header h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #1f2937;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 1rem;
-    }
-
-    .btn-primary, .btn-secondary, .btn-add {
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 0.5rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-primary {
-      background: #3b82f6;
-      color: white;
-    }
-
-    .btn-primary:hover:not(:disabled) {
-      background: #2563eb;
-    }
-
-    .btn-primary:disabled {
-      background: #93c5fd;
-      cursor: not-allowed;
-    }
-
-    .btn-secondary {
-      background: #f3f4f6;
-      color: #4b5563;
-    }
-
-    .btn-secondary:hover {
-      background: #e5e7eb;
-    }
-
-    .btn-add {
-      background: #10b981;
-      color: white;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .btn-add:hover {
-      background: #059669;
-    }
-
-    /* Form Styles */
-    .form-section {
-      background: white;
-      border-radius: 0.75rem;
-      padding: 2rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-section h2 {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #1f2937;
-      margin-bottom: 1.5rem;
-    }
-
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-
-    .form-group label {
-      display: block;
-      font-weight: 500;
-      color: #374151;
-      margin-bottom: 0.5rem;
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.5rem;
-      font-size: 1rem;
-      transition: border-color 0.2s;
-    }
-
-    .form-control:focus {
-      outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    textarea.form-control {
-      resize: vertical;
-    }
-
-    .error-message {
-      color: #ef4444;
-      font-size: 0.875rem;
-      margin-top: 0.25rem;
-    }
-
-    .help-text {
-      color: #6b7280;
-      font-size: 0.875rem;
-      margin-top: 0.25rem;
-    }
-
-    .checkbox-label {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-weight: normal;
-      cursor: pointer;
-    }
-
-    /* Tags Input */
-    .tags-input {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .selected-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-      padding: 0.375rem 0.75rem;
-      background: #e0e7ff;
-      color: #4338ca;
-      border-radius: 9999px;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .tag:hover {
-      background: #c7d2fe;
-    }
-
-    .tag-select {
-      padding: 0.5rem;
-      border: 1px solid #d1d5db;
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-    }
-
-    /* Lessons List */
-    .lessons-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .lesson-item {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.5rem;
-      padding: 1rem;
-    }
-
-    .lesson-header {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .drag-handle {
-      cursor: move;
-      color: #9ca3af;
-    }
-
-    .lesson-header h3 {
-      flex: 1;
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: #1f2937;
-    }
-
-    .btn-remove {
-      padding: 0.375rem 0.75rem;
-      background: #fee2e2;
-      color: #dc2626;
-      border: none;
-      border-radius: 0.375rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-remove:hover {
-      background: #fecaca;
-    }
-
-    .content-fields {
-      background: white;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    /* Empty State */
-    .empty-state {
-      text-align: center;
-      padding: 3rem;
-      color: #6b7280;
-    }
-
-    .empty-state svg {
-      margin: 0 auto 1rem;
-      opacity: 0.5;
-    }
-
-    .empty-state p {
-      margin-bottom: 1rem;
-    }
-  `]
+  styleUrls: ['./workflow-editor.component.scss']
 })
 export class WorkflowEditorComponent implements OnInit {
   workflowForm!: FormGroup;
@@ -631,7 +434,11 @@ export class WorkflowEditorComponent implements OnInit {
       external_url: [lesson?.content_data?.external_url || ''],
       external_title: [lesson?.content_data?.external_title || ''],
       audio_url: [lesson?.audio_url || ''],
-      flashcards_required: [3, [Validators.required, Validators.min(1), Validators.max(20)]]
+      flashcards_required: [3, [Validators.required, Validators.min(1), Validators.max(20)]],
+      // Quiz fields
+      quiz_verse_count: [lesson?.content_data?.quiz_config?.verse_count || 5],
+      quiz_pass_threshold: [lesson?.content_data?.quiz_config?.pass_threshold || 85],
+      quiz_randomize: [lesson?.content_data?.quiz_config?.randomize || true]
     });
 
     // Add dynamic validators based on content type
@@ -645,12 +452,16 @@ export class WorkflowEditorComponent implements OnInit {
     const youtubeUrl = group.get('youtube_url');
     const articleText = group.get('article_text');
     const externalUrl = group.get('external_url');
+    const quizVerseCount = group.get('quiz_verse_count');
+    const quizThreshold = group.get('quiz_pass_threshold');
 
     contentType?.valueChanges.subscribe(type => {
       // Clear all validators first
       youtubeUrl?.clearValidators();
       articleText?.clearValidators();
       externalUrl?.clearValidators();
+      quizVerseCount?.clearValidators();
+      quizThreshold?.clearValidators();
 
       // Add validators based on type
       switch(type) {
@@ -663,12 +474,18 @@ export class WorkflowEditorComponent implements OnInit {
         case 'external_link':
           externalUrl?.setValidators([Validators.required]);
           break;
+        case 'quiz':
+          quizVerseCount?.setValidators([Validators.required, Validators.min(2), Validators.max(7)]);
+          quizThreshold?.setValidators([Validators.required, Validators.min(50), Validators.max(100)]);
+          break;
       }
 
       // Update validity
       youtubeUrl?.updateValueAndValidity();
       articleText?.updateValueAndValidity();
       externalUrl?.updateValueAndValidity();
+      quizVerseCount?.updateValueAndValidity();
+      quizThreshold?.updateValueAndValidity();
     });
   }
 
@@ -683,6 +500,16 @@ export class WorkflowEditorComponent implements OnInit {
   onContentTypeChange(lessonIndex: number) {
     const lesson = this.lessons.at(lessonIndex);
     this.setupContentValidators(lesson as FormGroup);
+    
+    // Check if this is the first lesson and it's a quiz
+    if (lessonIndex === 0 && lesson.get('content_type')?.value === 'quiz') {
+      this.modalService.alert(
+        'Invalid Quiz Position',
+        'The first lesson cannot be a quiz as there are no previous lessons to pull verses from.',
+        'warning'
+      );
+      lesson.patchValue({ content_type: '' });
+    }
   }
 
   addTag(event: Event) {
@@ -731,10 +558,6 @@ export class WorkflowEditorComponent implements OnInit {
         };
 
         await this.workflowService.updateWorkflow(this.workflowId, updates).toPromise();
-
-        // Update lessons
-        // For simplicity, we'll just navigate to the workflow
-        // In a real app, you'd handle lesson updates here
         
         this.modalService.success('Success', 'Workflow updated successfully!');
         this.router.navigate(['/workflows', this.workflowId]);
@@ -758,12 +581,7 @@ export class WorkflowEditorComponent implements OnInit {
             title: lessonData.title,
             description: lessonData.description,
             content_type: lessonData.content_type,
-            content_data: {
-              youtube_url: lessonData.youtube_url,
-              article_text: lessonData.article_text,
-              external_url: lessonData.external_url,
-              external_title: lessonData.external_title
-            },
+            content_data: this.buildContentData(lessonData),
             audio_url: lessonData.audio_url,
             position: i + 1
           };
@@ -779,6 +597,31 @@ export class WorkflowEditorComponent implements OnInit {
       this.modalService.alert('Error', 'Failed to save workflow. Please try again.', 'danger');
     } finally {
       this.saving = false;
+    }
+  }
+
+  buildContentData(lessonData: any): any {
+    switch (lessonData.content_type) {
+      case 'video':
+        return { youtube_url: lessonData.youtube_url };
+      case 'article':
+        return { article_text: lessonData.article_text };
+      case 'external_link':
+        return {
+          external_url: lessonData.external_url,
+          external_title: lessonData.external_title
+        };
+      case 'quiz':
+        return {
+          quiz_config: {
+            source_lessons: [], // Will be populated by backend based on position
+            verse_count: lessonData.quiz_verse_count,
+            pass_threshold: lessonData.quiz_pass_threshold,
+            randomize: lessonData.quiz_randomize
+          }
+        };
+      default:
+        return {};
     }
   }
 

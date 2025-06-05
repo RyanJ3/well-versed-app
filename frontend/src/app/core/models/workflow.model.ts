@@ -21,7 +21,7 @@ export interface Lesson {
   position: number;
   title: string;
   description?: string;
-  content_type: 'video' | 'article' | 'external_link';
+  content_type: 'video' | 'article' | 'external_link' | 'quiz';
   content_data: LessonContent;
   audio_url?: string;
   created_at: string;
@@ -39,6 +39,14 @@ export interface LessonContent {
   // For external link lessons
   external_url?: string;
   external_title?: string;
+  
+  // For quiz lessons
+  quiz_config?: {
+    source_lessons: number[]; // IDs of lessons to pull verses from
+    verse_count: number; // 2-7
+    pass_threshold: number; // 85
+    randomize: boolean;
+  };
 }
 
 export interface UserWorkflowProgress {
@@ -61,6 +69,10 @@ export interface UserLessonProgress {
   flashcards_required: number;
   flashcards_completed: number;
   is_unlocked: boolean;
+  // Quiz specific
+  quiz_attempts?: number;
+  best_score?: number;
+  last_attempt?: string;
 }
 
 export interface LessonFlashcard {
@@ -85,7 +97,7 @@ export interface CreateLessonRequest {
   workflow_id: number;
   title: string;
   description?: string;
-  content_type: 'video' | 'article' | 'external_link';
+  content_type: 'video' | 'article' | 'external_link' | 'quiz';
   content_data: LessonContent;
   audio_url?: string;
   position?: number;
@@ -95,4 +107,15 @@ export interface AddFlashcardsToQueueRequest {
   lesson_id: number;
   flashcard_ids: number[];
   verse_codes?: string[]; // For adding Bible verses as flashcards
+}
+
+export interface QuizAttempt {
+  lesson_id: number;
+  user_id: number;
+  score: number;
+  verse_scores: {
+    verse_code: string;
+    confidence: number;
+  }[];
+  completed_at: string;
 }
