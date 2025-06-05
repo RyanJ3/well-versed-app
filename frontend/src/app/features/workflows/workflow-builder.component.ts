@@ -12,7 +12,7 @@ interface Lesson {
   id?: number;
   title: string;
   description?: string;
-  content_type: 'video' | 'article' | 'external_link' | '';
+  content_type: 'video' | 'article' | 'external_link' | 'quiz' | '';
   youtube_url?: string;
   article_text?: string;
   external_url?: string;

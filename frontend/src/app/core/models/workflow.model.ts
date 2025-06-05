@@ -23,6 +23,7 @@ export interface Lesson {
   youtube_url?: string;
   article_text?: string;
   external_url?: string;
+  content_data?: LessonContent;
   external_title?: string;
   audio_url?: string;
   flashcards_required: number;
@@ -33,14 +34,14 @@ export interface LessonContent {
   // For video lessons
   youtube_url?: string;
   video_duration?: number;
-  
+
   // For article lessons
   article_text?: string;
-  
+
   // For external link lessons
   external_url?: string;
   external_title?: string;
-  
+
   // For quiz lessons
   quiz_config?: {
     source_lessons: number[]; // IDs of lessons to pull verses from
