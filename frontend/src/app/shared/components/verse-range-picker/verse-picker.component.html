@@ -46,7 +46,11 @@
       </div>
 
       <!-- Expanded Content -->
-      <div class="expanded-content" [ngClass]="{ show: isOpen }">
+      <div
+        class="expanded-content"
+        [ngClass]="{ show: isOpen }"
+        (click)="$event.stopPropagation()"
+      >
         <div class="content-divider"></div>
         <div class="controls-container">
           <!-- Mode Selection -->
