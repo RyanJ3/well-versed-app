@@ -1,49 +1,77 @@
 <!-- frontend/src/app/shared/components/verse-range-picker/verse-picker.component.html -->
 <div class="verse-picker hover-reveal" [ngClass]="'theme-' + theme">
-  <div 
-    class="hover-container"
-    (mouseenter)="handleMouseEnter()"
-    (mouseleave)="handleMouseLeave()">
-    
+  <div class="hover-container">
     <!-- Compact Preview -->
-    <div class="compact-preview" [ngClass]="{'hovered': isHovered, 'expanded': isHovered}">
+    <div
+      class="compact-preview"
+      [ngClass]="{ hovered: isOpen, expanded: isOpen }"
+      (click)="toggleOpen()"
+    >
       <div class="preview-content">
-        <svg class="icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        <svg
+          class="icon"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+          />
         </svg>
         <div class="preview-info">
           <div class="reference-text">{{ getDisplayReference() }}</div>
-          <div class="verse-meta">{{ verseCount }} verses • {{ getModeLabel() }} mode</div>
+          <div class="verse-meta">
+            {{ verseCount }} verses • {{ getModeLabel() }} mode
+          </div>
         </div>
-        <div class="expand-indicator" [ngClass]="{'visible': isHovered}">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        <div class="expand-indicator" [ngClass]="{ visible: isOpen }">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </div>
       </div>
 
       <!-- Expanded Content -->
-      <div class="expanded-content" [ngClass]="{'show': isHovered}">
+      <div
+        class="expanded-content"
+        [ngClass]="{ show: isOpen }"
+        (click)="$event.stopPropagation()"
+      >
         <div class="content-divider"></div>
         <div class="controls-container">
-          
           <!-- Mode Selection -->
           <div class="mode-selector-inline">
-            <button 
+            <button
               *ngFor="let modeOption of availableModes"
               [ngClass]="getModeButtonClass(modeOption)"
               (click)="onModeChange(modeOption)"
-              [disabled]="isModeDisabled(modeOption)">
+              [disabled]="isModeDisabled(modeOption)"
+            >
               {{ getModeLabel(modeOption) }}
             </button>
           </div>
 
           <!-- Book Selector -->
           <div class="book-selector">
-            <select 
-              [(ngModel)]="selectedBook" 
+            <select
+              [(ngModel)]="selectedBook"
               (ngModelChange)="onBookChange()"
-              class="select-control book-select">
+              class="select-control book-select"
+            >
               <option *ngFor="let book of books" [ngValue]="book">
                 {{ book.name }}
               </option>
@@ -54,24 +82,28 @@
           <div class="verse-inputs">
             <!-- Start/Single Selection -->
             <div class="input-group">
-              <label class="input-label">{{ mode === 'range' ? 'Start' : 'Select' }}</label>
+              <label class="input-label">{{
+                mode === "range" ? "Start" : "Select"
+              }}</label>
               <div class="input-row">
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   [(ngModel)]="selectedChapter"
                   (ngModelChange)="onChapterChange()"
                   class="number-input"
                   [min]="1"
-                  [max]="chapters.length">
+                  [max]="chapters.length"
+                />
                 <span class="separator" *ngIf="mode !== 'chapter'">:</span>
-                <input 
+                <input
                   *ngIf="mode !== 'chapter'"
-                  type="number" 
+                  type="number"
                   [(ngModel)]="selectedVerse"
                   (ngModelChange)="onVerseChange()"
                   class="number-input"
                   [min]="1"
-                  [max]="verses.length">
+                  [max]="verses.length"
+                />
               </div>
             </div>
 
@@ -79,21 +111,27 @@
             <div class="input-group" *ngIf="mode === 'range'">
               <label class="input-label">End</label>
               <div class="input-row">
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   [(ngModel)]="selectedEndChapter"
                   (ngModelChange)="onEndChapterChange()"
                   class="number-input"
                   [min]="selectedChapter"
-                  [max]="chapters.length">
+                  [max]="chapters.length"
+                />
                 <span class="separator">:</span>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   [(ngModel)]="selectedEndVerse"
                   (ngModelChange)="onEndVerseChange()"
                   class="number-input"
-                  [min]="mode === 'range' && selectedEndChapter === selectedChapter ? selectedVerse : 1"
-                  [max]="endVerses.length">
+                  [min]="
+                    mode === 'range' && selectedEndChapter === selectedChapter
+                      ? selectedVerse
+                      : 1
+                  "
+                  [max]="endVerses.length"
+                />
               </div>
             </div>
           </div>
@@ -104,17 +142,61 @@
           </button>
 
           <!-- Validation Message -->
-          <div class="validation-message" *ngIf="!isValidSelection && validationMessage">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          <div
+            class="validation-message"
+            *ngIf="!isValidSelection && validationMessage"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
             {{ validationMessage }}
           </div>
 
+          <!-- External Warning Message -->
+          <div class="validation-message" *ngIf="warningMessage">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+            {{ warningMessage }}
+          </div>
+
           <!-- Page-specific message for FLOW -->
-          <div class="page-message flow-message" *ngIf="pageType === 'FLOW' && mode === 'range'">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div
+            class="page-message flow-message"
+            *ngIf="pageType === 'FLOW' && mode === 'range'"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             FLOW method works best with 10-80 verses
           </div>

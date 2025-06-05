@@ -1,11 +1,13 @@
 // frontend/src/app/components/verse-range-picker/verse-picker.component.scss
 
 .verse-picker.hover-reveal {
-  display: inline-block;
+  display: block;
+  width: 100%;
 }
 
 .hover-container {
-  display: inline-block;
+  display: block;
+  position: relative;
 }
 
 // Compact Preview
@@ -14,10 +16,12 @@
   border: 2px solid #e5e7eb;
   border-radius: 0.5rem;
   transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   &.hovered {
     border-color: #3b82f6;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow:
+      0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
 }
 
@@ -55,11 +59,11 @@
   margin-left: 1rem;
   transition: opacity 300ms;
   opacity: 0.5;
-  
+
   &.visible {
     opacity: 1;
   }
-  
+
   svg {
     width: 1rem;
     height: 1rem;
@@ -69,14 +73,24 @@
 
 // Expanded Content
 .expanded-content {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 0.5rem);
+  z-index: 1000;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   overflow: hidden;
-  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  max-height: 0;
+  transition:
+    opacity 300ms,
+    transform 300ms;
   opacity: 0;
-  
+  transform: translateY(-10px);
+
   &.show {
-    max-height: 24rem;
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -107,16 +121,16 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 200ms;
-  
+
   &:hover:not(:disabled) {
     background-color: #e5e7eb;
   }
-  
+
   &.active {
     background-color: #dbeafe;
     color: #1e40af;
   }
-  
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -138,11 +152,11 @@
   color: #111827;
   cursor: pointer;
   transition: all 200ms;
-  
+
   &:hover {
     border-color: #9ca3af;
   }
-  
+
   &:focus {
     outline: none;
     border-color: #3b82f6;
@@ -186,19 +200,19 @@
   text-align: center;
   font-size: 0.875rem;
   background-color: white;
-  
+
   &:focus {
     outline: none;
     border-color: #3b82f6;
   }
-  
+
   // Hide number input arrows
   &::-webkit-inner-spin-button,
   &::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
-  
+
   -moz-appearance: textfield;
 }
 
@@ -219,11 +233,11 @@
   font-weight: 500;
   cursor: pointer;
   transition: background-color 200ms;
-  
+
   &:hover {
     background-color: #2563eb;
   }
-  
+
   &:active {
     background-color: #1d4ed8;
   }
@@ -241,7 +255,7 @@
   border: 1px solid #fbbf24;
   border-radius: 0.375rem;
   font-size: 0.75rem;
-  
+
   svg {
     width: 1rem;
     height: 1rem;
@@ -258,13 +272,13 @@
   padding: 0.5rem 0.75rem;
   border-radius: 0.375rem;
   font-size: 0.75rem;
-  
+
   svg {
     width: 1rem;
     height: 1rem;
     flex-shrink: 0;
   }
-  
+
   &.flow-message {
     background-color: #dbeafe;
     color: #1e40af;
@@ -276,25 +290,27 @@
 .theme-minimal {
   .compact-preview {
     border: 1px solid #e5e7eb;
-    
+
     &.hovered {
       border-color: #6b7280;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      box-shadow:
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
   }
-  
+
   .icon {
     color: #6b7280;
   }
-  
+
   .mode-button.active {
     background-color: #374151;
     color: white;
   }
-  
+
   .apply-button {
     background-color: #374151;
-    
+
     &:hover {
       background-color: #1f2937;
     }
@@ -306,82 +322,82 @@
     background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
     border: 2px solid #00ff41;
     color: #00ff41;
-    
+
     &.hovered {
       border-color: #00ff41;
       box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
     }
   }
-  
+
   .reference-text {
     color: #00ff41;
   }
-  
+
   .verse-meta {
     color: #00ff41;
     opacity: 0.7;
   }
-  
+
   .icon {
     color: #00ff41;
   }
-  
+
   .expand-indicator svg {
     color: #00ff41;
   }
-  
+
   .expanded-content {
     background: #0f0f23;
   }
-  
+
   .content-divider {
     background-color: rgba(0, 255, 65, 0.3);
   }
-  
+
   .mode-button {
     background-color: rgba(0, 255, 65, 0.1);
     color: #00ff41;
     border: 1px solid rgba(0, 255, 65, 0.3);
-    
+
     &:hover:not(:disabled) {
       background-color: rgba(0, 255, 65, 0.2);
     }
-    
+
     &.active {
       background-color: #00ff41;
       color: #0f0f23;
     }
   }
-  
+
   .select-control,
   .number-input {
     background-color: rgba(0, 255, 65, 0.05);
     border-color: rgba(0, 255, 65, 0.3);
     color: #00ff41;
-    
+
     &:focus {
       border-color: #00ff41;
       box-shadow: 0 0 0 3px rgba(0, 255, 65, 0.1);
     }
   }
-  
+
   .input-group {
     background-color: rgba(0, 255, 65, 0.05);
   }
-  
+
   .input-label {
     color: #00ff41;
     opacity: 0.7;
   }
-  
+
   .separator {
     color: #00ff41;
   }
-  
+
   .apply-button {
     background-color: #00ff41;
     color: #0f0f23;
-    
+
     &:hover {
       background-color: #00cc33;
     }
@@ -393,7 +409,7 @@
   .verse-inputs {
     grid-template-columns: 1fr;
   }
-  
+
   .expanded-content.show {
     max-height: 32rem;
   }
