@@ -12,8 +12,6 @@ import { DeckListComponent } from './features/memorize/decks/deck-list/deck-list
 import { FeatureRequestComponent } from './features/feature-request/feature-request.component';
 import { WorkflowListComponent } from './features/workflows/workflow-list.component';
 import { WorkflowBuilderComponent } from './features/workflows/workflow-builder.component';
-import { WorkflowViewerComponent } from './features/workflows/workflow-viewer.component';
-import { LessonViewerComponent } from './features/workflows/lesson-viewer.component';
 
 //TODO move /flashcard paths to be /deck instead
 export const routes: Routes = [
@@ -30,9 +28,7 @@ export const routes: Routes = [
     component: FeatureRequestComponent,
     title: 'Feature Requests & Bug Reports',
   },
-  { path: 'workflows/new', component: WorkflowBuilderComponent },
-  { path: 'workflows/:workflowId/lesson/:lessonId', component: LessonViewerComponent },
-  { path: 'workflows/:workflowId', component: WorkflowViewerComponent },
+  { path: 'workflows/create', component: WorkflowBuilderComponent },
   { path: 'workflows', component: WorkflowListComponent },
   { path: 'flow', component: FlowComponent },
   { path: '**', redirectTo: '' },

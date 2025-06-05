@@ -1,0 +1,98 @@
+// frontend/src/app/core/models/workflow.model.ts
+
+export interface Workflow {
+  id: number;
+  creator_id: number;
+  creator_name: string;
+  title: string;
+  description: string;
+  thumbnail_url?: string;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+  lesson_count: number;
+  enrolled_count: number;
+  tags: string[];
+}
+
+export interface Lesson {
+  id: number;
+  workflow_id: number;
+  position: number;
+  title: string;
+  description?: string;
+  content_type: 'video' | 'article' | 'external_link';
+  content_data: LessonContent;
+  audio_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LessonContent {
+  // For video lessons
+  youtube_url?: string;
+  video_duration?: number;
+  
+  // For article lessons
+  article_text?: string;
+  
+  // For external link lessons
+  external_url?: string;
+  external_title?: string;
+}
+
+export interface UserWorkflowProgress {
+  user_id: number;
+  workflow_id: number;
+  current_lesson_id: number;
+  current_lesson_position: number;
+  lessons_completed: number;
+  enrolled_at: string;
+  last_accessed: string;
+  completed_at?: string;
+}
+
+export interface UserLessonProgress {
+  user_id: number;
+  lesson_id: number;
+  workflow_id: number;
+  started_at: string;
+  completed_at?: string;
+  flashcards_required: number;
+  flashcards_completed: number;
+  is_unlocked: boolean;
+}
+
+export interface LessonFlashcard {
+  id: number;
+  lesson_id: number;
+  card_type: 'verse' | 'custom';
+  front_content: string;
+  back_content: string;
+  verse_codes?: string[]; // For verse-based cards
+  position: number;
+}
+
+export interface CreateWorkflowRequest {
+  title: string;
+  description: string;
+  thumbnail_url?: string;
+  is_public: boolean;
+  tags: string[];
+}
+
+export interface CreateLessonRequest {
+  workflow_id: number;
+  title: string;
+  description?: string;
+  content_type: 'video' | 'article' | 'external_link';
+  content_data: LessonContent;
+  audio_url?: string;
+  position?: number;
+}
+
+export interface AddFlashcardsToQueueRequest {
+  lesson_id: number;
+  flashcard_ids: number[];
+  verse_codes?: string[]; // For adding Bible verses as flashcards
+}
