@@ -1,6 +1,6 @@
 // frontend/src/app/features/memorize/decks/deck-study/deck-study.component.scss
-@use '../shared/styles/variables' as *;
-@use '../shared/styles/animations' as *;
+@use "../shared/styles/variables" as *;
+@use "../shared/styles/animations" as *;
 
 .study-container {
   min-height: 100vh;
@@ -15,7 +15,7 @@
   padding: 2rem 2rem 3rem;
   text-align: center;
   overflow: hidden;
-  
+
   @media (max-width: 768px) {
     padding: 1.5rem 1rem 2rem;
   }
@@ -36,8 +36,17 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at 30% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 70% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+  background:
+    radial-gradient(
+      circle at 30% 50%,
+      rgba(59, 130, 246, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 70% 50%,
+      rgba(16, 185, 129, 0.1) 0%,
+      transparent 50%
+    );
   animation: heroFadeIn 1.5s ease-out forwards;
 }
 
@@ -88,7 +97,7 @@
   font-size: 2.5rem;
   font-weight: 800;
   margin-bottom: 1.5rem;
-  
+
   @media (max-width: 768px) {
     font-size: 2rem;
   }
@@ -167,7 +176,8 @@
 }
 
 // Loading & Error states
-.loading-container, .error-container {
+.loading-container,
+.error-container {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -296,95 +306,7 @@
   margin-bottom: 2rem;
 }
 
-// Confidence slider with emojis
-.confidence-container {
-  width: 100%;
-  max-width: 400px;
-  padding: 1.5rem;
-  background: #f8fafc;
-  border-radius: 1rem;
-  border: 1px solid #e2e8f0;
-}
-
-.confidence-label {
-  display: block;
-  text-align: center;
-  font-size: 0.875rem;
-  color: #64748b;
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-.confidence-slider-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.confidence-emoji {
-  font-size: 1.5rem;
-}
-
-.confidence-slider {
-  flex: 1;
-  height: 8px;
-  background: linear-gradient(90deg, #ef4444 0%, #f59e0b 25%, #fbbf24 50%, #84cc16 75%, #10b981 100%);
-  border-radius: 4px;
-  outline: none;
-  -webkit-appearance: none;
-  
-  &::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 24px;
-    height: 24px;
-    background: white;
-    border: 3px solid #3b82f6;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s;
-    
-    &:hover {
-      transform: scale(1.2);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    }
-  }
-  
-  &::-moz-range-thumb {
-    width: 24px;
-    height: 24px;
-    background: white;
-    border: 3px solid #3b82f6;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s;
-    
-    &:hover {
-      transform: scale(1.2);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    }
-  }
-}
-
-.confidence-value {
-  text-align: center;
-  
-  .confidence-score {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #3b82f6;
-    display: block;
-  }
-  
-  .confidence-label-text {
-    font-size: 0.75rem;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-}
+// Confidence slider styles moved to shared component
 
 // Navigation controls
 .navigation-controls {
@@ -510,7 +432,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   margin-bottom: 2rem;
-  
+
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }

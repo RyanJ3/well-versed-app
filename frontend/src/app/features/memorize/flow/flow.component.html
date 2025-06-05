@@ -132,22 +132,14 @@
       {{ verses.length === 1 ? "this verse" : "these verses" }}?
     </p>
 
-    <div class="slider-container">
-      <span class="slider-label">0%</span>
-      <input
-        type="range"
-        class="confidence-slider"
-        [(ngModel)]="confidenceLevel"
-        min="0"
-        max="100"
-        step="1"
-      />
-      <span class="slider-label">100%</span>
-    </div>
-
-    <div class="confidence-value">
-      Current confidence: <strong>{{ confidenceLevel }}%</strong>
-    </div>
+    <app-confidence-slider
+      [label]="
+        'How well do you know ' +
+        (verses.length === 1 ? 'this verse?' : 'these verses?')
+      "
+      [(value)]="confidenceLevel"
+    >
+    </app-confidence-slider>
 
     <div class="action-buttons">
       <button

@@ -1,0 +1,19 @@
+<div class="confidence-container">
+  <label *ngIf="label" class="confidence-label">{{ label }}</label>
+  <div class="confidence-slider-wrapper">
+    <div *ngIf="showEmojis" class="confidence-emoji">😟</div>
+    <input
+      type="range"
+      class="confidence-slider"
+      [min]="min"
+      [max]="max"
+      [(ngModel)]="value"
+      (ngModelChange)="onChange($event)"
+    />
+    <div *ngIf="showEmojis" class="confidence-emoji">😄</div>
+  </div>
+  <div class="confidence-value">
+    <span class="confidence-score">{{ value }}%</span>
+    <span class="confidence-label-text">Confidence</span>
+  </div>
+</div>
