@@ -16,16 +16,17 @@ export interface Workflow {
 }
 
 export interface Lesson {
-  id: number;
-  workflow_id: number;
-  position: number;
+  id?: number;
   title: string;
   description?: string;
-  content_type: 'video' | 'article' | 'external_link' | 'quiz';
-  content_data: LessonContent;
+  content_type: 'video' | 'article' | 'external_link' | 'quiz' | '';
+  youtube_url?: string;
+  article_text?: string;
+  external_url?: string;
+  external_title?: string;
   audio_url?: string;
-  created_at: string;
-  updated_at: string;
+  flashcards_required: number;
+  position: number;
 }
 
 export interface LessonContent {

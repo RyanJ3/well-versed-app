@@ -1,0 +1,164 @@
+<!-- frontend/src/app/features/workflows/browse/browse-workflows.component.html -->
+<div class="browse-workflows">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>Discover Learning Workflows</h1>
+    <p>Explore curated lesson series to deepen your Biblical knowledge</p>
+  </div>
+
+  <!-- Controls Bar -->
+  <div class="controls-bar">
+    <div class="search-section">
+      <div class="search-input-wrapper">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input 
+          type="text" 
+          class="search-input" 
+          placeholder="Search workflows..."
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="searchWorkflows()"
+        >
+      </div>
+      <button class="search-button" (click)="searchWorkflows()">
+        Search
+      </button>
+    </div>
+
+    <button class="create-workflow-btn" (click)="navigateToCreate()" *ngIf="currentUser">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Create Workflow
+    </button>
+  </div>
+
+  <!-- Tags Filter -->
+  <div class="tags-filter">
+    <span class="filter-label">Filter by topic:</span>
+    <div class="tag-list">
+      <button 
+        class="tag-chip"
+        *ngFor="let tag of availableTags"
+        [class.active]="selectedTags.includes(tag)"
+        (click)="toggleTag(tag)"
+      >
+        {{ formatTag(tag) }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Loading workflows...</p>
+  </div>
+
+  <!-- Workflows Grid -->
+  <div class="workflows-grid" *ngIf="!loading && workflows.length > 0">
+    <div 
+      *ngFor="let workflow of workflows" 
+      class="workflow-card"
+      [class.enrolled]="isEnrolled(workflow.id)"
+      (click)="viewWorkflow(workflow)"
+    >
+      <!-- Thumbnail -->
+      <div class="card-thumbnail">
+        <img *ngIf="workflow.thumbnail_url" [src]="workflow.thumbnail_url" alt="{{ workflow.title }}">
+        <div *ngIf="!workflow.thumbnail_url" class="placeholder-thumbnail">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </div>
+        <div class="enrolled-badge" *ngIf="isEnrolled(workflow.id)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+          </svg>
+          Enrolled
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="card-content">
+        <h3 class="card-title">{{ workflow.title }}</h3>
+        <p class="card-description">{{ workflow.description }}</p>
+        
+        <!-- Tags -->
+        <div class="card-tags" *ngIf="workflow.tags.length > 0">
+          <span class="tag" *ngFor="let tag of workflow.tags.slice(0, 3)">
+            {{ formatTag(tag) }}
+          </span>
+        </div>
+
+        <!-- Meta Info -->
+        <div class="card-meta">
+          <div class="meta-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            {{ workflow.lesson_count }} lessons
+          </div>
+          <div class="meta-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            {{ workflow.enrolled_count }}
+          </div>
+        </div>
+
+        <!-- Creator -->
+        <div class="card-footer">
+          <div class="creator-info">
+            <div class="creator-avatar">{{ getCreatorInitial(workflow.creator_name) }}</div>
+            <span class="creator-name">{{ workflow.creator_name }}</span>
+          </div>
+          <button 
+            class="action-button"
+            (click)="toggleEnrollment($event, workflow)"
+            [class.enrolled]="isEnrolled(workflow.id)"
+          >
+            {{ isEnrolled(workflow.id) ? 'Continue' : 'Enroll' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!loading && workflows.length === 0">
+    <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <h3>No workflows found</h3>
+    <p>Try adjusting your search or create your own workflow!</p>
+    <button class="create-workflow-btn" (click)="navigateToCreate()" *ngIf="currentUser">
+      Create First Workflow
+    </button>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button 
+      class="page-btn"
+      [disabled]="currentPage === 1"
+      (click)="currentPage = currentPage - 1; loadWorkflows()"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+    
+    <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+    
+    <button 
+      class="page-btn"
+      [disabled]="currentPage === totalPages"
+      (click)="currentPage = currentPage + 1; loadWorkflows()"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+  </div>
+</div>
