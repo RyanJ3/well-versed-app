@@ -75,7 +75,7 @@
 .expanded-content {
   position: absolute;
   left: 0;
-  top: calc(100% + 0.5rem);
+  top: 100%;
   z-index: 1000;
   background: white;
   border: 1px solid #e5e7eb;
@@ -83,15 +83,10 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   pointer-events: none;
-  transition:
-    opacity 300ms,
-    transform 300ms;
   opacity: 0;
-  transform: translateY(-10px);
 
   &.show {
     opacity: 1;
-    transform: translateY(0);
     pointer-events: auto;
   }
 }

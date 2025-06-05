@@ -21,17 +21,7 @@
 
     <h1 class="editor-title">Edit Deck: {{ deck?.name }}</h1>
 
-    <div class="header-actions">
-      <button
-        class="save-button"
-        (click)="updateDeckInfo()"
-        *ngIf="editMode === 'info'"
-        [disabled]="isSaving"
-      >
-        <span *ngIf="!isSaving">Save Info</span>
-        <span *ngIf="isSaving">Saving...</span>
-      </button>
-    </div>
+    <div class="header-actions"></div>
   </div>
 
   <!-- Tab Navigation -->
@@ -88,6 +78,12 @@
           <input type="checkbox" [(ngModel)]="isDeckPublic" />
           <span>Make this deck public</span>
         </label>
+      </div>
+      <div class="form-actions">
+        <button class="save-button" (click)="updateDeckInfo()" [disabled]="isSaving">
+          <span *ngIf="!isSaving">Save Settings</span>
+          <span *ngIf="isSaving">Saving...</span>
+        </button>
       </div>
     </div>
   </div>
@@ -150,7 +146,7 @@
                 />
               </th>
               <th class="th-reference">Reference</th>
-              <th class="th-added">Added</th>
+              <th class="th-added">Added By</th>
               <th class="th-added-date">Added Date</th>
               <th class="th-verses">Verses</th>
               <th class="th-confidence">Confidence</th>
@@ -167,6 +163,7 @@
               (drop)="onDrop(i)"
             >
               <td class="td-checkbox">
+                <span class="drag-handle" title="Drag to reorder"></span>
                 <input
                   type="checkbox"
                   [checked]="selectedCards.has(card.card_id)"
@@ -192,7 +189,7 @@
               </td>
 
               <td class="td-added">
-                <span>{{ card.position }}</span>
+                <span>{{ deck?.creator_name || 'You' }}</span>
               </td>
 
               <td class="td-added-date">

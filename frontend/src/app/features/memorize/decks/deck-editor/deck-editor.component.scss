@@ -78,6 +78,9 @@
   gap: 1rem;
   margin-bottom: 2rem;
   border-bottom: 2px solid #e5e7eb;
+  background: #f3f4f6;
+  padding: 0.5rem;
+  border-radius: 0.5rem 0.5rem 0 0;
 }
 
 .tab-button {
@@ -97,16 +100,10 @@
   &.active {
     color: #3b82f6;
     font-weight: 600;
-
-    &::after {
-      content: "";
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background-color: #3b82f6;
-    }
+    background: white;
+    border: 1px solid #3b82f6;
+    border-bottom: none;
+    border-radius: 0.5rem 0.5rem 0 0;
   }
 }
 
@@ -192,6 +189,11 @@ textarea.form-control {
   span {
     color: #374151;
   }
+}
+
+.form-actions {
+  margin-top: 1rem;
+  text-align: right;
 }
 
 // Cards Table Section
@@ -298,8 +300,25 @@ textarea.form-control {
 // Table column widths
 .th-checkbox,
 .td-checkbox {
-  width: 40px;
+  width: 60px;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.drag-handle {
+  width: 10px;
+  height: 16px;
+  cursor: move;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    #9ca3af 0,
+    #9ca3af 2px,
+    transparent 2px,
+    transparent 4px
+  );
 }
 
 .th-reference,

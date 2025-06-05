@@ -155,23 +155,18 @@ export class FeatureRequestComponent implements OnInit, OnDestroy {
     });
   }
 
-  vote(request: FeatureRequest, voteType: 'up' | 'down'): void {
+  vote(request: FeatureRequest): void {
     if (!this.currentUser) {
       this.modalService.alert('Login Required', 'Please log in to vote on feature requests', 'info');
       return;
     }
 
-    // If user is changing their vote
-    if (request.user_vote === voteType) {
+    if (request.user_vote === 'up') {
       // Remove vote
       this.featureRequestService.removeVote(request.id, this.currentUser.id as number).subscribe({
         next: () => {
           // Update local state
-          if (voteType === 'up') {
-            request.upvotes--;
-          } else {
-            request.downvotes--;
-          }
+          request.upvotes--;
           request.user_vote = null;
           request.has_voted = false;
         },
@@ -182,22 +177,15 @@ export class FeatureRequestComponent implements OnInit, OnDestroy {
       });
     } else {
       // Add or change vote
-      this.featureRequestService.voteOnRequest(request.id, voteType, this.currentUser.id as number).subscribe({
+      this.featureRequestService.voteOnRequest(request.id, 'up', this.currentUser.id as number).subscribe({
         next: () => {
           // Update local state
           if (request.user_vote === 'up') {
             request.upvotes--;
-          } else if (request.user_vote === 'down') {
-            request.downvotes--;
           }
+          request.upvotes++;
 
-          if (voteType === 'up') {
-            request.upvotes++;
-          } else {
-            request.downvotes++;
-          }
-
-          request.user_vote = voteType;
+          request.user_vote = 'up';
           request.has_voted = true;
         },
         error: (error) => {

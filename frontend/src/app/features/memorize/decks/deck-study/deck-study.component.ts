@@ -169,12 +169,14 @@ export class DeckStudyComponent implements OnInit {
   }
 
   onConfidenceChange() {
-    // Save confidence score immediately when changed
     if (this.currentVerse) {
-      console.log(`Confidence changed to ${this.currentVerse.confidence_score}%`);
-      // TODO: Save confidence to backend using a new endpoint
-      // This would require creating a new endpoint to save confidence scores
-      // for individual verses or cards
+      this.bibleService
+        .updateVerseConfidence(
+          this.userId,
+          this.currentVerse.verse_id,
+          this.currentVerse.confidence_score || 0,
+        )
+        .subscribe();
     }
   }
 

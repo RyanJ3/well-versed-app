@@ -309,3 +309,42 @@ async def get_verse_texts(
         logger.error(f"Error getting verse texts: {e}")
         # Return empty texts for all requested verses
         return {code: "" for code in verse_codes}
+
+class ConfidenceUpdate(BaseModel):
+    confidence_score: int
+    last_reviewed: Optional[str] = None
+
+
+@router.put("/confidence/{user_id}/{verse_id}")
+async def update_confidence(
+    user_id: int,
+    verse_id: int,
+    update: ConfidenceUpdate,
+    db: DatabaseConnection = Depends(get_db),
+):
+    """Update a user's confidence score for a verse."""
+    logger.info(
+        f"Updating confidence for user {user_id}, verse {verse_id} to {update.confidence_score}"
+    )
+
+    query = """
+        INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, last_reviewed)
+        VALUES (%s, %s, %s, %s)
+        ON CONFLICT (user_id, verse_id)
+        DO UPDATE SET
+            confidence_score = EXCLUDED.confidence_score,
+            last_reviewed = EXCLUDED.last_reviewed,
+            review_count = user_verse_confidence.review_count + 1
+    """
+
+    db.execute(
+        query,
+        (
+            user_id,
+            verse_id,
+            update.confidence_score,
+            update.last_reviewed or datetime.now().isoformat(),
+        ),
+    )
+
+    return {"message": "Confidence updated"}

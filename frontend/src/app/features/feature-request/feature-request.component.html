@@ -141,24 +141,15 @@
       <!-- Vote Section -->
       <div class="vote-section">
         <button 
-          class="vote-btn upvote" 
+          class="vote-btn upvote"
           [class.active]="request.user_vote === 'up'"
-          (click)="vote(request, 'up')"
+          (click)="vote(request)"
           [disabled]="!currentUser">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
           </svg>
         </button>
-        <span class="vote-count">{{ request.upvotes - request.downvotes }}</span>
-        <button 
-          class="vote-btn downvote" 
-          [class.active]="request.user_vote === 'down'"
-          (click)="vote(request, 'down')"
-          [disabled]="!currentUser">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+        <span class="vote-count">{{ request.upvotes }}</span>
       </div>
 
       <!-- Content Section -->
