@@ -45,6 +45,9 @@ export class DeckEditorComponent implements OnInit {
   // Warning messages for inline verse pickers
   pickerWarnings: { [cardId: number]: string } = {};
 
+  // Drag and drop
+  draggedIndex: number | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -303,35 +306,12 @@ export class DeckEditorComponent implements OnInit {
       card_type: 'single_verse',
       reference: 'Select verses...',
       verses: [],
+      position: this.deckCards.length + 1,
+      added_at: new Date().toISOString(),
       confidence_score: undefined, // Changed from null to undefined
     };
 
     this.deckCards.push(newCard);
-  }
-
-  // Duplicate card
-  async duplicateCard(card: CardWithVerses) {
-    const verseCodes = card.verses.map((v) => v.verse_code);
-
-    this.deckService
-      .addVersesToDeck(this.deckId, verseCodes, card.reference + ' (Copy)')
-      .subscribe({
-        next: () => {
-          this.loadDeckCards();
-          this.modalService.success(
-            'Card Duplicated',
-            'The card has been duplicated successfully.',
-          );
-        },
-        error: (error: any) => {
-          console.error('Error duplicating card:', error);
-          this.modalService.alert(
-            'Error Duplicating Card',
-            'Unable to duplicate card. Please try again.',
-            'danger',
-          );
-        },
-      });
   }
 
   // Bulk operations
@@ -444,6 +424,29 @@ export class DeckEditorComponent implements OnInit {
         `${tempCardIds.length} card${tempCardIds.length !== 1 ? 's' : ''} removed from the deck.`,
       );
     }
+  }
+
+  onDragStart(index: number) {
+    this.draggedIndex = index;
+  }
+
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+  }
+
+  onDrop(index: number) {
+    if (this.draggedIndex === null || this.draggedIndex === index) return;
+    const [moved] = this.deckCards.splice(this.draggedIndex, 1);
+    this.deckCards.splice(index, 0, moved);
+    this.draggedIndex = null;
+    this.saveCardOrder();
+  }
+
+  saveCardOrder() {
+    const ids = this.deckCards
+      .filter((c) => c.card_id > 0)
+      .map((c) => c.card_id);
+    this.deckService.reorderDeckCards(this.deckId, ids).subscribe();
   }
 
   goBack() {

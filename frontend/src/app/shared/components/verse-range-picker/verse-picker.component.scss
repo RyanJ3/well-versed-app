@@ -82,6 +82,7 @@
   border-radius: 0.5rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   overflow: hidden;
+  pointer-events: none;
   transition:
     opacity 300ms,
     transform 300ms;
@@ -91,6 +92,7 @@
   &.show {
     opacity: 1;
     transform: translateY(0);
+    pointer-events: auto;
   }
 }
 

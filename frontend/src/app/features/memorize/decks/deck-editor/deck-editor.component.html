@@ -150,8 +150,8 @@
                 />
               </th>
               <th class="th-reference">Reference</th>
-              <th class="th-book">Book</th>
-              <th class="th-type">Type</th>
+              <th class="th-added">Added</th>
+              <th class="th-added-date">Added Date</th>
               <th class="th-verses">Verses</th>
               <th class="th-confidence">Confidence</th>
               <th class="th-actions">Actions</th>
@@ -161,6 +161,10 @@
             <tr
               *ngFor="let card of deckCards; let i = index"
               [class.selected]="selectedCards.has(card.card_id)"
+              draggable="true"
+              (dragstart)="onDragStart(i)"
+              (dragover)="onDragOver($event)"
+              (drop)="onDrop(i)"
             >
               <td class="td-checkbox">
                 <input
@@ -187,14 +191,12 @@
                 </div>
               </td>
 
-              <td class="td-book">
-                <span class="book-name">{{ getCardBook(card) }}</span>
+              <td class="td-added">
+                <span>{{ card.position }}</span>
               </td>
 
-              <td class="td-type">
-                <span class="type-badge" [class]="card.card_type">
-                  {{ card.card_type === "single_verse" ? "Single" : "Range" }}
-                </span>
+              <td class="td-added-date">
+                <span>{{ card.added_at | date: "shortDate" }}</span>
               </td>
 
               <td class="td-verses">
@@ -217,25 +219,6 @@
 
               <td class="td-actions">
                 <div class="action-buttons">
-                  <button
-                    class="action-btn duplicate"
-                    (click)="duplicateCard(card)"
-                    title="Duplicate card"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </button>
                   <button
                     class="action-btn delete"
                     (click)="removeCardFromDeck(card.card_id)"

@@ -50,6 +50,8 @@ export interface CardWithVerses {
   card_type: string;
   reference: string;
   verses: VerseInCard[];
+  position: number;
+  added_at: string;
   confidence_score?: number;
   last_reviewed?: string;
 }
@@ -62,7 +64,7 @@ export interface DeckCardsResponse {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DeckService {
   private apiUrl = `${environment.apiUrl}/decks`;
@@ -77,15 +79,24 @@ export class DeckService {
     return this.http.get<DeckListResponse>(`${this.apiUrl}/user/${userId}`);
   }
 
-  getPublicDecks(skip: number = 0, limit: number = 20): Observable<DeckListResponse> {
-    return this.http.get<DeckListResponse>(`${this.apiUrl}/public?skip=${skip}&limit=${limit}`);
+  getPublicDecks(
+    skip: number = 0,
+    limit: number = 20,
+  ): Observable<DeckListResponse> {
+    return this.http.get<DeckListResponse>(
+      `${this.apiUrl}/public?skip=${skip}&limit=${limit}`,
+    );
   }
 
   getDeck(deckId: number): Observable<DeckResponse> {
     return this.http.get<DeckResponse>(`${this.apiUrl}/${deckId}`);
   }
 
-  getDeckCards(deckId: number, userId: number, bibleId?: string): Observable<DeckCardsResponse> {
+  getDeckCards(
+    deckId: number,
+    userId: number,
+    bibleId?: string,
+  ): Observable<DeckCardsResponse> {
     let url = `${this.apiUrl}/${deckId}/verses?user_id=${userId}`;
     if (bibleId) {
       url += `&bible_id=${bibleId}`;
@@ -93,10 +104,14 @@ export class DeckService {
     return this.http.get<DeckCardsResponse>(url);
   }
 
-  addVersesToDeck(deckId: number, verseCodes: string[], reference?: string): Observable<any> {
+  addVersesToDeck(
+    deckId: number,
+    verseCodes: string[],
+    reference?: string,
+  ): Observable<any> {
     return this.http.post(`${this.apiUrl}/${deckId}/verses`, {
       verse_codes: verseCodes,
-      reference: reference
+      reference: reference,
     });
   }
 
@@ -104,8 +119,18 @@ export class DeckService {
     return this.http.delete(`${this.apiUrl}/${deckId}/cards/${cardId}`);
   }
 
-  removeMultipleCardsFromDeck(deckId: number, cardIds: number[]): Observable<any> {
-    return this.http.post(`${this.apiUrl}/${deckId}/cards/remove-multiple`, cardIds);
+  removeMultipleCardsFromDeck(
+    deckId: number,
+    cardIds: number[],
+  ): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/${deckId}/cards/remove-multiple`,
+      cardIds,
+    );
+  }
+
+  reorderDeckCards(deckId: number, cardIds: number[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${deckId}/cards/reorder`, cardIds);
   }
 
   updateDeck(deckId: number, updates: any): Observable<DeckResponse> {
