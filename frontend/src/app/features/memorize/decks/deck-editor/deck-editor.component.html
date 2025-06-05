@@ -94,10 +94,7 @@
 
   <!-- Cards Tab with Table Design -->
   <div *ngIf="!isLoading && editMode === 'verses'" class="tab-content">
-    <div
-      class="cards-table-section"
-      [class.has-open-dropdown]="editingCardId !== null"
-    >
+    <div class="cards-table-section">
       <div class="section-header">
         <h2>Deck Cards</h2>
         <div class="header-stats">
@@ -164,7 +161,6 @@
             <tr
               *ngFor="let card of deckCards; let i = index"
               [class.selected]="selectedCards.has(card.card_id)"
-              [class.editing]="editingCardId === card.card_id"
             >
               <td class="td-checkbox">
                 <input
@@ -177,29 +173,7 @@
 
               <td class="td-reference">
                 <div class="reference-cell">
-                  <button
-                    *ngIf="editingCardId !== card.card_id"
-                    class="reference-button"
-                    (click)="toggleCardEdit(card.card_id)"
-                  >
-                    <span class="reference-text">{{ card.reference }}</span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </button>
-
                   <app-verse-picker
-                    *ngIf="editingCardId === card.card_id"
                     class="inline-picker"
                     [theme]="'minimal'"
                     [disabledModes]="['chapter']"

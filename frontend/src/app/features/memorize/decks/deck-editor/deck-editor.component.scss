@@ -1,32 +1,8 @@
-// When editing a card, ensure proper layering
-.cards-table tbody tr.editing {
-  position: relative;
-  z-index: 500 !important; // High z-index for the editing row
-  
-  .reference-cell {
-    position: relative;
-    z-index: 501 !important; // Even higher for the cell with dropdown
-  }
-}// Global style to prevent clipping when dropdown is open
-body:has(.dropdown-container) {
-  overflow-x: hidden; // Prevent horizontal scroll
-  
-  // Ensure all parent containers allow overflow
-  .deck-editor-container,
-  .tab-content,
-  .cards-table-section,
-  .cards-table-container {
-    overflow: visible !important;
-  }
-}.td-reference {
-  position: relative;
-  overflow: visible !important; // Force overflow visible
-}// frontend/src/app/deck-editor/deck-editor.component.scss
 .deck-editor-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1rem;
-  padding-bottom: 300px; // Extra space for dropdown at bottom of page
+  padding-bottom: 300px; // Extra space for picker overlays at bottom of page
   min-height: 100vh;
 }
 
@@ -123,7 +99,7 @@ body:has(.dropdown-container) {
     font-weight: 600;
 
     &::after {
-      content: '';
+      content: "";
       position: absolute;
       bottom: -2px;
       left: 0;
@@ -153,7 +129,9 @@ body:has(.dropdown-container) {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 // Tab Content
@@ -162,7 +140,7 @@ body:has(.dropdown-container) {
   border-radius: 0.5rem;
   padding: 2rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  overflow: visible; // Ensure dropdowns can overflow
+  overflow: visible; // Allow pickers to overflow
 }
 
 // Form Section
@@ -219,15 +197,8 @@ textarea.form-control {
 // Cards Table Section
 .cards-table-section {
   margin-bottom: 2rem;
-  position: relative; // For dropdown positioning context
-  
-  // Ensure dropdowns can overflow
+  position: relative;
   overflow: visible;
-  
-  // When dropdown is open, ensure proper z-index layering
-  &.has-open-dropdown {
-    z-index: 100;
-  }
 }
 
 .section-header {
@@ -272,7 +243,7 @@ textarea.form-control {
   background: white;
   border-radius: 0.75rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  // Removed overflow: hidden to allow dropdown to show outside container
+  // Allow pickers to overflow
 }
 
 // Table Styles
@@ -320,27 +291,18 @@ textarea.form-control {
   }
 }
 
-// When editing a card, ensure proper layering
-.cards-table tbody tr.editing {
-  position: relative;
-  z-index: 500 !important; // High z-index for the editing row
-  
-  .reference-cell {
-    position: relative;
-    z-index: 501 !important; // Even higher for the cell with dropdown
-  }
-}
-
 // Table column widths
-.th-checkbox, .td-checkbox {
+.th-checkbox,
+.td-checkbox {
   width: 40px;
   text-align: center;
 }
 
-.th-reference, .td-reference {
+.th-reference,
+.td-reference {
   width: 30%;
   position: relative;
-  overflow: visible; // Allow dropdown to overflow
+  overflow: visible; // Allow picker overlay to escape
 }
 
 .th-book {
@@ -371,107 +333,6 @@ textarea.form-control {
   cursor: pointer;
   width: 16px;
   height: 16px;
-}
-
-// Reference cell with dropdown
-.reference-cell {
-  position: relative;
-  z-index: auto;
-  
-  // When dropdown is open, increase z-index
-  &:has(.dropdown-wrapper) {
-    z-index: 1001;
-  }
-}
-
-.reference-button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem;
-  margin: -0.5rem;
-  border-radius: 0.375rem;
-  transition: all 0.2s;
-  width: 100%;
-  text-align: left;
-
-  &:hover {
-    background-color: #f3f4f6;
-  }
-
-  &.active {
-    background-color: #eff6ff;
-    color: #3b82f6;
-  }
-
-  svg {
-    width: 16px;
-    height: 16px;
-    color: #6b7280;
-    transition: transform 0.2s;
-
-    &.rotated {
-      transform: rotate(180deg);
-    }
-  }
-}
-
-.reference-text {
-  font-weight: 500;
-  color: #1f2937;
-}
-
-// Dropdown wrapper and container
-.dropdown-wrapper {
-  position: static; // Important: don't create a new positioning context
-}
-
-.dropdown-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 999;
-  background: rgba(0, 0, 0, 0.1);
-}
-
-.dropdown-container {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  left: 0;
-  z-index: 1000;
-  min-width: 400px;
-  max-width: min(90vw, 600px);
-  
-  // Add max height and scroll if needed
-  max-height: min(500px, calc(100vh - 200px));
-  overflow-y: auto;
-  overflow-x: hidden;
-  
-  // Style the verse picker within
-  app-verse-picker {
-    display: block;
-    position: relative;
-    z-index: 1002;
-    
-    // Override the verse picker's minimal theme to add proper styling
-    ::ng-deep .verse-picker {
-      background: white !important;
-      border-radius: 0.5rem !important;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
-      border: 1px solid #e5e7eb !important;
-      padding: 1rem !important;
-      position: relative !important;
-      z-index: 1003 !important;
-    }
-  }
-  
-  // If near bottom of viewport, open upwards
-  &.dropup {
-    top: auto;
-    bottom: calc(100% + 0.5rem);
-  }
 }
 
 // Book name
@@ -675,7 +536,7 @@ textarea.form-control {
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
-  z-index: 50; // Lower than dropdown z-index (1000)
+  z-index: 50; // Keep bulk actions above table rows
 }
 
 .selection-info {
@@ -736,26 +597,5 @@ textarea.form-control {
 
   .cards-table {
     min-width: 700px;
-  }
-
-  .dropdown-container {
-    position: fixed;
-    left: 1rem !important;
-    right: 1rem !important;
-    top: 50% !important;
-    transform: translateY(-50%);
-    max-width: none;
-    min-width: auto;
-    width: auto;
-  }
-}
-
-// Global style to prevent clipping when dropdown is open
-:host-context(body):has(.dropdown-container) {
-  .deck-editor-container,
-  .tab-content,
-  .cards-table-section,
-  .cards-table-container {
-    overflow: visible !important;
   }
 }

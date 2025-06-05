@@ -39,9 +39,6 @@ export class DeckEditorComponent implements OnInit {
   deckDescription = '';
   isDeckPublic = false;
 
-  // Card editing state
-  editingCardId: number | null = null;
-
   // Selected cards for bulk operations
   selectedCards: Set<number> = new Set();
 
@@ -141,23 +138,7 @@ export class DeckEditorComponent implements OnInit {
     });
   }
 
-  // Card editing methods
-  toggleCardEdit(cardId: number) {
-    this.editingCardId = this.editingCardId === cardId ? null : cardId;
-    this.pickerWarnings[cardId] = '';
-
-    // If opening, calculate dropdown position after DOM update
-    if (this.editingCardId === cardId) {
-      setTimeout(() => {
-        this.calculateDropdownPosition(cardId);
-      }, 0);
-    }
-  }
-
-  calculateDropdownPosition(cardId: number) {
-    // This method can be used to calculate if dropdown should open up or down
-    // based on available space. For now, we'll rely on CSS positioning.
-  }
+  // Card selection helpers
 
   getCardSelection(card: CardWithVerses): VerseSelection | null {
     if (!card.verses || card.verses.length === 0) return null;
@@ -223,7 +204,6 @@ export class DeckEditorComponent implements OnInit {
         .subscribe({
           next: () => {
             this.loadDeckCards();
-            this.editingCardId = null;
             this.modalService.success(
               'Card Added',
               'The card has been added successfully.',
@@ -267,7 +247,6 @@ export class DeckEditorComponent implements OnInit {
           .subscribe({
             next: () => {
               this.loadDeckCards();
-              this.editingCardId = null;
               this.modalService.success(
                 'Card Updated',
                 'The card has been updated successfully.',
@@ -328,7 +307,6 @@ export class DeckEditorComponent implements OnInit {
     };
 
     this.deckCards.push(newCard);
-    this.editingCardId = tempCardId;
   }
 
   // Duplicate card
@@ -390,9 +368,6 @@ export class DeckEditorComponent implements OnInit {
     // If it's a temporary card (negative ID), just remove from array
     if (cardId < 0) {
       this.deckCards = this.deckCards.filter((c) => c.card_id !== cardId);
-      if (this.editingCardId === cardId) {
-        this.editingCardId = null;
-      }
       return;
     }
 
@@ -400,9 +375,6 @@ export class DeckEditorComponent implements OnInit {
       next: () => {
         this.deckCards = this.deckCards.filter((c) => c.card_id !== cardId);
         this.selectedCards.delete(cardId);
-        if (this.editingCardId === cardId) {
-          this.editingCardId = null;
-        }
         this.modalService.success(
           'Card Removed',
           'The card has been removed from the deck.',
