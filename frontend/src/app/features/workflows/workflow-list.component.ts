@@ -7,11 +7,12 @@ import {
   WorkflowService,
   WorkflowResponse,
 } from '../../core/services/workflow.service';
+import { WorkflowCardComponent } from './components/workflow-card.component';
 
 @Component({
   selector: 'app-workflow-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, WorkflowCardComponent],
   templateUrl: './workflow-list.component.html',
   styleUrls: ['./workflow-list.component.scss'],
 })

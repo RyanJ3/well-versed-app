@@ -1,24 +1,37 @@
-<!-- frontend/src/app/features/workflows/workflow-list.component.html -->
-<div class="workflow-list">
-  <h2>Workflows</h2>
-  <div class="search-bar">
-    <input
-      type="text"
-      placeholder="Search workflows"
-      [(ngModel)]="searchTerm"
-      (ngModelChange)="onSearch()"
-    />
-    <a routerLink="/workflows/new" class="create-link">Create Workflow</a>
+<div class="workflow-container">
+  <div class="hero-section">
+    <div class="hero-background">
+      <div class="hero-gradient"></div>
+      <div class="hero-pattern"></div>
+    </div>
+    <div class="hero-content">
+      <h1 class="hero-title">
+        <span class="gradient-text">Workflows</span>
+      </h1>
+      <p class="hero-subtitle">Structured lesson plans to guide your study</p>
+    </div>
   </div>
-  <div *ngIf="isLoading">Loading...</div>
-  <ul *ngIf="!isLoading && workflows.length > 0">
-    <li *ngFor="let wf of workflows">
-      <h3>{{ wf.name }}</h3>
-      <p>{{ wf.description }}</p>
-      <p>Lessons: {{ wf.lesson_count }}</p>
-    </li>
-  </ul>
-  <div *ngIf="!isLoading && workflows.length === 0">
-    No workflows found. <a routerLink="/workflows/new">Create one</a>.
+
+  <div class="content-wrapper">
+    <div class="actions-row">
+      <input
+        type="text"
+        placeholder="Search workflows"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearch()"
+      />
+      <a routerLink="/workflows/new" class="create-button">Create Workflow</a>
+    </div>
+
+    <div class="loading" *ngIf="isLoading">Loading...</div>
+    <div class="workflows-grid" *ngIf="!isLoading">
+      <app-workflow-card
+        *ngFor="let wf of workflows"
+        [workflow]="wf"
+      ></app-workflow-card>
+      <div class="empty-state" *ngIf="workflows.length === 0">
+        No workflows found. <a routerLink="/workflows/new">Create one</a>.
+      </div>
+    </div>
   </div>
 </div>

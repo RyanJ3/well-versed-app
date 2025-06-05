@@ -1,0 +1,61 @@
+.workflow-card {
+  background: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-content {
+    padding: 1rem;
+  }
+
+  .workflow-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+    color: #1e293b;
+  }
+
+  .workflow-description {
+    font-size: 0.875rem;
+    color: #475569;
+    margin-bottom: 0.75rem;
+    min-height: 2.5rem;
+  }
+
+  .workflow-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #64748b;
+  }
+
+  .card-actions {
+    padding: 0 1rem 1rem;
+  }
+
+  .start-button {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    color: white;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    }
+  }
+}

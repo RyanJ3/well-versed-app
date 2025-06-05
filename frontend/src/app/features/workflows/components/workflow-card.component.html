@@ -1,0 +1,15 @@
+<div class="workflow-card">
+  <div class="card-content">
+    <h3 class="workflow-name">{{ workflow.name }}</h3>
+    <p class="workflow-description">{{ workflow.description }}</p>
+    <div class="workflow-meta">
+      <span class="lesson-count">{{ workflow.lesson_count }} lessons</span>
+      <span class="creator-name">by {{ workflow.creator_name }}</span>
+    </div>
+  </div>
+  <div class="card-actions">
+    <a [routerLink]="['/workflows', workflow.workflow_id]" class="start-button">
+      View
+    </a>
+  </div>
+</div>
