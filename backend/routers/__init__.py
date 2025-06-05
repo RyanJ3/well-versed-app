@@ -5,3 +5,4 @@
 from . import users
 from . import user_verses
 from . import decks
+from . import feature_requests
