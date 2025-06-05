@@ -2,28 +2,40 @@
 <div class="workflow-builder">
   <!-- Header -->
   <div class="builder-header">
-    <h1>{{ isEditMode ? 'Edit Workflow' : 'Create New Workflow' }}</h1>
+    <h1>{{ isEditMode ? "Edit Workflow" : "Create New Workflow" }}</h1>
     <div class="header-actions">
       <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
-      <button class="btn btn-primary" (click)="saveWorkflow()" [disabled]="saving">
-        {{ saving ? 'Saving...' : 'Save Workflow' }}
+      <button
+        class="btn btn-primary"
+        (click)="saveWorkflow()"
+        [disabled]="saving"
+      >
+        {{ saving ? "Saving..." : "Save Workflow" }}
       </button>
     </div>
   </div>
 
   <!-- Step Navigation -->
   <div class="step-navigation">
-    <div 
-      *ngFor="let step of steps" 
+    <div
+      *ngFor="let step of steps"
       class="step-item"
       [class.completed]="getStepStatus(step.number) === 'completed'"
       [class.active]="getStepStatus(step.number) === 'active'"
       (click)="goToStep(step.number)"
     >
       <div class="step-number">
-        <span *ngIf="getStepStatus(step.number) !== 'completed'">{{ step.number }}</span>
-        <svg *ngIf="getStepStatus(step.number) === 'completed'" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+        <span *ngIf="getStepStatus(step.number) !== 'completed'">{{
+          step.number
+        }}</span>
+        <svg
+          *ngIf="getStepStatus(step.number) === 'completed'"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+        >
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" />
         </svg>
       </div>
       <div class="step-info">
@@ -34,29 +46,45 @@
   </div>
 
   <!-- Step 1: Workflow Info -->
-  <div class="workflow-info" [formGroup]="workflowForm" *ngIf="currentStep === 1">
+  <div
+    class="workflow-info"
+    [formGroup]="workflowForm"
+    *ngIf="currentStep === 1"
+  >
     <div class="form-group">
       <label>Workflow Title <span class="required">*</span></label>
-      <input 
-        type="text" 
-        class="form-control" 
+      <input
+        type="text"
+        class="form-control"
         formControlName="title"
         placeholder="Enter a title for your workflow"
+      />
+      <div
+        class="error-message"
+        *ngIf="
+          workflowForm.get('title')?.touched &&
+          workflowForm.get('title')?.errors?.['required']
+        "
       >
-      <div class="error-message" *ngIf="workflowForm.get('title')?.touched && workflowForm.get('title')?.errors?.['required']">
         Title is required
       </div>
     </div>
 
     <div class="form-group">
       <label>Description <span class="required">*</span></label>
-      <textarea 
-        class="form-control" 
+      <textarea
+        class="form-control"
         formControlName="description"
         rows="3"
         placeholder="Describe what learners will gain from this workflow"
       ></textarea>
-      <div class="error-message" *ngIf="workflowForm.get('description')?.touched && workflowForm.get('description')?.errors?.['required']">
+      <div
+        class="error-message"
+        *ngIf="
+          workflowForm.get('description')?.touched &&
+          workflowForm.get('description')?.errors?.['required']
+        "
+      >
         Description is required
       </div>
     </div>
@@ -66,8 +94,8 @@
         <label>Tags</label>
         <div class="tags-container">
           <div class="selected-tags">
-            <span 
-              *ngFor="let tag of selectedTags" 
+            <span
+              *ngFor="let tag of selectedTags"
               class="tag-chip"
               (click)="removeTag(tag)"
             >
@@ -75,14 +103,14 @@
               <span class="remove-icon">×</span>
             </span>
           </div>
-          <select 
-            class="form-control tag-select" 
+          <select
+            class="form-control tag-select"
             #tagSelect
             (change)="addTag(tagSelect.value); tagSelect.value = ''"
           >
             <option value="">Add a tag...</option>
-            <option 
-              *ngFor="let tag of availableTags" 
+            <option
+              *ngFor="let tag of availableTags"
               [value]="tag"
               [disabled]="selectedTags.includes(tag)"
             >
@@ -94,15 +122,21 @@
 
       <div class="form-group">
         <label class="checkbox-label">
-          <input type="checkbox" formControlName="is_public">
+          <input type="checkbox" formControlName="is_public" />
           Make this workflow public
         </label>
-        <p class="help-text">Public workflows can be discovered by other users</p>
+        <p class="help-text">
+          Public workflows can be discovered by other users
+        </p>
       </div>
     </div>
 
     <div class="step-footer">
-      <button class="btn btn-primary" (click)="nextStep()" [disabled]="!canProceed()">
+      <button
+        class="btn btn-primary"
+        (click)="nextStep()"
+        [disabled]="!canProceed()"
+      >
         Next Step
       </button>
     </div>
@@ -118,7 +152,7 @@
       </div>
 
       <div class="lesson-list">
-        <div 
+        <div
           *ngFor="let lesson of lessons; let i = index"
           class="lesson-card"
           [class.active]="selectedLessonIndex === i"
@@ -126,24 +160,34 @@
         >
           <div class="lesson-handle">
             <div class="reorder-buttons">
-              <button 
+              <button
                 class="reorder-btn"
                 (click)="moveLesson(i, 'up'); $event.stopPropagation()"
                 [disabled]="i === 0"
                 title="Move up"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M7 14l5-5 5 5z"/>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M7 14l5-5 5 5z" />
                 </svg>
               </button>
-              <button 
+              <button
                 class="reorder-btn"
                 (click)="moveLesson(i, 'down'); $event.stopPropagation()"
                 [disabled]="i === lessons.length - 1"
                 title="Move down"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M7 10l5 5 5-5z"/>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M7 10l5 5 5-5z" />
                 </svg>
               </button>
             </div>
@@ -151,24 +195,43 @@
             <div class="lesson-info">
               <div class="lesson-title">{{ lesson.title }}</div>
               <div class="lesson-type">
-                {{ getLessonIcon(lesson.content_type) }} {{ getLessonTypeLabel(lesson.content_type) }}
+                {{ getLessonIcon(lesson.content_type) }}
+                {{ getLessonTypeLabel(lesson.content_type) }}
               </div>
             </div>
-            <button 
+            <button
               class="delete-btn"
               (click)="deleteLesson(i); $event.stopPropagation()"
               title="Delete lesson"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+                />
               </svg>
             </button>
           </div>
         </div>
 
         <button class="add-lesson-btn" (click)="addLesson()">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
           </svg>
           <span>Add New Lesson</span>
         </button>
@@ -178,12 +241,26 @@
     <!-- Right Panel: Lesson Editor -->
     <div class="editor-panel content-panel">
       <div class="panel-header" *ngIf="selectedLessonIndex !== null">
-        <h3>Lesson {{ selectedLessonIndex + 1 }}: {{ lessons[selectedLessonIndex].title }}</h3>
+        <h3>
+          Lesson {{ selectedLessonIndex + 1 }}:
+          {{ lessons[selectedLessonIndex].title }}
+        </h3>
       </div>
 
       <div class="empty-state" *ngIf="selectedLessonIndex === null">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        <svg
+          width="64"
+          height="64"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+          />
         </svg>
         <p>Select a lesson to edit or create a new one</p>
       </div>
@@ -191,18 +268,18 @@
       <form [formGroup]="lessonForm" *ngIf="selectedLessonIndex !== null">
         <div class="form-group">
           <label>Lesson Title <span class="required">*</span></label>
-          <input 
-            type="text" 
-            class="form-control" 
+          <input
+            type="text"
+            class="form-control"
             formControlName="title"
             placeholder="Enter lesson title"
-          >
+          />
         </div>
 
         <div class="form-group">
           <label>Description</label>
-          <textarea 
-            class="form-control" 
+          <textarea
+            class="form-control"
             formControlName="description"
             rows="2"
             placeholder="Brief description of the lesson (optional)"
@@ -212,34 +289,42 @@
         <div class="form-group">
           <label>Content Type <span class="required">*</span></label>
           <div class="content-type-selector">
-            <div 
+            <div
               class="type-option"
-              [class.selected]="lessonForm.get('content_type')?.value === 'video'"
-              (click)="lessonForm.patchValue({content_type: 'video'})"
+              [class.selected]="
+                lessonForm.get('content_type')?.value === 'video'
+              "
+              (click)="lessonForm.patchValue({ content_type: 'video' })"
             >
               <div class="type-icon">📹</div>
               <div>Video</div>
             </div>
-            <div 
+            <div
               class="type-option"
-              [class.selected]="lessonForm.get('content_type')?.value === 'article'"
-              (click)="lessonForm.patchValue({content_type: 'article'})"
+              [class.selected]="
+                lessonForm.get('content_type')?.value === 'article'
+              "
+              (click)="lessonForm.patchValue({ content_type: 'article' })"
             >
               <div class="type-icon">📄</div>
               <div>Article</div>
             </div>
             <div
               class="type-option"
-              [class.selected]="lessonForm.get('content_type')?.value === 'external_link'"
-              (click)="lessonForm.patchValue({content_type: 'external_link'})"
+              [class.selected]="
+                lessonForm.get('content_type')?.value === 'external_link'
+              "
+              (click)="lessonForm.patchValue({ content_type: 'external_link' })"
             >
               <div class="type-icon">🔗</div>
               <div>External</div>
             </div>
             <div
               class="type-option"
-              [class.selected]="lessonForm.get('content_type')?.value === 'quiz'"
-              (click)="lessonForm.patchValue({content_type: 'quiz'})"
+              [class.selected]="
+                lessonForm.get('content_type')?.value === 'quiz'
+              "
+              (click)="lessonForm.patchValue({ content_type: 'quiz' })"
             >
               <div class="type-icon">❓</div>
               <div>Quiz</div>
@@ -248,32 +333,44 @@
         </div>
 
         <!-- Video Content -->
-        <div class="content-fields" *ngIf="lessonForm.get('content_type')?.value === 'video'">
+        <div
+          class="content-fields"
+          *ngIf="lessonForm.get('content_type')?.value === 'video'"
+        >
           <div class="form-group">
             <label>YouTube URL <span class="required">*</span></label>
-            <input 
-              type="url" 
-              class="form-control" 
+            <input
+              type="url"
+              class="form-control"
               formControlName="youtube_url"
               placeholder="https://www.youtube.com/watch?v=..."
-            >
+            />
             <p class="help-text">Paste the full YouTube video URL</p>
           </div>
         </div>
 
         <!-- Article Content -->
-        <div class="content-fields" *ngIf="lessonForm.get('content_type')?.value === 'article'">
+        <div
+          class="content-fields"
+          *ngIf="lessonForm.get('content_type')?.value === 'article'"
+        >
           <div class="form-group">
             <label>Article Content <span class="required">*</span></label>
-            <textarea 
-              class="form-control article-textarea" 
+            <textarea
+              class="form-control article-textarea"
               formControlName="article_text"
               rows="10"
               placeholder="Write your article content here..."
             ></textarea>
             <div class="char-count">
-              {{ lessonForm.get('article_text')?.value?.length || 0 }} characters
-              <span *ngIf="lessonForm.get('article_text')?.errors?.['minLength']" class="error">
+              {{
+                lessonForm.get("article_text")?.value?.length || 0
+              }}
+              characters
+              <span
+                *ngIf="lessonForm.get('article_text')?.errors?.['minLength']"
+                class="error"
+              >
                 (minimum 100)
               </span>
             </div>
@@ -281,41 +378,35 @@
         </div>
 
         <!-- External Link Content -->
-        <div class="content-fields" *ngIf="lessonForm.get('content_type')?.value === 'external_link'">
+        <div
+          class="content-fields"
+          *ngIf="lessonForm.get('content_type')?.value === 'external_link'"
+        >
           <div class="form-group">
             <label>External URL <span class="required">*</span></label>
-            <input 
-              type="url" 
-              class="form-control" 
+            <input
+              type="url"
+              class="form-control"
               formControlName="external_url"
               placeholder="https://example.com/resource"
-            >
+            />
           </div>
           <div class="form-group">
             <label>Link Title</label>
-            <input 
-              type="text" 
-              class="form-control" 
+            <input
+              type="text"
+              class="form-control"
               formControlName="external_title"
               placeholder="Title for the external resource"
-            >
+            />
           </div>
         </div>
 
         <!-- Quiz Content -->
-        <div class="content-fields" *ngIf="lessonForm.get('content_type')?.value === 'quiz'">
-          <div class="form-group">
-            <label>Number of Verses <span class="required">*</span></label>
-            <input
-              type="number"
-              class="form-control"
-              formControlName="quiz_verse_count"
-              min="2"
-              max="7"
-              placeholder="5"
-            >
-            <p class="help-text">How many verses to include (2-7)</p>
-          </div>
+        <div
+          class="content-fields"
+          *ngIf="lessonForm.get('content_type')?.value === 'quiz'"
+        >
           <div class="form-group">
             <label>Pass Threshold (%)</label>
             <input
@@ -325,52 +416,116 @@
               min="50"
               max="100"
               placeholder="85"
-            >
+            />
             <p class="help-text">Minimum average confidence to pass</p>
           </div>
           <div class="form-group">
             <label class="checkbox-label">
-              <input type="checkbox" formControlName="quiz_randomize">
-              Randomize verse selection
+              <input type="checkbox" formControlName="quiz_randomize" />
+              Randomize question order
             </label>
           </div>
-          <div class="quiz-warning" *ngIf="selectedLessonIndex === 0">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-            </svg>
-            <span>First lesson cannot be a quiz as there are no previous lessons.</span>
+
+          <div class="quiz-cards-table">
+            <table class="cards-table" formArrayName="quiz_cards">
+              <thead>
+                <tr>
+                  <th class="th-reference">Reference</th>
+                  <th class="th-verses">Verses</th>
+                  <th class="th-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  *ngFor="let card of quizCards.controls; let i = index"
+                  [formGroupName]="i"
+                >
+                  <td class="td-reference">
+                    <app-verse-picker
+                      class="inline-picker"
+                      [theme]="'minimal'"
+                      [disabledModes]="['chapter']"
+                      [pageType]="'flashcard'"
+                      [maximumVerses]="getMaxVersesForCard(i)"
+                      (selectionApplied)="applyQuizSelection(i, $event)"
+                    ></app-verse-picker>
+                  </td>
+                  <td class="td-verses">{{ card.get("verseCount")?.value }}</td>
+                  <td class="td-actions">
+                    <button
+                      type="button"
+                      class="action-btn delete"
+                      (click)="removeQuizCard(i)"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="quizCards.length === 0" class="empty-row">
+                  <td class="empty-cell" colspan="3">No cards added.</td>
+                </tr>
+              </tbody>
+            </table>
+            <div
+              class="add-card-section"
+              *ngIf="quizCards.length < 3 && getTotalQuizVerses() < 5"
+            >
+              <button
+                type="button"
+                class="add-card-button"
+                (click)="addQuizCard()"
+              >
+                Add Card
+              </button>
+            </div>
+            <p class="help-text">Up to 3 cards or 5 verses total.</p>
           </div>
         </div>
 
         <!-- Common Fields -->
         <div class="form-group">
           <label>Audio Narration (Optional)</label>
-          <input 
-            type="url" 
-            class="form-control" 
+          <input
+            type="url"
+            class="form-control"
             formControlName="audio_url"
             placeholder="https://example.com/audio.mp3"
-          >
+          />
           <p class="help-text">Add an audio file URL for narration</p>
         </div>
 
         <div class="form-group">
           <label>Required Flashcards</label>
-          <input 
-            type="number" 
-            class="form-control" 
+          <input
+            type="number"
+            class="form-control"
             formControlName="flashcards_required"
             min="1"
             max="20"
-            style="width: 100px;"
-          >
-          <p class="help-text">Number of flashcards students must complete to unlock the next lesson</p>
+            style="width: 100px"
+          />
+          <p class="help-text">
+            Number of flashcards students must complete to unlock the next
+            lesson
+          </p>
         </div>
 
         <div class="lesson-actions">
-          <button 
-            type="button" 
-            class="btn btn-primary" 
+          <button
+            type="button"
+            class="btn btn-primary"
             (click)="saveLessonToMemory()"
             [disabled]="!lessonForm.valid"
           >
@@ -385,33 +540,41 @@
   <div class="review-section" *ngIf="currentStep === 3">
     <div class="review-content">
       <h2>Review Your Workflow</h2>
-      
+
       <div class="review-card">
-        <h3>{{ workflowForm.get('title')?.value }}</h3>
-        <p>{{ workflowForm.get('description')?.value }}</p>
-        
+        <h3>{{ workflowForm.get("title")?.value }}</h3>
+        <p>{{ workflowForm.get("description")?.value }}</p>
+
         <div class="review-meta">
           <div class="meta-item">
-            <strong>Visibility:</strong> 
-            {{ workflowForm.get('is_public')?.value ? 'Public' : 'Private' }}
+            <strong>Visibility:</strong>
+            {{ workflowForm.get("is_public")?.value ? "Public" : "Private" }}
           </div>
           <div class="meta-item">
             <strong>Total Lessons:</strong> {{ lessons.length }}
           </div>
           <div class="meta-item" *ngIf="selectedTags.length > 0">
-            <strong>Tags:</strong> 
-            <span class="tag-chip" *ngFor="let tag of selectedTags">{{ formatTag(tag) }}</span>
+            <strong>Tags:</strong>
+            <span class="tag-chip" *ngFor="let tag of selectedTags">{{
+              formatTag(tag)
+            }}</span>
           </div>
         </div>
       </div>
 
       <div class="lessons-review">
         <h3>Lessons</h3>
-        <div class="review-lesson" *ngFor="let lesson of lessons; let i = index">
+        <div
+          class="review-lesson"
+          *ngFor="let lesson of lessons; let i = index"
+        >
           <div class="lesson-number">{{ i + 1 }}</div>
           <div class="lesson-details">
             <strong>{{ lesson.title }}</strong>
-            <span class="lesson-type">{{ getLessonIcon(lesson.content_type) }} {{ getLessonTypeLabel(lesson.content_type) }}</span>
+            <span class="lesson-type"
+              >{{ getLessonIcon(lesson.content_type) }}
+              {{ getLessonTypeLabel(lesson.content_type) }}</span
+            >
           </div>
         </div>
       </div>
@@ -423,9 +586,9 @@
     <button class="btn btn-secondary" (click)="previousStep()">
       Previous Step
     </button>
-    <button 
-      class="btn btn-primary" 
-      (click)="nextStep()" 
+    <button
+      class="btn btn-primary"
+      (click)="nextStep()"
       [disabled]="!canProceed()"
       *ngIf="currentStep < 3"
     >
