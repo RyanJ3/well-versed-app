@@ -422,4 +422,12 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   get percentComplete(): number {
     return this.bibleData.percentComplete;
   }
+
+  get totalVerses(): number {
+    return this.bibleData.totalVerses;
+  }
+
+  get memorizedVerses(): number {
+    return this.bibleData.memorizedVerses;
+  }
 }
