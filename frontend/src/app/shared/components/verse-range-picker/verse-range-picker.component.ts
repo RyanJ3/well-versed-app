@@ -41,6 +41,9 @@ export class VersePickerComponent implements OnInit {
   @Output() selectionApplied = new EventEmitter<VerseSelection>();
 
   @Input() warningMessage: string | null = null;
+  @Input() initialSelection: VerseSelection | null = null;
+
+  private appliedInitial = false;
 
   mode: 'single' | 'range' | 'chapter' = 'range';
 
@@ -168,8 +171,16 @@ export class VersePickerComponent implements OnInit {
     this.books = bibleData.books;
 
     if (this.books.length > 0) {
-      this.selectedBook = this.books[0];
+      if (this.initialSelection) {
+        const book = this.books.find(
+          (b) => b.id === this.initialSelection!.startVerse.bookId,
+        );
+        this.selectedBook = book || this.books[0];
+      } else {
+        this.selectedBook = this.books[0];
+      }
       this.loadChapters();
+      this.applyInitialSelection();
     }
   }
 
@@ -269,6 +280,25 @@ export class VersePickerComponent implements OnInit {
   }
 
   onEndVerseChange() {
+    this.emitSelection();
+  }
+
+  private applyInitialSelection() {
+    if (!this.initialSelection || this.appliedInitial) return;
+
+    const sel = this.initialSelection;
+    this.mode = sel.mode;
+    this.selectedChapter = sel.startVerse.chapter;
+    this.selectedVerse = sel.startVerse.verse;
+    this.selectedEndChapter = sel.endVerse
+      ? sel.endVerse.chapter
+      : sel.startVerse.chapter;
+    this.selectedEndVerse = sel.endVerse
+      ? sel.endVerse.verse
+      : sel.startVerse.verse;
+
+    this.loadVerses();
+    this.appliedInitial = true;
     this.emitSelection();
   }
 

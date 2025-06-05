@@ -159,7 +159,6 @@ export class DeckEditorComponent implements OnInit {
     // based on available space. For now, we'll rely on CSS positioning.
   }
 
-  // Note: This method is for future use when VersePickerComponent supports initialSelection
   getCardSelection(card: CardWithVerses): VerseSelection | null {
     if (!card.verses || card.verses.length === 0) return null;
 

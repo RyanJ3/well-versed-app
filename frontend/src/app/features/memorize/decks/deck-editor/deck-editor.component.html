@@ -178,9 +178,9 @@
               <td class="td-reference">
                 <div class="reference-cell">
                   <button
+                    *ngIf="editingCardId !== card.card_id"
                     class="reference-button"
                     (click)="toggleCardEdit(card.card_id)"
-                    [class.active]="editingCardId === card.card_id"
                   >
                     <span class="reference-text">{{ card.reference }}</span>
                     <svg
@@ -188,7 +188,6 @@
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
-                      [class.rotated]="editingCardId === card.card_id"
                     >
                       <path
                         stroke-linecap="round"
@@ -207,6 +206,7 @@
                     [pageType]="'flashcard'"
                     [maximumVerses]="7"
                     [warningMessage]="pickerWarnings[card.card_id]"
+                    [initialSelection]="getCardSelection(card)"
                     (selectionApplied)="applyVerseSelection(card, $event)"
                   >
                   </app-verse-picker>
@@ -368,9 +368,7 @@
               d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
             />
           </svg>
-          {{ selectedCards.size }} card{{
-            selectedCards.size !== 1 ? "s" : ""
-          }}
+          {{ selectedCards.size }} card{{ selectedCards.size !== 1 ? "s" : "" }}
           selected
         </div>
         <button class="bulk-action-button" (click)="removeSelectedCards()">
