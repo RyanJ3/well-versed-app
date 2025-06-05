@@ -1,5 +1,5 @@
 // frontend/src/app/shared/components/verse-range-picker/verse-picker.component.ts
-import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, Input, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../../core/services/user.service';
@@ -114,6 +114,15 @@ export class VersePickerComponent implements OnInit {
   // Open handling
   toggleOpen() {
     this.isOpen = !this.isOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!this.isOpen) return;
+    const target = event.target as HTMLElement;
+    if (!target.closest('.hover-container')) {
+      this.isOpen = false;
+    }
   }
 
   // Display helpers

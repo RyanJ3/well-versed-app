@@ -336,14 +336,6 @@
     }
   }
 
-  &.downvote.active {
-    background: #fee2e2;
-    border-color: #ef4444;
-    
-    svg {
-      color: #ef4444;
-    }
-  }
 }
 
 .vote-count {

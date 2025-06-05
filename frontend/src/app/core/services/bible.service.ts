@@ -183,4 +183,15 @@ export class BibleService {
       })
     );
   }
+
+  updateVerseConfidence(userId: number, verseId: number, confidence: number) {
+    const payload = {
+      confidence_score: confidence,
+      last_reviewed: new Date().toISOString(),
+    };
+    return this.http.put(
+      `${this.apiUrl}/user-verses/confidence/${userId}/${verseId}`,
+      payload,
+    );
+  }
 }
