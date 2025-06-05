@@ -20,6 +20,13 @@ export interface Lesson {
   title: string;
   description?: string;
   content_type: 'video' | 'article' | 'external_link' | 'quiz' | '';
+  /**
+   * The API returns lesson content nested under a `content_data` field.
+   * Including this optional property allows frontend code to map the
+   * response directly while still supporting the flattened structure
+   * used when creating new lessons.
+   */
+  content_data?: LessonContent;
   youtube_url?: string;
   article_text?: string;
   external_url?: string;
