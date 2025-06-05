@@ -8,16 +8,29 @@ import { WorkflowService } from '../../core/services/workflow.service';
 import { UserService } from '../../core/services/user.service';
 import { ModalService } from '../../core/services/modal.service';
 
+import { LessonContent } from '../../core/models/workflow.model';
+
 interface Lesson {
   id?: number;
   title: string;
   description?: string;
-  content_type: 'video' | 'article' | 'external_link' | '';
+  content_type: 'video' | 'article' | 'external_link' | 'quiz' | '';
+  /**
+   * Lessons retrieved from the API include a content_data object which holds
+   * the actual lesson content. When building a new lesson we flatten these
+   * values onto the lesson itself, but keeping this optional property allows
+   * us to easily map existing lessons returned by the backend.
+   */
+  content_data?: LessonContent;
   youtube_url?: string;
   article_text?: string;
   external_url?: string;
   external_title?: string;
   audio_url?: string;
+  // Quiz specific fields
+  quiz_verse_count?: number;
+  quiz_pass_threshold?: number;
+  quiz_randomize?: boolean;
   flashcards_required: number;
   position: number;
 }
@@ -102,6 +115,9 @@ export class WorkflowBuilderComponent implements OnInit {
       external_url: [''],
       external_title: [''],
       audio_url: [''],
+      quiz_verse_count: [5],
+      quiz_pass_threshold: [85],
+      quiz_randomize: [true],
       flashcards_required: [3, [Validators.required, Validators.min(1), Validators.max(20)]]
     });
 
@@ -113,7 +129,9 @@ export class WorkflowBuilderComponent implements OnInit {
       const controls = {
         youtube_url: this.lessonForm.get('youtube_url'),
         article_text: this.lessonForm.get('article_text'),
-        external_url: this.lessonForm.get('external_url')
+        external_url: this.lessonForm.get('external_url'),
+        quiz_verse_count: this.lessonForm.get('quiz_verse_count'),
+        quiz_pass_threshold: this.lessonForm.get('quiz_pass_threshold')
       };
 
       // Clear all validators
@@ -129,6 +147,10 @@ export class WorkflowBuilderComponent implements OnInit {
           break;
         case 'external_link':
           controls.external_url?.setValidators([Validators.required]);
+          break;
+        case 'quiz':
+          controls.quiz_verse_count?.setValidators([Validators.required, Validators.min(2), Validators.max(7)]);
+          controls.quiz_pass_threshold?.setValidators([Validators.required, Validators.min(50), Validators.max(100)]);
           break;
       }
 
@@ -161,6 +183,9 @@ export class WorkflowBuilderComponent implements OnInit {
           article_text: lesson.content_data?.article_text,
           external_url: lesson.content_data?.external_url,
           external_title: lesson.content_data?.external_title,
+          quiz_verse_count: lesson.content_data?.quiz_config?.verse_count,
+          quiz_pass_threshold: lesson.content_data?.quiz_config?.pass_threshold,
+          quiz_randomize: lesson.content_data?.quiz_config?.randomize,
           flashcards_required: 3, // Default value, as it's not in the API response
           position: index + 1
         }));
@@ -189,6 +214,9 @@ export class WorkflowBuilderComponent implements OnInit {
       external_url: lesson.external_url || '',
       external_title: lesson.external_title || '',
       audio_url: lesson.audio_url || '',
+      quiz_verse_count: lesson.quiz_verse_count || 5,
+      quiz_pass_threshold: lesson.quiz_pass_threshold || 85,
+      quiz_randomize: lesson.quiz_randomize ?? true,
       flashcards_required: lesson.flashcards_required
     });
 
@@ -199,6 +227,9 @@ export class WorkflowBuilderComponent implements OnInit {
     const newLesson: Lesson = {
       title: `Lesson ${this.lessons.length + 1}`,
       content_type: '',
+      quiz_verse_count: 5,
+      quiz_pass_threshold: 85,
+      quiz_randomize: true,
       flashcards_required: 3,
       position: this.lessons.length + 1
     };
@@ -267,6 +298,7 @@ export class WorkflowBuilderComponent implements OnInit {
       case 'video': return '📹';
       case 'article': return '📄';
       case 'external_link': return '🔗';
+      case 'quiz': return '❓';
       default: return '📝';
     }
   }
@@ -276,6 +308,7 @@ export class WorkflowBuilderComponent implements OnInit {
       case 'video': return 'Video lesson';
       case 'article': return 'Article';
       case 'external_link': return 'External link';
+      case 'quiz': return 'Quiz';
       default: return 'No type selected';
     }
   }
@@ -379,12 +412,7 @@ export class WorkflowBuilderComponent implements OnInit {
             title: lesson.title,
             description: lesson.description,
             content_type: lesson.content_type as any,
-            content_data: {
-              youtube_url: lesson.youtube_url,
-              article_text: lesson.article_text,
-              external_url: lesson.external_url,
-              external_title: lesson.external_title
-            },
+            content_data: this.buildContentData(lesson),
             audio_url: lesson.audio_url,
             position: lesson.position
           }).toPromise();
@@ -397,6 +425,28 @@ export class WorkflowBuilderComponent implements OnInit {
       this.modalService.alert('Error', 'Failed to save workflow. Please try again.', 'danger');
     } finally {
       this.saving = false;
+    }
+  }
+
+  buildContentData(lesson: Lesson): any {
+    switch (lesson.content_type) {
+      case 'video':
+        return { youtube_url: lesson.youtube_url };
+      case 'article':
+        return { article_text: lesson.article_text };
+      case 'external_link':
+        return { external_url: lesson.external_url, external_title: lesson.external_title };
+      case 'quiz':
+        return {
+          quiz_config: {
+            source_lessons: [],
+            verse_count: lesson.quiz_verse_count,
+            pass_threshold: lesson.quiz_pass_threshold,
+            randomize: lesson.quiz_randomize
+          }
+        };
+      default:
+        return {};
     }
   }
 

@@ -228,13 +228,21 @@
               <div class="type-icon">📄</div>
               <div>Article</div>
             </div>
-            <div 
+            <div
               class="type-option"
               [class.selected]="lessonForm.get('content_type')?.value === 'external_link'"
               (click)="lessonForm.patchValue({content_type: 'external_link'})"
             >
               <div class="type-icon">🔗</div>
               <div>External</div>
+            </div>
+            <div
+              class="type-option"
+              [class.selected]="lessonForm.get('content_type')?.value === 'quiz'"
+              (click)="lessonForm.patchValue({content_type: 'quiz'})"
+            >
+              <div class="type-icon">❓</div>
+              <div>Quiz</div>
             </div>
           </div>
         </div>
@@ -291,6 +299,46 @@
               formControlName="external_title"
               placeholder="Title for the external resource"
             >
+          </div>
+        </div>
+
+        <!-- Quiz Content -->
+        <div class="content-fields" *ngIf="lessonForm.get('content_type')?.value === 'quiz'">
+          <div class="form-group">
+            <label>Number of Verses <span class="required">*</span></label>
+            <input
+              type="number"
+              class="form-control"
+              formControlName="quiz_verse_count"
+              min="2"
+              max="7"
+              placeholder="5"
+            >
+            <p class="help-text">How many verses to include (2-7)</p>
+          </div>
+          <div class="form-group">
+            <label>Pass Threshold (%)</label>
+            <input
+              type="number"
+              class="form-control"
+              formControlName="quiz_pass_threshold"
+              min="50"
+              max="100"
+              placeholder="85"
+            >
+            <p class="help-text">Minimum average confidence to pass</p>
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="quiz_randomize">
+              Randomize verse selection
+            </label>
+          </div>
+          <div class="quiz-warning" *ngIf="selectedLessonIndex === 0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <span>First lesson cannot be a quiz as there are no previous lessons.</span>
           </div>
         </div>
 

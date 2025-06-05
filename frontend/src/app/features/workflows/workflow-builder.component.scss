@@ -445,7 +445,7 @@ textarea.form-control {
 
 .content-type-selector {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
 }
 
@@ -495,6 +495,19 @@ textarea.form-control {
 
   .error {
     color: #ef4444;
+  }
+}
+
+.quiz-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #b45309;
+  margin-top: 0.5rem;
+
+  svg {
+    flex-shrink: 0;
   }
 }
 
