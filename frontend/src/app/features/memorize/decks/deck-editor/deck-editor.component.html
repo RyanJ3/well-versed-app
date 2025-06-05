@@ -158,9 +158,9 @@
               *ngFor="let card of deckCards; let i = index"
               [class.selected]="selectedCards.has(card.card_id)"
               draggable="true"
-              (dragstart)="onDragStart(i)"
-              (dragover)="onDragOver($event)"
-              (drop)="onDrop(i)"
+              (dragstart)="onDragStart($event, i)"
+              (dragover)="onDragOver($event, i)"
+              (drop)="onDrop()"
             >
               <td class="td-checkbox">
                 <span class="drag-handle" title="Drag to reorder"></span>

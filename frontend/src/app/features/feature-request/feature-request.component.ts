@@ -196,6 +196,31 @@ export class FeatureRequestComponent implements OnInit, OnDestroy {
     }
   }
 
+  downvote(request: FeatureRequest): void {
+    if (!this.currentUser) {
+      this.modalService.alert('Login Required', 'Please log in to vote on feature requests', 'info');
+      return;
+    }
+
+    if (!request.user_vote) {
+      return;
+    }
+
+    this.featureRequestService.removeVote(request.id, this.currentUser.id as number).subscribe({
+      next: () => {
+        if (request.user_vote === 'up') {
+          request.upvotes--;
+        }
+        request.user_vote = null;
+        request.has_voted = false;
+      },
+      error: (error) => {
+        console.error('Error removing vote:', error);
+        this.modalService.alert('Error', 'Failed to remove vote', 'danger');
+      }
+    });
+  }
+
   onSearchChange(): void {
     this.searchSubject.next(this.searchQuery);
   }

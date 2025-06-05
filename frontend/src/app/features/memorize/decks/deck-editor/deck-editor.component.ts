@@ -426,18 +426,22 @@ export class DeckEditorComponent implements OnInit {
     }
   }
 
-  onDragStart(index: number) {
+  onDragStart(event: DragEvent, index: number) {
+    this.draggedIndex = index;
+    event.dataTransfer?.setDragImage(document.createElement('div'), 0, 0);
+  }
+
+  onDragOver(event: DragEvent, index: number) {
+    event.preventDefault();
+    if (this.draggedIndex === null || this.draggedIndex === index) return;
+
+    const [moved] = this.deckCards.splice(this.draggedIndex, 1);
+    this.deckCards.splice(index, 0, moved);
     this.draggedIndex = index;
   }
 
-  onDragOver(event: DragEvent) {
-    event.preventDefault();
-  }
-
-  onDrop(index: number) {
-    if (this.draggedIndex === null || this.draggedIndex === index) return;
-    const [moved] = this.deckCards.splice(this.draggedIndex, 1);
-    this.deckCards.splice(index, 0, moved);
+  onDrop() {
+    if (this.draggedIndex === null) return;
     this.draggedIndex = null;
     this.saveCardOrder();
   }

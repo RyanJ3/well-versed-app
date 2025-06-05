@@ -330,10 +330,14 @@
   &.upvote.active {
     background: #dbeafe;
     border-color: #3b82f6;
-    
+
     svg {
       color: #3b82f6;
     }
+  }
+
+  &.downvote svg {
+    transform: rotate(180deg);
   }
 
 }
