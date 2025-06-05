@@ -7,36 +7,75 @@
   </div>
 
   <!-- Grand Total -->
-  <div class="grand-total-card section bg-white p-4 rounded shadow mb-6 text-center">
-    <h3 class="text-lg font-semibold mb-2">Grand Total Memorized</h3>
-    <div class="text-2xl font-bold">
+  <div
+    class="grand-total-card section bg-white p-4 rounded shadow mb-6 text-center"
+  >
+    <h3 class="text-lg font-semibold mb-4">Grand Total Memorized</h3>
+    <div class="chart-wrapper mx-auto mb-4">
+      <kendo-chart [legend]="{ position: 'bottom' }" [transitions]="false">
+        <kendo-chart-series>
+          <kendo-chart-series-item
+            [data]="chartData"
+            type="pie"
+            field="value"
+            categoryField="category"
+          >
+          </kendo-chart-series-item>
+        </kendo-chart-series>
+      </kendo-chart>
+    </div>
+    <div class="text-2xl font-bold mb-2">
       {{ memorizedVerses | number }} / {{ totalVerses | number }}
     </div>
-    <div class="text-sm text-gray-500">{{ percentComplete }}% complete</div>
+    <kendo-progressbar
+      [value]="percentComplete"
+      [label]="percentComplete + '%'"
+      [max]="100"
+    ></kendo-progressbar>
   </div>
 
   <!-- Testament Selection -->
   <div class="section bg-white p-4 rounded shadow mb-6">
     <div class="flex justify-between items-center mb-3">
       <h3 class="text-lg font-semibold">Select Testament</h3>
-      
+
       <!-- Apocrypha indicator -->
-      <div class="apocrypha-indicator flex items-center text-sm" *ngIf="includeApocrypha">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <div
+        class="apocrypha-indicator flex items-center text-sm"
+        *ngIf="includeApocrypha"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4 mr-1 text-blue-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
         <span class="text-blue-600">Apocrypha Included</span>
       </div>
     </div>
-    
+
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <button *ngFor="let testament of testaments" class="testament-card"
-        [class.active]="testament === selectedTestament" 
+      <button
+        *ngFor="let testament of testaments"
+        class="testament-card"
+        [class.active]="testament === selectedTestament"
         [class]="getTestamentClass(testament)"
-        (click)="setTestament(testament)">
+        (click)="setTestament(testament)"
+      >
         <h4 class="text-md font-medium">{{ testament.name }}</h4>
         <div class="progress-container">
-          <div class="progress-bar" [style.width.%]="testament.percentComplete"></div>
+          <div
+            class="progress-bar"
+            [style.width.%]="testament.percentComplete"
+          ></div>
         </div>
         <span class="text-sm">{{ testament.percentComplete }}% Complete</span>
       </button>
@@ -44,22 +83,35 @@
   </div>
 
   <!-- Group Selection -->
-  <div *ngIf="selectedTestament" class="section bg-white p-4 rounded shadow mb-6">
+  <div
+    *ngIf="selectedTestament"
+    class="section bg-white p-4 rounded shadow mb-6"
+  >
     <h3 class="text-lg font-semibold mb-3">Select Book Group</h3>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-      <button *ngFor="let group of selectedTestament.groups" class="group-card"
-        [class.active]="group.name === selectedGroup?.name" (click)="setGroup(group)">
+      <button
+        *ngFor="let group of selectedTestament.groups"
+        class="group-card"
+        [class.active]="group.name === selectedGroup?.name"
+        (click)="setGroup(group)"
+      >
         <div class="card-content">
           <div class="flex justify-between items-center mb-2">
             <h4 class="group-name">{{ group.name }}</h4>
             <span class="group-badge">{{ group.percentComplete }}%</span>
           </div>
           <div class="progress-container">
-            <div class="progress-bar" [style.width.%]="group.percentComplete"></div>
+            <div
+              class="progress-bar"
+              [style.width.%]="group.percentComplete"
+            ></div>
           </div>
           <div class="book-preview mt-3">
             <div class="flex flex-wrap gap-1">
-              <span *ngFor="let book of group.books.slice(0, 5)" class="book-chip">
+              <span
+                *ngFor="let book of group.books.slice(0, 5)"
+                class="book-chip"
+              >
                 {{ book.name }}
               </span>
               <span *ngIf="group.books.length > 5" class="book-chip more-chip">
@@ -79,14 +131,17 @@
       <span class="text-sm text-gray-500">{{ selectedGroup.name }}</span>
     </div>
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-      <button *ngFor="let book of selectedGroup.books" class="book-card" 
-              [class.active]="book === selectedBook"
-              [class.completed]="book.isCompleted"
-              [class.in-progress]="book.isInProgress"
-              [class.apocryphal]="isApocryphalBook(book)"
-              (click)="setBook(book)">
+      <button
+        *ngFor="let book of selectedGroup.books"
+        class="book-card"
+        [class.active]="book === selectedBook"
+        [class.completed]="book.isCompleted"
+        [class.in-progress]="book.isInProgress"
+        [class.apocryphal]="isApocryphalBook(book)"
+        (click)="setBook(book)"
+      >
         <div class="card-header">
-          <h4 class="book-name">{{ book.name }}</h4>          
+          <h4 class="book-name">{{ book.name }}</h4>
           <!-- Add a small indicator for apocryphal books -->
           <span *ngIf="isApocryphalBook(book)" class="apocryphal-badge">
             A
@@ -94,7 +149,10 @@
         </div>
 
         <div class="progress-container my-2">
-          <div class="progress-bar" [style.width.%]="book.percentComplete"></div>
+          <div
+            class="progress-bar"
+            [style.width.%]="book.percentComplete"
+          ></div>
         </div>
 
         <div class="flex justify-between text-sm mt-2">
@@ -110,31 +168,53 @@
     <div class="flex justify-between items-center mb-4">
       <h3 class="text-lg font-semibold">{{ selectedBook.name }}</h3>
       <div class="text-sm text-gray-500">
-        {{ selectedBook.memorizedChapters }} / {{ selectedBook.totalChapters }} chapters memorized
+        {{ selectedBook.memorizedChapters }} /
+        {{ selectedBook.totalChapters }} chapters memorized
       </div>
     </div>
 
     <!-- Add this section to show a message when apocrypha is disabled and the book has apocryphal chapters -->
-    <div *ngIf="hasApocryphalChapters(selectedBook) && !includeApocrypha" 
-         class="apocrypha-info text-sm text-gray-500 mb-4">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <div
+      *ngIf="hasApocryphalChapters(selectedBook) && !includeApocrypha"
+      class="apocrypha-info text-sm text-gray-500 mb-4"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-4 w-4 inline mr-1"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
       </svg>
       This book has apocryphal chapters that are currently hidden.
-      <a href="#" (click)="goToSettings($event)" class="text-blue-600 hover:underline">Enable apocrypha</a> to view them.
+      <a
+        href="#"
+        (click)="goToSettings($event)"
+        class="text-blue-600 hover:underline"
+        >Enable apocrypha</a
+      >
+      to view them.
     </div>
-    
+
     <!-- Chapter buttons - Shows only visible chapters based on apocrypha settings -->
     <div class="chapter-overview flex flex-wrap gap-2 mb-4">
       <ng-container *ngFor="let chapter of selectedBook.chapters">
         <!-- Only show chapters that should be visible based on user preferences -->
-        <button *ngIf="isChapterVisible(chapter)" 
+        <button
+          *ngIf="isChapterVisible(chapter)"
           class="chapter-button"
-          [class.active]="chapter === selectedChapter" 
+          [class.active]="chapter === selectedChapter"
           [class.completed]="chapter.isComplete"
-          [class.in-progress]="!chapter.isComplete && chapter.isInProgress" 
+          [class.in-progress]="!chapter.isComplete && chapter.isInProgress"
           [class.apocryphal]="chapter.isApocryphal"
-          (click)="setChapter(chapter)">
+          (click)="setChapter(chapter)"
+        >
           {{ chapter.chapterNumber }}
         </button>
       </ng-container>
@@ -150,19 +230,45 @@
         </div>
       </div>
       <div class="bulk-actions-buttons">
-        <button (click)="selectAllBookVerses()" 
-                class="bulk-action-btn bulk-action-primary" 
-                [disabled]="isLoading || isSavingBulk">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        <button
+          (click)="selectAllBookVerses()"
+          class="bulk-action-btn bulk-action-primary"
+          [disabled]="isLoading || isSavingBulk"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            class="btn-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 13l4 4L19 7"
+            />
           </svg>
           Memorize Entire Book
         </button>
-        <button (click)="clearAllBookVerses()" 
-                class="bulk-action-btn bulk-action-secondary" 
-                [disabled]="isLoading || isSavingBulk">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        <button
+          (click)="clearAllBookVerses()"
+          class="bulk-action-btn bulk-action-secondary"
+          [disabled]="isLoading || isSavingBulk"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            class="btn-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
           Clear Entire Book
         </button>
@@ -175,19 +281,25 @@
     <h3 class="text-lg font-semibold mb-3">
       {{ selectedBook?.name }} {{ selectedChapter.chapterNumber }}
       <span class="text-sm text-gray-500 ml-2">
-        {{ selectedChapter.memorizedVerses }} / {{ selectedChapter.totalVerses }} verses memorized
+        {{ selectedChapter.memorizedVerses }} /
+        {{ selectedChapter.totalVerses }} verses memorized
       </span>
-      <span *ngIf="selectedChapter.isApocryphal" class="text-sm text-purple-500 ml-2">
+      <span
+        *ngIf="selectedChapter.isApocryphal"
+        class="text-sm text-purple-500 ml-2"
+      >
         (Apocryphal)
       </span>
     </h3>
 
     <!-- Progress Bar -->
     <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
-      <div class="h-2 rounded-full" 
-           [style.width.%]="selectedChapter.percentComplete"
-           [class.bg-blue-500]="!selectedChapter.isApocryphal"
-           [class.bg-purple-500]="selectedChapter.isApocryphal"></div>
+      <div
+        class="h-2 rounded-full"
+        [style.width.%]="selectedChapter.percentComplete"
+        [class.bg-blue-500]="!selectedChapter.isApocryphal"
+        [class.bg-purple-500]="selectedChapter.isApocryphal"
+      ></div>
     </div>
 
     <!-- Loading indicator -->
@@ -199,13 +311,15 @@
 
     <!-- Verse bubbles -->
     <div class="verse-container" [class.disabled]="isLoading || isSavingBulk">
-      <button *ngFor="let verse of selectedChapter.verses" 
-              (click)="toggleAndSaveVerse(verse)" 
-              class="verse-bubble"
-              [class.selected]="verse.memorized" 
-              [class.not-selected]="!verse.memorized"
-              [class.apocryphal]="verse.isApocryphal"
-              [disabled]="isLoading || isSavingBulk">
+      <button
+        *ngFor="let verse of selectedChapter.verses"
+        (click)="toggleAndSaveVerse(verse)"
+        class="verse-bubble"
+        [class.selected]="verse.memorized"
+        [class.not-selected]="!verse.memorized"
+        [class.apocryphal]="verse.isApocryphal"
+        [disabled]="isLoading || isSavingBulk"
+      >
         {{ verse.verseNumber }}
       </button>
     </div>
@@ -221,19 +335,45 @@
         </div>
       </div>
       <div class="bulk-actions-buttons">
-        <button (click)="selectAllVerses()" 
-                class="bulk-action-btn bulk-action-primary" 
-                [disabled]="isLoading || isSavingBulk">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        <button
+          (click)="selectAllVerses()"
+          class="bulk-action-btn bulk-action-primary"
+          [disabled]="isLoading || isSavingBulk"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            class="btn-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 13l4 4L19 7"
+            />
           </svg>
           Select All Verses
         </button>
-        <button (click)="clearAllVerses()" 
-                class="bulk-action-btn bulk-action-secondary" 
-                [disabled]="isLoading || isSavingBulk">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        <button
+          (click)="clearAllVerses()"
+          class="bulk-action-btn bulk-action-secondary"
+          [disabled]="isLoading || isSavingBulk"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            class="btn-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
           Clear All Verses
         </button>
@@ -242,7 +382,11 @@
 
     <!-- Refresh button to reload user verses from server -->
     <div class="flex justify-center mt-4">
-      <button (click)="refreshVerses()" class="refresh-button" [disabled]="isLoading">
+      <button
+        (click)="refreshVerses()"
+        class="refresh-button"
+        [disabled]="isLoading"
+      >
         <span *ngIf="!isLoading">Refresh</span>
         <span *ngIf="isLoading">Loading...</span>
       </button>
