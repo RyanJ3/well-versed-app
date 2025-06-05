@@ -336,6 +336,12 @@
     }
   }
 
+  &.downvote {
+    svg {
+      transform: translateY(2px);
+    }
+  }
+
 }
 
 .vote-count {

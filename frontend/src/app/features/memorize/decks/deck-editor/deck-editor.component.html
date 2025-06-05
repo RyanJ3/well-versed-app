@@ -158,7 +158,7 @@
               *ngFor="let card of deckCards; let i = index"
               [class.selected]="selectedCards.has(card.card_id)"
               draggable="true"
-              (dragstart)="onDragStart(i)"
+              (dragstart)="onDragStart(i, $event)"
               (dragover)="onDragOver($event)"
               (drop)="onDrop(i)"
             >

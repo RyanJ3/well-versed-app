@@ -426,8 +426,13 @@ export class DeckEditorComponent implements OnInit {
     }
   }
 
-  onDragStart(index: number) {
+  onDragStart(index: number, event: DragEvent) {
     this.draggedIndex = index;
+    if (event.dataTransfer) {
+      const img = new Image();
+      img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/AcAAwUB/WM8JAgAAAAASUVORK5CYII=';
+      event.dataTransfer.setDragImage(img, 0, 0);
+    }
   }
 
   onDragOver(event: DragEvent) {
