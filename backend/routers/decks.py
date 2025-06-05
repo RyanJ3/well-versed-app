@@ -50,6 +50,8 @@ class CardWithVerses(BaseModel):
     card_type: str
     reference: str
     verses: List[dict]  # List of verse data
+    position: int
+    added_at: str
     confidence_score: Optional[int] = None
     last_reviewed: Optional[str] = None
     
@@ -271,11 +273,12 @@ async def get_deck_verses(deck_id: int, user_id: int = 1, bible_id: Optional[str
     
     # Get cards with their verses
     cards_query = """
-        SELECT 
+        SELECT
             dc.card_id,
             dc.card_type,
             dc.reference,
             dc.position,
+            dc.added_at,
             cv.verse_id,
             cv.verse_order,
             bv.verse_code,
@@ -304,6 +307,8 @@ async def get_deck_verses(deck_id: int, user_id: int = 1, bible_id: Optional[str
                 'card_id': card_id,
                 'card_type': row['card_type'],
                 'reference': row['reference'],
+                'position': row['position'],
+                'added_at': row['added_at'],
                 'verses': []
             }
         
@@ -374,6 +379,8 @@ async def get_deck_verses(deck_id: int, user_id: int = 1, bible_id: Optional[str
             card_type=card_data['card_type'],
             reference=card_data['reference'],
             verses=card_data['verses'],
+            position=card_data['position'],
+            added_at=card_data['added_at'].isoformat() if card_data['added_at'] else None,
             confidence_score=confidence_score,
             last_reviewed=last_reviewed
         ))
@@ -547,6 +554,19 @@ async def remove_multiple_cards_from_deck(deck_id: int, card_ids: List[int], db:
         db.execute(query, (deck_id, card_id))
     
     return {"message": f"Removed {len(card_ids)} cards from deck"}
+
+@router.post("/{deck_id}/cards/reorder")
+async def reorder_deck_cards(deck_id: int, card_ids: List[int], db: DatabaseConnection = Depends(get_db)):
+    """Reorder cards within a deck based on the provided list of card IDs"""
+    logger.info(f"Reordering cards for deck {deck_id}")
+
+    position = 1
+    for card_id in card_ids:
+        query = "UPDATE deck_cards SET position = %s WHERE deck_id = %s AND card_id = %s"
+        db.execute(query, (position, deck_id, card_id))
+        position += 1
+
+    return {"message": "Deck cards reordered"}
 
 # Add these routes to backend/routers/decks.py
 

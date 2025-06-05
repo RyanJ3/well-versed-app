@@ -289,6 +289,10 @@ textarea.form-control {
     vertical-align: middle;
     overflow: visible; // Ensure cells don't clip content
   }
+
+  tbody tr[draggable="true"] {
+    cursor: move;
+  }
 }
 
 // Table column widths
@@ -305,12 +309,15 @@ textarea.form-control {
   overflow: visible; // Allow picker overlay to escape
 }
 
-.th-book {
-  width: 15%;
+.th-added,
+.td-added {
+  width: 8%;
+  text-align: center;
 }
 
-.th-type {
-  width: 10%;
+.th-added-date,
+.td-added-date {
+  width: 15%;
   text-align: center;
 }
 
@@ -333,32 +340,6 @@ textarea.form-control {
   cursor: pointer;
   width: 16px;
   height: 16px;
-}
-
-// Book name
-.book-name {
-  color: #4b5563;
-  font-size: 0.875rem;
-}
-
-// Type badge
-.type-badge {
-  display: inline-flex;
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-
-  &.single_verse {
-    background-color: #dbeafe;
-    color: #1e40af;
-  }
-
-  &.verse_range {
-    background-color: #dcfce7;
-    color: #166534;
-  }
 }
 
 // Verse count
@@ -437,13 +418,6 @@ textarea.form-control {
 
     svg {
       color: #374151;
-    }
-  }
-
-  &.duplicate:hover {
-    border-color: #3b82f6;
-    svg {
-      color: #3b82f6;
     }
   }
 
