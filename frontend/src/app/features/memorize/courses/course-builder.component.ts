@@ -102,6 +102,36 @@ export class CourseBuilderComponent implements OnInit {
   ngOnInit() {
     this.availableTags = this.courseService.getSuggestedTags();
 
+    // Load draft from localStorage if available
+    const draftRaw = localStorage.getItem('courseBuilderDraft');
+    if (draftRaw) {
+      try {
+        const draft = JSON.parse(draftRaw);
+        if (draft.courseForm) {
+          this.courseForm.patchValue(draft.courseForm);
+        }
+        if (Array.isArray(draft.selectedTags)) {
+          this.selectedTags = draft.selectedTags;
+        }
+        if (Array.isArray(draft.lessons)) {
+          this.lessons = draft.lessons;
+        }
+        if (typeof draft.currentStep === 'number') {
+          this.currentStep = draft.currentStep;
+        }
+        if (
+          typeof draft.selectedLessonIndex === 'number' &&
+          draft.selectedLessonIndex < this.lessons.length
+        ) {
+          this.selectLesson(draft.selectedLessonIndex);
+        }
+      } catch (e) {
+        console.error('Failed to load draft', e);
+      }
+    }
+
+    this.courseForm.valueChanges.subscribe(() => this.autoSave());
+
     this.userService.currentUser$.subscribe((user) => {
       if (user) {
         this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
@@ -398,6 +428,7 @@ export class CourseBuilderComponent implements OnInit {
 
     this.lessons.push(newLesson);
     this.selectLesson(this.lessons.length - 1);
+    this.autoSave();
   }
 
   saveLessonToMemory() {
@@ -419,6 +450,7 @@ export class CourseBuilderComponent implements OnInit {
     };
 
     this.updatePositions();
+    this.autoSave();
   }
 
   deleteLesson(index: number) {
@@ -442,6 +474,7 @@ export class CourseBuilderComponent implements OnInit {
           ) {
             this.selectedLessonIndex--;
           }
+          this.autoSave();
         }
       });
   }
@@ -456,6 +489,7 @@ export class CourseBuilderComponent implements OnInit {
     this.lessons[toIndex] = temp;
 
     this.updatePositions();
+    this.autoSave();
 
     // Update selected index if needed
     if (this.selectedLessonIndex === fromIndex) {
@@ -495,12 +529,14 @@ export class CourseBuilderComponent implements OnInit {
     }
     this.draggedLessonIndex = null;
     this.originalLessons = null;
+    this.autoSave();
   }
 
   updatePositions() {
     this.lessons.forEach((lesson, index) => {
       lesson.position = index + 1;
     });
+    this.autoSave();
   }
 
   get estimatedDuration(): number {
@@ -610,11 +646,13 @@ export class CourseBuilderComponent implements OnInit {
   addTag(tag: string) {
     if (tag && !this.selectedTags.includes(tag)) {
       this.selectedTags.push(tag);
+      this.autoSave();
     }
   }
 
   removeTag(tag: string) {
     this.selectedTags = this.selectedTags.filter((t) => t !== tag);
+    this.autoSave();
   }
 
   formatTag(tag: string): string {
@@ -639,6 +677,7 @@ export class CourseBuilderComponent implements OnInit {
     }
 
     this.currentStep = step;
+    this.autoSave();
   }
 
   canProceed(): boolean {
@@ -703,6 +742,7 @@ export class CourseBuilderComponent implements OnInit {
           .toPromise();
         // Update lessons would go here
         this.modalService.success('Success', 'Course updated successfully!');
+        localStorage.removeItem('courseBuilderDraft');
       } else {
         const course = await this.courseService
           .createCourse(courseData, this.userId)
@@ -722,6 +762,7 @@ export class CourseBuilderComponent implements OnInit {
         }
 
         this.modalService.success('Success', 'Course created successfully!');
+        localStorage.removeItem('courseBuilderDraft');
         this.router.navigate(['/courses', course!.id]);
       }
     } catch (error) {
@@ -761,6 +802,17 @@ export class CourseBuilderComponent implements OnInit {
       default:
         return {};
     }
+  }
+
+  autoSave() {
+    const state = {
+      courseForm: this.courseForm.value,
+      lessons: this.lessons,
+      selectedTags: this.selectedTags,
+      currentStep: this.currentStep,
+      selectedLessonIndex: this.selectedLessonIndex,
+    };
+    localStorage.setItem('courseBuilderDraft', JSON.stringify(state));
   }
 
   cancel() {
