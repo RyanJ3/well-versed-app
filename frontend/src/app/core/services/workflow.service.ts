@@ -291,6 +291,18 @@ export class WorkflowService {
     );
   }
 
+  // ========== Ratings ==========
+
+  getWorkflowRating(workflowId: number, userId?: number): Observable<{ average_rating: number; user_rating?: number }> {
+    let url = `${this.apiUrl}/${workflowId}/rating`;
+    if (userId) url += `?user_id=${userId}`;
+    return this.http.get<{ average_rating: number; user_rating?: number }>(url);
+  }
+
+  submitWorkflowRating(workflowId: number, userId: number, rating: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${workflowId}/rating`, { user_id: userId, rating });
+  }
+
   // ========== Suggested Tags ==========
 
   getSuggestedTags(): string[] {
