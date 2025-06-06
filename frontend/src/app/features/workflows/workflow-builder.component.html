@@ -534,48 +534,44 @@
     </div>
   </div>
 
-  <!-- Step 3: Review -->
-  <div class="review-section" *ngIf="currentStep === 3">
-    <div class="review-content">
-      <h2>Review Your Workflow</h2>
+  <!-- Step 3: Review (Minimal Version) -->
+  <div class="review-section minimal" *ngIf="currentStep === 3">
+    <div class="review-header">
+      <h2 class="review-title">{{ workflowForm.get("title")?.value }}</h2>
+      <p class="review-subtitle">
+        {{
+          workflowForm.get("is_public")?.value ? "Public" : "Private"
+        }}
+        workflow
+        <span class="separator">&bull;</span>
+        {{ lessons.length }} {{ lessons.length === 1 ? "lesson" : "lessons" }}
+        <span class="separator">&bull;</span>
+        ~{{ estimatedDuration }}
+        {{ estimatedDuration === 1 ? "hour" : "hours" }}
+      </p>
+    </div>
 
-      <div class="review-card">
-        <h3>{{ workflowForm.get("title")?.value }}</h3>
-        <p>{{ workflowForm.get("description")?.value }}</p>
-
-        <div class="review-meta">
-          <div class="meta-item">
-            <strong>Visibility:</strong>
-            {{ workflowForm.get("is_public")?.value ? "Public" : "Private" }}
-          </div>
-          <div class="meta-item">
-            <strong>Total Lessons:</strong> {{ lessons.length }}
-          </div>
-          <div class="meta-item" *ngIf="selectedTags.length > 0">
-            <strong>Tags:</strong>
-            <span class="tag-chip" *ngFor="let tag of selectedTags">{{
-              formatTag(tag)
-            }}</span>
-          </div>
-        </div>
+    <div class="lesson-summary">
+      <div
+        *ngFor="let lesson of lessons; let i = index"
+        class="lesson-row"
+        [class.first]="i === 0"
+        [class.last]="i === lessons.length - 1"
+      >
+        <span class="lesson-number">{{
+          (i + 1).toString().padStart(2, "0")
+        }}</span>
+        <span class="lesson-name">{{ lesson.title }}</span>
+        <span class="lesson-icon">{{
+          getLessonIcon(lesson.content_type)
+        }}</span>
       </div>
+    </div>
 
-      <div class="lessons-review">
-        <h3>Lessons</h3>
-        <div
-          class="review-lesson"
-          *ngFor="let lesson of lessons; let i = index"
-        >
-          <div class="lesson-number">{{ i + 1 }}</div>
-          <div class="lesson-details">
-            <strong>{{ lesson.title }}</strong>
-            <span class="lesson-type"
-              >{{ getLessonIcon(lesson.content_type) }}
-              {{ getLessonTypeLabel(lesson.content_type) }}</span
-            >
-          </div>
-        </div>
-      </div>
+    <div class="review-tags" *ngIf="selectedTags.length > 0">
+      <span class="tag" *ngFor="let tag of selectedTags">{{
+        formatTag(tag)
+      }}</span>
     </div>
   </div>
 

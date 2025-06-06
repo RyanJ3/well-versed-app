@@ -415,6 +415,11 @@ export class WorkflowBuilderComponent implements OnInit {
     });
   }
 
+  get estimatedDuration(): number {
+    // Estimate ~30 minutes per lesson
+    return Math.ceil(this.lessons.length * 0.5);
+  }
+
   getLessonIcon(type: string): string {
     switch (type) {
       case 'video':
