@@ -10,9 +10,9 @@ import { DeckEditorComponent } from './features/memorize/decks/deck-editor/deck-
 import { DeckStudyComponent } from './features/memorize/decks/deck-study/deck-study.component';
 import { DeckListComponent } from './features/memorize/decks/deck-list/deck-list.component';
 import { FeatureRequestComponent } from './features/feature-request/feature-request.component';
-import { WorkflowListComponent } from './features/workflows/workflow-list.component';
-import { WorkflowBuilderComponent } from './features/workflows/workflow-builder.component';
-import { LessonPracticeComponent } from './features/workflows/lesson-practice/lesson-practice.component';
+import { WorkflowListComponent } from './features/memorize/courses/workflow-list.component';
+import { WorkflowBuilderComponent } from './features/memorize/courses/workflow-builder.component';
+import { LessonPracticeComponent } from './features/memorize/courses/lesson-practice/lesson-practice.component';
 
 //TODO move /flashcard paths to be /deck instead
 export const routes: Routes = [
@@ -24,14 +24,14 @@ export const routes: Routes = [
   { path: 'flashcards', component: DeckListComponent },
   { path: 'flashcards/study/:deckId', component: DeckStudyComponent },
   { path: 'deck-editor/:deckId', component: DeckEditorComponent },
-  { path: 'workflows/:workflowId/lessons/:lessonId/practice', component: LessonPracticeComponent },
+  { path: 'courses/:workflowId/lessons/:lessonId/practice', component: LessonPracticeComponent },
   {
     path: 'feature-requests',
     component: FeatureRequestComponent,
     title: 'Feature Requests & Bug Reports',
   },
-  { path: 'workflows/create', component: WorkflowBuilderComponent },
-  { path: 'workflows', component: WorkflowListComponent },
+  { path: 'courses/create', component: WorkflowBuilderComponent },
+  { path: 'courses', component: WorkflowListComponent },
   { path: 'flow', component: FlowComponent },
   { path: '**', redirectTo: '' },
 ];

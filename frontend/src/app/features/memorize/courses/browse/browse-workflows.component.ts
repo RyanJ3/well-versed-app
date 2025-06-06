@@ -14,7 +14,7 @@ import { User } from '../../../core/models/user';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './browse-workflows.component.html',
-  styleUrls: ['./browse-workflows.component.scss']
+  styleUrls: ['./browse-workflows.component.scss'],
 })
 export class BrowseWorkflowsComponent implements OnInit {
   workflows: Workflow[] = [];
@@ -33,15 +33,15 @@ export class BrowseWorkflowsComponent implements OnInit {
   constructor(
     private workflowService: WorkflowService,
     private userService: UserService,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit() {
     this.loadAvailableTags();
     this.loadWorkflows();
-    
+
     // Subscribe to current user
-    this.userService.currentUser$.subscribe(user => {
+    this.userService.currentUser$.subscribe((user) => {
       this.currentUser = user;
       if (user) {
         this.loadEnrolledWorkflows();
@@ -55,39 +55,42 @@ export class BrowseWorkflowsComponent implements OnInit {
 
   loadWorkflows() {
     this.loading = true;
-    
-    this.workflowService.getPublicWorkflows(
-      this.currentPage,
-      this.perPage,
-      this.searchQuery,
-      this.selectedTags
-    ).subscribe({
-      next: (response) => {
-        this.workflows = response.workflows;
-        this.totalPages = Math.ceil(response.total / this.perPage);
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error loading workflows:', error);
-        this.loading = false;
-      }
-    });
+
+    this.workflowService
+      .getPublicWorkflows(
+        this.currentPage,
+        this.perPage,
+        this.searchQuery,
+        this.selectedTags,
+      )
+      .subscribe({
+        next: (response) => {
+          this.workflows = response.workflows;
+          this.totalPages = Math.ceil(response.total / this.perPage);
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Error loading workflows:', error);
+          this.loading = false;
+        },
+      });
   }
 
   loadEnrolledWorkflows() {
     if (!this.currentUser) return;
-    
-    const userId = typeof this.currentUser.id === 'string' 
-      ? parseInt(this.currentUser.id) 
-      : this.currentUser.id;
-    
+
+    const userId =
+      typeof this.currentUser.id === 'string'
+        ? parseInt(this.currentUser.id)
+        : this.currentUser.id;
+
     this.workflowService.getEnrolledWorkflows(userId).subscribe({
       next: (workflows) => {
-        this.enrolledWorkflowIds = workflows.map(w => w.id);
+        this.enrolledWorkflowIds = workflows.map((w) => w.id);
       },
       error: (error) => {
         console.error('Error loading enrolled workflows:', error);
-      }
+      },
     });
   }
 
@@ -109,12 +112,12 @@ export class BrowseWorkflowsComponent implements OnInit {
   formatTag(tag: string): string {
     return tag
       .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   }
 
   viewWorkflow(workflow: Workflow) {
-    this.router.navigate(['/workflows', workflow.id]);
+    this.router.navigate(['/courses', workflow.id]);
   }
 
   isEnrolled(workflowId: number): boolean {
@@ -123,15 +126,16 @@ export class BrowseWorkflowsComponent implements OnInit {
 
   toggleEnrollment(event: Event, workflow: Workflow) {
     event.stopPropagation();
-    
+
     if (!this.currentUser) {
       this.router.navigate(['/login']);
       return;
     }
 
-    const userId = typeof this.currentUser.id === 'string' 
-      ? parseInt(this.currentUser.id) 
-      : this.currentUser.id;
+    const userId =
+      typeof this.currentUser.id === 'string'
+        ? parseInt(this.currentUser.id)
+        : this.currentUser.id;
 
     if (this.isEnrolled(workflow.id)) {
       // If enrolled, navigate to the workflow
@@ -146,7 +150,7 @@ export class BrowseWorkflowsComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error enrolling in workflow:', error);
-        }
+        },
       });
     }
   }
@@ -156,6 +160,6 @@ export class BrowseWorkflowsComponent implements OnInit {
   }
 
   navigateToCreate() {
-    this.router.navigate(['/workflows/create']);
+    this.router.navigate(['/courses/create']);
   }
 }

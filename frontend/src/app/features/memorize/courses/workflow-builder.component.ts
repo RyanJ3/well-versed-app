@@ -261,7 +261,7 @@ export class WorkflowBuilderComponent implements OnInit {
     this.workflowService.getWorkflow(this.workflowId).subscribe({
       next: (workflow) => {
         if (workflow.creator_id !== this.userId) {
-          this.router.navigate(['/workflows', this.workflowId]);
+          this.router.navigate(['/courses', this.workflowId]);
           return;
         }
 
@@ -635,7 +635,7 @@ export class WorkflowBuilderComponent implements OnInit {
         }
 
         this.modalService.success('Success', 'Workflow created successfully!');
-        this.router.navigate(['/workflows', workflow!.id]);
+        this.router.navigate(['/courses', workflow!.id]);
       }
     } catch (error) {
       this.modalService.alert(
@@ -698,9 +698,9 @@ export class WorkflowBuilderComponent implements OnInit {
 
   navigateBack() {
     if (this.isEditMode && this.workflowId) {
-      this.router.navigate(['/workflows', this.workflowId]);
+      this.router.navigate(['/courses', this.workflowId]);
     } else {
-      this.router.navigate(['/workflows']);
+      this.router.navigate(['/courses']);
     }
   }
 }

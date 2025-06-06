@@ -2,7 +2,7 @@
 <div class="workflow-builder">
   <!-- Header -->
   <div class="builder-header">
-    <h1>{{ isEditMode ? "Edit Workflow" : "Create New Workflow" }}</h1>
+    <h1>{{ isEditMode ? "Edit Course" : "Create New Course" }}</h1>
     <div class="header-actions">
       <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
       <button
@@ -10,7 +10,7 @@
         (click)="saveWorkflow()"
         [disabled]="saving"
       >
-        {{ saving ? "Saving..." : "Save Workflow" }}
+        {{ saving ? "Saving..." : "Save Course" }}
       </button>
     </div>
   </div>
@@ -45,19 +45,19 @@
     </div>
   </div>
 
-  <!-- Step 1: Workflow Info -->
+  <!-- Step 1: Course Info -->
   <div
     class="workflow-info"
     [formGroup]="workflowForm"
     *ngIf="currentStep === 1"
   >
     <div class="form-group">
-      <label>Workflow Title <span class="required">*</span></label>
+      <label>Course Title <span class="required">*</span></label>
       <input
         type="text"
         class="form-control"
         formControlName="title"
-        placeholder="Enter a title for your workflow"
+        placeholder="Enter a title for your course"
       />
       <div
         class="error-message"
@@ -76,7 +76,7 @@
         class="form-control"
         formControlName="description"
         rows="3"
-        placeholder="Describe what learners will gain from this workflow"
+        placeholder="Describe what learners will gain from this course"
       ></textarea>
       <div
         class="error-message"
@@ -123,10 +123,10 @@
       <div class="form-group">
         <label class="checkbox-label">
           <input type="checkbox" formControlName="is_public" />
-          Make this workflow public
+          Make this course public
         </label>
         <p class="help-text">
-          Public workflows can be discovered by other users
+          Public courses can be discovered by other users
         </p>
       </div>
     </div>
@@ -147,7 +147,7 @@
     <!-- Left Panel: Lesson List -->
     <div class="editor-panel lessons-panel">
       <div class="panel-header">
-        <h3>Workflow Structure</h3>
+        <h3>Course Structure</h3>
         <span class="lesson-count">{{ lessons.length }} lessons</span>
       </div>
 
@@ -544,11 +544,11 @@
       <div class="header-badges">
         <div class="badge public" *ngIf="workflowForm.get('is_public')?.value">
           <span class="badge-icon">🌍</span>
-          <span>Public Workflow</span>
+          <span>Public Course</span>
         </div>
         <div class="badge public" *ngIf="!workflowForm.get('is_public')?.value">
           <span class="badge-icon">🔒</span>
-          <span>Private Workflow</span>
+          <span>Private Course</span>
         </div>
         <div class="badge duration">
           <span class="badge-icon">⏱️</span>
@@ -571,7 +571,7 @@
       <div class="details-panel">
         <h3 class="panel-title">
           <span class="panel-title-icon">✨</span>
-          Workflow Details
+          Course Details
         </h3>
 
         <div class="detail-item">
@@ -682,7 +682,7 @@
         ← Edit Lessons
       </button>
       <button class="btn btn-primary" (click)="saveWorkflow()">
-        Publish Workflow 🚀
+        Publish Course 🚀
       </button>
     </div>
   </div>
