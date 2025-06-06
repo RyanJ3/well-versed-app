@@ -29,10 +29,10 @@ class CourseUpdate(BaseModel):
 
 
 class CourseResponse(BaseModel):
-    id: int = Field(alias="course_id")
+    id: int
     creator_id: int
     creator_name: str
-    title: str = Field(alias="name")
+    title: str
     description: Optional[str]
     thumbnail_url: Optional[str] = None
     is_public: bool
@@ -67,7 +67,7 @@ class LessonUpdate(BaseModel):
 
 
 class LessonResponse(BaseModel):
-    id: int = Field(alias="lesson_id")
+    id: int
     course_id: int
     position: int
     title: str
@@ -155,10 +155,10 @@ async def create_course(
             conn.commit()
     logger.info(f"Course {course_id} created with {len(course.tags)} tags")
     response = CourseResponse(
-        course_id=course_id,
+        id=course_id,
         creator_id=user_id,
         creator_name=creator_name,
-        name=course.name,
+        title=course.name,
         description=course.description,
         thumbnail_url=course.thumbnail_url,
         is_public=course.is_public,
@@ -269,10 +269,10 @@ async def list_public_courses(
     for r in rows:
         courses.append(
             CourseResponse(
-                course_id=r["course_id"],
+                id=r["course_id"],
                 creator_id=r["user_id"],
                 creator_name=r["creator_name"],
-                name=r["name"],
+                title=r["name"],
                 description=r["description"],
                 thumbnail_url=r.get("thumbnail_url"),
                 is_public=r["is_public"],
@@ -308,10 +308,10 @@ async def list_user_courses(user_id: int, db: DatabaseConnection = Depends(get_d
     rows = db.fetch_all(query, (user_id,))
     courses = [
         CourseResponse(
-            course_id=r["course_id"],
+            id=r["course_id"],
             creator_id=r["user_id"],
             creator_name=r["creator_name"],
-            name=r["name"],
+            title=r["name"],
             description=r["description"],
             thumbnail_url=r.get("thumbnail_url"),
             is_public=r["is_public"],
@@ -351,10 +351,10 @@ async def list_enrolled_courses(user_id: int, db: DatabaseConnection = Depends(g
     rows = db.fetch_all(query, (user_id,))
     courses = [
         CourseResponse(
-            course_id=r["course_id"],
+            id=r["course_id"],
             creator_id=r["user_id"],
             creator_name=r["creator_name"],
-            name=r["name"],
+            title=r["name"],
             description=r["description"],
             thumbnail_url=r.get("thumbnail_url"),
             is_public=r["is_public"],
@@ -393,10 +393,10 @@ async def get_course(course_id: int, db: DatabaseConnection = Depends(get_db)):
         logger.warning(f"Course {course_id} not found")
         raise HTTPException(status_code=404, detail="Course not found")
     response = CourseResponse(
-        course_id=row["course_id"],
+        id=row["course_id"],
         creator_id=row["user_id"],
         creator_name=row["creator_name"],
-        name=row["name"],
+        title=row["name"],
         description=row["description"],
         thumbnail_url=row.get("thumbnail_url"),
         is_public=row["is_public"],
@@ -520,7 +520,7 @@ async def add_lesson(
             lesson_id = row[0]
             created_at = row[1].isoformat()
     response = LessonResponse(
-        lesson_id=lesson_id,
+        id=lesson_id,
         course_id=course_id,
         position=position,
         title=lesson.title,
@@ -547,7 +547,7 @@ async def list_lessons(course_id: int, db: DatabaseConnection = Depends(get_db))
     rows = db.fetch_all(query, (course_id,))
     lessons = [
         LessonResponse(
-            lesson_id=r["lesson_id"],
+            id=r["lesson_id"],
             course_id=r["course_id"],
             position=r["position"],
             title=r["title"],
@@ -579,7 +579,7 @@ async def get_lesson(lesson_id: int, db: DatabaseConnection = Depends(get_db)):
         logger.warning(f"Lesson {lesson_id} not found")
         raise HTTPException(status_code=404, detail="Lesson not found")
     response = LessonResponse(
-        lesson_id=row["lesson_id"],
+        id=row["lesson_id"],
         course_id=row["course_id"],
         position=row["position"],
         title=row["title"],
