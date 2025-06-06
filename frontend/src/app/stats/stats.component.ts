@@ -447,7 +447,7 @@ export class StatsComponent implements OnInit {
     return { labels, data, colors };
   }
 
-  private getTestamentChartId(testament: BibleTestament): string {
+  getTestamentChartId(testament: BibleTestament): string {
     return testament.name.toLowerCase().replace(' ', '-') + '-chart';
   }
 
