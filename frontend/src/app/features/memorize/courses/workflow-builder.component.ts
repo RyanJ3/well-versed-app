@@ -43,7 +43,6 @@ interface Lesson {
   quiz_pass_threshold?: number;
   quiz_randomize?: boolean;
   quiz_cards?: { verseCodes: string[]; reference: string }[];
-  flashcards_required: number;
   position: number;
 }
 
@@ -142,10 +141,6 @@ export class WorkflowBuilderComponent implements OnInit {
       quiz_pass_threshold: [85],
       quiz_randomize: [true],
       quiz_cards: this.fb.array([]),
-      flashcards_required: [
-        3,
-        [Validators.required, Validators.min(1), Validators.max(20)],
-      ],
     });
 
     this.setupContentTypeValidation();
@@ -342,7 +337,6 @@ export class WorkflowBuilderComponent implements OnInit {
           quiz_pass_threshold: lesson.content_data?.quiz_config?.pass_threshold,
           quiz_randomize: lesson.content_data?.quiz_config?.randomize,
           quiz_cards: [],
-          flashcards_required: 3, // Default value, as it's not in the API response
           position: index + 1,
         }));
 
@@ -375,7 +369,6 @@ export class WorkflowBuilderComponent implements OnInit {
         : lesson.quiz_verse_count || 5,
       quiz_pass_threshold: lesson.quiz_pass_threshold || 85,
       quiz_randomize: lesson.quiz_randomize ?? true,
-      flashcards_required: lesson.flashcards_required,
     });
 
     const cards = lesson.quiz_cards || [];
@@ -403,7 +396,6 @@ export class WorkflowBuilderComponent implements OnInit {
       quiz_pass_threshold: 85,
       quiz_randomize: true,
       quiz_cards: [],
-      flashcards_required: 3,
       position: this.lessons.length + 1,
     };
 

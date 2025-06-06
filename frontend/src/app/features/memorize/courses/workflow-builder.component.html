@@ -196,7 +196,9 @@
                 </svg>
               </button>
             </div>
-            <div class="lesson-number">{{ i + 1 }}</div>
+            <div class="lesson-number">
+              {{ getLessonIcon(lesson.content_type) }}
+            </div>
             <div class="lesson-info">
               <div class="lesson-title">{{ lesson.title }}</div>
               <div class="lesson-type">
@@ -563,31 +565,6 @@
           <p class="help-text">Add an audio file URL for narration</p>
         </div>
 
-        <div class="form-group">
-          <label>Required Flashcards</label>
-          <input
-            type="number"
-            class="form-control"
-            formControlName="flashcards_required"
-            min="1"
-            max="20"
-            style="width: 100px"
-          />
-          <div
-            class="error-message"
-            *ngIf="
-              lessonForm.get('flashcards_required')?.touched &&
-              lessonForm.get('flashcards_required')?.errors
-            "
-          >
-            Required
-          </div>
-          <p class="help-text">
-            Number of flashcards students must complete to unlock the next
-            lesson
-          </p>
-        </div>
-
         <div class="lesson-actions">
           <button
             type="button"
@@ -744,15 +721,14 @@
             class="lesson-card"
             *ngFor="let lesson of lessons; let i = index"
           >
-            <div class="lesson-number">{{ i + 1 }}</div>
+            <div class="lesson-number">
+              {{ getLessonIcon(lesson.content_type) }}
+            </div>
             <div class="lesson-content">
               <div class="lesson-title">{{ lesson.title }}</div>
               <div class="lesson-type">
                 {{ getLessonTypeLabel(lesson.content_type) }}
               </div>
-            </div>
-            <div class="lesson-emoji">
-              {{ getLessonIcon(lesson.content_type) }}
             </div>
           </div>
         </div>
