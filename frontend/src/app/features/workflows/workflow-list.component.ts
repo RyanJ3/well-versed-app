@@ -66,10 +66,10 @@ import { User } from '../../core/models/user';
         </div>
 
         <div class="quick-filters">
-          <button class="pill">All Workflows</button>
-          <button class="pill">In Progress</button>
-          <button class="pill">Completed</button>
-          <button class="pill">Recommended</button>
+          <button class="pill" [class.selected]="filterType === 'all'" (click)="setFilter('all')">All Workflows</button>
+          <button class="pill" [class.selected]="filterType === 'enrolled'" (click)="setFilter('enrolled')">Enrolled ({{ enrolledWorkflows.size }})</button>
+          <button class="pill" [class.selected]="filterType === 'inprogress'" (click)="setFilter('inprogress')">In Progress</button>
+          <button class="pill" [class.selected]="filterType === 'completed'" (click)="setFilter('completed')">Completed</button>
           <div class="divider"></div>
           <ng-container *ngFor="let tag of availableTags.slice(0,5)">
             <button
@@ -89,14 +89,14 @@ import { User } from '../../core/models/user';
         </div>
 
         <div class="results-count" *ngIf="!loading" >
-          Showing {{ workflows.length }} of {{ totalPages * perPage }} workflows
+          Showing {{ getFilteredWorkflows().length }} of {{ workflows.length }} workflows
           <button *ngIf="selectedTags.length > 0" class="clear-btn" (click)="clearTags()">Clear filters</button>
         </div>
       </div>
 
       <!-- Workflows Grid -->
-      <div class="grid-view" *ngIf="viewMode === 'grid' && !loading && workflows.length > 0">
-        <div class="grid-card" *ngFor="let workflow of workflows" (click)="viewWorkflow(workflow)">
+      <div class="grid-view" *ngIf="viewMode === 'grid' && !loading && getFilteredWorkflows().length > 0">
+        <div class="grid-card" *ngFor="let workflow of getFilteredWorkflows()" (click)="viewWorkflow(workflow)">
           <div class="grid-thumb">
             <img *ngIf="workflow.thumbnail_url" [src]="workflow.thumbnail_url" alt="" />
             <div *ngIf="!workflow.thumbnail_url" class="thumb-placeholder">{{ getWorkflowIcon(workflow) }}</div>
@@ -131,8 +131,8 @@ import { User } from '../../core/models/user';
       </div>
 
       <!-- Workflows List -->
-      <div class="list" *ngIf="viewMode === 'list' && !loading && workflows.length > 0">
-        <div class="workflow-item" *ngFor="let workflow of workflows">
+      <div class="list" *ngIf="viewMode === 'list' && !loading && getFilteredWorkflows().length > 0">
+        <div class="workflow-item" *ngFor="let workflow of getFilteredWorkflows()">
           <div class="item-main" (click)="toggleExpanded(workflow.id)">
             <div class="thumb">
               <span *ngIf="!workflow.thumbnail_url">{{ getWorkflowIcon(workflow) }}</span>
@@ -209,7 +209,7 @@ import { User } from '../../core/models/user';
         <p>Loading workflows...</p>
       </div>
 
-      <div class="empty-state" *ngIf="!loading && workflows.length === 0">
+      <div class="empty-state" *ngIf="!loading && getFilteredWorkflows().length === 0">
         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
         </svg>
@@ -257,6 +257,7 @@ export class WorkflowListComponent implements OnInit {
 
   expandedId: number | null = null;
   viewMode: 'list' | 'grid' = 'list';
+  filterType: 'all' | 'enrolled' | 'inprogress' | 'completed' = 'all';
 
   constructor(
     private workflowService: WorkflowService,
@@ -416,5 +417,22 @@ export class WorkflowListComponent implements OnInit {
 
   toggleView(mode: 'list' | 'grid') {
     this.viewMode = mode;
+  }
+
+  setFilter(type: 'all' | 'enrolled' | 'inprogress' | 'completed') {
+    this.filterType = type;
+  }
+
+  getFilteredWorkflows(): Workflow[] {
+    switch (this.filterType) {
+      case 'enrolled':
+        return this.workflows.filter(w => this.isEnrolled(w.id));
+      case 'inprogress':
+        return this.workflows.filter(w => this.isEnrolled(w.id) && this.getProgress(w.id) > 0 && this.getProgress(w.id) < 100);
+      case 'completed':
+        return this.workflows.filter(w => this.isEnrolled(w.id) && this.getProgress(w.id) === 100);
+      default:
+        return this.workflows;
+    }
   }
 }
