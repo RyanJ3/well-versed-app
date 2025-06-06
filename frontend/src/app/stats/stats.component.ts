@@ -3,7 +3,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../core/services/user.service';
 import { BibleService } from '../core/services/bible.service';
-import { BibleBook, BibleData, UserVerseDetail } from '../core/models/bible';
+import { BibleBook, BibleData, BibleTestament, UserVerseDetail } from '../core/models/bible';
+import { BibleGroup } from '../core/models/bible/bible-group.modle';
+import Chart from 'chart.js/auto';
 import { User } from '../core/models/user';
 
 interface TimeSeriesPoint {
@@ -95,6 +97,20 @@ export class StatsComponent implements OnInit {
   sectionProgress: SectionProgress[] = [];
   heatmapData: HeatmapDay[] = [];
 
+  private testamentCharts: { [key: string]: Chart } = {};
+  private groupColors: { [key: string]: string } = {
+    'Law': '#10b981',
+    'History': '#3b82f6',
+    'Wisdom': '#8b5cf6',
+    'Major Prophets': '#f59e0b',
+    'Minor Prophets': '#ef4444',
+    'Gospels': '#10b981',
+    'Acts': '#3b82f6',
+    'Pauline Epistles': '#8b5cf6',
+    'General Epistles': '#f59e0b',
+    'Revelation': '#ef4444'
+  };
+
   // Daily verse
   dailyVerse = {
     text: "Your word I have hidden in my heart, that I might not sin against You.",
@@ -153,7 +169,8 @@ export class StatsComponent implements OnInit {
     this.findAlmostCompleteChapters();
     this.calculateSectionProgress();
     this.generateHeatmapData();
-    
+    this.initializeTestamentCharts();
+
     // Calculate projections
     this.calculateProjections();
   }
@@ -347,6 +364,131 @@ export class StatsComponent implements OnInit {
         gradientEnd: section.gradientEnd
       };
     });
+  }
+
+  private initializeTestamentCharts() {
+    setTimeout(() => {
+      this.testaments.forEach(t => this.createTestamentChart(t));
+    }, 0);
+  }
+
+  private createTestamentChart(testament: BibleTestament) {
+    const chartId = this.getTestamentChartId(testament);
+    const canvas = document.getElementById(chartId) as HTMLCanvasElement;
+    if (!canvas) return;
+
+    if (this.testamentCharts[chartId]) {
+      this.testamentCharts[chartId].destroy();
+    }
+
+    const groupData = this.getTestamentChartData(testament);
+
+    this.testamentCharts[chartId] = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: groupData.labels,
+        datasets: [{
+          data: groupData.data,
+          backgroundColor: groupData.colors,
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            titleColor: '#1f2937',
+            bodyColor: '#1f2937',
+            borderColor: '#e5e7eb',
+            borderWidth: 1,
+            padding: 10,
+            callbacks: {
+              label: (context: any) => {
+                const label = context.label || '';
+                const value = context.parsed;
+                const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                const percentage = ((value / total) * 100).toFixed(1);
+                return `${label}: ${percentage}%`;
+              }
+            }
+          }
+        },
+        cutout: '75%',
+        rotation: -90
+      }
+    });
+  }
+
+  private getTestamentChartData(testament: BibleTestament) {
+    const labels: string[] = [];
+    const data: number[] = [];
+    const colors: string[] = [];
+
+    testament.groups.forEach(group => {
+      if (group.memorizedVerses > 0) {
+        labels.push(group.name);
+        data.push(group.memorizedVerses);
+        colors.push(this.getGroupColor(group.name));
+      }
+    });
+
+    const totalMemorized = data.reduce((a, b) => a + b, 0);
+    const notMemorized = testament.totalVerses - totalMemorized;
+    if (notMemorized > 0) {
+      labels.push('Not Memorized');
+      data.push(notMemorized);
+      colors.push('#e5e7eb');
+    }
+
+    return { labels, data, colors };
+  }
+
+  private getTestamentChartId(testament: BibleTestament): string {
+    return testament.name.toLowerCase().replace(' ', '-') + '-chart';
+  }
+
+  getTestamentGroups(testament: BibleTestament): BibleGroup[] {
+    return testament.groups.filter(g => g.memorizedVerses > 0);
+  }
+
+  getGroupColor(groupName: string): string {
+    return this.groupColors[groupName] || '#6b7280';
+  }
+
+  getGroupShortName(groupName: string): string {
+    const shortNames: { [key: string]: string } = {
+      'Law': 'Law',
+      'History': 'History',
+      'Wisdom': 'Wisdom',
+      'Major Prophets': 'Major',
+      'Minor Prophets': 'Minor',
+      'Gospels': 'Gospels',
+      'Acts': 'Acts',
+      'Pauline Epistles': 'Pauline',
+      'General Epistles': 'General',
+      'Revelation': 'Rev'
+    };
+    return shortNames[groupName] || groupName;
+  }
+
+  getGroupPercent(testament: BibleTestament, group: BibleGroup): number {
+    return Math.round((group.memorizedVerses / testament.totalVerses) * 100);
+  }
+
+  get testaments(): BibleTestament[] {
+    return this.bibleData ? this.bibleData.testaments : [];
+  }
+
+  get oldTestament(): BibleTestament {
+    return this.bibleData!.getTestamentByName('OLD');
+  }
+
+  get newTestament(): BibleTestament {
+    return this.bibleData!.getTestamentByName('NEW');
   }
 
   generateHeatmapData() {
