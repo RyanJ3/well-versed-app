@@ -125,9 +125,7 @@
           <input type="checkbox" formControlName="is_public" />
           Make this course public
         </label>
-        <p class="help-text">
-          Public courses can be discovered by other users
-        </p>
+        <p class="help-text">Public courses can be discovered by other users</p>
       </div>
     </div>
 
@@ -156,47 +154,31 @@
           *ngFor="let lesson of lessons; let i = index"
           class="lesson-card"
           [class.active]="selectedLessonIndex === i"
+          [class.incomplete]="!isLessonComplete(lesson)"
+          [class.dragging]="draggedLessonIndex === i"
+          draggable="true"
+          (dragstart)="onLessonDragStart(i)"
+          (dragover)="onLessonDragOver(i, $event)"
+          (drop)="onLessonDrop(i)"
+          (dragend)="onLessonDragEnd()"
           (click)="selectLesson(i)"
         >
           <div class="lesson-handle">
-            <div class="reorder-buttons">
-              <button
-                class="reorder-btn"
-                (click)="moveLesson(i, 'up'); $event.stopPropagation()"
-                [disabled]="i === 0"
-                title="Move up"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M7 14l5-5 5 5z" />
-                </svg>
-              </button>
-              <button
-                class="reorder-btn"
-                (click)="moveLesson(i, 'down'); $event.stopPropagation()"
-                [disabled]="i === lessons.length - 1"
-                title="Move down"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M7 10l5 5 5-5z" />
-                </svg>
-              </button>
+            <span class="drag-icon" aria-hidden="true">☰</span>
+            <div class="lesson-number">
+              {{ getLessonIcon(lesson.content_type) }}
             </div>
-            <div class="lesson-number">{{ i + 1 }}</div>
             <div class="lesson-info">
               <div class="lesson-title">{{ lesson.title }}</div>
               <div class="lesson-type">
-                {{ getLessonIcon(lesson.content_type) }}
-                {{ getLessonTypeLabel(lesson.content_type) }}
+                {{
+                  lesson.content_type
+                    ? getLessonTypeLabel(lesson.content_type)
+                    : "\u00A0"
+                }}
+              </div>
+              <div class="lesson-status">
+                {{ isLessonComplete(lesson) ? "\u00A0" : "Incomplete" }}
               </div>
             </div>
             <button
@@ -345,6 +327,15 @@
               formControlName="youtube_url"
               placeholder="https://www.youtube.com/watch?v=..."
             />
+            <div
+              class="error-message"
+              *ngIf="
+                lessonForm.get('youtube_url')?.touched &&
+                lessonForm.get('youtube_url')?.errors?.['required']
+              "
+            >
+              Required
+            </div>
             <p class="help-text">Paste the full YouTube video URL</p>
           </div>
         </div>
@@ -372,6 +363,15 @@
                 (minimum 100)
               </span>
             </div>
+            <div
+              class="error-message"
+              *ngIf="
+                lessonForm.get('article_text')?.touched &&
+                lessonForm.get('article_text')?.errors?.['required']
+              "
+            >
+              Required
+            </div>
           </div>
         </div>
 
@@ -388,6 +388,15 @@
               formControlName="external_url"
               placeholder="https://example.com/resource"
             />
+            <div
+              class="error-message"
+              *ngIf="
+                lessonForm.get('external_url')?.touched &&
+                lessonForm.get('external_url')?.errors?.['required']
+              "
+            >
+              Required
+            </div>
           </div>
           <div class="form-group">
             <label>Link Title</label>
@@ -415,6 +424,15 @@
               max="100"
               placeholder="85"
             />
+            <div
+              class="error-message"
+              *ngIf="
+                lessonForm.get('quiz_pass_threshold')?.touched &&
+                lessonForm.get('quiz_pass_threshold')?.errors?.['required']
+              "
+            >
+              Required
+            </div>
             <p class="help-text">Minimum average confidence to pass</p>
           </div>
           <div class="form-group">
@@ -437,6 +455,12 @@
                 <tr
                   *ngFor="let card of quizCards.controls; let i = index"
                   [formGroupName]="i"
+                  [class.dragging]="draggedCardIndex === i"
+                  draggable="true"
+                  (dragstart)="onCardDragStart(i)"
+                  (dragover)="onCardDragOver(i, $event)"
+                  (drop)="onCardDrop(i)"
+                  (dragend)="onCardDragEnd()"
                 >
                   <td class="td-reference">
                     <app-verse-picker
@@ -476,6 +500,9 @@
                 </tr>
               </tbody>
             </table>
+            <div class="error-message" *ngIf="quizCards.length === 0">
+              At least one card is required
+            </div>
             <div
               class="add-card-section"
               *ngIf="quizCards.length < 3 && getTotalQuizVerses() < 5"
@@ -488,36 +515,14 @@
                 Add Card
               </button>
             </div>
+            <div
+              class="warning-message"
+              *ngIf="quizCards.length >= 3 || getTotalQuizVerses() >= 5"
+            >
+              Maximum reached. Remove a card or verses to add more.
+            </div>
             <p class="help-text">Up to 3 cards or 5 verses total.</p>
           </div>
-        </div>
-
-        <!-- Common Fields -->
-        <div class="form-group">
-          <label>Audio Narration (Optional)</label>
-          <input
-            type="url"
-            class="form-control"
-            formControlName="audio_url"
-            placeholder="https://example.com/audio.mp3"
-          />
-          <p class="help-text">Add an audio file URL for narration</p>
-        </div>
-
-        <div class="form-group">
-          <label>Required Flashcards</label>
-          <input
-            type="number"
-            class="form-control"
-            formControlName="flashcards_required"
-            min="1"
-            max="20"
-            style="width: 100px"
-          />
-          <p class="help-text">
-            Number of flashcards students must complete to unlock the next
-            lesson
-          </p>
         </div>
 
         <div class="lesson-actions">
@@ -525,10 +530,24 @@
             type="button"
             class="btn btn-primary"
             (click)="saveLessonToMemory()"
-            [disabled]="!lessonForm.valid"
+            [disabled]="
+              !lessonForm.valid ||
+              (lessonForm.get('content_type')?.value === 'quiz' &&
+                quizCards.length === 0)
+            "
           >
             Save Lesson Changes
           </button>
+          <div
+            class="save-hint"
+            *ngIf="
+              !lessonForm.valid ||
+              (lessonForm.get('content_type')?.value === 'quiz' &&
+                quizCards.length === 0)
+            "
+          >
+            Please complete required fields
+          </div>
         </div>
       </form>
     </div>
@@ -662,15 +681,14 @@
             class="lesson-card"
             *ngFor="let lesson of lessons; let i = index"
           >
-            <div class="lesson-number">{{ i + 1 }}</div>
+            <div class="lesson-number">
+              {{ getLessonIcon(lesson.content_type) }}
+            </div>
             <div class="lesson-content">
               <div class="lesson-title">{{ lesson.title }}</div>
               <div class="lesson-type">
                 {{ getLessonTypeLabel(lesson.content_type) }}
               </div>
-            </div>
-            <div class="lesson-emoji">
-              {{ getLessonIcon(lesson.content_type) }}
             </div>
           </div>
         </div>

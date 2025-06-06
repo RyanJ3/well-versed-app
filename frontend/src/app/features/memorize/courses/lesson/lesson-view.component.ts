@@ -108,15 +108,6 @@ import { VersePickerComponent } from '../../../../shared/components/verse-range-
         </div>
       </div>
 
-      <!-- Audio Player (if audio is available) -->
-      <div class="audio-section" *ngIf="lesson.audio_url">
-        <h3>Audio Narration</h3>
-        <audio controls class="audio-player">
-          <source [src]="lesson.audio_url" type="audio/mpeg" />
-          Your browser does not support the audio element.
-        </audio>
-      </div>
-
       <!-- Flashcard Selection Section -->
       <div class="flashcard-section" *ngIf="!lessonCompleted">
         <h2 class="section-title">Select Flashcards to Memorize</h2>
@@ -384,24 +375,6 @@ import { VersePickerComponent } from '../../../../shared/components/verse-range-
       .external-link-button:hover {
         background: #2563eb;
         transform: translateY(-1px);
-      }
-
-      /* Audio Section */
-      .audio-section {
-        max-width: 800px;
-        margin: 2rem auto;
-        padding: 0 2rem;
-      }
-
-      .audio-section h3 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 1rem;
-      }
-
-      .audio-player {
-        width: 100%;
       }
 
       /* Flashcard Section */

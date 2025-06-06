@@ -365,20 +365,6 @@ import {
                   class="form-group"
                   *ngIf="lesson.get('content_type')?.value !== 'quiz'"
                 >
-                  <label>Audio URL (Optional)</label>
-                  <input
-                    type="url"
-                    formControlName="audio_url"
-                    placeholder="https://example.com/audio.mp3"
-                    class="form-control"
-                  />
-                  <p class="help-text">Add audio narration for this lesson</p>
-                </div>
-
-                <div
-                  class="form-group"
-                  *ngIf="lesson.get('content_type')?.value !== 'quiz'"
-                >
                   <label>Required Flashcards</label>
                   <input
                     type="number"
@@ -518,7 +504,6 @@ export class WorkflowEditorComponent implements OnInit {
       article_text: [lesson?.content_data?.article_text || ''],
       external_url: [lesson?.content_data?.external_url || ''],
       external_title: [lesson?.content_data?.external_title || ''],
-      audio_url: [lesson?.audio_url || ''],
       flashcards_required: [
         3,
         [Validators.required, Validators.min(1), Validators.max(20)],
@@ -684,7 +669,6 @@ export class WorkflowEditorComponent implements OnInit {
             description: lessonData.description,
             content_type: lessonData.content_type,
             content_data: this.buildContentData(lessonData),
-            audio_url: lessonData.audio_url,
             position: i + 1,
           };
 
