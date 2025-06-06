@@ -1,5 +1,12 @@
 // frontend/src/app/shared/components/verse-range-picker/verse-picker.component.ts
-import { Component, OnInit, Output, EventEmitter, Input, HostListener } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  Output,
+  EventEmitter,
+  Input,
+  HostListener,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserService } from '../../../core/services/user.service';
@@ -36,6 +43,7 @@ export class VersePickerComponent implements OnInit {
   @Input() maximumVerses = 0; // 0 means no maximum
   @Input() disabledModes: ('single' | 'range' | 'chapter')[] = [];
   @Input() pageType: 'FLOW' | 'flashcard' | 'general' = 'general';
+  @Input() showFlowTip = true;
 
   @Output() selectionChanged = new EventEmitter<VerseSelection>();
   @Output() selectionApplied = new EventEmitter<VerseSelection>();
@@ -54,6 +62,7 @@ export class VersePickerComponent implements OnInit {
 
   // Available options
   books: any[] = [];
+  private allBooks: any[] = [];
   chapters: number[] = [];
   verses: number[] = [];
   endChapters: number[] = [];
@@ -70,6 +79,7 @@ export class VersePickerComponent implements OnInit {
   selectedVerse = 1;
   selectedEndChapter = 1;
   selectedEndVerse = 1;
+  testamentFilter: 'old' | 'new' = 'old';
 
   // Computed properties
   verseCount = 1;
@@ -177,7 +187,18 @@ export class VersePickerComponent implements OnInit {
 
   loadBooks() {
     const bibleData = this.bibleService.getBibleData();
-    this.books = bibleData.books;
+    this.allBooks = bibleData.books;
+
+    if (this.initialSelection) {
+      const initBook = this.allBooks.find(
+        (b) => b.id === this.initialSelection!.startVerse.bookId,
+      );
+      if (initBook) {
+        this.testamentFilter = initBook.testament.isOld ? 'old' : 'new';
+      }
+    }
+
+    this.applyTestamentFilter();
 
     if (this.books.length > 0) {
       if (this.initialSelection) {
@@ -200,6 +221,26 @@ export class VersePickerComponent implements OnInit {
     this.selectedEndChapter = 1;
     this.selectedEndVerse = 1;
     this.emitSelection();
+  }
+
+  onTestamentChange() {
+    this.applyTestamentFilter();
+    if (this.books.length > 0) {
+      this.selectedBook = this.books[0];
+      this.loadChapters();
+    }
+    this.emitSelection();
+  }
+
+  private applyTestamentFilter() {
+    if (!this.allBooks.length) {
+      const bibleData = this.bibleService.getBibleData();
+      this.allBooks = bibleData.books;
+    }
+
+    this.books = this.allBooks.filter((b) =>
+      this.testamentFilter === 'old' ? b.testament.isOld : b.testament.isNew,
+    );
   }
 
   loadChapters() {
@@ -231,6 +272,7 @@ export class VersePickerComponent implements OnInit {
 
       this.loadEndVerses();
       this.autoAdjustForMinimumVerses();
+      this.ensureRangeMinimum();
     }
 
     this.emitSelection();
@@ -260,12 +302,14 @@ export class VersePickerComponent implements OnInit {
         this.selectedEndVerse,
       );
     }
+    this.ensureRangeMinimum();
     this.emitSelection();
   }
 
   onEndChapterChange() {
     this.loadEndVerses();
     this.selectedEndVerse = 1;
+    this.ensureRangeMinimum();
     this.emitSelection();
   }
 
@@ -289,6 +333,7 @@ export class VersePickerComponent implements OnInit {
   }
 
   onEndVerseChange() {
+    this.ensureRangeMinimum();
     this.emitSelection();
   }
 
@@ -307,6 +352,9 @@ export class VersePickerComponent implements OnInit {
       : sel.startVerse.verse;
 
     this.loadVerses();
+    if (this.mode === 'range') {
+      this.ensureRangeMinimum();
+    }
     this.appliedInitial = true;
     this.emitSelection();
   }
@@ -322,6 +370,9 @@ export class VersePickerComponent implements OnInit {
     // Auto-adjust for minimum verses if in range mode
     if (newMode === 'range' && this.minimumVerses > 0) {
       this.autoAdjustForMinimumVerses();
+    }
+    if (newMode === 'range') {
+      this.ensureRangeMinimum();
     }
 
     this.emitSelection();
@@ -390,6 +441,45 @@ export class VersePickerComponent implements OnInit {
     this.loadEndVerses();
   }
 
+  private ensureRangeMinimum() {
+    if (this.mode !== 'range' || !this.selectedBook) return;
+
+    const MIN_RANGE = 2;
+    let count = this.calculateVerseCount();
+    if (count >= MIN_RANGE) return;
+
+    const chapters = this.selectedBook.chapters;
+    let startCh = this.selectedChapter;
+    let startV = this.selectedVerse;
+    let endCh = this.selectedEndChapter;
+    let endV = this.selectedEndVerse;
+
+    while (count < MIN_RANGE) {
+      const endChapData = chapters[endCh - 1];
+      if (endV < endChapData.verses.length) {
+        endV++;
+      } else if (endCh < chapters.length) {
+        endCh++;
+        endV = 1;
+      } else if (startV > 1) {
+        startV--;
+      } else if (startCh > 1) {
+        startCh--;
+        const startChapData = chapters[startCh - 1];
+        startV = startChapData.verses.length;
+      } else {
+        break;
+      }
+      this.selectedChapter = startCh;
+      this.selectedVerse = startV;
+      this.selectedEndChapter = endCh;
+      this.selectedEndVerse = endV;
+      count = this.calculateVerseCount();
+    }
+
+    this.loadVerses();
+  }
+
   private calculateVerseCount(): number {
     if (!this.selectedBook) return 0;
 
@@ -419,6 +509,10 @@ export class VersePickerComponent implements OnInit {
 
     // Check minimum
     if (this.minimumVerses > 0 && count < this.minimumVerses) {
+      if (this.pageType === 'FLOW') {
+        this.validationMessage = '';
+        return true;
+      }
       this.validationMessage = `Please select at least ${this.minimumVerses} verses`;
       return false;
     }
