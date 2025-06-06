@@ -10,7 +10,7 @@ import { DeckEditorComponent } from './features/memorize/decks/deck-editor/deck-
 import { DeckStudyComponent } from './features/memorize/decks/deck-study/deck-study.component';
 import { DeckListComponent } from './features/memorize/decks/deck-list/deck-list.component';
 import { FeatureRequestComponent } from './features/feature-request/feature-request.component';
-import { WorkflowListComponent } from './features/workflows/workflow-list.component';
+import { BrowseWorkflowsComponent } from './features/workflows/browse/browse-workflows.component';
 import { WorkflowBuilderComponent } from './features/workflows/workflow-builder.component';
 import { LessonPracticeComponent } from './features/workflows/lesson-practice/lesson-practice.component';
 
@@ -31,7 +31,7 @@ export const routes: Routes = [
     title: 'Feature Requests & Bug Reports',
   },
   { path: 'workflows/create', component: WorkflowBuilderComponent },
-  { path: 'workflows', component: WorkflowListComponent },
+  { path: 'workflows', component: BrowseWorkflowsComponent },
   { path: 'flow', component: FlowComponent },
   { path: '**', redirectTo: '' },
 ];
