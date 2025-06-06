@@ -98,4 +98,5 @@ async def health_check():
 @app.get("/")
 async def root():
     """Root endpoint"""
+    logger.debug("Root endpoint accessed")
     return {"message": "Well Versed API", "version": "1.0.0"}
