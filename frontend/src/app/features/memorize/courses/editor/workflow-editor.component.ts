@@ -314,20 +314,6 @@ import {
                       </p>
                     </div>
 
-                    <div class="form-group">
-                      <label>Pass Threshold (%)</label>
-                      <input
-                        type="number"
-                        formControlName="quiz_pass_threshold"
-                        min="50"
-                        max="100"
-                        placeholder="85"
-                        class="form-control small"
-                      />
-                      <p class="help-text">
-                        Minimum confidence score to pass (default: 85%)
-                      </p>
-                    </div>
 
                     <div class="form-group">
                       <label class="checkbox-label">
@@ -525,9 +511,6 @@ export class WorkflowEditorComponent implements OnInit {
       ],
       // Quiz fields
       quiz_verse_count: [lesson?.content_data?.quiz_config?.verse_count || 5],
-      quiz_pass_threshold: [
-        lesson?.content_data?.quiz_config?.pass_threshold || 85,
-      ],
       quiz_randomize: [lesson?.content_data?.quiz_config?.randomize || true],
     });
 
@@ -543,7 +526,6 @@ export class WorkflowEditorComponent implements OnInit {
     const articleText = group.get('article_text');
     const externalUrl = group.get('external_url');
     const quizVerseCount = group.get('quiz_verse_count');
-    const quizThreshold = group.get('quiz_pass_threshold');
 
     contentType?.valueChanges.subscribe((type) => {
       // Clear all validators first
@@ -551,7 +533,6 @@ export class WorkflowEditorComponent implements OnInit {
       articleText?.clearValidators();
       externalUrl?.clearValidators();
       quizVerseCount?.clearValidators();
-      quizThreshold?.clearValidators();
 
       // Add validators based on type
       switch (type) {
@@ -570,11 +551,6 @@ export class WorkflowEditorComponent implements OnInit {
             Validators.min(2),
             Validators.max(7),
           ]);
-          quizThreshold?.setValidators([
-            Validators.required,
-            Validators.min(50),
-            Validators.max(100),
-          ]);
           break;
       }
 
@@ -583,7 +559,6 @@ export class WorkflowEditorComponent implements OnInit {
       articleText?.updateValueAndValidity();
       externalUrl?.updateValueAndValidity();
       quizVerseCount?.updateValueAndValidity();
-      quizThreshold?.updateValueAndValidity();
     });
   }
 
@@ -722,7 +697,7 @@ export class WorkflowEditorComponent implements OnInit {
           quiz_config: {
             source_lessons: [], // Will be populated by backend based on position
             verse_count: lessonData.quiz_verse_count,
-            pass_threshold: lessonData.quiz_pass_threshold,
+            pass_threshold: 100,
             randomize: lessonData.quiz_randomize,
           },
         };

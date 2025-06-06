@@ -389,7 +389,7 @@ export class QuizPracticeComponent implements OnInit, OnDestroy {
 
   // Lesson data
   lesson: any;
-  passThreshold = 85;
+  passThreshold = 100;
 
   // Quiz verses
   quizVerses: QuizVerse[] = [];
@@ -451,8 +451,6 @@ export class QuizPracticeComponent implements OnInit, OnDestroy {
         .getLesson(this.lessonId, this.userId)
         .toPromise();
       this.lesson = lesson;
-      this.passThreshold =
-        lesson?.content_data?.quiz_config?.pass_threshold || 85;
 
       // Get verses from previous lessons
       const verseCodes = await this.getQuizVerses();

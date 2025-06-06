@@ -151,45 +151,22 @@
         <span class="lesson-count">{{ lessons.length }} lessons</span>
       </div>
 
-      <div class="lesson-list">
+      <div class="lesson-list" cdkDropList (cdkDropListDropped)="dropLesson($event)">
         <div
           *ngFor="let lesson of lessons; let i = index"
           class="lesson-card"
+          cdkDrag
           [class.active]="selectedLessonIndex === i"
+          (cdkDragStarted)="draggedIndex = i"
+          (cdkDragEnded)="draggedIndex = null"
           (click)="selectLesson(i)"
         >
-          <div class="lesson-handle">
-            <div class="reorder-buttons">
-              <button
-                class="reorder-btn"
-                (click)="moveLesson(i, 'up'); $event.stopPropagation()"
-                [disabled]="i === 0"
-                title="Move up"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M7 14l5-5 5 5z" />
-                </svg>
-              </button>
-              <button
-                class="reorder-btn"
-                (click)="moveLesson(i, 'down'); $event.stopPropagation()"
-                [disabled]="i === lessons.length - 1"
-                title="Move down"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M7 10l5 5 5-5z" />
-                </svg>
-              </button>
+          <div class="incomplete-indicator" *ngIf="lesson.incomplete"></div>
+          <div class="lesson-handle" cdkDragHandle>
+            <div class="drag-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 7h18M3 12h18M3 17h18" />
+              </svg>
             </div>
             <div class="lesson-number">{{ i + 1 }}</div>
             <div class="lesson-info">
@@ -405,18 +382,6 @@
           class="content-fields"
           *ngIf="lessonForm.get('content_type')?.value === 'quiz'"
         >
-          <div class="form-group">
-            <label>Pass Threshold (%)</label>
-            <input
-              type="number"
-              class="form-control"
-              formControlName="quiz_pass_threshold"
-              min="50"
-              max="100"
-              placeholder="85"
-            />
-            <p class="help-text">Minimum average confidence to pass</p>
-          </div>
           <div class="form-group">
             <label class="checkbox-label">
               <input type="checkbox" formControlName="quiz_randomize" />
@@ -662,6 +627,7 @@
             class="lesson-card"
             *ngFor="let lesson of lessons; let i = index"
           >
+            <div class="incomplete-indicator" *ngIf="lesson.incomplete"></div>
             <div class="lesson-number">{{ i + 1 }}</div>
             <div class="lesson-content">
               <div class="lesson-title">{{ lesson.title }}</div>

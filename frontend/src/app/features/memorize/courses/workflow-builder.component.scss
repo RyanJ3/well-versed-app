@@ -299,12 +299,21 @@ textarea.form-control {
 }
 
 .lesson-card {
+  display: flex;
+  align-items: center;
   background: #f9fafb;
   border: 2px solid #e5e7eb;
   border-radius: 0.5rem;
   margin-bottom: 0.75rem;
   cursor: pointer;
   transition: all 0.2s;
+
+  .incomplete-indicator {
+    width: 4px;
+    background: #fde047;
+    border-radius: 2px;
+    margin-right: 0.5rem;
+  }
 
   &:hover {
     border-color: #d1d5db;
@@ -830,7 +839,7 @@ textarea.form-control {
 }
 
 .lesson-icon {
-  font-size: 1.25rem;
+  font-size: 1.75rem;
   flex-shrink: 0;
 }
 
@@ -1069,6 +1078,13 @@ textarea.form-control {
     transition: all 0.2s;
     cursor: pointer;
 
+    .incomplete-indicator {
+      width: 4px;
+      background: #fde047;
+      border-radius: 2px;
+      margin-right: 0.5rem;
+    }
+
     &:hover {
       border-color: #3b82f6;
       transform: translateX(4px);
@@ -1105,8 +1121,9 @@ textarea.form-control {
     }
 
     .lesson-emoji {
-      font-size: 1.75rem;
+      font-size: 2.25rem;
       flex-shrink: 0;
+      line-height: 1;
     }
   }
 

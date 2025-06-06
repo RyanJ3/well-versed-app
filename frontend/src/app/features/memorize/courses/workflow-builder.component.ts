@@ -10,6 +10,11 @@ import {
   Validators,
   FormArray,
 } from '@angular/forms';
+import {
+  DragDropModule,
+  CdkDragDrop,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { WorkflowService } from '../../../core/services/workflow.service';
 import { UserService } from '../../../core/services/user.service';
@@ -40,11 +45,11 @@ interface Lesson {
   audio_url?: string;
   // Quiz specific fields
   quiz_verse_count?: number;
-  quiz_pass_threshold?: number;
   quiz_randomize?: boolean;
   quiz_cards?: { verseCodes: string[]; reference: string }[];
   flashcards_required: number;
   position: number;
+  incomplete?: boolean;
 }
 
 @Component({
@@ -55,6 +60,7 @@ interface Lesson {
     FormsModule,
     ReactiveFormsModule,
     VersePickerComponent,
+    DragDropModule,
   ],
   templateUrl: './workflow-builder.component.html',
   styleUrls: ['./workflow-builder.component.scss'],
@@ -70,6 +76,7 @@ export class WorkflowBuilderComponent implements OnInit {
 
   lessons: Lesson[] = [];
   selectedLessonIndex: number | null = null;
+  draggedIndex: number | null = null;
 
   availableTags: string[] = [];
   selectedTags: string[] = [];
@@ -133,7 +140,6 @@ export class WorkflowBuilderComponent implements OnInit {
       external_title: [''],
       audio_url: [''],
       quiz_verse_count: [5],
-      quiz_pass_threshold: [85],
       quiz_randomize: [true],
       quiz_cards: this.fb.array([]),
       flashcards_required: [
@@ -152,7 +158,6 @@ export class WorkflowBuilderComponent implements OnInit {
         article_text: this.lessonForm.get('article_text'),
         external_url: this.lessonForm.get('external_url'),
         quiz_verse_count: this.lessonForm.get('quiz_verse_count'),
-        quiz_pass_threshold: this.lessonForm.get('quiz_pass_threshold'),
       };
 
       // Clear all validators
@@ -177,11 +182,6 @@ export class WorkflowBuilderComponent implements OnInit {
             Validators.required,
             Validators.min(2),
             Validators.max(7),
-          ]);
-          controls.quiz_pass_threshold?.setValidators([
-            Validators.required,
-            Validators.min(50),
-            Validators.max(100),
           ]);
           if (this.quizCards.length === 0) {
             this.addQuizCard();
@@ -248,6 +248,22 @@ export class WorkflowBuilderComponent implements OnInit {
       );
       return;
     }
+
+    const used = new Set<string>();
+    this.quizCards.controls.forEach((c, idx) => {
+      if (idx !== index) {
+        (c.get('verseCodes')?.value || []).forEach((v: string) => used.add(v));
+      }
+    });
+    const dup = sel.verseCodes.filter((v) => used.has(v));
+    if (dup.length) {
+      this.modalService.alert(
+        'Duplicate Verses',
+        'Some of the selected verses are already used in another card.',
+        'warning',
+      );
+      return;
+    }
     current.patchValue({
       reference: sel.reference,
       verseCodes: sel.verseCodes,
@@ -281,11 +297,11 @@ export class WorkflowBuilderComponent implements OnInit {
           external_url: lesson.content_data?.external_url,
           external_title: lesson.content_data?.external_title,
           quiz_verse_count: lesson.content_data?.quiz_config?.verse_count,
-          quiz_pass_threshold: lesson.content_data?.quiz_config?.pass_threshold,
           quiz_randomize: lesson.content_data?.quiz_config?.randomize,
           quiz_cards: [],
           flashcards_required: 3, // Default value, as it's not in the API response
           position: index + 1,
+          incomplete: false,
         }));
 
         if (this.lessons.length > 0) {
@@ -296,7 +312,7 @@ export class WorkflowBuilderComponent implements OnInit {
   }
 
   selectLesson(index: number) {
-    if (this.selectedLessonIndex !== null && this.lessonForm.dirty) {
+    if (this.selectedLessonIndex !== null) {
       this.saveLessonToMemory();
     }
 
@@ -315,7 +331,6 @@ export class WorkflowBuilderComponent implements OnInit {
       quiz_verse_count: lesson.quiz_cards
         ? lesson.quiz_cards.reduce((t, c) => t + c.verseCodes.length, 0)
         : lesson.quiz_verse_count || 5,
-      quiz_pass_threshold: lesson.quiz_pass_threshold || 85,
       quiz_randomize: lesson.quiz_randomize ?? true,
       flashcards_required: lesson.flashcards_required,
     });
@@ -342,11 +357,11 @@ export class WorkflowBuilderComponent implements OnInit {
       title: `Lesson ${this.lessons.length + 1}`,
       content_type: '',
       quiz_verse_count: 5,
-      quiz_pass_threshold: 85,
       quiz_randomize: true,
       quiz_cards: [],
       flashcards_required: 3,
       position: this.lessons.length + 1,
+      incomplete: true,
     };
 
     this.lessons.push(newLesson);
@@ -363,6 +378,7 @@ export class WorkflowBuilderComponent implements OnInit {
       quiz_cards: this.quizCards.value,
       quiz_verse_count: this.getTotalQuizVerses(),
     };
+    this.lessons[this.selectedLessonIndex].incomplete = !this.lessonForm.valid;
   }
 
   deleteLesson(index: number) {
@@ -406,6 +422,28 @@ export class WorkflowBuilderComponent implements OnInit {
       this.selectedLessonIndex = toIndex;
     } else if (this.selectedLessonIndex === toIndex) {
       this.selectedLessonIndex = fromIndex;
+    }
+  }
+
+  dropLesson(event: CdkDragDrop<Lesson[]>) {
+    if (event.previousIndex === event.currentIndex) return;
+    moveItemInArray(this.lessons, event.previousIndex, event.currentIndex);
+    this.updatePositions();
+
+    if (this.selectedLessonIndex === event.previousIndex) {
+      this.selectedLessonIndex = event.currentIndex;
+    } else if (
+      this.selectedLessonIndex !== null &&
+      event.previousIndex < this.selectedLessonIndex &&
+      event.currentIndex >= this.selectedLessonIndex
+    ) {
+      this.selectedLessonIndex--;
+    } else if (
+      this.selectedLessonIndex !== null &&
+      event.previousIndex > this.selectedLessonIndex &&
+      event.currentIndex <= this.selectedLessonIndex
+    ) {
+      this.selectedLessonIndex++;
     }
   }
 
@@ -666,7 +704,7 @@ export class WorkflowBuilderComponent implements OnInit {
             verse_count: lesson.quiz_cards
               ? lesson.quiz_cards.reduce((t, c) => t + c.verseCodes.length, 0)
               : lesson.quiz_verse_count,
-            pass_threshold: lesson.quiz_pass_threshold,
+            pass_threshold: 100,
             randomize: lesson.quiz_randomize,
             flashcards: lesson.quiz_cards || [],
           },
