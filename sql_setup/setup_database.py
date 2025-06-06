@@ -107,6 +107,10 @@ SQL_FILES = [
     {
         'file': '08-create-workflows.sql',
         'description': 'Create workflow and lesson tables'
+    },
+    {
+        'file': '09-create-workflow-progress.sql',
+        'description': 'Create workflow enrollment and progress tables'
     }
 ]
 
@@ -365,7 +369,10 @@ def verify_setup(conn):
         ('workflow_tags', 'Workflow Tags'),
         ('workflow_tag_map', 'Workflow Tag Map'),
         ('workflows', 'Workflows'),
-        ('workflow_lessons', 'Workflow Lessons')
+        ('workflow_lessons', 'Workflow Lessons'),
+        ('workflow_enrollments', 'Workflow Enrollments'),
+        ('lesson_progress', 'Lesson Progress'),
+        ('lesson_flashcards', 'Lesson Flashcards')
     ]
     
     logger.info("\nTable Status:")

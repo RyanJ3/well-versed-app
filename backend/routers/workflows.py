@@ -21,16 +21,17 @@ class WorkflowCreate(BaseModel):
 
 
 class WorkflowResponse(BaseModel):
-    workflow_id: int
+    id: int = Field(alias="workflow_id")
     creator_id: int
     creator_name: str
-    name: str
+    title: str = Field(alias="name")
     description: Optional[str]
     thumbnail_url: Optional[str] = None
     is_public: bool
     created_at: str
     updated_at: str
     lesson_count: int = 0
+    enrolled_count: int = 0
     tags: List[str] = []
 
 
@@ -49,8 +50,18 @@ class LessonCreate(BaseModel):
     position: Optional[int] = None
 
 
+class LessonUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    content_type: Optional[str] = None
+    content_data: Optional[Dict] = None
+    audio_url: Optional[str] = None
+    flashcards_required: Optional[int] = None
+    position: Optional[int] = None
+
+
 class LessonResponse(BaseModel):
-    lesson_id: int
+    id: int = Field(alias="lesson_id")
     workflow_id: int
     position: int
     title: str
@@ -65,6 +76,31 @@ class LessonResponse(BaseModel):
 class LessonListResponse(BaseModel):
     total: int
     lessons: List[LessonResponse]
+
+
+class UserWorkflowProgress(BaseModel):
+    user_id: int
+    workflow_id: int
+    current_lesson_id: Optional[int] = None
+    current_lesson_position: int
+    lessons_completed: int
+    enrolled_at: str
+    last_accessed: str
+    completed_at: Optional[str] = None
+
+
+class UserLessonProgress(BaseModel):
+    user_id: int
+    lesson_id: int
+    workflow_id: int
+    started_at: str
+    completed_at: Optional[str] = None
+    flashcards_required: int
+    flashcards_completed: int
+    is_unlocked: bool
+    quiz_attempts: Optional[int] = None
+    best_score: Optional[int] = None
+    last_attempt: Optional[str] = None
 
 
 def get_db():
@@ -123,6 +159,7 @@ async def create_workflow(
         created_at=created_at,
         updated_at=updated_at,
         lesson_count=0,
+        enrolled_count=0,
         tags=workflow.tags,
     )
 
@@ -149,10 +186,12 @@ async def list_public_workflows(
         SELECT w.workflow_id, w.user_id, u.name, w.name, w.description,
                w.thumbnail_url, w.is_public, w.created_at, w.updated_at,
                COUNT(DISTINCT l.lesson_id) as lesson_count,
+               COUNT(DISTINCT e.user_id) as enrolled_count,
                ARRAY_REMOVE(ARRAY_AGG(DISTINCT t.tag_name), NULL) as tags
         FROM workflows w
         JOIN users u ON w.user_id = u.user_id
         LEFT JOIN workflow_lessons l ON w.workflow_id = l.workflow_id
+        LEFT JOIN workflow_enrollments e ON w.workflow_id = e.workflow_id
         LEFT JOIN workflow_tag_map m ON w.workflow_id = m.workflow_id
         LEFT JOIN workflow_tags t ON m.tag_id = t.tag_id
         {where_clause}
@@ -174,10 +213,89 @@ async def list_public_workflows(
                 created_at=r["created_at"].isoformat(),
                 updated_at=r["updated_at"].isoformat(),
                 lesson_count=r["lesson_count"],
+                enrolled_count=r.get("enrolled_count", 0),
                 tags=r.get("tags") or [],
             )
         )
     return WorkflowListResponse(total=len(workflows), workflows=workflows)
+
+
+@router.get("/user/{user_id}", response_model=WorkflowListResponse)
+async def list_user_workflows(user_id: int, db: DatabaseConnection = Depends(get_db)):
+    query = """
+        SELECT w.workflow_id, w.user_id, u.name, w.name, w.description,
+               w.thumbnail_url, w.is_public, w.created_at, w.updated_at,
+               COUNT(DISTINCT l.lesson_id) as lesson_count,
+               COUNT(DISTINCT e.user_id) as enrolled_count,
+               ARRAY_REMOVE(ARRAY_AGG(DISTINCT t.tag_name), NULL) as tags
+        FROM workflows w
+        JOIN users u ON w.user_id = u.user_id
+        LEFT JOIN workflow_lessons l ON w.workflow_id = l.workflow_id
+        LEFT JOIN workflow_enrollments e ON w.workflow_id = e.workflow_id
+        LEFT JOIN workflow_tag_map m ON w.workflow_id = m.workflow_id
+        LEFT JOIN workflow_tags t ON m.tag_id = t.tag_id
+        WHERE w.user_id = %s
+        GROUP BY w.workflow_id, w.user_id, u.name, w.name, w.description, w.thumbnail_url, w.is_public, w.created_at, w.updated_at
+        ORDER BY w.created_at DESC
+    """
+    rows = db.fetch_all(query, (user_id,))
+    workflows = [
+        WorkflowResponse(
+            workflow_id=r["workflow_id"],
+            creator_id=r["user_id"],
+            creator_name=r["name"],
+            name=r["name"],
+            description=r["description"],
+            thumbnail_url=r.get("thumbnail_url"),
+            is_public=r["is_public"],
+            created_at=r["created_at"].isoformat(),
+            updated_at=r["updated_at"].isoformat(),
+            lesson_count=r["lesson_count"],
+            enrolled_count=r.get("enrolled_count", 0),
+            tags=r.get("tags") or [],
+        )
+        for r in rows
+    ]
+    return WorkflowListResponse(total=len(workflows), workflows=workflows)
+
+
+@router.get("/enrolled/{user_id}", response_model=List[WorkflowResponse])
+async def list_enrolled_workflows(user_id: int, db: DatabaseConnection = Depends(get_db)):
+    query = """
+        SELECT w.workflow_id, w.user_id, u.name, w.name, w.description,
+               w.thumbnail_url, w.is_public, w.created_at, w.updated_at,
+               COUNT(DISTINCT l.lesson_id) as lesson_count,
+               COUNT(DISTINCT e2.user_id) as enrolled_count,
+               ARRAY_REMOVE(ARRAY_AGG(DISTINCT t.tag_name), NULL) as tags
+        FROM workflow_enrollments e
+        JOIN workflows w ON e.workflow_id = w.workflow_id
+        JOIN users u ON w.user_id = u.user_id
+        LEFT JOIN workflow_lessons l ON w.workflow_id = l.workflow_id
+        LEFT JOIN workflow_enrollments e2 ON w.workflow_id = e2.workflow_id
+        LEFT JOIN workflow_tag_map m ON w.workflow_id = m.workflow_id
+        LEFT JOIN workflow_tags t ON m.tag_id = t.tag_id
+        WHERE e.user_id = %s
+        GROUP BY w.workflow_id, w.user_id, u.name, w.name, w.description, w.thumbnail_url, w.is_public, w.created_at, w.updated_at
+        ORDER BY e.enrolled_at DESC
+    """
+    rows = db.fetch_all(query, (user_id,))
+    return [
+        WorkflowResponse(
+            workflow_id=r["workflow_id"],
+            creator_id=r["user_id"],
+            creator_name=r["name"],
+            name=r["name"],
+            description=r["description"],
+            thumbnail_url=r.get("thumbnail_url"),
+            is_public=r["is_public"],
+            created_at=r["created_at"].isoformat(),
+            updated_at=r["updated_at"].isoformat(),
+            lesson_count=r["lesson_count"],
+            enrolled_count=r.get("enrolled_count", 0),
+            tags=r.get("tags") or [],
+        )
+        for r in rows
+    ]
 
 
 @router.get("/{workflow_id}", response_model=WorkflowResponse)
@@ -186,10 +304,12 @@ async def get_workflow(workflow_id: int, db: DatabaseConnection = Depends(get_db
         SELECT w.workflow_id, w.user_id, u.name as creator_name, w.name, w.description,
                w.thumbnail_url, w.is_public, w.created_at, w.updated_at,
                COUNT(DISTINCT l.lesson_id) as lesson_count,
+               COUNT(DISTINCT e.user_id) as enrolled_count,
                ARRAY_REMOVE(ARRAY_AGG(DISTINCT t.tag_name), NULL) as tags
         FROM workflows w
         JOIN users u ON w.user_id = u.user_id
         LEFT JOIN workflow_lessons l ON w.workflow_id = l.workflow_id
+        LEFT JOIN workflow_enrollments e ON w.workflow_id = e.workflow_id
         LEFT JOIN workflow_tag_map m ON w.workflow_id = m.workflow_id
         LEFT JOIN workflow_tags t ON m.tag_id = t.tag_id
         WHERE w.workflow_id = %s
@@ -209,7 +329,71 @@ async def get_workflow(workflow_id: int, db: DatabaseConnection = Depends(get_db
         created_at=row["created_at"].isoformat(),
         updated_at=row["updated_at"].isoformat(),
         lesson_count=row["lesson_count"],
+        enrolled_count=row.get("enrolled_count", 0),
         tags=row.get("tags") or [],
+    )
+
+
+@router.post("/{workflow_id}/enroll", response_model=UserWorkflowProgress)
+async def enroll_workflow(workflow_id: int, user_id: int = 1, db: DatabaseConnection = Depends(get_db)):
+    with db.get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO workflow_enrollments (user_id, workflow_id)
+                VALUES (%s, %s)
+                ON CONFLICT (user_id, workflow_id)
+                DO UPDATE SET last_accessed = CURRENT_TIMESTAMP
+                RETURNING user_id, workflow_id, current_lesson_id, current_lesson_position,
+                          lessons_completed, enrolled_at, last_accessed, completed_at
+                """,
+                (user_id, workflow_id),
+            )
+            row = cur.fetchone()
+            conn.commit()
+    return UserWorkflowProgress(
+        user_id=row[0],
+        workflow_id=row[1],
+        current_lesson_id=row[2],
+        current_lesson_position=row[3],
+        lessons_completed=row[4],
+        enrolled_at=row[5].isoformat(),
+        last_accessed=row[6].isoformat(),
+        completed_at=row[7].isoformat() if row[7] else None,
+    )
+
+
+@router.delete("/{workflow_id}/enroll/{user_id}")
+async def unenroll_workflow(workflow_id: int, user_id: int, db: DatabaseConnection = Depends(get_db)):
+    db.execute(
+        "DELETE FROM workflow_enrollments WHERE workflow_id = %s AND user_id = %s",
+        (workflow_id, user_id),
+    )
+    return {"message": "Unenrolled"}
+
+
+@router.get("/{workflow_id}/progress/{user_id}", response_model=UserWorkflowProgress)
+async def get_workflow_progress(workflow_id: int, user_id: int, db: DatabaseConnection = Depends(get_db)):
+    row = db.fetch_one(
+        """
+        SELECT user_id, workflow_id, current_lesson_id, current_lesson_position,
+               lessons_completed, enrolled_at, last_accessed, completed_at
+        FROM workflow_enrollments
+        WHERE workflow_id = %s AND user_id = %s
+        """,
+        (workflow_id, user_id),
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Enrollment not found")
+    return UserWorkflowProgress(
+        user_id=row["user_id"],
+        workflow_id=row["workflow_id"],
+        current_lesson_id=row.get("current_lesson_id"),
+        current_lesson_position=row["current_lesson_position"],
+        lessons_completed=row["lessons_completed"],
+        enrolled_at=row["enrolled_at"].isoformat(),
+        last_accessed=row["last_accessed"].isoformat(),
+        completed_at=row["completed_at"].isoformat() if row.get("completed_at") else None,
     )
 
 
@@ -290,3 +474,69 @@ async def list_lessons(workflow_id: int, db: DatabaseConnection = Depends(get_db
         for r in rows
     ]
     return LessonListResponse(total=len(lessons), lessons=lessons)
+
+
+@router.get("/lessons/{lesson_id}", response_model=LessonResponse)
+async def get_lesson(lesson_id: int, db: DatabaseConnection = Depends(get_db)):
+    row = db.fetch_one(
+        """
+        SELECT lesson_id, workflow_id, position, title, description, content_type, content_data,
+               audio_url, flashcards_required, created_at
+        FROM workflow_lessons
+        WHERE lesson_id = %s
+        """,
+        (lesson_id,),
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Lesson not found")
+    return LessonResponse(
+        lesson_id=row["lesson_id"],
+        workflow_id=row["workflow_id"],
+        position=row["position"],
+        title=row["title"],
+        description=row.get("description"),
+        content_type=row["content_type"],
+        content_data=row.get("content_data"),
+        audio_url=row.get("audio_url"),
+        flashcards_required=row.get("flashcards_required", 0),
+        created_at=row["created_at"].isoformat(),
+    )
+
+
+@router.put("/lessons/{lesson_id}", response_model=LessonResponse)
+async def update_lesson(lesson_id: int, updates: LessonUpdate, db: DatabaseConnection = Depends(get_db)):
+    update_fields = []
+    params = []
+    if updates.title is not None:
+        update_fields.append("title = %s")
+        params.append(updates.title)
+    if updates.description is not None:
+        update_fields.append("description = %s")
+        params.append(updates.description)
+    if updates.content_type is not None:
+        update_fields.append("content_type = %s")
+        params.append(updates.content_type)
+    if updates.content_data is not None:
+        update_fields.append("content_data = %s")
+        params.append(json.dumps(updates.content_data))
+    if updates.audio_url is not None:
+        update_fields.append("audio_url = %s")
+        params.append(updates.audio_url)
+    if updates.flashcards_required is not None:
+        update_fields.append("flashcards_required = %s")
+        params.append(updates.flashcards_required)
+    if updates.position is not None:
+        update_fields.append("position = %s")
+        params.append(updates.position)
+    if not update_fields:
+        raise HTTPException(status_code=400, detail="No fields to update")
+    params.append(lesson_id)
+    query = f"UPDATE workflow_lessons SET {', '.join(update_fields)} WHERE lesson_id = %s"
+    db.execute(query, tuple(params))
+    return await get_lesson(lesson_id, db)
+
+
+@router.delete("/lessons/{lesson_id}")
+async def delete_lesson(lesson_id: int, db: DatabaseConnection = Depends(get_db)):
+    db.execute("DELETE FROM workflow_lessons WHERE lesson_id = %s", (lesson_id,))
+    return {"message": "Lesson deleted"}
