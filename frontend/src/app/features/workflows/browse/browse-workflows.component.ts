@@ -25,6 +25,10 @@ export class BrowseWorkflowsComponent implements OnInit {
   availableTags: string[] = [];
   currentUser: User | null = null;
 
+  viewMode: 'grid' | 'list' = 'grid';
+  filterType: 'all' | 'enrolled' | 'inprogress' | 'completed' = 'all';
+  expandedId: number | null = null;
+
   // Pagination
   currentPage = 1;
   totalPages = 1;
@@ -158,4 +162,21 @@ export class BrowseWorkflowsComponent implements OnInit {
   navigateToCreate() {
     this.router.navigate(['/workflows/create']);
   }
+
+  get filteredWorkflows(): Workflow[] {
+    let list = [...this.workflows];
+    if (this.filterType === 'enrolled') {
+      list = list.filter(w => this.isEnrolled(w.id));
+    }
+    // Future: handle inprogress/completed when progress data available
+    return list;
+  }
+
+  clearFilters() {
+    this.selectedTags = [];
+    this.searchQuery = '';
+    this.filterType = 'all';
+    this.searchWorkflows();
+  }
 }
+
