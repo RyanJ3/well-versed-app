@@ -282,6 +282,69 @@
   }
 }
 
+// Testament chart grid
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.testament-card {
+  text-align: center;
+  padding: 1rem 0;
+}
+
+.testament-chart-container {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto 1rem;
+}
+
+.testament-chart {
+  max-width: 100%;
+  height: auto;
+}
+
+.testament-percent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.testament-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  margin-top: 0.75rem;
+  text-align: left;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-label {
+  flex: 1;
+  color: #6b7280;
+}
+
+.legend-percent {
+  color: #1f2937;
+  font-weight: 600;
+  min-width: 35px;
+  text-align: right;
+}
+
 // Progress items
 .progress-item {
   margin-bottom: 1rem;

@@ -7,257 +7,225 @@
   </div>
 
   <!-- Grand Total -->
-  <div class="grand-total-card section bg-white p-4 rounded shadow mb-6 text-center">
-    <h3 class="text-lg font-semibold mb-2">Grand Total Memorized</h3>
-    <div class="text-2xl font-bold">
-      {{ memorizedVerses | number }} / {{ totalVerses | number }}
-    </div>
-    <div class="text-sm text-gray-500">{{ percentComplete }}% complete</div>
+  <div class="header">
+    <h1>Bible Memory Tracker</h1>
+    <p>Track your scripture memorization progress</p>
+    <p class="header-subtitle">✨ Interactive visualizations powered by Chart.js</p>
   </div>
 
-  <!-- Testament Selection -->
-  <div class="section bg-white p-4 rounded shadow mb-6">
-    <div class="flex justify-between items-center mb-3">
-      <h3 class="text-lg font-semibold">Select Testament</h3>
-      
-      <!-- Apocrypha indicator -->
-      <div class="apocrypha-indicator flex items-center text-sm" *ngIf="includeApocrypha">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span class="text-blue-600">Apocrypha Included</span>
-      </div>
-    </div>
-    
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <button *ngFor="let testament of testaments" class="testament-card"
-        [class.active]="testament === selectedTestament" 
-        [class]="getTestamentClass(testament)"
-        (click)="setTestament(testament)">
-        
-        <!-- Pie Chart Container -->
-        <div class="testament-chart-container">
-          <canvas [id]="getTestamentChartId(testament)" class="testament-chart"></canvas>
-          <div class="testament-percent">{{ testament.percentComplete }}%</div>
+  <!-- Summary Stats -->
+  <div class="stats-grid">
+    <!-- Total Progress -->
+    <div class="card">
+      <div class="stat-card">
+        <div class="stat-content">
+          <div class="stat-number">{{ memorizedVerses | number }}</div>
+          <div class="stat-label">Verses Memorized</div>
+          <div class="stat-progress text-green">{{ percentComplete }}% Complete</div>
         </div>
-        
-        <h4 class="text-md font-medium mt-3">{{ testament.name }}</h4>
-        <p class="text-sm text-gray-500">{{ testament.memorizedVerses | number }} / {{ testament.totalVerses | number }} verses</p>
-        
-        <!-- Book Group Legend -->
-        <div class="testament-legend mt-3" *ngIf="getTestamentGroups(testament).length > 0">
-          <div class="legend-item" *ngFor="let group of getTestamentGroups(testament)">
-            <span class="legend-dot" [style.background]="getGroupColor(group.name)"></span>
-            <span class="legend-label">{{ getGroupShortName(group.name) }}</span>
-            <span class="legend-percent">{{ getGroupPercent(testament, group) }}%</span>
+        <div class="mini-visual">
+          <div class="ring-progress">
+            <svg width="80" height="80">
+              <circle cx="40" cy="40" r="36" class="ring-bg"></circle>
+              <circle cx="40" cy="40" r="36" class="ring-fill" 
+                      [attr.stroke-dasharray]="226" 
+                      [attr.stroke-dashoffset]="226 - (226 * percentComplete / 100)"></circle>
+            </svg>
+            <div class="ring-text">{{ percentComplete }}%</div>
           </div>
         </div>
-      </button>
-    </div>
-  </div>
-
-  <!-- Group Selection -->
-  <div *ngIf="selectedTestament" class="section bg-white p-4 rounded shadow mb-6">
-    <h3 class="text-lg font-semibold mb-3">Select Book Group</h3>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-      <button *ngFor="let group of selectedTestament.groups" class="group-card"
-        [class.active]="group.name === selectedGroup?.name" (click)="setGroup(group)">
-        <div class="card-content">
-          <div class="flex justify-between items-center mb-2">
-            <h4 class="group-name">{{ group.name }}</h4>
-            <span class="group-badge">{{ group.percentComplete }}%</span>
-          </div>
-          <div class="progress-container">
-            <div class="progress-bar" [style.width.%]="group.percentComplete"></div>
-          </div>
-          <div class="book-preview mt-3">
-            <div class="flex flex-wrap gap-1">
-              <span *ngFor="let book of group.books.slice(0, 5)" class="book-chip">
-                {{ book.name }}
-              </span>
-              <span *ngIf="group.books.length > 5" class="book-chip more-chip">
-                +{{ group.books.length - 5 }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </button>
-    </div>
-  </div>
-
-  <!-- Book Selection -->
-  <div *ngIf="selectedGroup" class="section bg-white p-4 rounded shadow mb-6">
-    <div class="flex justify-between items-center mb-3">
-      <h3 class="text-lg font-semibold">Select Book</h3>
-      <span class="text-sm text-gray-500">{{ selectedGroup.name }}</span>
-    </div>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-      <button *ngFor="let book of selectedGroup.books" class="book-card" 
-              [class.active]="book === selectedBook"
-              [class.completed]="book.isCompleted"
-              [class.in-progress]="book.isInProgress"
-              [class.apocryphal]="isApocryphalBook(book)"
-              (click)="setBook(book)">
-        <div class="card-header">
-          <h4 class="book-name">{{ book.name }}</h4>          
-          <!-- Add a small indicator for apocryphal books -->
-          <span *ngIf="isApocryphalBook(book)" class="apocryphal-badge">
-            A
-          </span>
-        </div>
-
-        <div class="progress-container my-2">
-          <div class="progress-bar" [style.width.%]="book.percentComplete"></div>
-        </div>
-
-        <div class="flex justify-between text-sm mt-2">
-          <span>{{ book.percentComplete }}%</span>
-          <span>{{ book.memorizedChapters }}/{{ book.totalChapters }} ch</span>
-        </div>
-      </button>
-    </div>
-  </div>
-
-  <!-- Chapter Selection with Book-level Actions -->
-  <div *ngIf="selectedBook" class="section bg-white p-4 rounded shadow mb-6">
-    <div class="flex justify-between items-center mb-4">
-      <h3 class="text-lg font-semibold">{{ selectedBook.name }}</h3>
-      <div class="text-sm text-gray-500">
-        {{ selectedBook.memorizedChapters }} / {{ selectedBook.totalChapters }} chapters memorized
       </div>
     </div>
 
-    <!-- Add this section to show a message when apocrypha is disabled and the book has apocryphal chapters -->
-    <div *ngIf="hasApocryphalChapters(selectedBook) && !includeApocrypha" 
-         class="apocrypha-info text-sm text-gray-500 mb-4">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      This book has apocryphal chapters that are currently hidden.
-      <a href="#" (click)="goToSettings($event)" class="text-blue-600 hover:underline">Enable apocrypha</a> to view them.
+    <!-- Progress Milestones -->
+    <div class="card">
+      <div class="card-title">Progress Milestones</div>
+      <div class="milestone-bar">
+        <div class="milestone-fill" [style.width.%]="percentComplete"></div>
+        <div class="milestone-markers">
+          <span class="milestone-marker" [class.reached]="percentComplete >= 0">🌱</span>
+          <span class="milestone-marker" [class.reached]="percentComplete >= 25">📖</span>
+          <span class="milestone-marker" [class.reached]="percentComplete >= 50">📚</span>
+          <span class="milestone-marker" [class.reached]="percentComplete >= 75">🎯</span>
+          <span class="milestone-marker" [class.reached]="percentComplete >= 100">🏆</span>
+        </div>
+      </div>
+      <div class="milestone-labels">
+        <span>Start</span>
+        <span>25%</span>
+        <span>50%</span>
+        <span>75%</span>
+        <span>Complete</span>
+      </div>
     </div>
+
+    <!-- Streak -->
+    <div class="card">
+      <div class="stat-card">
+        <div class="stat-content">
+          <div class="stat-number">{{ currentStreak }}</div>
+          <div class="stat-label">Day Streak 🔥</div>
+          <div class="stat-progress text-orange">{{ streakMessage }}</div>
+        </div>
+        <div class="mini-visual">
+          <div class="streak-visual">
+            <div class="streak-bar" *ngFor="let height of streakHeights; let i = index" 
+                 [style.height.%]="height"
+                 [class.current]="i === streakHeights.length - 1"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Testament Progress -->
+  <div class="chart-grid">
+    <div class="card testament-card" *ngFor="let testament of testaments"
+         (click)="setTestament(testament)"
+         [class.active]="testament === selectedTestament">
+      <div class="radial-container">
+        <canvas [id]="getTestamentChartId(testament)"></canvas>
+      </div>
+      <h3 class="testament-title">{{ testament.name }}</h3>
+      <p class="testament-subtitle">{{ testament.memorizedVerses | number }} / {{ testament.totalVerses | number }} verses</p>
+      <div class="testament-legend">
+        <div class="legend-item" *ngFor="let group of getTestamentGroups(testament)">
+          <span class="legend-dot" [style.background]="getGroupColor(group.name)"></span>
+          <span class="legend-label">{{ getGroupShortName(group.name) }}</span>
+          <span class="legend-percent">{{ getGroupPercent(testament, group) }}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Book Groups -->
+  <div class="card" *ngIf="selectedTestament">
+    <h3 class="card-title">Book Groups Overview</h3>
     
-    <!-- Chapter buttons - Shows only visible chapters based on apocrypha settings -->
-    <div class="chapter-overview flex flex-wrap gap-2 mb-4">
+    <div class="book-group" *ngFor="let group of selectedTestament.groups"
+         (click)="setGroup(group)"
+         [class.active]="group === selectedGroup">
+      <div class="group-info">
+        <div class="group-name">{{ group.name }}</div>
+        <div class="group-books">{{ getGroupBooksList(group) }}</div>
+      </div>
+      <div class="group-visual">
+        <div class="mini-bar">
+          <div class="mini-bar-fill" 
+               [style.width.%]="group.percentComplete" 
+               [style.background]="getGroupColor(group.name)"></div>
+        </div>
+        <div class="percent-label" [style.color]="getGroupColor(group.name)">{{ group.percentComplete }}%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chapter Heatmap -->
+  <div class="card" *ngIf="selectedBook">
+    <h3 class="card-title">{{ selectedBook.name }} - Chapter Progress Heatmap</h3>
+    <div class="heatmap">
       <ng-container *ngFor="let chapter of selectedBook.chapters">
-        <!-- Only show chapters that should be visible based on user preferences -->
-        <button *ngIf="isChapterVisible(chapter)" 
-          class="chapter-button"
-          [class.active]="chapter === selectedChapter" 
-          [class.completed]="chapter.isComplete"
-          [class.in-progress]="!chapter.isComplete && chapter.isInProgress" 
-          [class.apocryphal]="chapter.isApocryphal"
-          (click)="setChapter(chapter)">
+        <div *ngIf="isChapterVisible(chapter)"
+             class="heatmap-cell"
+             [class]="getHeatmapClass(chapter)"
+             [title]="'Chapter ' + chapter.chapterNumber + ': ' + chapter.percentComplete + '%'"
+             (click)="setChapter(chapter)">
           {{ chapter.chapterNumber }}
-        </button>
+        </div>
       </ng-container>
     </div>
-
-    <!-- Book-level Controls -->
-    <div class="bulk-actions-container">
-      <div class="bulk-actions-header">
-        <h4 class="bulk-actions-title">Book Actions</h4>
-        <div *ngIf="isSavingBulk" class="bulk-actions-status">
-          <div class="loading-spinner-small"></div>
-          <span>Processing...</span>
-        </div>
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color heat-0"></div>
+        <span>0%</span>
       </div>
-      <div class="bulk-actions-buttons">
-        <button (click)="selectAllBookVerses()" 
-                class="bulk-action-btn bulk-action-primary" 
-                [disabled]="isLoading || isSavingBulk">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          Memorize Entire Book
-        </button>
-        <button (click)="clearAllBookVerses()" 
-                class="bulk-action-btn bulk-action-secondary" 
-                [disabled]="isLoading || isSavingBulk">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-          Clear Entire Book
-        </button>
+      <div class="legend-item">
+        <div class="legend-color heat-2"></div>
+        <span>1-40%</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color heat-4"></div>
+        <span>41-80%</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color heat-complete"></div>
+        <span>81-100%</span>
       </div>
     </div>
   </div>
 
-  <!-- Verse Selection -->
-  <div *ngIf="selectedChapter" class="section bg-white p-4 rounded shadow mb-6">
-    <h3 class="text-lg font-semibold mb-3">
-      {{ selectedBook?.name }} {{ selectedChapter.chapterNumber }}
-      <span class="text-sm text-gray-500 ml-2">
-        {{ selectedChapter.memorizedVerses }} / {{ selectedChapter.totalVerses }} verses memorized
-      </span>
-      <span *ngIf="selectedChapter.isApocryphal" class="text-sm text-purple-500 ml-2">
-        (Apocryphal)
-      </span>
-    </h3>
-
-    <!-- Progress Bar -->
-    <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
-      <div class="h-2 rounded-full" 
-           [style.width.%]="selectedChapter.percentComplete"
-           [class.bg-blue-500]="!selectedChapter.isApocryphal"
-           [class.bg-purple-500]="selectedChapter.isApocryphal"></div>
+  <!-- Timeline -->
+  <div class="card">
+    <h3 class="card-title">Memorization Timeline - This Year</h3>
+    <div class="timeline-container">
+      <canvas id="timelineChart"></canvas>
     </div>
+  </div>
 
-    <!-- Loading indicator -->
-    <div *ngIf="isLoading || isSavingBulk" class="loading-container">
-      <div class="loading-spinner"></div>
-      <p *ngIf="isLoading">Loading verses...</p>
-      <p *ngIf="isSavingBulk">Saving verses...</p>
-    </div>
-
-    <!-- Verse bubbles -->
-    <div class="verse-container" [class.disabled]="isLoading || isSavingBulk">
-      <button *ngFor="let verse of selectedChapter.verses" 
-              (click)="toggleAndSaveVerse(verse)" 
-              class="verse-bubble"
-              [class.selected]="verse.memorized" 
-              [class.not-selected]="!verse.memorized"
-              [class.apocryphal]="verse.isApocryphal"
-              [disabled]="isLoading || isSavingBulk">
-        {{ verse.verseNumber }}
-      </button>
-    </div>
-
-    <!-- Chapter-level Controls -->
-    <div class="bulk-actions-container">
-      <div class="bulk-actions-header">
-        <h4 class="bulk-actions-title">Chapter Actions</h4>
-        <div *ngIf="isLoading || isSavingBulk" class="bulk-actions-status">
-          <div class="loading-spinner-small"></div>
-          <span *ngIf="isLoading">Loading verses...</span>
-          <span *ngIf="isSavingBulk">Saving verses...</span>
+  <!-- Book Cards -->
+  <div class="card" *ngIf="selectedGroup">
+    <h3 class="card-title">{{ selectedGroup.name }} Books</h3>
+    <div class="book-grid">
+      <div class="book-card" *ngFor="let book of selectedGroup.books"
+           [class.active]="book === selectedBook"
+           [class.apocryphal]="isApocryphalBook(book)"
+           (click)="setBook(book)">
+        <div class="book-name">{{ book.name }}</div>
+        <div class="book-progress">
+          <div class="book-progress-bar" 
+               [style.width.%]="book.percentComplete"
+               [style.background]="getBookProgressColor(book)"></div>
+        </div>
+        <div class="book-stats">
+          <span>{{ book.totalChapters }} chapters</span>
+          <span [style.color]="getBookProgressColor(book)" style="font-weight: 600;">{{ book.percentComplete }}%</span>
         </div>
       </div>
-      <div class="bulk-actions-buttons">
-        <button (click)="selectAllVerses()" 
-                class="bulk-action-btn bulk-action-primary" 
-                [disabled]="isLoading || isSavingBulk">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          Select All Verses
-        </button>
-        <button (click)="clearAllVerses()" 
-                class="bulk-action-btn bulk-action-secondary" 
-                [disabled]="isLoading || isSavingBulk">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-          Clear All Verses
-        </button>
+    </div>
+  </div>
+
+  <!-- Verse Grid -->
+  <div class="card" *ngIf="selectedChapter">
+    <h3 class="card-title">{{ selectedBook?.name }} {{ selectedChapter.chapterNumber }} - Verse Progress</h3>
+    <div class="verse-header">
+      <div>
+        <span class="verse-pattern" *ngIf="getConsecutiveVerses().length > 0">Pattern Detection: 
+          <span class="pattern-highlight">Consecutive Verses {{ getConsecutiveVerses() }}!</span>
+        </span>
+      </div>
+      <div>
+        <span class="verse-count">{{ selectedChapter.memorizedVerses }}/{{ selectedChapter.totalVerses }}</span>
+        <span class="verse-label"> verses</span>
+      </div>
+    </div>
+    <div class="verse-grid" [class.disabled]="isLoading || isSavingBulk">
+      <div class="verse-bubble" 
+           *ngFor="let verse of selectedChapter.verses"
+           [class.memorized]="verse.memorized"
+           [class.not-memorized]="!verse.memorized"
+           [class.apocryphal]="verse.isApocryphal"
+           (click)="!isLoading && !isSavingBulk && toggleAndSaveVerse(verse)">
+        {{ verse.verseNumber }}
       </div>
     </div>
 
-    <!-- Refresh button to reload user verses from server -->
-    <div class="flex justify-center mt-4">
-      <button (click)="refreshVerses()" class="refresh-button" [disabled]="isLoading">
-        <span *ngIf="!isLoading">Refresh</span>
-        <span *ngIf="isLoading">Loading...</span>
+    <!-- Chapter Actions -->
+    <div class="action-container">
+      <button (click)="selectAllVerses()" 
+              class="action-btn primary" 
+              [disabled]="isLoading || isSavingBulk">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        Memorize All Verses
+      </button>
+      <button (click)="clearAllVerses()" 
+              class="action-btn secondary" 
+              [disabled]="isLoading || isSavingBulk">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Clear All Verses
       </button>
     </div>
   </div>
