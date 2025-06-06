@@ -105,12 +105,12 @@ SQL_FILES = [
         'description': 'Create feature request tables'
     },
     {
-        'file': '08-create-workflows.sql',
-        'description': 'Create workflow and lesson tables'
+        'file': '08-create-courses.sql',
+        'description': 'Create course and lesson tables'
     },
     {
-        'file': '09-create-workflow-progress.sql',
-        'description': 'Create workflow enrollment and progress tables'
+        'file': '09-create-course-progress.sql',
+        'description': 'Create course enrollment and progress tables'
     }
 ]
 
@@ -366,11 +366,11 @@ def verify_setup(conn):
         ('deck_tags', 'Deck Tags'),
         ('deck_tag_map', 'Deck Tag Mappings'),
         ('feature_requests', 'Feature Requests'),
-        ('workflow_tags', 'Workflow Tags'),
-        ('workflow_tag_map', 'Workflow Tag Map'),
-        ('workflows', 'Workflows'),
-        ('workflow_lessons', 'Workflow Lessons'),
-        ('workflow_enrollments', 'Workflow Enrollments'),
+        ('course_tags', 'Course Tags'),
+        ('course_tag_map', 'Course Tag Map'),
+        ('courses', 'Courses'),
+        ('course_lessons', 'Course Lessons'),
+        ('course_enrollments', 'Course Enrollments'),
         ('lesson_progress', 'Lesson Progress'),
         ('lesson_flashcards', 'Lesson Flashcards')
     ]
