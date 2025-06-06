@@ -1,5 +1,5 @@
 // frontend/src/app/shared/components/modal/modal.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { ModalService, ModalConfig, ModalResult } from '../../../core/services/modal.service';
@@ -68,6 +68,18 @@ export class ModalComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor(private modalService: ModalService) {}
+
+  @HostListener('document:keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent) {
+    if (!this.isVisible) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.onCancel();
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      this.onConfirm();
+    }
+  }
 
   ngOnInit() {
     this.modalService.modal$

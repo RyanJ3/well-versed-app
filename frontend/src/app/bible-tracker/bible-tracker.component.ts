@@ -24,6 +24,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   private bibleData: BibleData;
   private subscriptions: Subscription = new Subscription();
   private testamentCharts: { [key: string]: Chart } = {};
+  private totalProgressChart: Chart | null = null;
   private groupColors: { [key: string]: string } = {
     'Law': '#10b981',
     'History': '#3b82f6',
@@ -93,6 +94,9 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.unsubscribe();
     // Destroy all charts
     Object.values(this.testamentCharts).forEach(chart => chart.destroy());
+    if (this.totalProgressChart) {
+      this.totalProgressChart.destroy();
+    }
   }
 
   @HostListener('window:resize', ['$event'])
@@ -100,6 +104,9 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     Object.values(this.testamentCharts).forEach(chart => {
       chart.resize();
     });
+    if (this.totalProgressChart) {
+      this.totalProgressChart.resize();
+    }
   }
 
   loadUserVerses() {
@@ -128,6 +135,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   private initializeAllCharts() {
     // Initialize testament charts
     this.initializeTestamentCharts();
+    this.initializeTotalProgressChart();
   }
 
   private initializeTestamentCharts() {
@@ -240,6 +248,69 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     this.testaments.forEach(testament => {
       this.createTestamentChart(testament);
     });
+    this.initializeTotalProgressChart();
+  }
+
+  private initializeTotalProgressChart() {
+    const canvas = document.getElementById('totalProgressChart') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    if (this.totalProgressChart) {
+      this.totalProgressChart.destroy();
+    }
+
+    const monthlyData = this.generateMonthlyData();
+
+    this.totalProgressChart = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [{
+          label: 'Verses Memorized',
+          data: monthlyData,
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            displayColors: false,
+            callbacks: {
+              label: (ctx: any) => `${ctx.parsed.y} verses`
+            }
+          }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  private generateMonthlyData(): number[] {
+    const currentMonth = new Date().getMonth();
+    const totalMemorized = this.memorizedVerses;
+    const monthlyData: number[] = [];
+
+    for (let i = 0; i <= currentMonth; i++) {
+      const progress = (i + 1) / (currentMonth + 1);
+      monthlyData.push(Math.round(totalMemorized * progress));
+    }
+
+    for (let i = currentMonth + 1; i < 12; i++) {
+      monthlyData.push(0);
+    }
+
+    return monthlyData;
   }
 
   toggleAndSaveVerse(verse: BibleVerse): void {

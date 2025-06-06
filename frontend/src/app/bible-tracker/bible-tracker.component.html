@@ -10,7 +10,6 @@
   <div class="header">
     <h1>Bible Memory Tracker</h1>
     <p>Track your scripture memorization progress</p>
-    <p class="header-subtitle">✨ Interactive visualizations powered by Chart.js</p>
   </div>
 
   <!-- Summary Stats -->
@@ -24,15 +23,7 @@
           <div class="stat-progress text-green">{{ percentComplete }}% Complete</div>
         </div>
         <div class="mini-visual">
-          <div class="ring-progress">
-            <svg width="80" height="80">
-              <circle cx="40" cy="40" r="36" class="ring-bg"></circle>
-              <circle cx="40" cy="40" r="36" class="ring-fill" 
-                      [attr.stroke-dasharray]="226" 
-                      [attr.stroke-dashoffset]="226 - (226 * percentComplete / 100)"></circle>
-            </svg>
-            <div class="ring-text">{{ percentComplete }}%</div>
-          </div>
+          <canvas id="totalProgressChart"></canvas>
         </div>
       </div>
     </div>
@@ -142,11 +133,7 @@
   <div class="card" *ngIf="selectedChapter">
     <h3 class="card-title">{{ selectedBook?.name }} {{ selectedChapter.chapterNumber }} - Verse Progress</h3>
     <div class="verse-header">
-      <div>
-        <span class="verse-pattern" *ngIf="getConsecutiveVerses().length > 0">Pattern Detection: 
-          <span class="pattern-highlight">Consecutive Verses {{ getConsecutiveVerses() }}!</span>
-        </span>
-      </div>
+      <div></div>
       <div>
         <span class="verse-count">{{ selectedChapter.memorizedVerses }}/{{ selectedChapter.totalVerses }}</span>
         <span class="verse-label"> verses</span>

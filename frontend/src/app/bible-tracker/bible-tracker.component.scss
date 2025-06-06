@@ -103,40 +103,12 @@
   height: 80px;
 }
 
-/* Ring progress */
-.ring-progress {
-  position: relative;
+#totalProgressChart {
   width: 80px;
   height: 80px;
-
-  svg {
-    transform: rotate(-90deg);
-  }
 }
 
-.ring-bg {
-  fill: none;
-  stroke: #e5e7eb;
-  stroke-width: 8;
-}
 
-.ring-fill {
-  fill: none;
-  stroke: #10b981;
-  stroke-width: 8;
-  stroke-linecap: round;
-  transition: stroke-dasharray 1s ease;
-}
-
-.ring-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1f2937;
-}
 
 
 /* Testament cards */
@@ -220,7 +192,7 @@
 }
 
 .mini-bar {
-  width: 100px;
+  flex: 1;
   height: 8px;
   background: #e5e7eb;
   border-radius: 4px;
@@ -342,15 +314,6 @@
   margin-bottom: 1rem;
 }
 
-.verse-pattern {
-  font-size: 0.875rem;
-  color: #6b7280;
-}
-
-.pattern-highlight {
-  font-weight: 600;
-  color: #10b981;
-}
 
 .verse-count {
   font-size: 1.5rem;
