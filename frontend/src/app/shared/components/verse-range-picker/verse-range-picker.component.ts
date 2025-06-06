@@ -99,6 +99,11 @@ export class VersePickerComponent implements OnInit {
       (m) => !this.disabledModes.includes(m),
     );
 
+    // Default FLOW pages to chapter mode when available
+    if (this.pageType === 'FLOW' && !this.disabledModes.includes('chapter')) {
+      this.mode = 'chapter';
+    }
+
     // Set default mode based on disabled modes
     if (this.disabledModes.includes(this.mode)) {
       // Find first available mode
