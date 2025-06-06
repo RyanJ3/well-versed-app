@@ -114,6 +114,17 @@
   text-align: center;
 }
 
+// Prompt when no verses selected
+.selection-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  font-size: 1.125rem;
+  color: #4b5563;
+  text-align: center;
+}
+
 .loading-spinner {
   width: 3rem;
   height: 3rem;

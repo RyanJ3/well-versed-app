@@ -16,7 +16,7 @@
       [minimumVerses]="10"
       [maximumVerses]="80"
       [warningMessage]="warningMessage"
-      (selectionChanged)="onVerseSelectionChanged($event)"
+      (selectionApplied)="onVerseSelectionChanged($event)"
     >
     </app-verse-picker>
     <div *ngIf="verses.length > 0" class="layout-controls">
@@ -80,6 +80,11 @@
   <div *ngIf="isLoading" class="loading-container">
     <div class="loading-spinner"></div>
     <p>Loading verses...</p>
+  </div>
+
+  <!-- Prompt when no selection applied -->
+  <div *ngIf="!isLoading && verses.length === 0" class="selection-prompt">
+    Select verses above and click <strong>Apply Selection</strong> to begin.
   </div>
 
   <!-- Grid View -->
