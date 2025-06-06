@@ -71,3 +71,19 @@ Use with main docker-compose.yml in project root.
 ## Files
 - `backend/services/api_bible.py` - API Bible service
 - `backend/routers/user_verses.py` - Includes `/verses/texts` endpoint
+
+# Amazon Cognito Integration
+
+## Setup
+1. Create a User Pool and App Client in the AWS console.
+2. Add the following variables to your `.env`:
+   ```
+   AWS_REGION=us-east-1
+   COGNITO_USER_POOL_ID=your_pool_id
+   COGNITO_APP_CLIENT_ID=your_client_id
+   ```
+3. Restart the backend after setting these values.
+
+## Files
+- `backend/services/aws_cognito.py` - Cognito helper class
+- `backend/routers/auth.py` - Signup and login endpoints
