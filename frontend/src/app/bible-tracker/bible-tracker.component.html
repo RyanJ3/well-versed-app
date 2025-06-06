@@ -34,11 +34,24 @@
         [class.active]="testament === selectedTestament" 
         [class]="getTestamentClass(testament)"
         (click)="setTestament(testament)">
-        <h4 class="text-md font-medium">{{ testament.name }}</h4>
-        <div class="progress-container">
-          <div class="progress-bar" [style.width.%]="testament.percentComplete"></div>
+        
+        <!-- Pie Chart Container -->
+        <div class="testament-chart-container">
+          <canvas [id]="getTestamentChartId(testament)" class="testament-chart"></canvas>
+          <div class="testament-percent">{{ testament.percentComplete }}%</div>
         </div>
-        <span class="text-sm">{{ testament.percentComplete }}% Complete</span>
+        
+        <h4 class="text-md font-medium mt-3">{{ testament.name }}</h4>
+        <p class="text-sm text-gray-500">{{ testament.memorizedVerses | number }} / {{ testament.totalVerses | number }} verses</p>
+        
+        <!-- Book Group Legend -->
+        <div class="testament-legend mt-3" *ngIf="getTestamentGroups(testament).length > 0">
+          <div class="legend-item" *ngFor="let group of getTestamentGroups(testament)">
+            <span class="legend-dot" [style.background]="getGroupColor(group.name)"></span>
+            <span class="legend-label">{{ getGroupShortName(group.name) }}</span>
+            <span class="legend-percent">{{ getGroupPercent(testament, group) }}%</span>
+          </div>
+        </div>
       </button>
     </div>
   </div>
