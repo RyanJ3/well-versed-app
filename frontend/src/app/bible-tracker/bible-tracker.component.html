@@ -10,7 +10,6 @@
   <div class="header">
     <h1>Bible Memory Tracker</h1>
     <p>Track your scripture memorization progress</p>
-    <p class="header-subtitle">✨ Interactive visualizations powered by Chart.js</p>
   </div>
 
   <!-- Summary Stats -->
@@ -24,58 +23,11 @@
           <div class="stat-progress text-green">{{ percentComplete }}% Complete</div>
         </div>
         <div class="mini-visual">
-          <div class="ring-progress">
-            <svg width="80" height="80">
-              <circle cx="40" cy="40" r="36" class="ring-bg"></circle>
-              <circle cx="40" cy="40" r="36" class="ring-fill" 
-                      [attr.stroke-dasharray]="226" 
-                      [attr.stroke-dashoffset]="226 - (226 * percentComplete / 100)"></circle>
-            </svg>
-            <div class="ring-text">{{ percentComplete }}%</div>
-          </div>
+          <canvas id="totalProgressChart"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- Progress Milestones -->
-    <div class="card">
-      <div class="card-title">Progress Milestones</div>
-      <div class="milestone-bar">
-        <div class="milestone-fill" [style.width.%]="percentComplete"></div>
-        <div class="milestone-markers">
-          <span class="milestone-marker" [class.reached]="percentComplete >= 0">🌱</span>
-          <span class="milestone-marker" [class.reached]="percentComplete >= 25">📖</span>
-          <span class="milestone-marker" [class.reached]="percentComplete >= 50">📚</span>
-          <span class="milestone-marker" [class.reached]="percentComplete >= 75">🎯</span>
-          <span class="milestone-marker" [class.reached]="percentComplete >= 100">🏆</span>
-        </div>
-      </div>
-      <div class="milestone-labels">
-        <span>Start</span>
-        <span>25%</span>
-        <span>50%</span>
-        <span>75%</span>
-        <span>Complete</span>
-      </div>
-    </div>
-
-    <!-- Streak -->
-    <div class="card">
-      <div class="stat-card">
-        <div class="stat-content">
-          <div class="stat-number">{{ currentStreak }}</div>
-          <div class="stat-label">Day Streak 🔥</div>
-          <div class="stat-progress text-orange">{{ streakMessage }}</div>
-        </div>
-        <div class="mini-visual">
-          <div class="streak-visual">
-            <div class="streak-bar" *ngFor="let height of streakHeights; let i = index" 
-                 [style.height.%]="height"
-                 [class.current]="i === streakHeights.length - 1"></div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Testament Progress -->
@@ -120,6 +72,28 @@
     </div>
   </div>
 
+  <!-- Book Cards -->
+  <div class="card" *ngIf="selectedGroup">
+    <h3 class="card-title">{{ selectedGroup.name }} Books</h3>
+    <div class="book-grid">
+      <div class="book-card" *ngFor="let book of selectedGroup.books"
+           [class.active]="book === selectedBook"
+           [class.apocryphal]="isApocryphalBook(book)"
+           (click)="setBook(book)">
+        <div class="book-name">{{ book.name }}</div>
+        <div class="book-progress">
+          <div class="book-progress-bar"
+               [style.width.%]="book.percentComplete"
+               [style.background]="getBookProgressColor(book)"></div>
+        </div>
+        <div class="book-stats">
+          <span>{{ book.totalChapters }} chapters</span>
+          <span [style.color]="getBookProgressColor(book)" style="font-weight: 600;">{{ book.percentComplete }}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Chapter Heatmap -->
   <div class="card" *ngIf="selectedBook">
     <h3 class="card-title">{{ selectedBook.name }} - Chapter Progress Heatmap</h3>
@@ -152,47 +126,21 @@
         <span>81-100%</span>
       </div>
     </div>
-  </div>
-
-  <!-- Timeline -->
-  <div class="card">
-    <h3 class="card-title">Memorization Timeline - This Year</h3>
-    <div class="timeline-container">
-      <canvas id="timelineChart"></canvas>
+    <div class="action-container">
+      <button (click)="selectAllChapters()"
+              class="action-btn primary"
+              [disabled]="isLoading || isSavingBulk">
+        Memorize All Chapters
+      </button>
     </div>
   </div>
 
-  <!-- Book Cards -->
-  <div class="card" *ngIf="selectedGroup">
-    <h3 class="card-title">{{ selectedGroup.name }} Books</h3>
-    <div class="book-grid">
-      <div class="book-card" *ngFor="let book of selectedGroup.books"
-           [class.active]="book === selectedBook"
-           [class.apocryphal]="isApocryphalBook(book)"
-           (click)="setBook(book)">
-        <div class="book-name">{{ book.name }}</div>
-        <div class="book-progress">
-          <div class="book-progress-bar" 
-               [style.width.%]="book.percentComplete"
-               [style.background]="getBookProgressColor(book)"></div>
-        </div>
-        <div class="book-stats">
-          <span>{{ book.totalChapters }} chapters</span>
-          <span [style.color]="getBookProgressColor(book)" style="font-weight: 600;">{{ book.percentComplete }}%</span>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Verse Grid -->
   <div class="card" *ngIf="selectedChapter">
     <h3 class="card-title">{{ selectedBook?.name }} {{ selectedChapter.chapterNumber }} - Verse Progress</h3>
     <div class="verse-header">
-      <div>
-        <span class="verse-pattern" *ngIf="getConsecutiveVerses().length > 0">Pattern Detection: 
-          <span class="pattern-highlight">Consecutive Verses {{ getConsecutiveVerses() }}!</span>
-        </span>
-      </div>
+      <div></div>
       <div>
         <span class="verse-count">{{ selectedChapter.memorizedVerses }}/{{ selectedChapter.totalVerses }}</span>
         <span class="verse-label"> verses</span>

@@ -103,62 +103,13 @@
   height: 80px;
 }
 
-/* Ring progress */
-.ring-progress {
-  position: relative;
+#totalProgressChart {
   width: 80px;
   height: 80px;
-
-  svg {
-    transform: rotate(-90deg);
-  }
 }
 
-.ring-bg {
-  fill: none;
-  stroke: #e5e7eb;
-  stroke-width: 8;
-}
 
-.ring-fill {
-  fill: none;
-  stroke: #10b981;
-  stroke-width: 8;
-  stroke-linecap: round;
-  transition: stroke-dasharray 1s ease;
-}
 
-.ring-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1f2937;
-}
-
-/* Streak visualization */
-.streak-visual {
-  display: flex;
-  align-items: flex-end;
-  gap: 2px;
-  height: 60px;
-  padding: 0 10px;
-}
-
-.streak-bar {
-  flex: 1;
-  background: #fbbf24;
-  min-height: 4px;
-  border-radius: 2px;
-  opacity: 0.7;
-
-  &.current {
-    background: #f59e0b;
-    opacity: 1;
-  }
-}
 
 /* Testament cards */
 .testament-card {
@@ -241,7 +192,7 @@
 }
 
 .mini-bar {
-  width: 100px;
+  flex: 1;
   height: 8px;
   background: #e5e7eb;
   border-radius: 4px;
@@ -363,15 +314,6 @@
   margin-bottom: 1rem;
 }
 
-.verse-pattern {
-  font-size: 0.875rem;
-  color: #6b7280;
-}
-
-.pattern-highlight {
-  font-weight: 600;
-  color: #10b981;
-}
 
 .verse-count {
   font-size: 1.5rem;
@@ -487,11 +429,6 @@
   font-weight: 600;
 }
 
-/* Timeline */
-.timeline-container {
-  height: 250px;
-  padding: 1rem;
-}
 
 /* Action buttons */
 .action-container {
@@ -520,20 +457,22 @@
   }
 
   &.primary {
-    background-color: #10b981;
-    color: white;
+    background-color: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #10b981;
 
     &:hover:not(:disabled) {
-      background-color: #059669;
+      background-color: #d1fae5;
     }
   }
 
   &.secondary {
-    background-color: #e5e7eb;
+    background-color: #f3f4f6;
     color: #374151;
+    border: 1px solid #d1d5db;
 
     &:hover:not(:disabled) {
-      background-color: #d1d5db;
+      background-color: #e5e7eb;
     }
   }
 
@@ -543,46 +482,6 @@
   }
 }
 
-/* Progress milestone */
-.milestone-bar {
-  position: relative;
-  background: #e5e7eb;
-  height: 12px;
-  border-radius: 6px;
-  margin: 30px 0;
-}
-
-.milestone-fill {
-  background: linear-gradient(90deg, #10b981 0%, #3b82f6 100%);
-  height: 100%;
-  border-radius: 6px;
-  transition: width 1s ease;
-}
-
-.milestone-markers {
-  position: absolute;
-  top: -20px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-between;
-}
-
-.milestone-marker {
-  font-size: 1.25rem;
-  transition: transform 0.3s ease;
-
-  &.reached {
-    transform: scale(1.2);
-  }
-}
-
-.milestone-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: #6b7280;
-}
 
 /* Utility classes */
 .text-green { color: #10b981; }
