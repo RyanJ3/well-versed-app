@@ -47,6 +47,8 @@ export class DeckEditorComponent implements OnInit {
 
   // Drag and drop
   draggedIndex: number | null = null;
+  private originalDeckCards: CardWithVerses[] | null = null;
+  private dropHandled = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -426,25 +428,33 @@ export class DeckEditorComponent implements OnInit {
     }
   }
 
-  onDragStart(index: number, event: DragEvent) {
+  onDragStart(index: number) {
     this.draggedIndex = index;
-    if (event.dataTransfer) {
-      const img = new Image();
-      img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/AcAAwUB/WM8JAgAAAAASUVORK5CYII=';
-      event.dataTransfer.setDragImage(img, 0, 0);
-    }
+    this.originalDeckCards = [...this.deckCards];
+    this.dropHandled = false;
   }
-
-  onDragOver(event: DragEvent) {
+  onDragOver(index: number, event: DragEvent) {
     event.preventDefault();
+    if (this.draggedIndex === null || index === this.draggedIndex) return;
+    const [moved] = this.deckCards.splice(this.draggedIndex, 1);
+    this.deckCards.splice(index, 0, moved);
+    this.draggedIndex = index;
   }
 
   onDrop(index: number) {
-    if (this.draggedIndex === null || this.draggedIndex === index) return;
-    const [moved] = this.deckCards.splice(this.draggedIndex, 1);
-    this.deckCards.splice(index, 0, moved);
+    if (this.draggedIndex === null) return;
+    this.dropHandled = true;
     this.draggedIndex = null;
+    this.originalDeckCards = null;
     this.saveCardOrder();
+  }
+
+  onDragEnd() {
+    if (!this.dropHandled && this.originalDeckCards) {
+      this.deckCards = this.originalDeckCards;
+    }
+    this.draggedIndex = null;
+    this.originalDeckCards = null;
   }
 
   saveCardOrder() {
