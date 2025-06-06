@@ -360,7 +360,12 @@ def verify_setup(conn):
         ('card_verses', 'Card Verses'),
         ('user_verse_confidence', 'Confidence Tracking'),
         ('deck_tags', 'Deck Tags'),
-        ('deck_tag_map', 'Deck Tag Mappings')
+        ('deck_tag_map', 'Deck Tag Mappings'),
+        ('feature_requests', 'Feature Requests'),
+        ('workflow_tags', 'Workflow Tags'),
+        ('workflow_tag_map', 'Workflow Tag Map'),
+        ('workflows', 'Workflows'),
+        ('workflow_lessons', 'Workflow Lessons')
     ]
     
     logger.info("\nTable Status:")
