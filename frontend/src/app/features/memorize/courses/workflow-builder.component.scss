@@ -209,6 +209,18 @@ textarea.form-control {
   margin-top: 0.25rem;
 }
 
+.save-hint {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.warning-message {
+  color: #f59e0b;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
 // Tags
 .tags-container {
   display: flex;
@@ -316,6 +328,14 @@ textarea.form-control {
     background: #eff6ff;
   }
 
+  &.dragging {
+    opacity: 0.5;
+  }
+
+  &.incomplete {
+    border-color: #f87171;
+  }
+
   &.cdk-drag-preview {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   }
@@ -375,6 +395,12 @@ textarea.form-control {
   .lesson-type {
     font-size: 0.75rem;
     color: #6b7280;
+    margin-top: 0.25rem;
+  }
+
+  .lesson-status {
+    font-size: 0.75rem;
+    color: #f87171;
     margin-top: 0.25rem;
   }
 }
@@ -701,6 +727,14 @@ textarea.form-control {
   td {
     padding: 1rem;
     vertical-align: middle;
+  }
+
+  tr[draggable="true"] {
+    cursor: move;
+  }
+
+  tr.dragging {
+    opacity: 0.5;
   }
 
   .td-actions {

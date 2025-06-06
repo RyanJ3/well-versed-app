@@ -71,6 +71,12 @@ export class WorkflowBuilderComponent implements OnInit {
   lessons: Lesson[] = [];
   selectedLessonIndex: number | null = null;
 
+  draggedLessonIndex: number | null = null;
+  originalLessons: Lesson[] | null = null;
+  draggedCardIndex: number | null = null;
+  originalQuizCards: FormGroup[] | null = null;
+  dropHandled = false;
+
   availableTags: string[] = [];
   selectedTags: string[] = [];
 
@@ -222,6 +228,26 @@ export class WorkflowBuilderComponent implements OnInit {
     this.quizCards.removeAt(index);
   }
 
+  isLessonComplete(lesson: Lesson): boolean {
+    if (!lesson.title || !lesson.content_type) return false;
+    switch (lesson.content_type) {
+      case 'video':
+        return !!lesson.youtube_url;
+      case 'article':
+        return !!lesson.article_text && lesson.article_text.length >= 100;
+      case 'external_link':
+        return !!lesson.external_url;
+      case 'quiz':
+        return !!lesson.quiz_cards && lesson.quiz_cards.length > 0;
+      default:
+        return false;
+    }
+  }
+
+  areAllLessonsComplete(): boolean {
+    return this.lessons.every((l) => this.isLessonComplete(l));
+  }
+
   getTotalQuizVerses(): number {
     return this.quizCards.controls.reduce(
       (sum, c) => sum + (c.get('verseCount')?.value || 0),
@@ -253,6 +279,38 @@ export class WorkflowBuilderComponent implements OnInit {
       verseCodes: sel.verseCodes,
       verseCount: sel.verseCount,
     });
+  }
+
+  onCardDragStart(index: number) {
+    this.draggedCardIndex = index;
+    this.originalQuizCards = this.quizCards.controls.slice() as FormGroup[];
+    this.dropHandled = false;
+  }
+
+  onCardDragOver(index: number, event: DragEvent) {
+    event.preventDefault();
+    if (this.draggedCardIndex === null || index === this.draggedCardIndex)
+      return;
+    const control = this.quizCards.at(this.draggedCardIndex);
+    this.quizCards.removeAt(this.draggedCardIndex);
+    this.quizCards.insert(index, control);
+    this.draggedCardIndex = index;
+  }
+
+  onCardDrop(index: number) {
+    if (this.draggedCardIndex === null) return;
+    this.dropHandled = true;
+    this.draggedCardIndex = null;
+    this.originalQuizCards = null;
+  }
+
+  onCardDragEnd() {
+    if (!this.dropHandled && this.originalQuizCards) {
+      this.quizCards.clear();
+      this.originalQuizCards.forEach((c) => this.quizCards.push(c));
+    }
+    this.draggedCardIndex = null;
+    this.originalQuizCards = null;
   }
 
   loadWorkflow() {
@@ -356,6 +414,13 @@ export class WorkflowBuilderComponent implements OnInit {
   saveLessonToMemory() {
     if (this.selectedLessonIndex === null) return;
 
+    if (
+      this.lessonForm.get('content_type')?.value === 'quiz' &&
+      this.quizCards.length === 0
+    ) {
+      return;
+    }
+
     const formValue = this.lessonForm.value;
     this.lessons[this.selectedLessonIndex] = {
       ...this.lessons[this.selectedLessonIndex],
@@ -363,6 +428,8 @@ export class WorkflowBuilderComponent implements OnInit {
       quiz_cards: this.quizCards.value,
       quiz_verse_count: this.getTotalQuizVerses(),
     };
+
+    this.updatePositions();
   }
 
   deleteLesson(index: number) {
@@ -407,6 +474,38 @@ export class WorkflowBuilderComponent implements OnInit {
     } else if (this.selectedLessonIndex === toIndex) {
       this.selectedLessonIndex = fromIndex;
     }
+  }
+
+  onLessonDragStart(index: number) {
+    this.draggedLessonIndex = index;
+    this.originalLessons = [...this.lessons];
+    this.dropHandled = false;
+  }
+
+  onLessonDragOver(index: number, event: DragEvent) {
+    event.preventDefault();
+    if (this.draggedLessonIndex === null || index === this.draggedLessonIndex)
+      return;
+    const [moved] = this.lessons.splice(this.draggedLessonIndex, 1);
+    this.lessons.splice(index, 0, moved);
+    this.draggedLessonIndex = index;
+    this.updatePositions();
+  }
+
+  onLessonDrop(index: number) {
+    if (this.draggedLessonIndex === null) return;
+    this.dropHandled = true;
+    this.draggedLessonIndex = null;
+    this.originalLessons = null;
+  }
+
+  onLessonDragEnd() {
+    if (!this.dropHandled && this.originalLessons) {
+      this.lessons = this.originalLessons;
+      this.updatePositions();
+    }
+    this.draggedLessonIndex = null;
+    this.originalLessons = null;
   }
 
   updatePositions() {
@@ -558,7 +657,7 @@ export class WorkflowBuilderComponent implements OnInit {
       case 1:
         return this.workflowForm.valid;
       case 2:
-        return this.lessons.length > 0;
+        return this.lessons.length > 0 && this.areAllLessonsComplete();
       default:
         return true;
     }
