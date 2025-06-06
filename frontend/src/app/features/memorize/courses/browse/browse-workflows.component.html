@@ -2,7 +2,7 @@
 <div class="browse-workflows">
   <!-- Header -->
   <div class="page-header">
-    <h1>Discover Learning Workflows</h1>
+    <h1>Discover Learning Courses</h1>
     <p>Explore curated lesson series to deepen your Biblical knowledge</p>
   </div>
 
@@ -16,7 +16,7 @@
         <input 
           type="text" 
           class="search-input" 
-          placeholder="Search workflows..."
+          placeholder="Search courses..."
           [(ngModel)]="searchQuery"
           (keyup.enter)="searchWorkflows()"
         >
@@ -30,7 +30,7 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
-      Create Workflow
+      Create Course
     </button>
   </div>
 
@@ -52,7 +52,7 @@
   <!-- Loading State -->
   <div class="loading-state" *ngIf="loading">
     <div class="spinner"></div>
-    <p>Loading workflows...</p>
+    <p>Loading courses...</p>
   </div>
 
   <!-- Workflows Grid -->
@@ -130,10 +130,10 @@
     <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
-    <h3>No workflows found</h3>
-    <p>Try adjusting your search or create your own workflow!</p>
+    <h3>No courses found</h3>
+    <p>Try adjusting your search or create your own course!</p>
     <button class="create-workflow-btn" (click)="navigateToCreate()" *ngIf="currentUser">
-      Create First Workflow
+      Create First Course
     </button>
   </div>
 
