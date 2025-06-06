@@ -124,12 +124,6 @@ import { User } from '../../core/models/user';
                   </svg>
                   {{ workflow.enrolled_count }} enrolled
                 </span>
-                <span class="meta-item">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 17.75L18.472 21l-1.68-7.193L22 9.573l-7.236-.611L12 2 9.236 8.962 2 9.573l5.208 4.234L5.528 21 12 17.75z" />
-                  </svg>
-                  {{ workflow.rating }}
-                </span>
                 <span class="creator">by {{ workflow.creator_name }}</span>
               </div>
 
