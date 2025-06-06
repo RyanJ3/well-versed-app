@@ -1,24 +1,24 @@
-// frontend/src/app/features/workflows/browse/browse-workflows.component.ts
+// frontend/src/app/features/courses/browse/browse-courses.component.ts
 
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { WorkflowService } from '../../../../core/services/workflow.service';
+import { CourseService } from '../../../../core/services/course.service';
 import { UserService } from '../../../../core/services/user.service';
-import { Workflow } from '../../../../core/models/workflow.model';
+import { Course } from '../../../../core/models/course.model';
 import { User } from '../../../../core/models/user';
 
 @Component({
-  selector: 'app-browse-workflows',
+  selector: 'app-browse-courses',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './browse-workflows.component.html',
-  styleUrls: ['./browse-workflows.component.scss'],
+  templateUrl: './browse-courses.component.html',
+  styleUrls: ['./browse-courses.component.scss'],
 })
-export class BrowseWorkflowsComponent implements OnInit {
-  workflows: Workflow[] = [];
-  enrolledWorkflowIds: number[] = [];
+export class BrowseCoursesComponent implements OnInit {
+  courses: Course[] = [];
+  enrolledCourseIds: number[] = [];
   loading = false;
   searchQuery = '';
   selectedTags: string[] = [];
@@ -31,33 +31,33 @@ export class BrowseWorkflowsComponent implements OnInit {
   perPage = 12;
 
   constructor(
-    private workflowService: WorkflowService,
+    private courseService: CourseService,
     private userService: UserService,
     private router: Router,
   ) {}
 
   ngOnInit() {
     this.loadAvailableTags();
-    this.loadWorkflows();
+    this.loadCourses();
 
     // Subscribe to current user
     this.userService.currentUser$.subscribe((user) => {
       this.currentUser = user;
       if (user) {
-        this.loadEnrolledWorkflows();
+        this.loadEnrolledCourses();
       }
     });
   }
 
   loadAvailableTags() {
-    this.availableTags = this.workflowService.getSuggestedTags();
+    this.availableTags = this.courseService.getSuggestedTags();
   }
 
-  loadWorkflows() {
+  loadCourses() {
     this.loading = true;
 
-    this.workflowService
-      .getPublicWorkflows(
+    this.courseService
+      .getPublicCourses(
         this.currentPage,
         this.perPage,
         this.searchQuery,
@@ -65,18 +65,18 @@ export class BrowseWorkflowsComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          this.workflows = response.workflows;
+          this.courses = response.courses;
           this.totalPages = Math.ceil(response.total / this.perPage);
           this.loading = false;
         },
         error: (error) => {
-          console.error('Error loading workflows:', error);
+          console.error('Error loading courses:', error);
           this.loading = false;
         },
       });
   }
 
-  loadEnrolledWorkflows() {
+  loadEnrolledCourses() {
     if (!this.currentUser) return;
 
     const userId =
@@ -84,19 +84,19 @@ export class BrowseWorkflowsComponent implements OnInit {
         ? parseInt(this.currentUser.id)
         : this.currentUser.id;
 
-    this.workflowService.getEnrolledWorkflows(userId).subscribe({
-      next: (workflows) => {
-        this.enrolledWorkflowIds = workflows.map((w) => w.id);
+    this.courseService.getEnrolledCourses(userId).subscribe({
+      next: (courses) => {
+        this.enrolledCourseIds = courses.map((w) => w.id);
       },
       error: (error) => {
-        console.error('Error loading enrolled workflows:', error);
+        console.error('Error loading enrolled courses:', error);
       },
     });
   }
 
-  searchWorkflows() {
+  searchCourses() {
     this.currentPage = 1;
-    this.loadWorkflows();
+    this.loadCourses();
   }
 
   toggleTag(tag: string) {
@@ -106,7 +106,7 @@ export class BrowseWorkflowsComponent implements OnInit {
     } else {
       this.selectedTags.push(tag);
     }
-    this.searchWorkflows();
+    this.searchCourses();
   }
 
   formatTag(tag: string): string {
@@ -116,15 +116,15 @@ export class BrowseWorkflowsComponent implements OnInit {
       .join(' ');
   }
 
-  viewWorkflow(workflow: Workflow) {
-    this.router.navigate(['/courses', workflow.id]);
+  viewCourse(course: Course) {
+    this.router.navigate(['/courses', course.id]);
   }
 
-  isEnrolled(workflowId: number): boolean {
-    return this.enrolledWorkflowIds.includes(workflowId);
+  isEnrolled(courseId: number): boolean {
+    return this.enrolledCourseIds.includes(courseId);
   }
 
-  toggleEnrollment(event: Event, workflow: Workflow) {
+  toggleEnrollment(event: Event, course: Course) {
     event.stopPropagation();
 
     if (!this.currentUser) {
@@ -137,19 +137,19 @@ export class BrowseWorkflowsComponent implements OnInit {
         ? parseInt(this.currentUser.id)
         : this.currentUser.id;
 
-    if (this.isEnrolled(workflow.id)) {
-      // If enrolled, navigate to the workflow
-      this.viewWorkflow(workflow);
+    if (this.isEnrolled(course.id)) {
+      // If enrolled, navigate to the course
+      this.viewCourse(course);
     } else {
-      // Enroll in the workflow
-      this.workflowService.enrollInWorkflow(workflow.id, userId).subscribe({
+      // Enroll in the course
+      this.courseService.enrollInCourse(course.id, userId).subscribe({
         next: () => {
-          this.enrolledWorkflowIds.push(workflow.id);
-          // Navigate to the workflow after enrollment
-          this.viewWorkflow(workflow);
+          this.enrolledCourseIds.push(course.id);
+          // Navigate to the course after enrollment
+          this.viewCourse(course);
         },
         error: (error) => {
-          console.error('Error enrolling in workflow:', error);
+          console.error('Error enrolling in course:', error);
         },
       });
     }

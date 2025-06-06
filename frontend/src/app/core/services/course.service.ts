@@ -1,4 +1,4 @@
-// frontend/src/app/core/services/workflow.service.ts
+// frontend/src/app/core/services/course.service.ts
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -6,157 +6,157 @@ import { Observable, BehaviorSubject } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import {
-  Workflow,
+  Course,
   Lesson,
-  UserWorkflowProgress,
+  UserCourseProgress,
   UserLessonProgress,
   LessonFlashcard,
-  CreateWorkflowRequest,
+  CreateCourseRequest,
   CreateLessonRequest,
   AddFlashcardsToQueueRequest
-} from '../models/workflow.model';
+} from '../models/course.model';
 
-export interface WorkflowListResponse {
+export interface CourseListResponse {
   total: number;
-  workflows: Workflow[];
+  courses: Course[];
   page: number;
   per_page: number;
 }
 
-export interface WorkflowDetailResponse extends Workflow {
+export interface CourseDetailResponse extends Course {
   lessons: Lesson[];
   is_enrolled: boolean;
-  user_progress?: UserWorkflowProgress;
+  user_progress?: UserCourseProgress;
 }
 
 @Injectable({
   providedIn: 'root'
 })
-export class WorkflowService {
-  private apiUrl = `${environment.apiUrl}/workflows`;
+export class CourseService {
+  private apiUrl = `${environment.apiUrl}/courses`;
   
-  // Track current workflow being viewed/edited
-  private currentWorkflowSubject = new BehaviorSubject<WorkflowDetailResponse | null>(null);
-  public currentWorkflow$ = this.currentWorkflowSubject.asObservable();
+  // Track current course being viewed/edited
+  private currentCourseSubject = new BehaviorSubject<CourseDetailResponse | null>(null);
+  public currentCourse$ = this.currentCourseSubject.asObservable();
   
-  // Track user's enrolled workflows
-  private enrolledWorkflowsSubject = new BehaviorSubject<Workflow[]>([]);
-  public enrolledWorkflows$ = this.enrolledWorkflowsSubject.asObservable();
+  // Track user's enrolled courses
+  private enrolledCoursesSubject = new BehaviorSubject<Course[]>([]);
+  public enrolledCourses$ = this.enrolledCoursesSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
-  // ========== Workflow Management ==========
+  // ========== Course Management ==========
 
-  // Get all public workflows
-  getPublicWorkflows(
+  // Get all public courses
+  getPublicCourses(
     page: number = 1,
     perPage: number = 20,
     search?: string,
     tags?: string[]
-  ): Observable<WorkflowListResponse> {
-    console.log(`Fetching public workflows page=${page} perPage=${perPage}`);
+  ): Observable<CourseListResponse> {
+    console.log(`Fetching public courses page=${page} perPage=${perPage}`);
     let url = `${this.apiUrl}/public?page=${page}&per_page=${perPage}`;
     if (search) url += `&search=${encodeURIComponent(search)}`;
     if (tags?.length) url += `&tags=${tags.join(',')}`;
     
-    return this.http.get<WorkflowListResponse>(url).pipe(
-      tap(r => console.log(`Loaded ${r.workflows.length} workflows`)),
-      catchError(err => { console.error('Error loading workflows', err); throw err; })
+    return this.http.get<CourseListResponse>(url).pipe(
+      tap(r => console.log(`Loaded ${r.courses.length} courses`)),
+      catchError(err => { console.error('Error loading courses', err); throw err; })
     );
   }
 
-  // Get workflows created by a user
-  getUserWorkflows(userId: number): Observable<WorkflowListResponse> {
-    console.log(`Fetching user workflows for ${userId}`);
-    return this.http.get<WorkflowListResponse>(`${this.apiUrl}/user/${userId}`).pipe(
-      tap(r => console.log(`Loaded ${r.workflows.length} user workflows`)),
-      catchError(err => { console.error('Error loading user workflows', err); throw err; })
+  // Get courses created by a user
+  getUserCourses(userId: number): Observable<CourseListResponse> {
+    console.log(`Fetching user courses for ${userId}`);
+    return this.http.get<CourseListResponse>(`${this.apiUrl}/user/${userId}`).pipe(
+      tap(r => console.log(`Loaded ${r.courses.length} user courses`)),
+      catchError(err => { console.error('Error loading user courses', err); throw err; })
     );
   }
 
-  // Get enrolled workflows for a user
-  getEnrolledWorkflows(userId: number): Observable<Workflow[]> {
-    console.log(`Fetching enrolled workflows for user ${userId}`);
-    return this.http.get<Workflow[]>(`${this.apiUrl}/enrolled/${userId}`).pipe(
-      tap(workflows => {
-        console.log(`Loaded ${workflows.length} enrolled workflows`);
-        this.enrolledWorkflowsSubject.next(workflows);
+  // Get enrolled courses for a user
+  getEnrolledCourses(userId: number): Observable<Course[]> {
+    console.log(`Fetching enrolled courses for user ${userId}`);
+    return this.http.get<Course[]>(`${this.apiUrl}/enrolled/${userId}`).pipe(
+      tap(courses => {
+        console.log(`Loaded ${courses.length} enrolled courses`);
+        this.enrolledCoursesSubject.next(courses);
       }),
-      catchError(err => { console.error('Error loading enrolled workflows', err); throw err; })
+      catchError(err => { console.error('Error loading enrolled courses', err); throw err; })
     );
   }
 
-  // Get workflow details with lessons
-  getWorkflow(workflowId: number, userId?: number): Observable<WorkflowDetailResponse> {
-    console.log(`Fetching workflow ${workflowId}`);
-    let url = `${this.apiUrl}/${workflowId}`;
+  // Get course details with lessons
+  getCourse(courseId: number, userId?: number): Observable<CourseDetailResponse> {
+    console.log(`Fetching course ${courseId}`);
+    let url = `${this.apiUrl}/${courseId}`;
     if (userId) url += `?user_id=${userId}`;
 
-    return this.http.get<WorkflowDetailResponse>(url).pipe(
-      tap(workflow => {
-        console.log('Loaded workflow', workflow);
-        this.currentWorkflowSubject.next(workflow);
+    return this.http.get<CourseDetailResponse>(url).pipe(
+      tap(course => {
+        console.log('Loaded course', course);
+        this.currentCourseSubject.next(course);
       }),
-      catchError(err => { console.error('Error loading workflow', err); throw err; })
+      catchError(err => { console.error('Error loading course', err); throw err; })
     );
   }
 
-  // Create a new workflow
-  createWorkflow(workflow: CreateWorkflowRequest, userId: number): Observable<Workflow> {
-    console.log('Creating workflow', workflow);
-    return this.http.post<Workflow>(this.apiUrl, {
-      ...workflow,
+  // Create a new course
+  createCourse(course: CreateCourseRequest, userId: number): Observable<Course> {
+    console.log('Creating course', course);
+    return this.http.post<Course>(this.apiUrl, {
+      ...course,
       creator_id: userId
     }).pipe(
-      tap(() => console.log('Workflow created')),
-      catchError(err => { console.error('Error creating workflow', err); throw err; })
+      tap(() => console.log('Course created')),
+      catchError(err => { console.error('Error creating course', err); throw err; })
     );
   }
 
-  // Update workflow
-  updateWorkflow(workflowId: number, updates: Partial<CreateWorkflowRequest>): Observable<Workflow> {
-    console.log(`Updating workflow ${workflowId}`);
-    return this.http.put<Workflow>(`${this.apiUrl}/${workflowId}`, updates).pipe(
-      tap(() => console.log('Workflow updated')),
-      catchError(err => { console.error('Error updating workflow', err); throw err; })
+  // Update course
+  updateCourse(courseId: number, updates: Partial<CreateCourseRequest>): Observable<Course> {
+    console.log(`Updating course ${courseId}`);
+    return this.http.put<Course>(`${this.apiUrl}/${courseId}`, updates).pipe(
+      tap(() => console.log('Course updated')),
+      catchError(err => { console.error('Error updating course', err); throw err; })
     );
   }
 
-  // Delete workflow
-  deleteWorkflow(workflowId: number): Observable<any> {
-    console.log(`Deleting workflow ${workflowId}`);
-    return this.http.delete(`${this.apiUrl}/${workflowId}`).pipe(
-      tap(() => console.log('Workflow deleted')),
-      catchError(err => { console.error('Error deleting workflow', err); throw err; })
+  // Delete course
+  deleteCourse(courseId: number): Observable<any> {
+    console.log(`Deleting course ${courseId}`);
+    return this.http.delete(`${this.apiUrl}/${courseId}`).pipe(
+      tap(() => console.log('Course deleted')),
+      catchError(err => { console.error('Error deleting course', err); throw err; })
     );
   }
 
   // ========== Enrollment & Progress ==========
 
-  // Enroll in a workflow
-  enrollInWorkflow(workflowId: number, userId: number): Observable<UserWorkflowProgress> {
-    console.log(`Enrolling user ${userId} in workflow ${workflowId}`);
-    return this.http.post<UserWorkflowProgress>(`${this.apiUrl}/${workflowId}/enroll`, {
+  // Enroll in a course
+  enrollInCourse(courseId: number, userId: number): Observable<UserCourseProgress> {
+    console.log(`Enrolling user ${userId} in course ${courseId}`);
+    return this.http.post<UserCourseProgress>(`${this.apiUrl}/${courseId}/enroll`, {
       user_id: userId
     }).pipe(
-      tap(() => console.log('Enrolled in workflow')),
-      catchError(err => { console.error('Error enrolling in workflow', err); throw err; })
+      tap(() => console.log('Enrolled in course')),
+      catchError(err => { console.error('Error enrolling in course', err); throw err; })
     );
   }
 
-  // Unenroll from a workflow
-  unenrollFromWorkflow(workflowId: number, userId: number): Observable<any> {
-    console.log(`Unenrolling user ${userId} from workflow ${workflowId}`);
-    return this.http.delete(`${this.apiUrl}/${workflowId}/enroll/${userId}`).pipe(
-      tap(() => console.log('Unenrolled from workflow')),
-      catchError(err => { console.error('Error unenrolling from workflow', err); throw err; })
+  // Unenroll from a course
+  unenrollFromCourse(courseId: number, userId: number): Observable<any> {
+    console.log(`Unenrolling user ${userId} from course ${courseId}`);
+    return this.http.delete(`${this.apiUrl}/${courseId}/enroll/${userId}`).pipe(
+      tap(() => console.log('Unenrolled from course')),
+      catchError(err => { console.error('Error unenrolling from course', err); throw err; })
     );
   }
 
-  // Get user's progress in a workflow
-  getUserWorkflowProgress(workflowId: number, userId: number): Observable<UserWorkflowProgress> {
-    console.log(`Fetching workflow progress for workflow ${workflowId} user ${userId}`);
-    return this.http.get<UserWorkflowProgress>(`${this.apiUrl}/${workflowId}/progress/${userId}`).pipe(
+  // Get user's progress in a course
+  getUserCourseProgress(courseId: number, userId: number): Observable<UserCourseProgress> {
+    console.log(`Fetching course progress for course ${courseId} user ${userId}`);
+    return this.http.get<UserCourseProgress>(`${this.apiUrl}/${courseId}/progress/${userId}`).pipe(
       tap(progress => console.log('Loaded progress', progress)),
       catchError(err => { console.error('Error loading progress', err); throw err; })
     );
@@ -178,7 +178,7 @@ export class WorkflowService {
   // Create a new lesson
   createLesson(lesson: CreateLessonRequest): Observable<Lesson> {
     console.log('Creating lesson', lesson);
-    return this.http.post<Lesson>(`${this.apiUrl}/${lesson.workflow_id}/lessons`, lesson).pipe(
+    return this.http.post<Lesson>(`${this.apiUrl}/${lesson.course_id}/lessons`, lesson).pipe(
       tap(() => console.log('Lesson created')),
       catchError(err => { console.error('Error creating lesson', err); throw err; })
     );
@@ -203,9 +203,9 @@ export class WorkflowService {
   }
 
   // Reorder lessons
-  reorderLessons(workflowId: number, lessonIds: number[]): Observable<any> {
-    console.log(`Reordering lessons for workflow ${workflowId}`);
-    return this.http.post(`${this.apiUrl}/${workflowId}/lessons/reorder`, {
+  reorderLessons(courseId: number, lessonIds: number[]): Observable<any> {
+    console.log(`Reordering lessons for course ${courseId}`);
+    return this.http.post(`${this.apiUrl}/${courseId}/lessons/reorder`, {
       lesson_ids: lessonIds
     }).pipe(
       tap(() => console.log('Lessons reordered')),

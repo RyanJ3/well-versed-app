@@ -11,14 +11,14 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { WorkflowService } from '../../../../core/services/workflow.service';
+import { CourseService } from '../../../../core/services/course.service';
 import { UserService } from '../../../../core/services/user.service';
 import { ModalService } from '../../../../core/services/modal.service';
 import {
   CreateWorkflowRequest,
   CreateLessonRequest,
   Lesson,
-} from '../../../../core/models/workflow.model';
+} from '../../../../core/models/course.model';
 
 @Component({
   selector: 'app-workflow-editor',
@@ -421,7 +421,7 @@ export class WorkflowEditorComponent implements OnInit {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private workflowService: WorkflowService,
+    private workflowService: CourseService,
     private userService: UserService,
     private modalService: ModalService,
   ) {

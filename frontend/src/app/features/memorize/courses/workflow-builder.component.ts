@@ -11,11 +11,11 @@ import {
   FormArray,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { WorkflowService } from '../../../core/services/workflow.service';
+import { CourseService } from '../../../core/services/course.service';
 import { UserService } from '../../../core/services/user.service';
 import { ModalService } from '../../../core/services/modal.service';
 
-import { LessonContent } from '../../../core/models/workflow.model';
+import { LessonContent } from '../../../core/models/course.model';
 import {
   VersePickerComponent,
   VerseSelection,
@@ -46,7 +46,7 @@ interface Lesson {
 }
 
 @Component({
-  selector: 'app-workflow-builder',
+  selector: 'app-course-builder',
   standalone: true,
   imports: [
     CommonModule,
@@ -57,7 +57,7 @@ interface Lesson {
   templateUrl: './workflow-builder.component.html',
   styleUrls: ['./workflow-builder.component.scss'],
 })
-export class WorkflowBuilderComponent implements OnInit {
+export class CourseBuilderComponent implements OnInit {
   workflowForm!: FormGroup;
   lessonForm!: FormGroup;
 
@@ -92,7 +92,7 @@ export class WorkflowBuilderComponent implements OnInit {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private workflowService: WorkflowService,
+    private workflowService: CourseService,
     private userService: UserService,
     private modalService: ModalService,
   ) {

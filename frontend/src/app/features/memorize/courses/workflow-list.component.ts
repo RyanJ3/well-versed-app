@@ -2,13 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { WorkflowService } from '../../../core/services/workflow.service';
+import { CourseService } from '../../../core/services/course.service';
 import { UserService } from '../../../core/services/user.service';
-import { Workflow } from '../../../core/models/workflow.model';
+import { Course } from '../../../core/models/course.model';
 import { User } from '../../../core/models/user';
 
 @Component({
-  selector: 'app-workflow-list',
+  selector: 'app-course-list',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
@@ -83,7 +83,7 @@ import { User } from '../../../core/models/user';
               class="search-input"
               placeholder="Search courses, topics, or creators..."
               [(ngModel)]="searchQuery"
-              (keyup.enter)="searchWorkflows()"
+              (keyup.enter)="searchCourses()"
             />
           </div>
 
@@ -164,7 +164,7 @@ import { User } from '../../../core/models/user';
         </div>
 
         <div class="results-count" *ngIf="!loading">
-          Showing {{ workflows.length }} of {{ totalPages * perPage }} courses
+          Showing {{ courses.length }} of {{ totalPages * perPage }} courses
           <button
             *ngIf="selectedTags.length > 0"
             class="clear-btn"
@@ -175,98 +175,98 @@ import { User } from '../../../core/models/user';
         </div>
       </div>
 
-      <!-- Workflows Grid -->
+      <!-- Courses Grid -->
       <div
         class="grid-view"
-        *ngIf="viewMode === 'grid' && !loading && workflows.length > 0"
+        *ngIf="viewMode === 'grid' && !loading && courses.length > 0"
       >
         <div
           class="grid-card"
-          *ngFor="let workflow of workflows"
-          (click)="viewWorkflow(workflow)"
+          *ngFor="let course of courses"
+          (click)="viewCourse(course)"
         >
           <div class="grid-thumb">
             <img
-              *ngIf="workflow.thumbnail_url"
-              [src]="workflow.thumbnail_url"
+              *ngIf="course.thumbnail_url"
+              [src]="course.thumbnail_url"
               alt=""
             />
-            <div *ngIf="!workflow.thumbnail_url" class="thumb-placeholder">
-              {{ getWorkflowIcon(workflow) }}
+            <div *ngIf="!course.thumbnail_url" class="thumb-placeholder">
+              {{ getCourseIcon(course) }}
             </div>
-            <div *ngIf="isEnrolled(workflow.id)" class="grid-progress">
+            <div *ngIf="isEnrolled(course.id)" class="grid-progress">
               <div class="progress-bar">
                 <div
                   class="progress"
-                  [style.width.%]="getProgress(workflow.id)"
+                  [style.width.%]="getProgress(course.id)"
                 ></div>
               </div>
               <span class="progress-label"
-                >{{ getProgress(workflow.id) }}% Complete</span
+                >{{ getProgress(course.id) }}% Complete</span
               >
             </div>
           </div>
           <div class="grid-content">
-            <h3 class="grid-title">{{ workflow.title }}</h3>
-            <p class="grid-desc">{{ workflow.description }}</p>
+            <h3 class="grid-title">{{ course.title }}</h3>
+            <p class="grid-desc">{{ course.description }}</p>
             <div class="grid-meta">
-              <span>{{ workflow.lesson_count }} lessons</span>
-              <span *ngIf="getDuration(workflow)">{{
-                getDuration(workflow)
+              <span>{{ course.lesson_count }} lessons</span>
+              <span *ngIf="getDuration(course)">{{
+                getDuration(course)
               }}</span>
             </div>
             <div class="grid-tags">
-              <span *ngFor="let tag of workflow.tags.slice(0, 3)">{{
+              <span *ngFor="let tag of course.tags.slice(0, 3)">{{
                 formatTag(tag)
               }}</span>
             </div>
             <div class="grid-footer">
               <div class="creator">
-                <div class="avatar">{{ workflow.creator_name.charAt(0) }}</div>
-                <span class="creator-name">{{ workflow.creator_name }}</span>
+                <div class="avatar">{{ course.creator_name.charAt(0) }}</div>
+                <span class="creator-name">{{ course.creator_name }}</span>
               </div>
               <button
                 class="action-btn"
-                (click)="handleActionClick($event, workflow)"
-                [class.enrolled]="isEnrolled(workflow.id)"
+                (click)="handleActionClick($event, course)"
+                [class.enrolled]="isEnrolled(course.id)"
               >
-                {{ isEnrolled(workflow.id) ? 'Continue' : 'Enroll' }}
+                {{ isEnrolled(course.id) ? 'Continue' : 'Enroll' }}
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Workflows List -->
+      <!-- Courses List -->
       <div
         class="list"
-        *ngIf="viewMode === 'list' && !loading && workflows.length > 0"
+        *ngIf="viewMode === 'list' && !loading && courses.length > 0"
       >
-        <div class="workflow-item" *ngFor="let workflow of workflows">
-          <div class="item-main" (click)="toggleExpanded(workflow.id)">
+        <div class="course-item" *ngFor="let course of courses">
+          <div class="item-main" (click)="toggleExpanded(course.id)">
             <div class="thumb">
-              <span *ngIf="!workflow.thumbnail_url">{{
-                getWorkflowIcon(workflow)
+              <span *ngIf="!course.thumbnail_url">{{
+                getCourseIcon(course)
               }}</span>
               <img
-                *ngIf="workflow.thumbnail_url"
-                [src]="workflow.thumbnail_url"
+                *ngIf="course.thumbnail_url"
+                [src]="course.thumbnail_url"
                 alt=""
               />
             </div>
 
             <div class="info">
               <div class="info-header">
-                <h3 class="item-title">{{ workflow.title }}</h3>
+                <h3 class="item-title">{{ course.title }}</h3>
                 <span
                   class="completed"
                   *ngIf="
-                    isEnrolled(workflow.id) && getProgress(workflow.id) === 100
+                    isEnrolled(course.id) && getProgress(course.id) === 100
                   "
                   >Completed</span
                 >
               </div>
-              <p class="item-desc">{{ workflow.description }}</p>
+              <p class="item-desc">{{ course.description }}</p>
 
               <div class="meta">
                 <span class="meta-item">
@@ -284,9 +284,9 @@ import { User } from '../../../core/models/user';
                       d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
                     />
                   </svg>
-                  {{ workflow.lesson_count }} lessons
+                  {{ course.lesson_count }} lessons
                 </span>
-                <span class="meta-item" *ngIf="getDuration(workflow)">
+                <span class="meta-item" *ngIf="getDuration(course)">
                   <svg
                     width="14"
                     height="14"
@@ -301,7 +301,7 @@ import { User } from '../../../core/models/user';
                       d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  {{ getDuration(workflow) }}
+                  {{ getDuration(course) }}
                 </span>
                 <span class="meta-item">
                   <svg
@@ -318,34 +318,34 @@ import { User } from '../../../core/models/user';
                       d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
                     />
                   </svg>
-                  {{ workflow.enrolled_count }} enrolled
+                  {{ course.enrolled_count }} enrolled
                 </span>
-                <span class="creator">by {{ workflow.creator_name }}</span>
+                <span class="creator">by {{ course.creator_name }}</span>
               </div>
 
-              <div *ngIf="isEnrolled(workflow.id)" class="progress-wrapper">
+              <div *ngIf="isEnrolled(course.id)" class="progress-wrapper">
                 <div class="progress-bar">
                   <div
                     class="progress"
-                    [style.width.%]="getProgress(workflow.id)"
+                    [style.width.%]="getProgress(course.id)"
                   ></div>
                 </div>
                 <span class="progress-label"
-                  >{{ getProgress(workflow.id) }}%</span
+                  >{{ getProgress(course.id) }}%</span
                 >
               </div>
             </div>
 
             <button
               class="action-btn"
-              (click)="handleActionClick($event, workflow)"
-              [class.enrolled]="isEnrolled(workflow.id)"
+              (click)="handleActionClick($event, course)"
+              [class.enrolled]="isEnrolled(course.id)"
             >
-              {{ isEnrolled(workflow.id) ? 'Continue' : 'Start Learning' }}
+              {{ isEnrolled(course.id) ? 'Continue' : 'Start Learning' }}
             </button>
           </div>
 
-          <div class="item-expanded" *ngIf="expandedId === workflow.id">
+          <div class="item-expanded" *ngIf="expandedId === course.id">
             <div class="expanded-content">
               <div class="lesson-overview">
                 <h4>Lesson Overview</h4>
@@ -355,11 +355,11 @@ import { User } from '../../../core/models/user';
                 >
                   <div
                     class="lesson-number"
-                    [class.done]="isEnrolled(workflow.id) && i < 2"
+                    [class.done]="isEnrolled(course.id) && i < 2"
                   >
-                    {{ isEnrolled(workflow.id) && i < 2 ? '✓' : i + 1 }}
+                    {{ isEnrolled(course.id) && i < 2 ? '✓' : i + 1 }}
                   </div>
-                  <span [class.strike]="isEnrolled(workflow.id) && i < 2"
+                  <span [class.strike]="isEnrolled(course.id) && i < 2"
                     >Lesson {{ i + 1 }}</span
                   >
                 </div>
@@ -383,7 +383,7 @@ import { User } from '../../../core/models/user';
         <p>Loading courses...</p>
       </div>
 
-      <div class="empty-state" *ngIf="!loading && workflows.length === 0">
+      <div class="empty-state" *ngIf="!loading && courses.length === 0">
         <svg
           width="64"
           height="64"
@@ -425,11 +425,11 @@ import { User } from '../../../core/models/user';
       </div>
     </div>
   `,
-  styleUrls: ['./workflow-list.component.scss'],
+  styleUrls: ['./course-list.component.scss'],
 })
-export class WorkflowListComponent implements OnInit {
-  workflows: Workflow[] = [];
-  enrolledWorkflows: Map<number, any> = new Map();
+export class CourseListComponent implements OnInit {
+  courses: Course[] = [];
+  enrolledCourses: Map<number, any> = new Map();
   loading = false;
   searchQuery = '';
   selectedTags: string[] = [];
@@ -444,32 +444,32 @@ export class WorkflowListComponent implements OnInit {
   viewMode: 'list' | 'grid' = 'list';
 
   constructor(
-    private workflowService: WorkflowService,
+    private courseService: CourseService,
     private userService: UserService,
     private router: Router,
   ) {}
 
   ngOnInit() {
     this.loadAvailableTags();
-    this.loadWorkflows();
+    this.loadCourses();
 
     this.userService.currentUser$.subscribe((user) => {
       this.currentUser = user;
       if (user) {
-        this.loadEnrolledWorkflows();
+        this.loadEnrolledCourses();
       }
     });
   }
 
   loadAvailableTags() {
-    this.availableTags = this.workflowService.getSuggestedTags();
+    this.availableTags = this.courseService.getSuggestedTags();
   }
 
-  loadWorkflows() {
+  loadCourses() {
     this.loading = true;
 
-    this.workflowService
-      .getPublicWorkflows(
+    this.courseService
+      .getPublicCourses(
         this.currentPage,
         this.perPage,
         this.searchQuery,
@@ -477,18 +477,18 @@ export class WorkflowListComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          this.workflows = response.workflows;
+          this.courses = response.courses;
           this.totalPages = Math.ceil(response.total / this.perPage);
           this.loading = false;
         },
         error: (error) => {
-          console.error('Error loading workflows:', error);
+          console.error('Error loading courses:', error);
           this.loading = false;
         },
       });
   }
 
-  loadEnrolledWorkflows() {
+  loadEnrolledCourses() {
     if (!this.currentUser) return;
 
     const userId =
@@ -496,10 +496,10 @@ export class WorkflowListComponent implements OnInit {
         ? parseInt(this.currentUser.id)
         : this.currentUser.id;
 
-    this.workflowService.getEnrolledWorkflows(userId).subscribe({
-      next: (workflows) => {
-        workflows.forEach((w) => {
-          this.enrolledWorkflows.set(w.id, {
+    this.courseService.getEnrolledCourses(userId).subscribe({
+      next: (courses) => {
+        courses.forEach((w) => {
+          this.enrolledCourses.set(w.id, {
             progress: 0,
             completedLessons: 0,
           });
@@ -508,9 +508,9 @@ export class WorkflowListComponent implements OnInit {
     });
   }
 
-  searchWorkflows() {
+  searchCourses() {
     this.currentPage = 1;
-    this.loadWorkflows();
+    this.loadCourses();
   }
 
   toggleTag(tag: string) {
@@ -520,12 +520,12 @@ export class WorkflowListComponent implements OnInit {
     } else {
       this.selectedTags.push(tag);
     }
-    this.searchWorkflows();
+    this.searchCourses();
   }
 
   clearTags() {
     this.selectedTags = [];
-    this.searchWorkflows();
+    this.searchCourses();
   }
 
   formatTag(tag: string): string {
@@ -542,33 +542,33 @@ export class WorkflowListComponent implements OnInit {
       .join(', ');
   }
 
-  viewWorkflow(workflow: Workflow) {
-    this.router.navigate(['/courses', workflow.id]);
+  viewCourse(course: Course) {
+    this.router.navigate(['/courses', course.id]);
   }
 
-  isEnrolled(workflowId: number): boolean {
-    return this.enrolledWorkflows.has(workflowId);
+  isEnrolled(courseId: number): boolean {
+    return this.enrolledCourses.has(courseId);
   }
 
-  getProgress(workflowId: number): number {
-    return this.enrolledWorkflows.get(workflowId)?.progress || 0;
+  getProgress(courseId: number): number {
+    return this.enrolledCourses.get(courseId)?.progress || 0;
   }
 
-  getCompletedLessons(workflowId: number): number {
-    return this.enrolledWorkflows.get(workflowId)?.completedLessons || 0;
+  getCompletedLessons(courseId: number): number {
+    return this.enrolledCourses.get(courseId)?.completedLessons || 0;
   }
 
-  getDuration(workflow: Workflow): string {
-    const hours = Math.ceil(workflow.lesson_count * 0.5);
+  getDuration(course: Course): string {
+    const hours = Math.ceil(course.lesson_count * 0.5);
     return hours === 1 ? '1 hour' : `${hours} hours`;
   }
 
-  getWorkflowIcon(workflow: Workflow): string {
+  getCourseIcon(course: Course): string {
     const icons = ['📖', '🙏', '✝️', '🕊️', '💫', '🌟'];
-    return icons[workflow.id % icons.length];
+    return icons[course.id % icons.length];
   }
 
-  handleActionClick(event: Event, workflow: Workflow) {
+  handleActionClick(event: Event, course: Course) {
     event.stopPropagation();
 
     if (!this.currentUser) {
@@ -576,21 +576,21 @@ export class WorkflowListComponent implements OnInit {
       return;
     }
 
-    if (this.isEnrolled(workflow.id)) {
-      this.viewWorkflow(workflow);
+    if (this.isEnrolled(course.id)) {
+      this.viewCourse(course);
     } else {
       const userId =
         typeof this.currentUser.id === 'string'
           ? parseInt(this.currentUser.id)
           : this.currentUser.id;
 
-      this.workflowService.enrollInWorkflow(workflow.id, userId).subscribe({
+      this.courseService.enrollInCourse(course.id, userId).subscribe({
         next: () => {
-          this.enrolledWorkflows.set(workflow.id, {
+          this.enrolledCourses.set(course.id, {
             progress: 0,
             completedLessons: 0,
           });
-          this.viewWorkflow(workflow);
+          this.viewCourse(course);
         },
       });
     }
@@ -602,7 +602,7 @@ export class WorkflowListComponent implements OnInit {
 
   goToPage(page: number) {
     this.currentPage = page;
-    this.loadWorkflows();
+    this.loadCourses();
   }
 
   toggleExpanded(id: number) {
