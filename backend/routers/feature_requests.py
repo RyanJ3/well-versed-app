@@ -70,6 +70,9 @@ async def list_requests(
     search: Optional[str] = None,
     db: DatabaseConnection = Depends(get_db)
 ):
+    logger.info(
+        f"Listing feature requests page={page} per_page={per_page} type={type} status={status}"
+    )
     offset = (page - 1) * per_page
     filters = []
     params: List = []
@@ -118,6 +121,8 @@ async def list_requests(
     query_params = params + [per_page, offset]
     rows = db.fetch_all(base_query, tuple(query_params))
 
+    logger.info(f"Retrieved {len(rows)} feature requests")
+
     total_row = db.fetch_one(f"SELECT COUNT(*) AS count FROM feature_requests fr {where_sql}", tuple(params))
     total = total_row["count"] if total_row else 0
 
@@ -134,6 +139,7 @@ async def list_requests(
 
 @router.get("/{request_id}", response_model=FeatureRequestResponse)
 async def get_request(request_id: int, db: DatabaseConnection = Depends(get_db)):
+    logger.info(f"Fetching feature request {request_id}")
     query = """
         SELECT
             fr.request_id AS id,
@@ -158,16 +164,19 @@ async def get_request(request_id: int, db: DatabaseConnection = Depends(get_db))
     """
     row = db.fetch_one(query, (request_id,))
     if not row:
+        logger.warning(f"Feature request {request_id} not found")
         raise HTTPException(status_code=404, detail="Feature request not found")
     tag_rows = db.fetch_all(
         "SELECT t.tag_name FROM feature_request_tag_map m JOIN feature_request_tags t ON m.tag_id = t.tag_id WHERE m.request_id = %s",
         (request_id,)
     )
     row["tags"] = [t["tag_name"] for t in tag_rows]
+    logger.info(f"Feature request {request_id} retrieved")
     return FeatureRequestResponse(**row)
 
 @router.post("", response_model=FeatureRequestResponse)
 async def create_request(req: FeatureRequestCreate, db: DatabaseConnection = Depends(get_db)):
+    logger.info(f"Creating feature request titled '{req.title}' for user {req.user_id}")
     with db.get_db() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -200,6 +209,8 @@ async def create_request(req: FeatureRequestCreate, db: DatabaseConnection = Dep
             user_name = user_name_row[0] if user_name_row else None
             conn.commit()
 
+    logger.info(f"Feature request {request_id} created")
+
     return FeatureRequestResponse(
         id=request_id,
         title=req.title,
@@ -219,6 +230,7 @@ async def create_request(req: FeatureRequestCreate, db: DatabaseConnection = Dep
 
 @router.post("/{request_id}/vote")
 async def vote_request(request_id: int, vote: VoteRequest, db: DatabaseConnection = Depends(get_db)):
+    logger.info(f"User {vote.user_id} voting {vote.vote_type} on request {request_id}")
     db.execute(
         """
         INSERT INTO feature_request_votes (request_id, user_id, vote_type)
@@ -232,6 +244,7 @@ async def vote_request(request_id: int, vote: VoteRequest, db: DatabaseConnectio
 
 @router.delete("/{request_id}/vote/{user_id}")
 async def remove_vote(request_id: int, user_id: int, db: DatabaseConnection = Depends(get_db)):
+    logger.info(f"Removing vote by user {user_id} from request {request_id}")
     db.execute(
         "DELETE FROM feature_request_votes WHERE request_id = %s AND user_id = %s",
         (request_id, user_id)
@@ -240,6 +253,7 @@ async def remove_vote(request_id: int, user_id: int, db: DatabaseConnection = De
 
 @router.get("/{request_id}/comments", response_model=List[FeatureRequestComment])
 async def list_comments(request_id: int, db: DatabaseConnection = Depends(get_db)):
+    logger.info(f"Listing comments for request {request_id}")
     query = """
         SELECT
             c.comment_id AS id,
@@ -254,10 +268,12 @@ async def list_comments(request_id: int, db: DatabaseConnection = Depends(get_db
         ORDER BY c.created_at
     """
     rows = db.fetch_all(query, (request_id,))
+    logger.info(f"Retrieved {len(rows)} comments for request {request_id}")
     return [FeatureRequestComment(**r) for r in rows]
 
 @router.post("/{request_id}/comments", response_model=FeatureRequestComment)
 async def add_comment(request_id: int, comment: CommentCreate, db: DatabaseConnection = Depends(get_db)):
+    logger.info(f"User {comment.user_id} adding comment to request {request_id}")
     with db.get_db() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -279,6 +295,7 @@ async def add_comment(request_id: int, comment: CommentCreate, db: DatabaseConne
 
 @router.get("/user/{user_id}", response_model=List[FeatureRequestResponse])
 async def get_user_requests(user_id: int, db: DatabaseConnection = Depends(get_db)):
+    logger.info(f"Listing requests created by user {user_id}")
     rows = db.fetch_all(
         """SELECT fr.request_id AS id, fr.title, fr.description, fr.type, fr.status, fr.priority, fr.user_id, u.name AS user_name, fr.created_at::text, fr.updated_at::text, 0 as upvotes, 0 as downvotes, 0 as comments_count FROM feature_requests fr JOIN users u ON fr.user_id = u.user_id WHERE fr.user_id = %s ORDER BY fr.created_at DESC""",
         (user_id,)
@@ -289,10 +306,12 @@ async def get_user_requests(user_id: int, db: DatabaseConnection = Depends(get_d
             (r["id"],)
         )
         r["tags"] = [t["tag_name"] for t in tag_rows]
+    logger.info(f"User {user_id} has {len(rows)} requests")
     return [FeatureRequestResponse(**r) for r in rows]
 
 @router.get("/trending", response_model=List[FeatureRequestResponse])
 async def get_trending(limit: int = 5, db: DatabaseConnection = Depends(get_db)):
+    logger.info(f"Fetching top {limit} trending requests")
     query = """
         SELECT
             fr.request_id AS id,
@@ -323,4 +342,5 @@ async def get_trending(limit: int = 5, db: DatabaseConnection = Depends(get_db))
             (r["id"],)
         )
         r["tags"] = [t["tag_name"] for t in tag_rows]
+    logger.info(f"Trending requests returned: {len(rows)}")
     return [FeatureRequestResponse(**r) for r in rows]

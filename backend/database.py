@@ -16,6 +16,7 @@ class DatabaseConnection:
         """Get database connection from pool"""
         conn = None
         try:
+            logger.debug("Acquiring DB connection from pool")
             conn = self.pool.getconn()
             conn.cursor().execute("SET search_path TO wellversed01DEV;")
             yield conn
@@ -27,6 +28,7 @@ class DatabaseConnection:
         finally:
             if conn:
                 self.pool.putconn(conn)
+                logger.debug("Connection returned to pool")
     
     def fetch_one(self, query: str, params: tuple = ()) -> Optional[Dict]:
         """Execute query and fetch one result"""
@@ -35,6 +37,7 @@ class DatabaseConnection:
                 logger.debug(f"Executing query: {query[:100]}...")
                 cur.execute(query, params)
                 result = cur.fetchone()
+                logger.debug(f"Query returned {'1 row' if result else '0 rows'}")
                 return dict(result) if result else None
     
     def fetch_all(self, query: str, params: tuple = ()) -> List[Dict]:
@@ -44,6 +47,7 @@ class DatabaseConnection:
                 logger.debug(f"Executing query: {query[:100]}...")
                 cur.execute(query, params)
                 results = cur.fetchall()
+                logger.debug(f"Query returned {len(results)} rows")
                 return [dict(row) for row in results]
     
     def execute(self, query: str, params: tuple = ()) -> None:
