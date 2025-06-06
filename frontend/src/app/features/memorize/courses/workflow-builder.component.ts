@@ -37,7 +37,6 @@ interface Lesson {
   article_text?: string;
   external_url?: string;
   external_title?: string;
-  audio_url?: string;
   // Quiz specific fields
   quiz_verse_count?: number;
   quiz_pass_threshold?: number;
@@ -136,7 +135,6 @@ export class WorkflowBuilderComponent implements OnInit {
       article_text: [''],
       external_url: [''],
       external_title: [''],
-      audio_url: [''],
       quiz_verse_count: [5],
       quiz_pass_threshold: [85],
       quiz_randomize: [true],
@@ -363,7 +361,6 @@ export class WorkflowBuilderComponent implements OnInit {
       article_text: lesson.article_text || '',
       external_url: lesson.external_url || '',
       external_title: lesson.external_title || '',
-      audio_url: lesson.audio_url || '',
       quiz_verse_count: lesson.quiz_cards
         ? lesson.quiz_cards.reduce((t, c) => t + c.verseCodes.length, 0)
         : lesson.quiz_verse_count || 5,
@@ -719,7 +716,6 @@ export class WorkflowBuilderComponent implements OnInit {
               description: lesson.description,
               content_type: lesson.content_type as any,
               content_data: this.buildContentData(lesson),
-              audio_url: lesson.audio_url,
               position: lesson.position,
             })
             .toPromise();

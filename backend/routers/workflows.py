@@ -53,7 +53,6 @@ class LessonCreate(BaseModel):
     description: Optional[str] = None
     content_type: str
     content_data: Optional[Dict] = None
-    audio_url: Optional[str] = None
     flashcards_required: int = 0
     position: Optional[int] = None
 
@@ -63,7 +62,6 @@ class LessonUpdate(BaseModel):
     description: Optional[str] = None
     content_type: Optional[str] = None
     content_data: Optional[Dict] = None
-    audio_url: Optional[str] = None
     flashcards_required: Optional[int] = None
     position: Optional[int] = None
 
@@ -76,7 +74,6 @@ class LessonResponse(BaseModel):
     description: Optional[str]
     content_type: str
     content_data: Optional[Dict] = None
-    audio_url: Optional[str] = None
     flashcards_required: int
     created_at: str
 
@@ -504,8 +501,8 @@ async def add_lesson(
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO workflow_lessons (workflow_id, position, title, description, content_type, content_data, audio_url, flashcards_required)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO workflow_lessons (workflow_id, position, title, description, content_type, content_data, flashcards_required)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 RETURNING lesson_id, created_at
                 """,
                 (
@@ -515,7 +512,6 @@ async def add_lesson(
                     lesson.description,
                     lesson.content_type,
                     json.dumps(lesson.content_data) if lesson.content_data else None,
-                    lesson.audio_url,
                     lesson.flashcards_required,
                 ),
             )
@@ -531,7 +527,6 @@ async def add_lesson(
         description=lesson.description,
         content_type=lesson.content_type,
         content_data=lesson.content_data,
-        audio_url=lesson.audio_url,
         flashcards_required=lesson.flashcards_required,
         created_at=created_at,
     )
@@ -544,7 +539,7 @@ async def list_lessons(workflow_id: int, db: DatabaseConnection = Depends(get_db
     logger.info(f"Listing lessons for workflow {workflow_id}")
     query = """
         SELECT lesson_id, workflow_id, position, title, description, content_type, content_data,
-               audio_url, flashcards_required, created_at
+               flashcards_required, created_at
         FROM workflow_lessons
         WHERE workflow_id = %s
         ORDER BY position
@@ -559,7 +554,6 @@ async def list_lessons(workflow_id: int, db: DatabaseConnection = Depends(get_db
             description=r.get("description"),
             content_type=r["content_type"],
             content_data=r.get("content_data"),
-            audio_url=r.get("audio_url"),
             flashcards_required=r.get("flashcards_required", 0),
             created_at=r["created_at"].isoformat(),
         )
@@ -575,7 +569,7 @@ async def get_lesson(lesson_id: int, db: DatabaseConnection = Depends(get_db)):
     row = db.fetch_one(
         """
         SELECT lesson_id, workflow_id, position, title, description, content_type, content_data,
-               audio_url, flashcards_required, created_at
+               flashcards_required, created_at
         FROM workflow_lessons
         WHERE lesson_id = %s
         """,
@@ -592,7 +586,6 @@ async def get_lesson(lesson_id: int, db: DatabaseConnection = Depends(get_db)):
         description=row.get("description"),
         content_type=row["content_type"],
         content_data=row.get("content_data"),
-        audio_url=row.get("audio_url"),
         flashcards_required=row.get("flashcards_required", 0),
         created_at=row["created_at"].isoformat(),
     )
@@ -617,9 +610,6 @@ async def update_lesson(lesson_id: int, updates: LessonUpdate, db: DatabaseConne
     if updates.content_data is not None:
         update_fields.append("content_data = %s")
         params.append(json.dumps(updates.content_data))
-    if updates.audio_url is not None:
-        update_fields.append("audio_url = %s")
-        params.append(updates.audio_url)
     if updates.flashcards_required is not None:
         update_fields.append("flashcards_required = %s")
         params.append(updates.flashcards_required)

@@ -39,7 +39,6 @@ CREATE TABLE workflow_lessons (
     description TEXT,
     content_type VARCHAR(20) NOT NULL,
     content_data JSONB,
-    audio_url TEXT,
     flashcards_required INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
