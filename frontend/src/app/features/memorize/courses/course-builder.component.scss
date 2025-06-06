@@ -1,6 +1,6 @@
-// frontend/src/app/features/workflows/workflow-builder.component.scss
+// frontend/src/app/features/courses/course-builder.component.scss
 
-.workflow-builder {
+.course-builder {
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem;
@@ -145,7 +145,7 @@
 }
 
 // Workflow Info Section
-.workflow-info {
+.course-info {
   background: white;
   border-radius: 0.75rem;
   padding: 2rem;
@@ -669,7 +669,7 @@ textarea.form-control {
 }
 
 @media (max-width: 768px) {
-  .workflow-builder {
+  .course-builder {
     padding: 1rem;
   }
 
@@ -913,7 +913,7 @@ textarea.form-control {
     }
   }
 
-  .workflow-title {
+  .course-title {
     font-size: 2.5rem;
     font-weight: 700;
     background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
@@ -922,7 +922,7 @@ textarea.form-control {
     margin-bottom: 0.75rem;
   }
 
-  .workflow-description {
+  .course-description {
     font-size: 1.125rem;
     color: #6b7280;
     max-width: 600px;
@@ -1216,7 +1216,7 @@ textarea.form-control {
       grid-template-columns: 1fr;
     }
 
-    .workflow-title {
+    .course-title {
       font-size: 2rem;
     }
 

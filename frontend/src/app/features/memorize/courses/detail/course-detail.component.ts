@@ -1,10 +1,10 @@
-// frontend/src/app/features/workflows/detail/workflow-detail.component.ts
+// frontend/src/app/features/courses/detail/course-detail.component.ts
 
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
-  WorkflowDetailResponse,
+  CourseDetailResponse,
   CourseService,
 } from '../../../../core/services/course.service';
 import { UserService } from '../../../../core/services/user.service';
@@ -13,13 +13,13 @@ import { User } from '../../../../core/models/user';
 import { Lesson } from '../../../../core/models/course.model';
 
 @Component({
-  selector: 'app-workflow-detail',
+  selector: 'app-course-detail',
   standalone: true,
   imports: [CommonModule, RouterModule],
   template: `
-    <div class="workflow-detail" *ngIf="workflow">
+    <div class="course-detail" *ngIf="course">
       <!-- Header -->
-      <div class="workflow-header">
+      <div class="course-header">
         <button class="back-button" (click)="goBack()">
           <svg
             width="20"
@@ -39,10 +39,10 @@ import { Lesson } from '../../../../core/models/course.model';
         </button>
 
         <div class="header-content">
-          <h1 class="workflow-title">{{ workflow.title }}</h1>
-          <p class="workflow-description">{{ workflow.description }}</p>
+          <h1 class="course-title">{{ course.title }}</h1>
+          <p class="course-description">{{ course.description }}</p>
 
-          <div class="workflow-meta">
+          <div class="course-meta">
             <div class="meta-item">
               <svg
                 width="16"
@@ -58,7 +58,7 @@ import { Lesson } from '../../../../core/models/course.model';
                   stroke-linejoin="round"
                 />
               </svg>
-              Created by {{ workflow.creator_name }}
+              Created by {{ course.creator_name }}
             </div>
             <div class="meta-item">
               <svg
@@ -75,7 +75,7 @@ import { Lesson } from '../../../../core/models/course.model';
                   stroke-linejoin="round"
                 />
               </svg>
-              {{ workflow.lesson_count }} lessons
+              {{ course.lesson_count }} lessons
             </div>
             <div class="meta-item">
               <svg
@@ -92,12 +92,12 @@ import { Lesson } from '../../../../core/models/course.model';
                   stroke-linejoin="round"
                 />
               </svg>
-              {{ workflow.enrolled_count }} students
+              {{ course.enrolled_count }} students
             </div>
           </div>
 
-          <div class="workflow-tags">
-            <span class="tag" *ngFor="let tag of workflow.tags">{{
+          <div class="course-tags">
+            <span class="tag" *ngFor="let tag of course.tags">{{
               formatTag(tag)
             }}</span>
           </div>
@@ -106,17 +106,17 @@ import { Lesson } from '../../../../core/models/course.model';
         <!-- Action Buttons -->
         <div class="header-actions">
           <button
-            *ngIf="!workflow.is_enrolled && currentUser"
+            *ngIf="!course.is_enrolled && currentUser"
             class="btn-primary"
-            (click)="enrollInWorkflow()"
+            (click)="enrollInCourse()"
           >
             Enroll in Course
           </button>
 
           <button
-            *ngIf="workflow.is_enrolled && currentUser"
+            *ngIf="course.is_enrolled && currentUser"
             class="btn-secondary"
-            (click)="unenrollFromWorkflow()"
+            (click)="unenrollFromCourse()"
           >
             Unenroll
           </button>
@@ -124,7 +124,7 @@ import { Lesson } from '../../../../core/models/course.model';
           <button
             *ngIf="isCreator()"
             class="btn-secondary"
-            (click)="editWorkflow()"
+            (click)="editCourse()"
           >
             Edit Course
           </button>
@@ -134,13 +134,13 @@ import { Lesson } from '../../../../core/models/course.model';
       <!-- Progress Bar (for enrolled users) -->
       <div
         class="progress-section"
-        *ngIf="workflow.is_enrolled && workflow.user_progress"
+        *ngIf="course.is_enrolled && course.user_progress"
       >
         <div class="progress-info">
           <span class="progress-label">Your Progress</span>
           <span class="progress-text">
-            {{ workflow.user_progress.lessons_completed }} /
-            {{ workflow.lesson_count }} lessons completed
+            {{ course.user_progress.lessons_completed }} /
+            {{ course.lesson_count }} lessons completed
           </span>
         </div>
         <div class="progress-bar">
@@ -157,7 +157,7 @@ import { Lesson } from '../../../../core/models/course.model';
 
         <div class="lessons-list">
           <div
-            *ngFor="let lesson of workflow.lessons; let i = index"
+            *ngFor="let lesson of course.lessons; let i = index"
             class="lesson-card"
             [class.locked]="!isLessonUnlocked(lesson, i)"
             [class.completed]="isLessonCompleted(lesson)"
@@ -300,14 +300,14 @@ import { Lesson } from '../../../../core/models/course.model';
   `,
   styles: [
     `
-      .workflow-detail {
+      .course-detail {
         padding: 2rem;
         max-width: 1000px;
         margin: 0 auto;
       }
 
       /* Header Styles */
-      .workflow-header {
+      .course-header {
         background: white;
         border-radius: 1rem;
         padding: 2rem;
@@ -335,21 +335,21 @@ import { Lesson } from '../../../../core/models/course.model';
         transform: translateX(-2px);
       }
 
-      .workflow-title {
+      .course-title {
         font-size: 2rem;
         font-weight: 700;
         color: #1f2937;
         margin-bottom: 0.5rem;
       }
 
-      .workflow-description {
+      .course-description {
         color: #6b7280;
         font-size: 1.125rem;
         line-height: 1.75;
         margin-bottom: 1.5rem;
       }
 
-      .workflow-meta {
+      .course-meta {
         display: flex;
         gap: 1.5rem;
         margin-bottom: 1rem;
@@ -363,7 +363,7 @@ import { Lesson } from '../../../../core/models/course.model';
         font-size: 0.875rem;
       }
 
-      .workflow-tags {
+      .course-tags {
         display: flex;
         gap: 0.5rem;
         margin-bottom: 1.5rem;
@@ -569,23 +569,23 @@ import { Lesson } from '../../../../core/models/course.model';
     `,
   ],
 })
-export class WorkflowDetailComponent implements OnInit {
-  workflow: WorkflowDetailResponse | null = null;
+export class CourseDetailComponent implements OnInit {
+  course: CourseDetailResponse | null = null;
   currentUser: User | null = null;
-  workflowId!: number;
+  courseId!: number;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private workflowService: CourseService,
+    private courseService: CourseService,
     private userService: UserService,
     private modalService: ModalService,
   ) {}
 
   ngOnInit() {
     this.route.params.subscribe((params) => {
-      this.workflowId = +params['id'];
-      this.loadWorkflow();
+      this.courseId = +params['id'];
+      this.loadCourse();
     });
 
     this.userService.currentUser$.subscribe((user) => {
@@ -593,52 +593,52 @@ export class WorkflowDetailComponent implements OnInit {
     });
   }
 
-  loadWorkflow() {
+  loadCourse() {
     const userId = this.currentUser
       ? typeof this.currentUser.id === 'string'
         ? parseInt(this.currentUser.id)
         : this.currentUser.id
       : undefined;
 
-    this.workflowService.getWorkflow(this.workflowId, userId).subscribe({
-      next: (workflow) => {
-        this.workflow = workflow;
+    this.courseService.getCourse(this.courseId, userId).subscribe({
+      next: (course) => {
+        this.course = course;
       },
       error: (error) => {
-        console.error('Error loading workflow:', error);
+        console.error('Error loading course:', error);
         this.router.navigate(['/courses']);
       },
     });
   }
 
   isCreator(): boolean {
-    if (!this.workflow || !this.currentUser) return false;
+    if (!this.course || !this.currentUser) return false;
     const userId =
       typeof this.currentUser.id === 'string'
         ? parseInt(this.currentUser.id)
         : this.currentUser.id;
-    return this.workflow.creator_id === userId;
+    return this.course.creator_id === userId;
   }
 
-  enrollInWorkflow() {
-    if (!this.currentUser || !this.workflow) return;
+  enrollInCourse() {
+    if (!this.currentUser || !this.course) return;
 
     const userId =
       typeof this.currentUser.id === 'string'
         ? parseInt(this.currentUser.id)
         : this.currentUser.id;
 
-    this.workflowService.enrollInWorkflow(this.workflowId, userId).subscribe({
+    this.courseService.enrollInCourse(this.courseId, userId).subscribe({
       next: () => {
-        this.loadWorkflow();
+        this.loadCourse();
       },
       error: (error) => {
-        console.error('Error enrolling in workflow:', error);
+        console.error('Error enrolling in course:', error);
       },
     });
   }
 
-  unenrollFromWorkflow() {
+  unenrollFromCourse() {
     this.modalService
       .confirm({
         title: 'Unenroll from Course',
@@ -649,28 +649,28 @@ export class WorkflowDetailComponent implements OnInit {
         showCancel: true,
       })
       .then((result) => {
-        if (result.confirmed && this.currentUser && this.workflow) {
+        if (result.confirmed && this.currentUser && this.course) {
           const userId =
             typeof this.currentUser.id === 'string'
               ? parseInt(this.currentUser.id)
               : this.currentUser.id;
 
-          this.workflowService
-            .unenrollFromWorkflow(this.workflowId, userId)
+          this.courseService
+            .unenrollFromCourse(this.courseId, userId)
             .subscribe({
               next: () => {
-                this.loadWorkflow();
+                this.loadCourse();
               },
               error: (error) => {
-                console.error('Error unenrolling from workflow:', error);
+                console.error('Error unenrolling from course:', error);
               },
             });
         }
       });
   }
 
-  editWorkflow() {
-    this.router.navigate(['/courses', this.workflowId, 'edit']);
+  editCourse() {
+    this.router.navigate(['/courses', this.courseId, 'edit']);
   }
 
   selectLesson(lesson: Lesson, index: number) {
@@ -683,14 +683,14 @@ export class WorkflowDetailComponent implements OnInit {
       return;
     }
 
-    this.router.navigate(['/courses', this.workflowId, 'lessons', lesson.id]);
+    this.router.navigate(['/courses', this.courseId, 'lessons', lesson.id]);
   }
 
   isLessonUnlocked(lesson: Lesson, index: number): boolean {
-    if (!this.workflow?.is_enrolled) return false;
+    if (!this.course?.is_enrolled) return false;
     if (index === 0) return true; // First lesson is always unlocked
 
-    const progress = this.workflow.user_progress;
+    const progress = this.course.user_progress;
     if (!progress) return false;
 
     // Check if previous lesson is completed
@@ -698,23 +698,23 @@ export class WorkflowDetailComponent implements OnInit {
   }
 
   isLessonCompleted(lesson: Lesson): boolean {
-    if (!this.workflow?.user_progress) return false;
-    const progress = this.workflow.user_progress;
-    const lessonIndex = this.workflow.lessons.findIndex(
+    if (!this.course?.user_progress) return false;
+    const progress = this.course.user_progress;
+    const lessonIndex = this.course.lessons.findIndex(
       (l: any) => l.id === lesson.id,
     );
     return progress.lessons_completed > lessonIndex;
   }
 
   isCurrentLesson(lesson: Lesson): boolean {
-    if (!this.workflow?.user_progress) return false;
-    return this.workflow.user_progress.current_lesson_id === lesson.id;
+    if (!this.course?.user_progress) return false;
+    return this.course.user_progress.current_lesson_id === lesson.id;
   }
 
   getProgressPercentage(): number {
-    if (!this.workflow?.user_progress) return 0;
-    const progress = this.workflow.user_progress;
-    return (progress.lessons_completed / this.workflow.lesson_count) * 100;
+    if (!this.course?.user_progress) return 0;
+    const progress = this.course.user_progress;
+    return (progress.lessons_completed / this.course.lesson_count) * 100;
   }
 
   getLessonTypeLabel(type: string): string {

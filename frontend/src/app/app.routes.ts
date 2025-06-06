@@ -10,8 +10,8 @@ import { DeckEditorComponent } from './features/memorize/decks/deck-editor/deck-
 import { DeckStudyComponent } from './features/memorize/decks/deck-study/deck-study.component';
 import { DeckListComponent } from './features/memorize/decks/deck-list/deck-list.component';
 import { FeatureRequestComponent } from './features/feature-request/feature-request.component';
-import { CourseListComponent } from './features/memorize/courses/workflow-list.component';
-import { CourseBuilderComponent } from './features/memorize/courses/workflow-builder.component';
+import { CourseListComponent } from './features/memorize/courses/course-list.component';
+import { CourseBuilderComponent } from './features/memorize/courses/course-builder.component';
 import { LessonPracticeComponent } from './features/memorize/courses/lesson-practice/lesson-practice.component';
 
 //TODO move /flashcard paths to be /deck instead
@@ -24,7 +24,7 @@ export const routes: Routes = [
   { path: 'flashcards', component: DeckListComponent },
   { path: 'flashcards/study/:deckId', component: DeckStudyComponent },
   { path: 'deck-editor/:deckId', component: DeckEditorComponent },
-  { path: 'courses/:workflowId/lessons/:lessonId/practice', component: LessonPracticeComponent },
+  { path: 'courses/:courseId/lessons/:lessonId/practice', component: LessonPracticeComponent },
   {
     path: 'feature-requests',
     component: FeatureRequestComponent,

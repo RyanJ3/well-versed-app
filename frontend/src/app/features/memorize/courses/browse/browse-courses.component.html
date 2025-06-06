@@ -1,5 +1,5 @@
-<!-- frontend/src/app/features/workflows/browse/browse-workflows.component.html -->
-<div class="browse-workflows">
+<!-- frontend/src/app/features/courses/browse/browse-courses.component.html -->
+<div class="browse-courses">
   <!-- Header -->
   <div class="page-header">
     <h1>Discover Learning Courses</h1>
@@ -18,15 +18,15 @@
           class="search-input" 
           placeholder="Search courses..."
           [(ngModel)]="searchQuery"
-          (keyup.enter)="searchWorkflows()"
+          (keyup.enter)="searchCourses()"
         >
       </div>
-      <button class="search-button" (click)="searchWorkflows()">
+      <button class="search-button" (click)="searchCourses()">
         Search
       </button>
     </div>
 
-    <button class="create-workflow-btn" (click)="navigateToCreate()" *ngIf="currentUser">
+    <button class="create-course-btn" (click)="navigateToCreate()" *ngIf="currentUser">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
@@ -55,23 +55,23 @@
     <p>Loading courses...</p>
   </div>
 
-  <!-- Workflows Grid -->
-  <div class="workflows-grid" *ngIf="!loading && workflows.length > 0">
+  <!-- Courses Grid -->
+  <div class="courses-grid" *ngIf="!loading && courses.length > 0">
     <div 
-      *ngFor="let workflow of workflows" 
-      class="workflow-card"
-      [class.enrolled]="isEnrolled(workflow.id)"
-      (click)="viewWorkflow(workflow)"
+      *ngFor="let course of courses" 
+      class="course-card"
+      [class.enrolled]="isEnrolled(course.id)"
+      (click)="viewCourse(course)"
     >
       <!-- Thumbnail -->
       <div class="card-thumbnail">
-        <img *ngIf="workflow.thumbnail_url" [src]="workflow.thumbnail_url" alt="{{ workflow.title }}">
-        <div *ngIf="!workflow.thumbnail_url" class="placeholder-thumbnail">
+        <img *ngIf="course.thumbnail_url" [src]="course.thumbnail_url" alt="{{ course.title }}">
+        <div *ngIf="!course.thumbnail_url" class="placeholder-thumbnail">
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
         </div>
-        <div class="enrolled-badge" *ngIf="isEnrolled(workflow.id)">
+        <div class="enrolled-badge" *ngIf="isEnrolled(course.id)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
           </svg>
@@ -81,12 +81,12 @@
 
       <!-- Content -->
       <div class="card-content">
-        <h3 class="card-title">{{ workflow.title }}</h3>
-        <p class="card-description">{{ workflow.description }}</p>
+        <h3 class="card-title">{{ course.title }}</h3>
+        <p class="card-description">{{ course.description }}</p>
         
         <!-- Tags -->
-        <div class="card-tags" *ngIf="workflow.tags.length > 0">
-          <span class="tag" *ngFor="let tag of workflow.tags.slice(0, 3)">
+        <div class="card-tags" *ngIf="course.tags.length > 0">
+          <span class="tag" *ngFor="let tag of course.tags.slice(0, 3)">
             {{ formatTag(tag) }}
           </span>
         </div>
@@ -97,28 +97,28 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
-            {{ workflow.lesson_count }} lessons
+            {{ course.lesson_count }} lessons
           </div>
           <div class="meta-item">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
-            {{ workflow.enrolled_count }}
+            {{ course.enrolled_count }}
           </div>
         </div>
 
         <!-- Creator -->
         <div class="card-footer">
           <div class="creator-info">
-            <div class="creator-avatar">{{ getCreatorInitial(workflow.creator_name) }}</div>
-            <span class="creator-name">{{ workflow.creator_name }}</span>
+            <div class="creator-avatar">{{ getCreatorInitial(course.creator_name) }}</div>
+            <span class="creator-name">{{ course.creator_name }}</span>
           </div>
           <button 
             class="action-button"
-            (click)="toggleEnrollment($event, workflow)"
-            [class.enrolled]="isEnrolled(workflow.id)"
+            (click)="toggleEnrollment($event, course)"
+            [class.enrolled]="isEnrolled(course.id)"
           >
-            {{ isEnrolled(workflow.id) ? 'Continue' : 'Enroll' }}
+            {{ isEnrolled(course.id) ? 'Continue' : 'Enroll' }}
           </button>
         </div>
       </div>
@@ -126,13 +126,13 @@
   </div>
 
   <!-- Empty State -->
-  <div class="empty-state" *ngIf="!loading && workflows.length === 0">
+  <div class="empty-state" *ngIf="!loading && courses.length === 0">
     <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
     <h3>No courses found</h3>
     <p>Try adjusting your search or create your own course!</p>
-    <button class="create-workflow-btn" (click)="navigateToCreate()" *ngIf="currentUser">
+    <button class="create-course-btn" (click)="navigateToCreate()" *ngIf="currentUser">
       Create First Course
     </button>
   </div>
@@ -142,7 +142,7 @@
     <button 
       class="page-btn"
       [disabled]="currentPage === 1"
-      (click)="currentPage = currentPage - 1; loadWorkflows()"
+      (click)="currentPage = currentPage - 1; loadCourses()"
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -154,7 +154,7 @@
     <button 
       class="page-btn"
       [disabled]="currentPage === totalPages"
-      (click)="currentPage = currentPage + 1; loadWorkflows()"
+      (click)="currentPage = currentPage + 1; loadCourses()"
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
