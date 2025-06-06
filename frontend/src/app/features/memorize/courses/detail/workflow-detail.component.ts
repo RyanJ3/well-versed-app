@@ -6,11 +6,11 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
   WorkflowDetailResponse,
   WorkflowService,
-} from '../../../core/services/workflow.service';
-import { UserService } from '../../../core/services/user.service';
-import { ModalService } from '../../../core/services/modal.service';
-import { User } from '../../../core/models/user';
-import { Lesson } from '../../../core/models/workflow.model';
+} from '../../../../core/services/workflow.service';
+import { UserService } from '../../../../core/services/user.service';
+import { ModalService } from '../../../../core/services/modal.service';
+import { User } from '../../../../core/models/user';
+import { Lesson } from '../../../../core/models/workflow.model';
 
 @Component({
   selector: 'app-workflow-detail',

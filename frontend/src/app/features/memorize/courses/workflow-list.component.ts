@@ -2,10 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { WorkflowService } from '../../core/services/workflow.service';
-import { UserService } from '../../core/services/user.service';
-import { Workflow } from '../../core/models/workflow.model';
-import { User } from '../../core/models/user';
+import { WorkflowService } from '../../../core/services/workflow.service';
+import { UserService } from '../../../core/services/user.service';
+import { Workflow } from '../../../core/models/workflow.model';
+import { User } from '../../../core/models/user';
 
 @Component({
   selector: 'app-workflow-list',

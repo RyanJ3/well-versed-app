@@ -11,14 +11,14 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { WorkflowService } from '../../../core/services/workflow.service';
-import { UserService } from '../../../core/services/user.service';
-import { ModalService } from '../../../core/services/modal.service';
+import { WorkflowService } from '../../../../core/services/workflow.service';
+import { UserService } from '../../../../core/services/user.service';
+import { ModalService } from '../../../../core/services/modal.service';
 import {
   CreateWorkflowRequest,
   CreateLessonRequest,
   Lesson,
-} from '../../../core/models/workflow.model';
+} from '../../../../core/models/workflow.model';
 
 @Component({
   selector: 'app-workflow-editor',

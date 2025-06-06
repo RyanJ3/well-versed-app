@@ -5,14 +5,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { WorkflowService } from '../../../core/services/workflow.service';
-import { UserService } from '../../../core/services/user.service';
+import { WorkflowService } from '../../../../core/services/workflow.service';
+import { UserService } from '../../../../core/services/user.service';
 import {
   Lesson,
   LessonFlashcard,
   UserLessonProgress,
-} from '../../../core/models/workflow.model';
-import { VersePickerComponent } from '../../../shared/components/verse-range-picker/verse-range-picker.component';
+} from '../../../../core/models/workflow.model';
+import { VersePickerComponent } from '../../../../shared/components/verse-range-picker/verse-range-picker.component';
 
 @Component({
   selector: 'app-lesson-view',

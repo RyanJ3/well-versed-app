@@ -11,15 +11,15 @@ import {
   FormArray,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { WorkflowService } from '../../core/services/workflow.service';
-import { UserService } from '../../core/services/user.service';
-import { ModalService } from '../../core/services/modal.service';
+import { WorkflowService } from '../../../core/services/workflow.service';
+import { UserService } from '../../../core/services/user.service';
+import { ModalService } from '../../../core/services/modal.service';
 
-import { LessonContent } from '../../core/models/workflow.model';
+import { LessonContent } from '../../../core/models/workflow.model';
 import {
   VersePickerComponent,
   VerseSelection,
-} from '../../shared/components/verse-range-picker/verse-range-picker.component';
+} from '../../../shared/components/verse-range-picker/verse-range-picker.component';
 
 interface Lesson {
   id?: number;
