@@ -534,44 +534,156 @@
     </div>
   </div>
 
-  <!-- Step 3: Review (Minimal Version) -->
-  <div class="review-section minimal" *ngIf="currentStep === 3">
+  <!-- Step 3: Review (Enhanced) -->
+  <div class="review-section enhanced" *ngIf="currentStep === 3">
     <div class="review-header">
-      <h2 class="review-title">{{ workflowForm.get("title")?.value }}</h2>
-      <p class="review-subtitle">
-        {{
-          workflowForm.get("is_public")?.value ? "Public" : "Private"
-        }}
-        workflow
-        <span class="separator">&bull;</span>
-        {{ lessons.length }} {{ lessons.length === 1 ? "lesson" : "lessons" }}
-        <span class="separator">&bull;</span>
-        ~{{ estimatedDuration }}
-        {{ estimatedDuration === 1 ? "hour" : "hours" }}
+      <h1 class="workflow-title">{{ workflowForm.get("title")?.value }}</h1>
+      <p class="workflow-description">
+        {{ workflowForm.get("description")?.value }}
       </p>
-    </div>
-
-    <div class="lesson-summary">
-      <div
-        *ngFor="let lesson of lessons; let i = index"
-        class="lesson-row"
-        [class.first]="i === 0"
-        [class.last]="i === lessons.length - 1"
-      >
-        <span class="lesson-number">{{
-          (i + 1).toString().padStart(2, "0")
-        }}</span>
-        <span class="lesson-name">{{ lesson.title }}</span>
-        <span class="lesson-icon">{{
-          getLessonIcon(lesson.content_type)
-        }}</span>
+      <div class="header-badges">
+        <div class="badge public" *ngIf="workflowForm.get('is_public')?.value">
+          <span class="badge-icon">🌍</span>
+          <span>Public Workflow</span>
+        </div>
+        <div class="badge public" *ngIf="!workflowForm.get('is_public')?.value">
+          <span class="badge-icon">🔒</span>
+          <span>Private Workflow</span>
+        </div>
+        <div class="badge duration">
+          <span class="badge-icon">⏱️</span>
+          <span>
+            ~{{ estimatedDuration }}
+            {{ estimatedDuration === 1 ? "hour" : "hours" }}
+          </span>
+        </div>
+        <div class="badge lessons">
+          <span class="badge-icon">📚</span>
+          <span>
+            {{ lessons.length }}
+            {{ lessons.length === 1 ? "Lesson" : "Lessons" }}
+          </span>
+        </div>
       </div>
     </div>
 
-    <div class="review-tags" *ngIf="selectedTags.length > 0">
-      <span class="tag" *ngFor="let tag of selectedTags">{{
-        formatTag(tag)
-      }}</span>
+    <div class="review-grid">
+      <div class="details-panel">
+        <h3 class="panel-title">
+          <span class="panel-title-icon">✨</span>
+          Workflow Details
+        </h3>
+
+        <div class="detail-item">
+          <div class="detail-label">
+            <span class="detail-icon">📝</span>
+            <span>Title</span>
+          </div>
+          <div class="detail-value">
+            {{ workflowForm.get("title")?.value }}
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">
+            <span class="detail-icon">👁️</span>
+            <span>Visibility</span>
+          </div>
+          <div class="detail-value">
+            {{ workflowForm.get("is_public")?.value ? "Public" : "Private" }}
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">
+            <span class="detail-icon">📊</span>
+            <span>Total Lessons</span>
+          </div>
+          <div class="detail-value">{{ lessons.length }}</div>
+        </div>
+
+        <div class="detail-item">
+          <div class="detail-label">
+            <span class="detail-icon">⏰</span>
+            <span>Est. Duration</span>
+          </div>
+          <div class="detail-value">
+            {{ estimatedDuration }}
+            {{ estimatedDuration === 1 ? "hour" : "hours" }}
+          </div>
+        </div>
+
+        <div class="detail-item" *ngIf="selectedTags.length > 0">
+          <div class="detail-label">
+            <span class="detail-icon">🏷️</span>
+            <span>Tags</span>
+          </div>
+          <div class="tags-display">
+            <span class="tag" *ngFor="let tag of selectedTags">
+              {{ formatTag(tag) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="chart-section" *ngIf="pieSlices.length">
+          <h4>Content Distribution</h4>
+          <div class="chart-container">
+            <div class="pie-chart">
+              <svg width="150" height="150">
+                <circle cx="75" cy="75" r="60" fill="#f3f4f6"></circle>
+                <ng-container *ngFor="let slice of pieSlices">
+                  <path [attr.d]="slice.path" [attr.fill]="slice.color"></path>
+                </ng-container>
+              </svg>
+            </div>
+            <div class="chart-legend">
+              <div class="legend-item" *ngFor="let slice of pieSlices">
+                <div
+                  class="legend-color"
+                  [style.background]="slice.color"
+                ></div>
+                <span>
+                  {{ slice.icon }} {{ slice.label }} ({{ slice.count }})
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lessons-panel" style="position: relative">
+        <span class="ready-badge">Ready!</span>
+        <h3 class="panel-title">
+          <span class="panel-title-icon">📖</span>
+          Lesson Structure
+        </h3>
+        <div class="lesson-list">
+          <div
+            class="lesson-card"
+            *ngFor="let lesson of lessons; let i = index"
+          >
+            <div class="lesson-number">{{ i + 1 }}</div>
+            <div class="lesson-content">
+              <div class="lesson-title">{{ lesson.title }}</div>
+              <div class="lesson-type">
+                {{ getLessonTypeLabel(lesson.content_type) }}
+              </div>
+            </div>
+            <div class="lesson-emoji">
+              {{ getLessonIcon(lesson.content_type) }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="review-actions">
+      <button class="btn btn-secondary" (click)="previousStep()">
+        ← Edit Lessons
+      </button>
+      <button class="btn btn-primary" (click)="saveWorkflow()">
+        Publish Workflow 🚀
+      </button>
     </div>
   </div>
 

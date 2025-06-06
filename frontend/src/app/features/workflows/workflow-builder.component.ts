@@ -420,6 +420,75 @@ export class WorkflowBuilderComponent implements OnInit {
     return Math.ceil(this.lessons.length * 0.5);
   }
 
+  get pieSlices() {
+    const counts = {
+      video: 0,
+      article: 0,
+      external_link: 0,
+      quiz: 0,
+    } as Record<string, number>;
+    for (const lesson of this.lessons) {
+      counts[lesson.content_type] = (counts[lesson.content_type] || 0) + 1;
+    }
+    const total = this.lessons.length || 1;
+    const colors: Record<string, string> = {
+      video: '#3b82f6',
+      article: '#8b5cf6',
+      external_link: '#10b981',
+      quiz: '#f59e0b',
+    };
+    const icons: Record<string, string> = {
+      video: '📹',
+      article: '📄',
+      external_link: '🔗',
+      quiz: '❓',
+    };
+    const slices: {
+      path: string;
+      color: string;
+      icon: string;
+      label: string;
+      count: number;
+    }[] = [];
+    let start = 0;
+    for (const type of Object.keys(counts)) {
+      const count = counts[type];
+      if (!count) continue;
+      const pct = count / total;
+      const end = start + pct;
+      slices.push({
+        path: this.describeArc(75, 75, 60, start * 360, end * 360),
+        color: colors[type],
+        icon: icons[type],
+        label: this.getLessonTypeLabel(type),
+        count,
+      });
+      start = end;
+    }
+    return slices;
+  }
+
+  polarToCartesian(cx: number, cy: number, r: number, angle: number) {
+    const rad = ((angle - 90) * Math.PI) / 180.0;
+    return {
+      x: cx + r * Math.cos(rad),
+      y: cy + r * Math.sin(rad),
+    };
+  }
+
+  describeArc(
+    cx: number,
+    cy: number,
+    r: number,
+    startAngle: number,
+    endAngle: number,
+  ) {
+    const start = this.polarToCartesian(cx, cy, r, endAngle);
+    const end = this.polarToCartesian(cx, cy, r, startAngle);
+    const large = endAngle - startAngle <= 180 ? '0' : '1';
+    return `M ${cx},${cy} L ${start.x},${start.y} A ${r},${r} 0 ${large} 0 ${end.x},${end.y} Z`;
+  }
+
   getLessonIcon(type: string): string {
     switch (type) {
       case 'video':
