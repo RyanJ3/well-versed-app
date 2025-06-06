@@ -13,6 +13,8 @@ export interface Workflow {
   lesson_count: number;
   enrolled_count: number;
   tags: string[];
+  average_rating?: number;
+  user_rating?: number;
 }
 
 export interface Lesson {

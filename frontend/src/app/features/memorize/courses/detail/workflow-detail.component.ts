@@ -94,6 +94,19 @@ import { Lesson } from '../../../../core/models/workflow.model';
               </svg>
               {{ workflow.enrolled_count }} students
             </div>
+            <div class="meta-item rating-stars" *ngIf="averageRating >= 0">
+              <svg
+                *ngFor="let s of [1,2,3,4,5]"
+                [class.filled]="s <= getStarCount(averageRating)"
+                (click)="rateWorkflow(s)"
+                [class.clickable]="currentUser"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+              </svg>
+            </div>
           </div>
 
           <div class="workflow-tags">
@@ -363,6 +376,17 @@ import { Lesson } from '../../../../core/models/workflow.model';
         font-size: 0.875rem;
       }
 
+      .rating-stars svg {
+        width: 16px;
+        height: 16px;
+        color: #e5e7eb;
+        cursor: pointer;
+      }
+
+      .rating-stars svg.filled {
+        color: #fbbf24;
+      }
+
       .workflow-tags {
         display: flex;
         gap: 0.5rem;
@@ -573,6 +597,8 @@ export class WorkflowDetailComponent implements OnInit {
   workflow: WorkflowDetailResponse | null = null;
   currentUser: User | null = null;
   workflowId!: number;
+  averageRating: number = 0;
+  userRating: number | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -586,10 +612,14 @@ export class WorkflowDetailComponent implements OnInit {
     this.route.params.subscribe((params) => {
       this.workflowId = +params['id'];
       this.loadWorkflow();
+      this.loadRating();
     });
 
     this.userService.currentUser$.subscribe((user) => {
       this.currentUser = user;
+      if (this.workflowId) {
+        this.loadRating();
+      }
     });
   }
 
@@ -603,12 +633,35 @@ export class WorkflowDetailComponent implements OnInit {
     this.workflowService.getWorkflow(this.workflowId, userId).subscribe({
       next: (workflow) => {
         this.workflow = workflow;
+        this.averageRating = workflow.average_rating || 0;
       },
       error: (error) => {
         console.error('Error loading workflow:', error);
         this.router.navigate(['/courses']);
       },
     });
+  }
+
+  loadRating() {
+    const userId = this.currentUser
+      ? typeof this.currentUser.id === 'string'
+        ? parseInt(this.currentUser.id)
+        : this.currentUser.id
+      : undefined;
+    this.workflowService
+      .getWorkflowRating(this.workflowId, userId)
+      .subscribe((r) => {
+        this.averageRating = r.average_rating;
+        this.userRating = r.user_rating ?? null;
+      });
+  }
+
+  rateWorkflow(star: number) {
+    if (!this.currentUser) return;
+    const userId = typeof this.currentUser.id === 'string' ? parseInt(this.currentUser.id) : this.currentUser.id;
+    this.workflowService
+      .submitWorkflowRating(this.workflowId, userId, star)
+      .subscribe(() => this.loadRating());
   }
 
   isCreator(): boolean {
@@ -734,6 +787,10 @@ export class WorkflowDetailComponent implements OnInit {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  }
+
+  getStarCount(avg?: number): number {
+    return Math.round(avg || 0);
   }
 
   formatTag(tag: string): string {

@@ -41,6 +41,7 @@ class WorkflowResponse(BaseModel):
     lesson_count: int = 0
     enrolled_count: int = 0
     tags: List[str] = []
+    average_rating: Optional[float] = None
 
 
 class WorkflowListResponse(BaseModel):
@@ -256,11 +257,13 @@ async def list_public_workflows(
                w.thumbnail_url, w.is_public, w.created_at, w.updated_at,
                COUNT(DISTINCT l.lesson_id) as lesson_count,
                COUNT(DISTINCT e.user_id) as enrolled_count,
+               COALESCE(AVG(r.rating)::float, 0) as average_rating,
                ARRAY_REMOVE(ARRAY_AGG(DISTINCT t.tag_name), NULL) as tags
         FROM workflows w
         JOIN users u ON w.user_id = u.user_id
         LEFT JOIN workflow_lessons l ON w.workflow_id = l.workflow_id
         LEFT JOIN workflow_enrollments e ON w.workflow_id = e.workflow_id
+        LEFT JOIN workflow_ratings r ON w.workflow_id = r.workflow_id
         LEFT JOIN workflow_tag_map m ON w.workflow_id = m.workflow_id
         LEFT JOIN workflow_tags t ON m.tag_id = t.tag_id
         {where_clause}
@@ -284,6 +287,7 @@ async def list_public_workflows(
                 lesson_count=r["lesson_count"],
                 enrolled_count=r.get("enrolled_count", 0),
                 tags=r.get("tags") or [],
+                average_rating=r.get("average_rating"),
             )
         )
     logger.info(f"Public workflows returned: {len(workflows)}")
@@ -297,11 +301,13 @@ async def list_user_workflows(user_id: int, db: DatabaseConnection = Depends(get
                w.thumbnail_url, w.is_public, w.created_at, w.updated_at,
                COUNT(DISTINCT l.lesson_id) as lesson_count,
                COUNT(DISTINCT e.user_id) as enrolled_count,
+               COALESCE(AVG(r.rating)::float, 0) as average_rating,
                ARRAY_REMOVE(ARRAY_AGG(DISTINCT t.tag_name), NULL) as tags
         FROM workflows w
         JOIN users u ON w.user_id = u.user_id
         LEFT JOIN workflow_lessons l ON w.workflow_id = l.workflow_id
         LEFT JOIN workflow_enrollments e ON w.workflow_id = e.workflow_id
+        LEFT JOIN workflow_ratings r ON w.workflow_id = r.workflow_id
         LEFT JOIN workflow_tag_map m ON w.workflow_id = m.workflow_id
         LEFT JOIN workflow_tags t ON m.tag_id = t.tag_id
         WHERE w.user_id = %s
@@ -323,6 +329,7 @@ async def list_user_workflows(user_id: int, db: DatabaseConnection = Depends(get
             lesson_count=r["lesson_count"],
             enrolled_count=r.get("enrolled_count", 0),
             tags=r.get("tags") or [],
+            average_rating=r.get("average_rating"),
         )
         for r in rows
     ]
@@ -339,12 +346,14 @@ async def list_enrolled_workflows(user_id: int, db: DatabaseConnection = Depends
                e.enrolled_at,
                COUNT(DISTINCT l.lesson_id) as lesson_count,
                COUNT(DISTINCT e2.user_id) as enrolled_count,
+               COALESCE(AVG(r.rating)::float, 0) as average_rating,
                ARRAY_REMOVE(ARRAY_AGG(DISTINCT t.tag_name), NULL) as tags
         FROM workflow_enrollments e
         JOIN workflows w ON e.workflow_id = w.workflow_id
         JOIN users u ON w.user_id = u.user_id
         LEFT JOIN workflow_lessons l ON w.workflow_id = l.workflow_id
         LEFT JOIN workflow_enrollments e2 ON w.workflow_id = e2.workflow_id
+        LEFT JOIN workflow_ratings r ON w.workflow_id = r.workflow_id
         LEFT JOIN workflow_tag_map m ON w.workflow_id = m.workflow_id
         LEFT JOIN workflow_tags t ON m.tag_id = t.tag_id
         WHERE e.user_id = %s
@@ -366,6 +375,7 @@ async def list_enrolled_workflows(user_id: int, db: DatabaseConnection = Depends
             lesson_count=r["lesson_count"],
             enrolled_count=r.get("enrolled_count", 0),
             tags=r.get("tags") or [],
+            average_rating=r.get("average_rating"),
         )
         for r in rows
     ]
@@ -381,11 +391,13 @@ async def get_workflow(workflow_id: int, db: DatabaseConnection = Depends(get_db
                w.thumbnail_url, w.is_public, w.created_at, w.updated_at,
                COUNT(DISTINCT l.lesson_id) as lesson_count,
                COUNT(DISTINCT e.user_id) as enrolled_count,
+               COALESCE(AVG(r.rating)::float, 0) as average_rating,
                ARRAY_REMOVE(ARRAY_AGG(DISTINCT t.tag_name), NULL) as tags
         FROM workflows w
         JOIN users u ON w.user_id = u.user_id
         LEFT JOIN workflow_lessons l ON w.workflow_id = l.workflow_id
         LEFT JOIN workflow_enrollments e ON w.workflow_id = e.workflow_id
+        LEFT JOIN workflow_ratings r ON w.workflow_id = r.workflow_id
         LEFT JOIN workflow_tag_map m ON w.workflow_id = m.workflow_id
         LEFT JOIN workflow_tags t ON m.tag_id = t.tag_id
         WHERE w.workflow_id = %s
@@ -408,6 +420,7 @@ async def get_workflow(workflow_id: int, db: DatabaseConnection = Depends(get_db
         lesson_count=row["lesson_count"],
         enrolled_count=row.get("enrolled_count", 0),
         tags=row.get("tags") or [],
+        average_rating=row.get("average_rating"),
     )
     logger.info(f"Fetched workflow {workflow_id}")
     return response
@@ -641,3 +654,44 @@ async def delete_lesson(lesson_id: int, db: DatabaseConnection = Depends(get_db)
     logger.info(f"Deleting lesson {lesson_id}")
     db.execute("DELETE FROM workflow_lessons WHERE lesson_id = %s", (lesson_id,))
     return {"message": "Lesson deleted"}
+
+
+class RatingRequest(BaseModel):
+    user_id: int
+    rating: int
+
+
+@router.post("/{workflow_id}/rating")
+async def submit_rating(workflow_id: int, req: RatingRequest, db: DatabaseConnection = Depends(get_db)):
+    logger.info(f"User {req.user_id} rating workflow {workflow_id} = {req.rating}")
+    if req.rating < 1 or req.rating > 5:
+        raise HTTPException(status_code=400, detail="Rating must be 1-5")
+    db.execute(
+        """
+        INSERT INTO workflow_ratings (user_id, workflow_id, rating)
+        VALUES (%s, %s, %s)
+        ON CONFLICT (user_id, workflow_id)
+        DO UPDATE SET rating = EXCLUDED.rating, created_at = CURRENT_TIMESTAMP
+        """,
+        (req.user_id, workflow_id, req.rating),
+    )
+    return {"message": "Rating saved"}
+
+
+@router.get("/{workflow_id}/rating")
+async def get_rating(workflow_id: int, user_id: Optional[int] = None, db: DatabaseConnection = Depends(get_db)):
+    logger.info(f"Fetching rating for workflow {workflow_id} user {user_id}")
+    row = db.fetch_one(
+        "SELECT AVG(rating)::float AS avg FROM workflow_ratings WHERE workflow_id = %s",
+        (workflow_id,),
+    )
+    avg = row["avg"] if row and row["avg"] is not None else 0
+    user_rating = None
+    if user_id is not None:
+        ur = db.fetch_one(
+            "SELECT rating FROM workflow_ratings WHERE workflow_id = %s AND user_id = %s",
+            (workflow_id, user_id),
+        )
+        user_rating = ur["rating"] if ur else None
+    return {"workflow_id": workflow_id, "average_rating": avg, "user_rating": user_rating}
+

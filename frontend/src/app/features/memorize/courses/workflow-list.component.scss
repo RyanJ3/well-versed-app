@@ -445,3 +445,17 @@
   font-size: 0.875rem;
   color: #4b5563;
 }
+
+.rating-stars {
+  display: flex;
+  gap: 0.1rem;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    color: #e5e7eb;
+    &.filled {
+      color: #fbbf24;
+    }
+  }
+}

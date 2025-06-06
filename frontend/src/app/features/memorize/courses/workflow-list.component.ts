@@ -215,6 +215,15 @@ import { User } from '../../../core/models/user';
                 getDuration(workflow)
               }}</span>
             </div>
+            <div class="rating-stars">
+              <svg
+                *ngFor="let s of [1,2,3,4,5]"
+                [class.filled]="s <= getStarCount(workflow.average_rating)"
+                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+              >
+                <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+              </svg>
+            </div>
             <div class="grid-tags">
               <span *ngFor="let tag of workflow.tags.slice(0, 3)">{{
                 formatTag(tag)
@@ -303,24 +312,35 @@ import { User } from '../../../core/models/user';
                   </svg>
                   {{ getDuration(workflow) }}
                 </span>
-                <span class="meta-item">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                    />
-                  </svg>
-                  {{ workflow.enrolled_count }} enrolled
-                </span>
-                <span class="creator">by {{ workflow.creator_name }}</span>
+              <span class="meta-item">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
+                </svg>
+                {{ workflow.enrolled_count }} enrolled
+              </span>
+              <span class="meta-item rating-stars">
+                <svg
+                  *ngFor="let s of [1,2,3,4,5]"
+                  [class.filled]="s <= getStarCount(workflow.average_rating)"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+                </svg>
+              </span>
+              <span class="creator">by {{ workflow.creator_name }}</span>
               </div>
 
               <div *ngIf="isEnrolled(workflow.id)" class="progress-wrapper">
@@ -566,6 +586,10 @@ export class WorkflowListComponent implements OnInit {
   getWorkflowIcon(workflow: Workflow): string {
     const icons = ['📖', '🙏', '✝️', '🕊️', '💫', '🌟'];
     return icons[workflow.id % icons.length];
+  }
+
+  getStarCount(avg?: number): number {
+    return Math.round(avg || 0);
   }
 
   handleActionClick(event: Event, workflow: Workflow) {
