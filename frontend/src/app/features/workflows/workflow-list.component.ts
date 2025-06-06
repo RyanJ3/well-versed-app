@@ -1,5 +1,3 @@
-// frontend/src/app/features/workflows/workflow-list.component.ts
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -14,150 +12,162 @@ import { User } from '../../core/models/user';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   template: `
-    <div class="workflow-list-container">
+    <div class="landing-container">
       <!-- Header -->
-      <div class="page-header">
-        <h1 class="page-title">Learning Workflows</h1>
-        <p class="page-subtitle">Explore curated lesson series to deepen your faith</p>
-      </div>
+      <div class="header">
+        <div class="header-top">
+          <div>
+            <h1 class="title">Workflow Library</h1>
+            <p class="subtitle">Build your faith through structured learning paths</p>
+          </div>
 
-      <!-- Filters Section -->
-      <div class="filters-section">
-        <div class="search-bar">
-          <input 
-            type="text" 
-            class="search-input" 
-            placeholder="Search workflows..."
-            [(ngModel)]="searchQuery"
-            (keyup.enter)="searchWorkflows()"
-          >
-          <button class="search-button" (click)="searchWorkflows()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <div class="actions">
+            <button class="trending-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 17l6-6 4 4 8-8" />
+              </svg>
+              Trending
+            </button>
+            <button class="create-btn" (click)="navigateToCreate()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Create New
+            </button>
+          </div>
+        </div>
+
+        <div class="search-filter">
+          <div class="search-wrapper">
+            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            Search
-          </button>
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Search workflows, topics, or creators..."
+              [(ngModel)]="searchQuery"
+              (keyup.enter)="searchWorkflows()"
+            >
+          </div>
+
+          <div class="view-toggle">
+            <button (click)="toggleView('list')" [class.active]="viewMode === 'list'">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+              </svg>
+            </button>
+            <button (click)="toggleView('grid')" [class.active]="viewMode === 'grid'">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h7v7H4V6zm9 0h7v7h-7V6zM4 15h7v7H4v-7zm9 0h7v7h-7v-7z" />
+              </svg>
+            </button>
+          </div>
         </div>
-        
-        <div class="filter-tags">
-          <button 
-            class="tag"
-            [class.active]="selectedTags.length === 0"
-            (click)="clearTags()"
-          >
-            All
-          </button>
-          <button 
-            *ngFor="let tag of availableTags" 
-            class="tag"
-            [class.active]="selectedTags.includes(tag)"
-            (click)="toggleTag(tag)"
-          >
-            {{ formatTag(tag) }}
+
+        <div class="quick-filters">
+          <button class="pill">All Workflows</button>
+          <button class="pill">In Progress</button>
+          <button class="pill">Completed</button>
+          <button class="pill">Recommended</button>
+          <div class="divider"></div>
+          <ng-container *ngFor="let tag of availableTags.slice(0,5)">
+            <button
+              class="pill"
+              [class.selected]="selectedTags.includes(tag)"
+              (click)="toggleTag(tag)"
+            >
+              {{ formatTag(tag) }}
+            </button>
+          </ng-container>
+          <button class="pill more">
+            More
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
           </button>
         </div>
       </div>
 
-      <!-- Create Workflow Button (for logged-in users) -->
-      <div class="create-section" *ngIf="currentUser">
-        <button class="create-button" (click)="navigateToCreate()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          Create New Workflow
-        </button>
+      <!-- Workflows List -->
+      <div class="list" *ngIf="!loading && workflows.length > 0">
+        <div class="workflow-item" *ngFor="let workflow of workflows">
+          <div class="item-main" (click)="toggleExpanded(workflow.id)">
+            <div class="thumb">
+              <span *ngIf="!workflow.thumbnail_url">{{ getWorkflowIcon(workflow) }}</span>
+              <img *ngIf="workflow.thumbnail_url" [src]="workflow.thumbnail_url" alt="">
+            </div>
+
+            <div class="info">
+              <div class="info-header">
+                <h3 class="item-title">{{ workflow.title }}</h3>
+                <span class="completed" *ngIf="isEnrolled(workflow.id) && getProgress(workflow.id) === 100">Completed</span>
+              </div>
+              <p class="item-desc">{{ workflow.description }}</p>
+
+              <div class="meta">
+                <span class="meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                  {{ workflow.lesson_count }} lessons
+                </span>
+                <span class="meta-item" *ngIf="getDuration(workflow)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {{ getDuration(workflow) }}
+                </span>
+                <span class="meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                  {{ workflow.enrolled_count }} enrolled
+                </span>
+                <span class="creator">by {{ workflow.creator_name }}</span>
+              </div>
+
+              <div *ngIf="isEnrolled(workflow.id)" class="progress-wrapper">
+                <div class="progress-bar">
+                  <div class="progress" [style.width.%]="getProgress(workflow.id)"></div>
+                </div>
+                <span class="progress-label">{{ getProgress(workflow.id) }}%</span>
+              </div>
+            </div>
+
+            <button class="action-btn" (click)="handleActionClick($event, workflow)" [class.enrolled]="isEnrolled(workflow.id)">
+              {{ isEnrolled(workflow.id) ? 'Continue' : 'Start Learning' }}
+            </button>
+          </div>
+
+          <div class="item-expanded" *ngIf="expandedId === workflow.id">
+            <div class="expanded-content">
+              <div class="lesson-overview">
+                <h4>Lesson Overview</h4>
+                <div class="lesson" *ngFor="let n of [1,2,3,4]; let i = index">
+                  <div class="lesson-number" [class.done]="isEnrolled(workflow.id) && i < 2">{{ isEnrolled(workflow.id) && i < 2 ? '✓' : i + 1 }}</div>
+                  <span [class.strike]="isEnrolled(workflow.id) && i < 2">Lesson {{ i + 1 }}</span>
+                </div>
+              </div>
+              <div class="learn-overview">
+                <h4>What You'll Learn</h4>
+                <ul>
+                  <li>Core theological concepts</li>
+                  <li>Historical context</li>
+                  <li>Practical application</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Loading State -->
+      <!-- Loading and Empty States -->
       <div class="loading-container" *ngIf="loading">
         <div class="spinner"></div>
         <p>Loading workflows...</p>
       </div>
 
-      <!-- Workflows List -->
-      <div class="list-view" *ngIf="!loading && workflows.length > 0">
-        <div 
-          *ngFor="let workflow of workflows" 
-          class="workflow-list-item"
-          (click)="viewWorkflow(workflow)"
-        >
-          <div class="list-thumbnail">
-            <span *ngIf="!workflow.thumbnail_url">{{ getWorkflowIcon(workflow) }}</span>
-            <img *ngIf="workflow.thumbnail_url" [src]="workflow.thumbnail_url" alt="">
-          </div>
-          
-          <div class="list-content">
-            <div class="list-header">
-              <h3 class="list-title">{{ workflow.title }}</h3>
-              <span 
-                class="list-badge" 
-                *ngIf="isEnrolled(workflow.id)"
-                [class.in-progress]="getProgress(workflow.id) > 0 && getProgress(workflow.id) < 100"
-                [class.completed]="getProgress(workflow.id) === 100"
-              >
-                <span *ngIf="getProgress(workflow.id) === 0">Enrolled</span>
-                <span *ngIf="getProgress(workflow.id) > 0 && getProgress(workflow.id) < 100">In Progress</span>
-                <span *ngIf="getProgress(workflow.id) === 100">Completed</span>
-              </span>
-            </div>
-            
-            <p class="list-description">{{ workflow.description }}</p>
-            
-            <div class="list-footer">
-              <span class="stat-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                {{ workflow.lesson_count }} lessons
-              </span>
-              
-              <span class="stat-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-                {{ workflow.enrolled_count }} enrolled
-              </span>
-              
-              <span class="stat-item" *ngIf="getDuration(workflow)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {{ getDuration(workflow) }}
-              </span>
-              
-              <span class="stat-item" *ngIf="isEnrolled(workflow.id)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {{ getCompletedLessons(workflow.id) }}/{{ workflow.lesson_count }} completed
-              </span>
-              
-              <span class="stat-item tags" *ngIf="workflow.tags.length > 0">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-                {{ getTagsDisplay(workflow.tags) }}
-                <span *ngIf="workflow.tags.length > 2">+{{ workflow.tags.length - 2 }}</span>
-              </span>
-              
-              <span class="creator-info">
-                Created by {{ workflow.creator_name }}
-              </span>
-            </div>
-          </div>
-
-          <button 
-            class="action-button"
-            (click)="handleActionClick($event, workflow)"
-            [class.enrolled]="isEnrolled(workflow.id)"
-          >
-            <span *ngIf="!isEnrolled(workflow.id)">Enroll</span>
-            <span *ngIf="isEnrolled(workflow.id)">Continue</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Empty State -->
       <div class="empty-state" *ngIf="!loading && workflows.length === 0">
         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -166,22 +176,21 @@ import { User } from '../../core/models/user';
         <p>Try adjusting your search or filters</p>
       </div>
 
-      <!-- Pagination -->
       <div class="pagination" *ngIf="totalPages > 1">
-        <button 
-          class="page-button" 
+        <button
+          class="page-button"
           [disabled]="currentPage === 1"
           (click)="goToPage(currentPage - 1)"
         >
           Previous
         </button>
-        
+
         <span class="page-info">
           Page {{ currentPage }} of {{ totalPages }}
         </span>
-        
-        <button 
-          class="page-button" 
+
+        <button
+          class="page-button"
           [disabled]="currentPage === totalPages"
           (click)="goToPage(currentPage + 1)"
         >
@@ -200,10 +209,13 @@ export class WorkflowListComponent implements OnInit {
   selectedTags: string[] = [];
   availableTags: string[] = [];
   currentUser: User | null = null;
-  
+
   currentPage = 1;
   totalPages = 1;
   perPage = 20;
+
+  expandedId: number | null = null;
+  viewMode: 'list' | 'grid' = 'list';
 
   constructor(
     private workflowService: WorkflowService,
@@ -214,7 +226,7 @@ export class WorkflowListComponent implements OnInit {
   ngOnInit() {
     this.loadAvailableTags();
     this.loadWorkflows();
-    
+
     this.userService.currentUser$.subscribe(user => {
       this.currentUser = user;
       if (user) {
@@ -229,7 +241,7 @@ export class WorkflowListComponent implements OnInit {
 
   loadWorkflows() {
     this.loading = true;
-    
+
     this.workflowService.getPublicWorkflows(
       this.currentPage,
       this.perPage,
@@ -250,16 +262,16 @@ export class WorkflowListComponent implements OnInit {
 
   loadEnrolledWorkflows() {
     if (!this.currentUser) return;
-    
-    const userId = typeof this.currentUser.id === 'string' 
-      ? parseInt(this.currentUser.id) 
+
+    const userId = typeof this.currentUser.id === 'string'
+      ? parseInt(this.currentUser.id)
       : this.currentUser.id;
-    
+
     this.workflowService.getEnrolledWorkflows(userId).subscribe({
       next: (workflows) => {
         workflows.forEach(w => {
           this.enrolledWorkflows.set(w.id, {
-            progress: 0, // Would come from user progress data
+            progress: 0,
             completedLessons: 0
           });
         });
@@ -315,7 +327,6 @@ export class WorkflowListComponent implements OnInit {
   }
 
   getDuration(workflow: Workflow): string {
-    // Estimate based on lesson count
     const hours = Math.ceil(workflow.lesson_count * 0.5);
     return hours === 1 ? '1 hour' : `${hours} hours`;
   }
@@ -327,7 +338,7 @@ export class WorkflowListComponent implements OnInit {
 
   handleActionClick(event: Event, workflow: Workflow) {
     event.stopPropagation();
-    
+
     if (!this.currentUser) {
       this.router.navigate(['/login']);
       return;
@@ -336,10 +347,10 @@ export class WorkflowListComponent implements OnInit {
     if (this.isEnrolled(workflow.id)) {
       this.viewWorkflow(workflow);
     } else {
-      const userId = typeof this.currentUser.id === 'string' 
-        ? parseInt(this.currentUser.id) 
+      const userId = typeof this.currentUser.id === 'string'
+        ? parseInt(this.currentUser.id)
         : this.currentUser.id;
-      
+
       this.workflowService.enrollInWorkflow(workflow.id, userId).subscribe({
         next: () => {
           this.enrolledWorkflows.set(workflow.id, { progress: 0, completedLessons: 0 });
@@ -356,5 +367,13 @@ export class WorkflowListComponent implements OnInit {
   goToPage(page: number) {
     this.currentPage = page;
     this.loadWorkflows();
+  }
+
+  toggleExpanded(id: number) {
+    this.expandedId = this.expandedId === id ? null : id;
+  }
+
+  toggleView(mode: 'list' | 'grid') {
+    this.viewMode = mode;
   }
 }
