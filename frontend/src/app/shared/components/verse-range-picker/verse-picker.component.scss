@@ -139,6 +139,22 @@
   margin-bottom: 1rem;
 }
 
+.testament-filter {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #4b5563;
+  }
+}
+
 .select-control {
   width: 100%;
   padding: 0.5rem 0.75rem;

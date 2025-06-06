@@ -65,6 +65,30 @@
             </button>
           </div>
 
+          <!-- Testament Filter -->
+          <div class="testament-filter">
+            <label>
+              <input
+                type="radio"
+                name="testament"
+                [value]="'old'"
+                [(ngModel)]="testamentFilter"
+                (change)="onTestamentChange()"
+              />
+              OT
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="testament"
+                [value]="'new'"
+                [(ngModel)]="testamentFilter"
+                (change)="onTestamentChange()"
+              />
+              NT
+            </label>
+          </div>
+
           <!-- Book Selector -->
           <div class="book-selector">
             <select
@@ -183,7 +207,7 @@
           <!-- Page-specific message for FLOW -->
           <div
             class="page-message flow-message"
-            *ngIf="pageType === 'FLOW' && mode === 'range'"
+            *ngIf="pageType === 'FLOW' && mode === 'range' && showFlowTip"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
