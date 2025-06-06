@@ -30,6 +30,7 @@ export interface Lesson {
   youtube_url?: string;
   article_text?: string;
   external_url?: string;
+  external_title?: string;
   audio_url?: string;
   flashcards_required: number;
   position: number;
