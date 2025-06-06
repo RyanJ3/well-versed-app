@@ -87,10 +87,51 @@ import { User } from '../../core/models/user';
             </svg>
           </button>
         </div>
+
+        <div class="results-count" *ngIf="!loading" >
+          Showing {{ workflows.length }} of {{ totalPages * perPage }} workflows
+          <button *ngIf="selectedTags.length > 0" class="clear-btn" (click)="clearTags()">Clear filters</button>
+        </div>
+      </div>
+
+      <!-- Workflows Grid -->
+      <div class="grid-view" *ngIf="viewMode === 'grid' && !loading && workflows.length > 0">
+        <div class="grid-card" *ngFor="let workflow of workflows" (click)="viewWorkflow(workflow)">
+          <div class="grid-thumb">
+            <img *ngIf="workflow.thumbnail_url" [src]="workflow.thumbnail_url" alt="" />
+            <div *ngIf="!workflow.thumbnail_url" class="thumb-placeholder">{{ getWorkflowIcon(workflow) }}</div>
+            <div *ngIf="isEnrolled(workflow.id)" class="grid-progress">
+              <div class="progress-bar">
+                <div class="progress" [style.width.%]="getProgress(workflow.id)"></div>
+              </div>
+              <span class="progress-label">{{ getProgress(workflow.id) }}% Complete</span>
+            </div>
+          </div>
+          <div class="grid-content">
+            <h3 class="grid-title">{{ workflow.title }}</h3>
+            <p class="grid-desc">{{ workflow.description }}</p>
+            <div class="grid-meta">
+              <span>{{ workflow.lesson_count }} lessons</span>
+              <span *ngIf="getDuration(workflow)">{{ getDuration(workflow) }}</span>
+            </div>
+            <div class="grid-tags">
+              <span *ngFor="let tag of workflow.tags.slice(0,3)">{{ formatTag(tag) }}</span>
+            </div>
+            <div class="grid-footer">
+              <div class="creator">
+                <div class="avatar">{{ workflow.creator_name.charAt(0) }}</div>
+                <span class="creator-name">{{ workflow.creator_name }}</span>
+              </div>
+              <button class="action-btn" (click)="handleActionClick($event, workflow)" [class.enrolled]="isEnrolled(workflow.id)">
+                {{ isEnrolled(workflow.id) ? 'Continue' : 'Enroll' }}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Workflows List -->
-      <div class="list" *ngIf="!loading && workflows.length > 0">
+      <div class="list" *ngIf="viewMode === 'list' && !loading && workflows.length > 0">
         <div class="workflow-item" *ngFor="let workflow of workflows">
           <div class="item-main" (click)="toggleExpanded(workflow.id)">
             <div class="thumb">
