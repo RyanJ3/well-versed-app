@@ -67,17 +67,6 @@
 
           <!-- Book Row -->
           <div class="book-row">
-            <div class="book-selector">
-              <select
-                [(ngModel)]="selectedBook"
-                (ngModelChange)="onBookChange()"
-                class="select-control book-select"
-              >
-                <option *ngFor="let book of books" [ngValue]="book">
-                  {{ book.name }}
-                </option>
-              </select>
-            </div>
             <!-- Testament Filter -->
             <div class="testament-filter">
               <label>
@@ -100,6 +89,17 @@
                 />
                 NT
               </label>
+            </div>
+            <div class="book-selector">
+              <select
+                [(ngModel)]="selectedBook"
+                (ngModelChange)="onBookChange()"
+                class="select-control book-select"
+              >
+                <option *ngFor="let book of books" [ngValue]="book">
+                  {{ book.name }}
+                </option>
+              </select>
             </div>
           </div>
 
