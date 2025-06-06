@@ -65,41 +65,42 @@
             </button>
           </div>
 
-          <!-- Testament Filter -->
-          <div class="testament-filter">
-            <label>
-              <input
-                type="radio"
-                name="testament"
-                [value]="'old'"
-                [(ngModel)]="testamentFilter"
-                (change)="onTestamentChange()"
-              />
-              OT
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="testament"
-                [value]="'new'"
-                [(ngModel)]="testamentFilter"
-                (change)="onTestamentChange()"
-              />
-              NT
-            </label>
-          </div>
-
-          <!-- Book Selector -->
-          <div class="book-selector">
-            <select
-              [(ngModel)]="selectedBook"
-              (ngModelChange)="onBookChange()"
-              class="select-control book-select"
-            >
-              <option *ngFor="let book of books" [ngValue]="book">
-                {{ book.name }}
-              </option>
-            </select>
+          <!-- Book Row -->
+          <div class="book-row">
+            <div class="book-selector">
+              <select
+                [(ngModel)]="selectedBook"
+                (ngModelChange)="onBookChange()"
+                class="select-control book-select"
+              >
+                <option *ngFor="let book of books" [ngValue]="book">
+                  {{ book.name }}
+                </option>
+              </select>
+            </div>
+            <!-- Testament Filter -->
+            <div class="testament-filter">
+              <label>
+                <input
+                  type="radio"
+                  name="testament"
+                  [value]="'old'"
+                  [(ngModel)]="testamentFilter"
+                  (change)="onTestamentChange()"
+                />
+                OT
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="testament"
+                  [value]="'new'"
+                  [(ngModel)]="testamentFilter"
+                  (change)="onTestamentChange()"
+                />
+                NT
+              </label>
+            </div>
           </div>
 
           <!-- Chapter/Verse Inputs -->
