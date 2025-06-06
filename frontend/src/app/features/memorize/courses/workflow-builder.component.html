@@ -164,49 +164,21 @@
           (click)="selectLesson(i)"
         >
           <div class="lesson-handle">
-            <div class="reorder-buttons">
-              <button
-                class="reorder-btn"
-                (click)="moveLesson(i, 'up'); $event.stopPropagation()"
-                [disabled]="i === 0"
-                title="Move up"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M7 14l5-5 5 5z" />
-                </svg>
-              </button>
-              <button
-                class="reorder-btn"
-                (click)="moveLesson(i, 'down'); $event.stopPropagation()"
-                [disabled]="i === lessons.length - 1"
-                title="Move down"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M7 10l5 5 5-5z" />
-                </svg>
-              </button>
-            </div>
+            <span class="drag-icon" aria-hidden="true">☰</span>
             <div class="lesson-number">
               {{ getLessonIcon(lesson.content_type) }}
             </div>
             <div class="lesson-info">
               <div class="lesson-title">{{ lesson.title }}</div>
               <div class="lesson-type">
-                {{ getLessonIcon(lesson.content_type) }}
-                {{ getLessonTypeLabel(lesson.content_type) }}
+                {{
+                  lesson.content_type
+                    ? getLessonTypeLabel(lesson.content_type)
+                    : "\u00A0"
+                }}
               </div>
-              <div class="lesson-status" *ngIf="!isLessonComplete(lesson)">
-                Incomplete
+              <div class="lesson-status">
+                {{ isLessonComplete(lesson) ? "\u00A0" : "Incomplete" }}
               </div>
             </div>
             <button

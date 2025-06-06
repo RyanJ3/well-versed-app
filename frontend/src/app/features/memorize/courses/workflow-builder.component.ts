@@ -606,7 +606,7 @@ export class WorkflowBuilderComponent implements OnInit {
       case 'quiz':
         return 'Quiz';
       default:
-        return 'No type selected';
+        return '';
     }
   }
 

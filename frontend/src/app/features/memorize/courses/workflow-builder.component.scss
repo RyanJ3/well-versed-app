@@ -361,6 +361,7 @@ textarea.form-control {
   cursor: move;
   display: flex;
   align-items: center;
+  font-size: 1.25rem;
 
   &:hover {
     color: #6b7280;
@@ -368,15 +369,15 @@ textarea.form-control {
 }
 
 .lesson-number {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   background: #e5e7eb;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 1.125rem;
   flex-shrink: 0;
 }
 
