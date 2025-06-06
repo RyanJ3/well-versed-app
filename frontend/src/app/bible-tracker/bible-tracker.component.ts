@@ -491,6 +491,38 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
+  // Book-level operation
+  selectAllChapters(): void {
+    if (!this.selectedBook) return;
+
+    this.isSavingBulk = true;
+
+    this.bibleService.saveBook(
+      this.userId,
+      this.selectedBook.id
+    ).subscribe({
+      next: () => {
+        this.selectedBook!.chapters.forEach(ch => ch.selectAllVerses());
+        this.isSavingBulk = false;
+        this.updateTestamentCharts();
+        this.modalService.success(
+          'Book Saved',
+          `${this.selectedBook!.name} has been marked as memorized.`
+        );
+        this.cdr.detectChanges();
+      },
+      error: (error: any) => {
+        console.error('Error saving book:', error);
+        this.isSavingBulk = false;
+        this.modalService.alert(
+          'Error Saving Book',
+          'Unable to save all chapters in this book. Please try again.',
+          'danger'
+        );
+      }
+    });
+  }
+
   // Helper methods
   isChapterVisible(chapter: BibleChapter): boolean {
     return this.includeApocrypha || !chapter.isApocryphal;

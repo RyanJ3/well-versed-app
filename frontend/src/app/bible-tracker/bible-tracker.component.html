@@ -126,6 +126,13 @@
         <span>81-100%</span>
       </div>
     </div>
+    <div class="action-container">
+      <button (click)="selectAllChapters()"
+              class="action-btn primary"
+              [disabled]="isLoading || isSavingBulk">
+        Memorize All Chapters
+      </button>
+    </div>
   </div>
 
 

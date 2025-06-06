@@ -457,20 +457,22 @@
   }
 
   &.primary {
-    background-color: #10b981;
-    color: white;
+    background-color: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #10b981;
 
     &:hover:not(:disabled) {
-      background-color: #059669;
+      background-color: #d1fae5;
     }
   }
 
   &.secondary {
-    background-color: #e5e7eb;
+    background-color: #f3f4f6;
     color: #374151;
+    border: 1px solid #d1d5db;
 
     &:hover:not(:disabled) {
-      background-color: #d1d5db;
+      background-color: #e5e7eb;
     }
   }
 
