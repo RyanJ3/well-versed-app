@@ -243,63 +243,7 @@
     margin-bottom: 2rem;
   }
 
-  .slider-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    max-width: 500px;
-    margin-left: auto;
-    margin-right: auto;
-
-    .slider-label {
-      font-size: 0.875rem;
-      color: #6b7280;
-      min-width: 35px;
-    }
-
-    .confidence-slider {
-      flex: 1;
-      height: 8px;
-      -webkit-appearance: none;
-      appearance: none;
-      background: #e5e7eb;
-      border-radius: 4px;
-      outline: none;
-
-      &::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 20px;
-        height: 20px;
-        background: #3b82f6;
-        border-radius: 50%;
-        cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        transition: all 0.2s;
-
-        &:hover {
-          transform: scale(1.1);
-        }
-      }
-
-      &::-moz-range-thumb {
-        width: 20px;
-        height: 20px;
-        background: #3b82f6;
-        border-radius: 50%;
-        cursor: pointer;
-        border: none;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        transition: all 0.2s;
-
-        &:hover {
-          transform: scale(1.1);
-        }
-      }
-    }
-  }
+  // Slider styles moved to shared component
 
   .saved-indicator {
     position: fixed;
@@ -330,16 +274,7 @@
     }
   }
 
-  .confidence-value {
-    font-size: 1.125rem;
-    color: #4b5563;
-    margin-bottom: 2rem;
-
-    strong {
-      color: #3b82f6;
-      font-size: 1.25rem;
-    }
-  }
+  // confidence-value styles moved to shared component
 
   .action-buttons {
     display: flex;
