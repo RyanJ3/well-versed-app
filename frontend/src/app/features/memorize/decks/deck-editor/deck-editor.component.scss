@@ -295,6 +295,10 @@ textarea.form-control {
   tbody tr[draggable="true"] {
     cursor: move;
   }
+
+  tbody tr.dragging {
+    opacity: 0.5;
+  }
 }
 
 // Table column widths
