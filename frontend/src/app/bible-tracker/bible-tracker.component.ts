@@ -24,7 +24,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   private bibleData: BibleData;
   private subscriptions: Subscription = new Subscription();
   private testamentCharts: { [key: string]: Chart } = {};
-  private timelineChart: Chart | null = null;
+  private totalProgressChart: Chart | null = null;
   private groupColors: { [key: string]: string } = {
     'Law': '#10b981',
     'History': '#3b82f6',
@@ -49,10 +49,6 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   userId = 1; // Default test user
   includeApocrypha = false;
 
-  // New properties for enhanced UI
-  currentStreak = 47;
-  streakMessage = 'Personal Best!';
-  streakHeights = [30, 40, 55, 70, 85, 95, 100];
 
   constructor(
     private bibleService: BibleService,
@@ -98,8 +94,8 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     this.subscriptions.unsubscribe();
     // Destroy all charts
     Object.values(this.testamentCharts).forEach(chart => chart.destroy());
-    if (this.timelineChart) {
-      this.timelineChart.destroy();
+    if (this.totalProgressChart) {
+      this.totalProgressChart.destroy();
     }
   }
 
@@ -108,8 +104,8 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     Object.values(this.testamentCharts).forEach(chart => {
       chart.resize();
     });
-    if (this.timelineChart) {
-      this.timelineChart.resize();
+    if (this.totalProgressChart) {
+      this.totalProgressChart.resize();
     }
   }
 
@@ -139,8 +135,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   private initializeAllCharts() {
     // Initialize testament charts
     this.initializeTestamentCharts();
-    // Initialize timeline chart
-    this.initializeTimelineChart();
+    this.initializeTotalProgressChart();
   }
 
   private initializeTestamentCharts() {
@@ -221,100 +216,6 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  private initializeTimelineChart() {
-    const canvas = document.getElementById('timelineChart') as HTMLCanvasElement;
-    if (!canvas) return;
-
-    if (this.timelineChart) {
-      this.timelineChart.destroy();
-    }
-
-    // Generate sample data for the year
-    const monthlyData = this.generateMonthlyData();
-
-    this.timelineChart = new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        datasets: [{
-          label: 'Verses Memorized',
-          data: monthlyData,
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          borderWidth: 3,
-          tension: 0.4,
-          fill: true,
-          pointBackgroundColor: '#3b82f6',
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 6
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-          intersect: false,
-          mode: 'index'
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-            titleColor: '#1f2937',
-            bodyColor: '#1f2937',
-            borderColor: '#e5e7eb',
-            borderWidth: 1,
-            padding: 12,
-            displayColors: false,
-            callbacks: {
-              label: function(context: any) {
-                return context.parsed.y.toLocaleString() + ' verses';
-              }
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: {
-              color: 'rgba(0, 0, 0, 0.05)'
-            },
-            ticks: {
-              callback: function(value: any) {
-                return value.toLocaleString();
-              }
-            }
-          },
-          x: {
-            grid: {
-              display: false
-            }
-          }
-        }
-      }
-    });
-  }
-
-  private generateMonthlyData(): number[] {
-    // Generate cumulative data based on current memorized verses
-    const currentMonth = new Date().getMonth();
-    const totalMemorized = this.memorizedVerses;
-    const monthlyData: number[] = [];
-    
-    for (let i = 0; i <= currentMonth; i++) {
-      const progress = (i + 1) / (currentMonth + 1);
-      monthlyData.push(Math.round(totalMemorized * progress * (0.8 + Math.random() * 0.4)));
-    }
-    
-    // Fill remaining months with projected data
-    for (let i = currentMonth + 1; i < 12; i++) {
-      monthlyData.push(0);
-    }
-    
-    return monthlyData;
-  }
 
   private getTestamentChartData(testament: BibleTestament) {
     const groups = testament.groups;
@@ -347,6 +248,69 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     this.testaments.forEach(testament => {
       this.createTestamentChart(testament);
     });
+    this.initializeTotalProgressChart();
+  }
+
+  private initializeTotalProgressChart() {
+    const canvas = document.getElementById('totalProgressChart') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    if (this.totalProgressChart) {
+      this.totalProgressChart.destroy();
+    }
+
+    const monthlyData = this.generateMonthlyData();
+
+    this.totalProgressChart = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [{
+          label: 'Verses Memorized',
+          data: monthlyData,
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          borderWidth: 2,
+          tension: 0.4,
+          fill: true,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            displayColors: false,
+            callbacks: {
+              label: (ctx: any) => `${ctx.parsed.y} verses`
+            }
+          }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  private generateMonthlyData(): number[] {
+    const currentMonth = new Date().getMonth();
+    const totalMemorized = this.memorizedVerses;
+    const monthlyData: number[] = [];
+
+    for (let i = 0; i <= currentMonth; i++) {
+      const progress = (i + 1) / (currentMonth + 1);
+      monthlyData.push(Math.round(totalMemorized * progress));
+    }
+
+    for (let i = currentMonth + 1; i < 12; i++) {
+      monthlyData.push(0);
+    }
+
+    return monthlyData;
   }
 
   toggleAndSaveVerse(verse: BibleVerse): void {
@@ -521,6 +485,38 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
         this.modalService.alert(
           'Error Clearing Chapter',
           'Unable to clear verses in this chapter. Please try again.',
+          'danger'
+        );
+      }
+    });
+  }
+
+  // Book-level operation
+  selectAllChapters(): void {
+    if (!this.selectedBook) return;
+
+    this.isSavingBulk = true;
+
+    this.bibleService.saveBook(
+      this.userId,
+      this.selectedBook.id
+    ).subscribe({
+      next: () => {
+        this.selectedBook!.chapters.forEach(ch => ch.selectAllVerses());
+        this.isSavingBulk = false;
+        this.updateTestamentCharts();
+        this.modalService.success(
+          'Book Saved',
+          `${this.selectedBook!.name} has been marked as memorized.`
+        );
+        this.cdr.detectChanges();
+      },
+      error: (error: any) => {
+        console.error('Error saving book:', error);
+        this.isSavingBulk = false;
+        this.modalService.alert(
+          'Error Saving Book',
+          'Unable to save all chapters in this book. Please try again.',
           'danger'
         );
       }
