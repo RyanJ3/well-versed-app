@@ -5,7 +5,7 @@ import { RouterModule, Router } from '@angular/router';
 import { DialogsModule } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
 import { Subscription } from 'rxjs';
-import { Chart, registerables } from 'chart.js';
+import Chart from 'chart.js/auto';  // Fixed import
 import { BibleBook, BibleChapter, BibleData, BibleTestament, UserVerseDetail } from '../core/models/bible';
 import { BibleGroup } from '../core/models/bible/bible-group.modle';
 import { BibleService } from '../core/services/bible.service';
@@ -71,9 +71,6 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Register Chart.js components
-    Chart.register(...registerables);
-    
     const userSub = this.userService.currentUser$.subscribe(user => {
       if (user) {
         const newSetting = user.includeApocrypha || false;
@@ -174,7 +171,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
             borderWidth: 1,
             padding: 10,
             callbacks: {
-              label: (context) => {
+              label: (context: any) => {  // Fixed type
                 const label = context.label || '';
                 const value = context.parsed;
                 const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
