@@ -1,6 +1,6 @@
 // frontend/src/app/core/models/workflow.model.ts
 
-export interface Workflow {
+export interface Course {
   id: number;
   creator_id: number;
   creator_name: string;
@@ -56,9 +56,9 @@ export interface LessonContent {
   };
 }
 
-export interface UserWorkflowProgress {
+export interface UserCourseProgress {
   user_id: number;
-  workflow_id: number;
+  course_id: number;
   current_lesson_id: number;
   current_lesson_position: number;
   lessons_completed: number;
@@ -70,7 +70,7 @@ export interface UserWorkflowProgress {
 export interface UserLessonProgress {
   user_id: number;
   lesson_id: number;
-  workflow_id: number;
+  course_id: number;
   started_at: string;
   completed_at?: string;
   flashcards_required: number;
@@ -92,7 +92,7 @@ export interface LessonFlashcard {
   position: number;
 }
 
-export interface CreateWorkflowRequest {
+export interface CreateCourseRequest {
   title: string;
   description: string;
   thumbnail_url?: string;
@@ -101,7 +101,7 @@ export interface CreateWorkflowRequest {
 }
 
 export interface CreateLessonRequest {
-  workflow_id: number;
+  course_id: number;
   title: string;
   description?: string;
   content_type: 'video' | 'article' | 'external_link' | 'quiz';

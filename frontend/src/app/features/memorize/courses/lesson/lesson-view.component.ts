@@ -5,13 +5,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { WorkflowService } from '../../../../core/services/workflow.service';
+import { CourseService } from '../../../../core/services/course.service';
 import { UserService } from '../../../../core/services/user.service';
 import {
   Lesson,
   LessonFlashcard,
   UserLessonProgress,
-} from '../../../../core/models/workflow.model';
+} from '../../../../core/models/course.model';
 import { VersePickerComponent } from '../../../../shared/components/verse-range-picker/verse-range-picker.component';
 
 @Component({
@@ -591,7 +591,7 @@ export class LessonViewComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private workflowService: WorkflowService,
+    private workflowService: CourseService,
     private userService: UserService,
     private sanitizer: DomSanitizer,
   ) {}

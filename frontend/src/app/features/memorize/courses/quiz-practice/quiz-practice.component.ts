@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { BibleService } from '../../../../core/services/bible.service';
-import { WorkflowService } from '../../../../core/services/workflow.service';
+import { CourseService } from '../../../../core/services/course.service';
 import { UserService } from '../../../../core/services/user.service';
 import { ModalService } from '../../../../core/services/modal.service';
 
@@ -419,7 +419,7 @@ export class QuizPracticeComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private bibleService: BibleService,
-    private workflowService: WorkflowService,
+    private workflowService: CourseService,
     private userService: UserService,
     private modalService: ModalService,
   ) {}

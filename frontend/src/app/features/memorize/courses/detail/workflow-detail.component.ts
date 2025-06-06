@@ -5,12 +5,12 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
   WorkflowDetailResponse,
-  WorkflowService,
-} from '../../../../core/services/workflow.service';
+  CourseService,
+} from '../../../../core/services/course.service';
 import { UserService } from '../../../../core/services/user.service';
 import { ModalService } from '../../../../core/services/modal.service';
 import { User } from '../../../../core/models/user';
-import { Lesson } from '../../../../core/models/workflow.model';
+import { Lesson } from '../../../../core/models/course.model';
 
 @Component({
   selector: 'app-workflow-detail',
@@ -577,7 +577,7 @@ export class WorkflowDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private workflowService: WorkflowService,
+    private workflowService: CourseService,
     private userService: UserService,
     private modalService: ModalService,
   ) {}
