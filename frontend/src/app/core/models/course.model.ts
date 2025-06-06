@@ -1,4 +1,4 @@
-// frontend/src/app/core/models/workflow.model.ts
+// frontend/src/app/core/models/course.model.ts
 
 export interface Course {
   id: number;

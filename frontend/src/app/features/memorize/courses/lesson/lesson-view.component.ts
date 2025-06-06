@@ -1,4 +1,4 @@
-// frontend/src/app/features/workflows/lesson/lesson-view.component.ts
+// frontend/src/app/features/courses/lesson/lesson-view.component.ts
 
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -577,7 +577,7 @@ export class LessonViewComponent implements OnInit {
   lessonFlashcards: LessonFlashcard[] = [];
   userProgress: UserLessonProgress | null = null;
 
-  workflowId!: number;
+  courseId!: number;
   lessonId!: number;
   userId!: number;
 
@@ -591,14 +591,14 @@ export class LessonViewComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private workflowService: CourseService,
+    private courseService: CourseService,
     private userService: UserService,
     private sanitizer: DomSanitizer,
   ) {}
 
   ngOnInit() {
     this.route.params.subscribe((params) => {
-      this.workflowId = +params['workflowId'];
+      this.courseId = +params['courseId'];
       this.lessonId = +params['lessonId'];
       this.loadLesson();
     });
@@ -611,7 +611,7 @@ export class LessonViewComponent implements OnInit {
   }
 
   loadLesson() {
-    this.workflowService.getLesson(this.lessonId, this.userId).subscribe({
+    this.courseService.getLesson(this.lessonId, this.userId).subscribe({
       next: (response) => {
         this.lesson = response;
         this.lessonFlashcards = response.flashcards || [];
@@ -636,7 +636,7 @@ export class LessonViewComponent implements OnInit {
   }
 
   startLesson() {
-    this.workflowService.startLesson(this.lessonId, this.userId).subscribe({
+    this.courseService.startLesson(this.lessonId, this.userId).subscribe({
       next: (progress) => {
         this.userProgress = progress;
         this.requiredFlashcards = progress.flashcards_required;
@@ -699,10 +699,10 @@ export class LessonViewComponent implements OnInit {
       verse_codes: this.selectedVerses,
     };
 
-    this.workflowService.addFlashcardsToQueue(request, this.userId).subscribe({
+    this.courseService.addFlashcardsToQueue(request, this.userId).subscribe({
       next: () => {
         // Mark lesson as completed
-        this.workflowService
+        this.courseService
           .completeLesson(this.lessonId, this.userId)
           .subscribe({
             next: () => {
@@ -717,8 +717,8 @@ export class LessonViewComponent implements OnInit {
   }
 
   goToNextLesson() {
-    // Navigate to workflow detail - it will show the next unlocked lesson
-    this.router.navigate(['/courses', this.workflowId]);
+    // Navigate to course detail - it will show the next unlocked lesson
+    this.router.navigate(['/courses', this.courseId]);
   }
 
   goToFlashcards() {
@@ -726,6 +726,6 @@ export class LessonViewComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/courses', this.workflowId]);
+    this.router.navigate(['/courses', this.courseId]);
   }
 }

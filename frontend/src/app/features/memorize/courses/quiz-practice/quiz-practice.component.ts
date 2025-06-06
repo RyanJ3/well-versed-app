@@ -1,4 +1,4 @@
-// frontend/src/app/features/workflows/quiz-practice/quiz-practice.component.ts
+// frontend/src/app/features/courses/quiz-practice/quiz-practice.component.ts
 
 import {
   Component,
@@ -383,7 +383,7 @@ export class QuizPracticeComponent implements OnInit, OnDestroy {
   @ViewChild('audioPlayer') audioPlayer!: ElementRef<HTMLAudioElement>;
 
   // Route params
-  workflowId!: number;
+  courseId!: number;
   lessonId!: number;
   userId = 1;
 
@@ -419,14 +419,14 @@ export class QuizPracticeComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private bibleService: BibleService,
-    private workflowService: CourseService,
+    private courseService: CourseService,
     private userService: UserService,
     private modalService: ModalService,
   ) {}
 
   ngOnInit() {
     this.route.params.subscribe((params) => {
-      this.workflowId = +params['workflowId'];
+      this.courseId = +params['courseId'];
       this.lessonId = +params['lessonId'];
       this.loadQuiz();
     });
@@ -447,7 +447,7 @@ export class QuizPracticeComponent implements OnInit, OnDestroy {
   async loadQuiz() {
     try {
       // Load lesson details
-      const lesson = await this.workflowService
+      const lesson = await this.courseService
         .getLesson(this.lessonId, this.userId)
         .toPromise();
       this.lesson = lesson;
@@ -462,7 +462,7 @@ export class QuizPracticeComponent implements OnInit, OnDestroy {
           'No verses available for quiz',
           'danger',
         );
-        this.router.navigate(['/courses', this.workflowId]);
+        this.router.navigate(['/courses', this.courseId]);
         return;
       }
 
@@ -494,19 +494,19 @@ export class QuizPracticeComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.error('Error loading quiz:', error);
       this.modalService.alert('Error', 'Failed to load quiz', 'danger');
-      this.router.navigate(['/courses', this.workflowId]);
+      this.router.navigate(['/courses', this.courseId]);
     }
   }
 
   async getQuizVerses(): Promise<string[]> {
-    // Get workflow with all lessons
-    const workflow = await this.workflowService
-      .getWorkflow(this.workflowId, this.userId)
+    // Get course with all lessons
+    const course = await this.courseService
+      .getCourse(this.courseId, this.userId)
       .toPromise();
-    if (!workflow) return [];
+    if (!course) return [];
 
     // Find current lesson position
-    const currentLessonIndex = workflow.lessons.findIndex(
+    const currentLessonIndex = course.lessons.findIndex(
       (l) => l.id === this.lessonId,
     );
     if (currentLessonIndex <= 0) return []; // No previous lessons
@@ -514,10 +514,10 @@ export class QuizPracticeComponent implements OnInit, OnDestroy {
     // Get all verse codes from previous lessons
     const allVerseCodes: string[] = [];
     for (let i = 0; i < currentLessonIndex; i++) {
-      const lesson = workflow.lessons[i];
+      const lesson = course.lessons[i];
       if (lesson.content_type !== 'quiz') {
         // Get flashcards from this lesson
-        const flashcards = await this.workflowService
+        const flashcards = await this.courseService
           .getLessonFlashcards(lesson.id)
           .toPromise();
         flashcards?.forEach((card) => {
@@ -757,29 +757,29 @@ export class QuizPracticeComponent implements OnInit, OnDestroy {
 
   async completeQuiz() {
     // Mark lesson as complete
-    await this.workflowService
+    await this.courseService
       .completeLesson(this.lessonId, this.userId)
       .toPromise();
 
     // Navigate to next lesson
-    const workflow = await this.workflowService
-      .getWorkflow(this.workflowId, this.userId)
+    const course = await this.courseService
+      .getCourse(this.courseId, this.userId)
       .toPromise();
-    if (workflow?.lessons) {
-      const currentIndex = workflow.lessons.findIndex(
+    if (course?.lessons) {
+      const currentIndex = course.lessons.findIndex(
         (l) => l.id === this.lessonId,
       );
-      const nextLesson = workflow.lessons[currentIndex + 1];
+      const nextLesson = course.lessons[currentIndex + 1];
 
       if (nextLesson) {
         this.router.navigate([
           '/courses',
-          this.workflowId,
+          this.courseId,
           'lessons',
           nextLesson.id,
         ]);
       } else {
-        this.router.navigate(['/courses', this.workflowId], {
+        this.router.navigate(['/courses', this.courseId], {
           queryParams: { completed: true },
         });
       }

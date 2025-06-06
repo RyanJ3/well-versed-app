@@ -1,4 +1,4 @@
-# backend/routers/workflows.py
+# backend/routers/courses.py
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict

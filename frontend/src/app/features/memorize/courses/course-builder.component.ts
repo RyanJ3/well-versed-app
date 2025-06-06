@@ -1,4 +1,4 @@
-// frontend/src/app/features/workflows/workflow-builder.component.ts
+// frontend/src/app/features/courses/course-builder.component.ts
 
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -54,15 +54,15 @@ interface Lesson {
     ReactiveFormsModule,
     VersePickerComponent,
   ],
-  templateUrl: './workflow-builder.component.html',
-  styleUrls: ['./workflow-builder.component.scss'],
+  templateUrl: './course-builder.component.html',
+  styleUrls: ['./course-builder.component.scss'],
 })
 export class CourseBuilderComponent implements OnInit {
-  workflowForm!: FormGroup;
+  courseForm!: FormGroup;
   lessonForm!: FormGroup;
 
   isEditMode = false;
-  workflowId?: number;
+  courseId?: number;
   saving = false;
   savingLesson = false;
 
@@ -92,7 +92,7 @@ export class CourseBuilderComponent implements OnInit {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private workflowService: CourseService,
+    private courseService: CourseService,
     private userService: UserService,
     private modalService: ModalService,
   ) {
@@ -100,7 +100,7 @@ export class CourseBuilderComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.availableTags = this.workflowService.getSuggestedTags();
+    this.availableTags = this.courseService.getSuggestedTags();
 
     this.userService.currentUser$.subscribe((user) => {
       if (user) {
@@ -112,15 +112,15 @@ export class CourseBuilderComponent implements OnInit {
 
     this.route.params.subscribe((params) => {
       if (params['id']) {
-        this.workflowId = +params['id'];
+        this.courseId = +params['id'];
         this.isEditMode = true;
-        this.loadWorkflow();
+        this.loadCourse();
       }
     });
   }
 
   initializeForms() {
-    this.workflowForm = this.fb.group({
+    this.courseForm = this.fb.group({
       title: ['', Validators.required],
       description: ['', Validators.required],
       thumbnail_url: [''],
@@ -306,25 +306,25 @@ export class CourseBuilderComponent implements OnInit {
     this.originalQuizCards = null;
   }
 
-  loadWorkflow() {
-    if (!this.workflowId) return;
+  loadCourse() {
+    if (!this.courseId) return;
 
-    this.workflowService.getWorkflow(this.workflowId).subscribe({
-      next: (workflow) => {
-        if (workflow.creator_id !== this.userId) {
-          this.router.navigate(['/courses', this.workflowId]);
+    this.courseService.getCourse(this.courseId).subscribe({
+      next: (course) => {
+        if (course.creator_id !== this.userId) {
+          this.router.navigate(['/courses', this.courseId]);
           return;
         }
 
-        this.workflowForm.patchValue({
-          title: workflow.title,
-          description: workflow.description,
-          thumbnail_url: workflow.thumbnail_url,
-          is_public: workflow.is_public,
+        this.courseForm.patchValue({
+          title: course.title,
+          description: course.description,
+          thumbnail_url: course.thumbnail_url,
+          is_public: course.is_public,
         });
 
-        this.selectedTags = [...workflow.tags];
-        this.lessons = workflow.lessons.map((lesson, index) => ({
+        this.selectedTags = [...course.tags];
+        this.lessons = course.lessons.map((lesson, index) => ({
           ...lesson,
           content_type: lesson.content_type,
           youtube_url: lesson.content_data?.youtube_url,
@@ -644,7 +644,7 @@ export class CourseBuilderComponent implements OnInit {
   canProceed(): boolean {
     switch (this.currentStep) {
       case 1:
-        return this.workflowForm.valid;
+        return this.courseForm.valid;
       case 2:
         return this.lessons.length > 0 && this.areAllLessonsComplete();
       default:
@@ -670,9 +670,9 @@ export class CourseBuilderComponent implements OnInit {
     return 'pending';
   }
 
-  async saveWorkflow() {
-    if (!this.workflowForm.valid) {
-      this.workflowForm.markAllAsTouched();
+  async saveCourse() {
+    if (!this.courseForm.valid) {
+      this.courseForm.markAllAsTouched();
       return;
     }
 
@@ -683,7 +683,7 @@ export class CourseBuilderComponent implements OnInit {
     if (this.lessons.length === 0) {
       this.modalService.alert(
         'No Lessons',
-        'Please add at least one lesson to your workflow.',
+        'Please add at least one lesson to your course.',
         'warning',
       );
       return;
@@ -692,26 +692,26 @@ export class CourseBuilderComponent implements OnInit {
     this.saving = true;
 
     try {
-      const workflowData = {
-        ...this.workflowForm.value,
+      const courseData = {
+        ...this.courseForm.value,
         tags: this.selectedTags,
       };
 
-      if (this.isEditMode && this.workflowId) {
-        await this.workflowService
-          .updateWorkflow(this.workflowId, workflowData)
+      if (this.isEditMode && this.courseId) {
+        await this.courseService
+          .updateCourse(this.courseId, courseData)
           .toPromise();
         // Update lessons would go here
-        this.modalService.success('Success', 'Workflow updated successfully!');
+        this.modalService.success('Success', 'Course updated successfully!');
       } else {
-        const workflow = await this.workflowService
-          .createWorkflow(workflowData, this.userId)
+        const course = await this.courseService
+          .createCourse(courseData, this.userId)
           .toPromise();
 
         for (const lesson of this.lessons) {
-          await this.workflowService
+          await this.courseService
             .createLesson({
-              workflow_id: workflow!.id,
+              course_id: course!.id,
               title: lesson.title,
               description: lesson.description,
               content_type: lesson.content_type as any,
@@ -721,13 +721,13 @@ export class CourseBuilderComponent implements OnInit {
             .toPromise();
         }
 
-        this.modalService.success('Success', 'Workflow created successfully!');
-        this.router.navigate(['/courses', workflow!.id]);
+        this.modalService.success('Success', 'Course created successfully!');
+        this.router.navigate(['/courses', course!.id]);
       }
     } catch (error) {
       this.modalService.alert(
         'Error',
-        'Failed to save workflow. Please try again.',
+        'Failed to save course. Please try again.',
         'danger',
       );
     } finally {
@@ -764,7 +764,7 @@ export class CourseBuilderComponent implements OnInit {
   }
 
   cancel() {
-    if (this.workflowForm.dirty || this.lessonForm.dirty) {
+    if (this.courseForm.dirty || this.lessonForm.dirty) {
       this.modalService
         .confirm({
           title: 'Unsaved Changes',
@@ -784,8 +784,8 @@ export class CourseBuilderComponent implements OnInit {
   }
 
   navigateBack() {
-    if (this.isEditMode && this.workflowId) {
-      this.router.navigate(['/courses', this.workflowId]);
+    if (this.isEditMode && this.courseId) {
+      this.router.navigate(['/courses', this.courseId]);
     } else {
       this.router.navigate(['/courses']);
     }

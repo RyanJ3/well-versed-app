@@ -1,4 +1,4 @@
-// frontend/src/app/features/workflows/lesson-practice/lesson-practice.component.ts
+// frontend/src/app/features/courses/lesson-practice/lesson-practice.component.ts
 
 import {
   Component,
@@ -329,7 +329,7 @@ export class LessonPracticeComponent implements OnInit, OnDestroy {
   @ViewChild('audioPlayer') audioPlayer!: ElementRef<HTMLAudioElement>;
 
   // Route params
-  workflowId!: number;
+  courseId!: number;
   lessonId!: number;
   userId = 1;
 
@@ -359,13 +359,13 @@ export class LessonPracticeComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private bibleService: BibleService,
-    private workflowService: CourseService,
+    private courseService: CourseService,
     private userService: UserService,
   ) {}
 
   ngOnInit() {
     this.route.params.subscribe((params) => {
-      this.workflowId = +params['workflowId'];
+      this.courseId = +params['courseId'];
       this.lessonId = +params['lessonId'];
     });
 
@@ -628,31 +628,31 @@ export class LessonPracticeComponent implements OnInit, OnDestroy {
 
   async completeAndAdvance() {
     // Mark lesson complete
-    await this.workflowService
+    await this.courseService
       .completeLesson(this.lessonId, this.userId)
       .toPromise();
 
-    // Get workflow to find next lesson
-    const workflow = await this.workflowService
-      .getWorkflow(this.workflowId, this.userId)
+    // Get course to find next lesson
+    const course = await this.courseService
+      .getCourse(this.courseId, this.userId)
       .toPromise();
 
-    if (workflow?.lessons) {
-      const currentIndex = workflow.lessons.findIndex(
+    if (course?.lessons) {
+      const currentIndex = course.lessons.findIndex(
         (l) => l.id === this.lessonId,
       );
-      const nextLesson = workflow.lessons[currentIndex + 1];
+      const nextLesson = course.lessons[currentIndex + 1];
 
       if (nextLesson) {
         this.router.navigate([
           '/courses',
-          this.workflowId,
+          this.courseId,
           'lessons',
           nextLesson.id,
         ]);
       } else {
-        // No more lessons - go to workflow completion
-        this.router.navigate(['/courses', this.workflowId], {
+        // No more lessons - go to course completion
+        this.router.navigate(['/courses', this.courseId], {
           queryParams: { completed: true },
         });
       }

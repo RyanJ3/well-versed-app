@@ -1,4 +1,4 @@
-// frontend/src/app/features/workflows/editor/workflow-editor.component.ts
+// frontend/src/app/features/courses/editor/course-editor.component.ts
 
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -15,35 +15,35 @@ import { CourseService } from '../../../../core/services/course.service';
 import { UserService } from '../../../../core/services/user.service';
 import { ModalService } from '../../../../core/services/modal.service';
 import {
-  CreateWorkflowRequest,
+  CreateCourseRequest,
   CreateLessonRequest,
   Lesson,
 } from '../../../../core/models/course.model';
 
 @Component({
-  selector: 'app-workflow-editor',
+  selector: 'app-course-editor',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
   template: `
-    <div class="workflow-editor">
+    <div class="course-editor">
       <div class="editor-header">
-        <h1>{{ isEditMode ? 'Edit Workflow' : 'Create New Workflow' }}</h1>
+        <h1>{{ isEditMode ? 'Edit Course' : 'Create New Course' }}</h1>
         <div class="header-actions">
           <button class="btn-secondary" (click)="cancel()">Cancel</button>
           <button
             class="btn-primary"
             (click)="save()"
-            [disabled]="!workflowForm.valid || saving"
+            [disabled]="!courseForm.valid || saving"
           >
-            {{ saving ? 'Saving...' : 'Save Workflow' }}
+            {{ saving ? 'Saving...' : 'Save Course' }}
           </button>
         </div>
       </div>
 
-      <form [formGroup]="workflowForm" class="editor-form">
-        <!-- Workflow Details -->
+      <form [formGroup]="courseForm" class="editor-form">
+        <!-- Course Details -->
         <div class="form-section">
-          <h2>Workflow Details</h2>
+          <h2>Course Details</h2>
 
           <div class="form-group">
             <label for="title">Title *</label>
@@ -51,14 +51,14 @@ import {
               id="title"
               type="text"
               formControlName="title"
-              placeholder="Enter workflow title"
+              placeholder="Enter course title"
               class="form-control"
             />
             <div
               class="error-message"
               *ngIf="
-                workflowForm.get('title')?.touched &&
-                workflowForm.get('title')?.errors?.['required']
+                courseForm.get('title')?.touched &&
+                courseForm.get('title')?.errors?.['required']
               "
             >
               Title is required
@@ -70,15 +70,15 @@ import {
             <textarea
               id="description"
               formControlName="description"
-              placeholder="Describe what learners will gain from this workflow"
+              placeholder="Describe what learners will gain from this course"
               rows="4"
               class="form-control"
             ></textarea>
             <div
               class="error-message"
               *ngIf="
-                workflowForm.get('description')?.touched &&
-                workflowForm.get('description')?.errors?.['required']
+                courseForm.get('description')?.touched &&
+                courseForm.get('description')?.errors?.['required']
               "
             >
               Description is required
@@ -134,10 +134,10 @@ import {
           <div class="form-group">
             <label class="checkbox-label">
               <input type="checkbox" formControlName="is_public" />
-              Make this workflow public
+              Make this course public
             </label>
             <p class="help-text">
-              Public workflows can be discovered and enrolled in by other users
+              Public courses can be discovered and enrolled in by other users
             </p>
           </div>
         </div>
@@ -295,7 +295,7 @@ import {
                       </svg>
                       <p>
                         Quiz will pull verses from previous lessons in this
-                        workflow
+                        course
                       </p>
                     </div>
 
@@ -406,12 +406,12 @@ import {
       </form>
     </div>
   `,
-  styleUrls: ['./workflow-editor.component.scss'],
+  styleUrls: ['./course-editor.component.scss'],
 })
-export class WorkflowEditorComponent implements OnInit {
-  workflowForm!: FormGroup;
+export class CourseEditorComponent implements OnInit {
+  courseForm!: FormGroup;
   isEditMode = false;
-  workflowId?: number;
+  courseId?: number;
   saving = false;
   availableTags: string[] = [];
   selectedTags: string[] = [];
@@ -421,7 +421,7 @@ export class WorkflowEditorComponent implements OnInit {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private workflowService: CourseService,
+    private courseService: CourseService,
     private userService: UserService,
     private modalService: ModalService,
   ) {
@@ -429,7 +429,7 @@ export class WorkflowEditorComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.availableTags = this.workflowService.getSuggestedTags();
+    this.availableTags = this.courseService.getSuggestedTags();
 
     this.userService.currentUser$.subscribe((user) => {
       if (user) {
@@ -441,15 +441,15 @@ export class WorkflowEditorComponent implements OnInit {
 
     this.route.params.subscribe((params) => {
       if (params['id']) {
-        this.workflowId = +params['id'];
+        this.courseId = +params['id'];
         this.isEditMode = true;
-        this.loadWorkflow();
+        this.loadCourse();
       }
     });
   }
 
   initializeForm() {
-    this.workflowForm = this.fb.group({
+    this.courseForm = this.fb.group({
       title: ['', Validators.required],
       description: ['', Validators.required],
       thumbnail_url: [''],
@@ -459,37 +459,37 @@ export class WorkflowEditorComponent implements OnInit {
   }
 
   get lessons() {
-    return this.workflowForm.get('lessons') as FormArray;
+    return this.courseForm.get('lessons') as FormArray;
   }
 
-  loadWorkflow() {
-    if (!this.workflowId) return;
+  loadCourse() {
+    if (!this.courseId) return;
 
-    this.workflowService.getWorkflow(this.workflowId).subscribe({
-      next: (workflow) => {
+    this.courseService.getCourse(this.courseId).subscribe({
+      next: (course) => {
         // Check if user is the creator
-        if (workflow.creator_id !== this.userId) {
-          this.router.navigate(['/courses', this.workflowId]);
+        if (course.creator_id !== this.userId) {
+          this.router.navigate(['/courses', this.courseId]);
           return;
         }
 
         // Populate form
-        this.workflowForm.patchValue({
-          title: workflow.title,
-          description: workflow.description,
-          thumbnail_url: workflow.thumbnail_url,
-          is_public: workflow.is_public,
+        this.courseForm.patchValue({
+          title: course.title,
+          description: course.description,
+          thumbnail_url: course.thumbnail_url,
+          is_public: course.is_public,
         });
 
-        this.selectedTags = [...workflow.tags];
+        this.selectedTags = [...course.tags];
 
         // Load existing lessons
-        workflow.lessons.forEach((lesson) => {
+        course.lessons.forEach((lesson) => {
           this.addLesson(lesson);
         });
       },
       error: (error) => {
-        console.error('Error loading workflow:', error);
+        console.error('Error loading course:', error);
         this.router.navigate(['/courses']);
       },
     });
@@ -618,9 +618,9 @@ export class WorkflowEditorComponent implements OnInit {
   }
 
   async save() {
-    if (!this.workflowForm.valid) {
-      Object.keys(this.workflowForm.controls).forEach((key) => {
-        this.workflowForm.get(key)?.markAsTouched();
+    if (!this.courseForm.valid) {
+      Object.keys(this.courseForm.controls).forEach((key) => {
+        this.courseForm.get(key)?.markAsTouched();
       });
       return;
     }
@@ -628,10 +628,10 @@ export class WorkflowEditorComponent implements OnInit {
     this.saving = true;
 
     try {
-      const formValue = this.workflowForm.value;
+      const formValue = this.courseForm.value;
 
-      if (this.isEditMode && this.workflowId) {
-        // Update existing workflow
+      if (this.isEditMode && this.courseId) {
+        // Update existing course
         const updates = {
           title: formValue.title,
           description: formValue.description,
@@ -640,15 +640,15 @@ export class WorkflowEditorComponent implements OnInit {
           tags: this.selectedTags,
         };
 
-        await this.workflowService
-          .updateWorkflow(this.workflowId, updates)
+        await this.courseService
+          .updateCourse(this.courseId, updates)
           .toPromise();
 
-        this.modalService.success('Success', 'Workflow updated successfully!');
-        this.router.navigate(['/courses', this.workflowId]);
+        this.modalService.success('Success', 'Course updated successfully!');
+        this.router.navigate(['/courses', this.courseId]);
       } else {
-        // Create new workflow
-        const workflowData: CreateWorkflowRequest = {
+        // Create new course
+        const courseData: CreateCourseRequest = {
           title: formValue.title,
           description: formValue.description,
           thumbnail_url: formValue.thumbnail_url,
@@ -656,15 +656,15 @@ export class WorkflowEditorComponent implements OnInit {
           tags: this.selectedTags,
         };
 
-        const workflow = await this.workflowService
-          .createWorkflow(workflowData, this.userId)
+        const course = await this.courseService
+          .createCourse(courseData, this.userId)
           .toPromise();
 
         // Create lessons
         for (let i = 0; i < formValue.lessons.length; i++) {
           const lessonData = formValue.lessons[i];
           const lessonRequest: CreateLessonRequest = {
-            workflow_id: workflow!.id,
+            course_id: course!.id,
             title: lessonData.title,
             description: lessonData.description,
             content_type: lessonData.content_type,
@@ -672,17 +672,17 @@ export class WorkflowEditorComponent implements OnInit {
             position: i + 1,
           };
 
-          await this.workflowService.createLesson(lessonRequest).toPromise();
+          await this.courseService.createLesson(lessonRequest).toPromise();
         }
 
-        this.modalService.success('Success', 'Workflow created successfully!');
-        this.router.navigate(['/courses', workflow!.id]);
+        this.modalService.success('Success', 'Course created successfully!');
+        this.router.navigate(['/courses', course!.id]);
       }
     } catch (error) {
-      console.error('Error saving workflow:', error);
+      console.error('Error saving course:', error);
       this.modalService.alert(
         'Error',
-        'Failed to save workflow. Please try again.',
+        'Failed to save course. Please try again.',
         'danger',
       );
     } finally {
@@ -716,7 +716,7 @@ export class WorkflowEditorComponent implements OnInit {
   }
 
   cancel() {
-    if (this.workflowForm.dirty) {
+    if (this.courseForm.dirty) {
       this.modalService
         .confirm({
           title: 'Unsaved Changes',
@@ -736,8 +736,8 @@ export class WorkflowEditorComponent implements OnInit {
   }
 
   navigateBack() {
-    if (this.isEditMode && this.workflowId) {
-      this.router.navigate(['/courses', this.workflowId]);
+    if (this.isEditMode && this.courseId) {
+      this.router.navigate(['/courses', this.courseId]);
     } else {
       this.router.navigate(['/courses']);
     }

@@ -1,5 +1,5 @@
-<!-- frontend/src/app/features/workflows/workflow-builder.component.html -->
-<div class="workflow-builder">
+<!-- frontend/src/app/features/courses/course-builder.component.html -->
+<div class="course-builder">
   <!-- Header -->
   <div class="builder-header">
     <h1>{{ isEditMode ? "Edit Course" : "Create New Course" }}</h1>
@@ -7,7 +7,7 @@
       <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
       <button
         class="btn btn-primary"
-        (click)="saveWorkflow()"
+        (click)="saveCourse()"
         [disabled]="saving"
       >
         {{ saving ? "Saving..." : "Save Course" }}
@@ -47,8 +47,8 @@
 
   <!-- Step 1: Course Info -->
   <div
-    class="workflow-info"
-    [formGroup]="workflowForm"
+    class="course-info"
+    [formGroup]="courseForm"
     *ngIf="currentStep === 1"
   >
     <div class="form-group">
@@ -62,8 +62,8 @@
       <div
         class="error-message"
         *ngIf="
-          workflowForm.get('title')?.touched &&
-          workflowForm.get('title')?.errors?.['required']
+          courseForm.get('title')?.touched &&
+          courseForm.get('title')?.errors?.['required']
         "
       >
         Title is required
@@ -81,8 +81,8 @@
       <div
         class="error-message"
         *ngIf="
-          workflowForm.get('description')?.touched &&
-          workflowForm.get('description')?.errors?.['required']
+          courseForm.get('description')?.touched &&
+          courseForm.get('description')?.errors?.['required']
         "
       >
         Description is required
@@ -556,16 +556,16 @@
   <!-- Step 3: Review (Enhanced) -->
   <div class="review-section enhanced" *ngIf="currentStep === 3">
     <div class="review-header">
-      <h1 class="workflow-title">{{ workflowForm.get("title")?.value }}</h1>
-      <p class="workflow-description">
-        {{ workflowForm.get("description")?.value }}
+      <h1 class="course-title">{{ courseForm.get("title")?.value }}</h1>
+      <p class="course-description">
+        {{ courseForm.get("description")?.value }}
       </p>
       <div class="header-badges">
-        <div class="badge public" *ngIf="workflowForm.get('is_public')?.value">
+        <div class="badge public" *ngIf="courseForm.get('is_public')?.value">
           <span class="badge-icon">🌍</span>
           <span>Public Course</span>
         </div>
-        <div class="badge public" *ngIf="!workflowForm.get('is_public')?.value">
+        <div class="badge public" *ngIf="!courseForm.get('is_public')?.value">
           <span class="badge-icon">🔒</span>
           <span>Private Course</span>
         </div>
@@ -599,7 +599,7 @@
             <span>Title</span>
           </div>
           <div class="detail-value">
-            {{ workflowForm.get("title")?.value }}
+            {{ courseForm.get("title")?.value }}
           </div>
         </div>
 
@@ -609,7 +609,7 @@
             <span>Visibility</span>
           </div>
           <div class="detail-value">
-            {{ workflowForm.get("is_public")?.value ? "Public" : "Private" }}
+            {{ courseForm.get("is_public")?.value ? "Public" : "Private" }}
           </div>
         </div>
 
@@ -699,7 +699,7 @@
       <button class="btn btn-secondary" (click)="previousStep()">
         ← Edit Lessons
       </button>
-      <button class="btn btn-primary" (click)="saveWorkflow()">
+      <button class="btn btn-primary" (click)="saveCourse()">
         Publish Course 🚀
       </button>
     </div>
