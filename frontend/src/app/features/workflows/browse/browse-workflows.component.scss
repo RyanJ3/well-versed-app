@@ -1,0 +1,37 @@
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bg-gradient-to-br.from-blue-500.to-purple-600 {
+  background-image: linear-gradient(to bottom right, #3b82f6, #7c3aed);
+}
+
+.bg-gradient-to-r.from-blue-500.to-purple-600 {
+  background-image: linear-gradient(to right, #3b82f6, #7c3aed);
+}
+
+.bg-gradient-to-r.from-indigo-500.to-purple-600 {
+  background-image: linear-gradient(to right, #6366f1, #7c3aed);
+}
+
+.bg-gradient-to-r.from-green-500.to-emerald-600 {
+  background-image: linear-gradient(to right, #22c55e, #059669);
+}
+
+.bg-white\/20 {
+  background-color: rgba(255,255,255,0.2);
+}
+
+.text-white\/80 {
+  color: rgba(255,255,255,0.8);
+}
