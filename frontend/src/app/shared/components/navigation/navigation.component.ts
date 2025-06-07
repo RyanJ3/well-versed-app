@@ -15,6 +15,7 @@ import { User } from '../../../core/models/user';
 export class NavigationComponent implements OnInit {
   menuActive = false;
   memorizeMenuActive = false;
+  learningMenuActive = false;
   profileMenuActive = false;
   currentUser: User | null = null;
 
@@ -29,31 +30,42 @@ export class NavigationComponent implements OnInit {
     });
   }
 
-  toggleMenu() {
-    this.menuActive = !this.menuActive;
-    if (this.menuActive) {
+    toggleMenu() {
+      this.menuActive = !this.menuActive;
+      if (this.menuActive) {
+        this.memorizeMenuActive = false;
+        this.learningMenuActive = false;
+        this.profileMenuActive = false;
+      }
+    }
+
+    closeMenu() {
+      this.menuActive = false;
+      this.memorizeMenuActive = false;
+      this.learningMenuActive = false;
+      this.profileMenuActive = false;
+    }
+
+    toggleMemorizeMenu(event: Event) {
+      event.stopPropagation();
+      this.memorizeMenuActive = !this.memorizeMenuActive;
+      this.learningMenuActive = false;
+      this.profileMenuActive = false;
+    }
+
+    toggleLearningMenu(event: Event) {
+      event.stopPropagation();
+      this.learningMenuActive = !this.learningMenuActive;
       this.memorizeMenuActive = false;
       this.profileMenuActive = false;
     }
-  }
 
-  closeMenu() {
-    this.menuActive = false;
-    this.memorizeMenuActive = false;
-    this.profileMenuActive = false;
-  }
-
-  toggleMemorizeMenu(event: Event) {
-    event.stopPropagation();
-    this.memorizeMenuActive = !this.memorizeMenuActive;
-    this.profileMenuActive = false;
-  }
-
-  toggleProfileMenu(event: Event) {
-    event.stopPropagation();
-    this.profileMenuActive = !this.profileMenuActive;
-    this.memorizeMenuActive = false;
-  }
+    toggleProfileMenu(event: Event) {
+      event.stopPropagation();
+      this.profileMenuActive = !this.profileMenuActive;
+      this.memorizeMenuActive = false;
+      this.learningMenuActive = false;
+    }
 
   getUserInitial(): string {
     if (this.currentUser?.name) {
