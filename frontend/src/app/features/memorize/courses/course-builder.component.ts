@@ -78,6 +78,7 @@ export class CourseBuilderComponent implements OnInit {
 
   availableTags: string[] = [];
   selectedTags: string[] = [];
+  expectedTimeOptions = [5, 10, 15, 20, 25, 30];
 
   userId!: number;
 
