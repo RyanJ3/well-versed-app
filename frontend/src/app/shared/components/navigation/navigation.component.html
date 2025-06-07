@@ -96,13 +96,59 @@
         </div>
       </div>
 
-      <a
-        routerLink="/courses"
-        class="nav-link"
-        routerLinkActive="active"
-        (click)="closeMenu()"
-        >Learning</a
-      >
+      <!-- Learning dropdown menu -->
+      <div class="nav-dropdown learning">
+        <button
+          class="nav-link dropdown-toggle"
+          [class.active]="learningMenuActive"
+          (click)="toggleLearningMenu($event)"
+        >
+          Learning
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="dropdown-icon"
+            [class.rotate]="learningMenuActive"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+
+        <div class="dropdown-menu" [class.active]="learningMenuActive">
+          <a
+            routerLink="/courses"
+            class="dropdown-item"
+            routerLinkActive="active"
+            (click)="closeMenu()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 3l9 5-9 5-9-5 9-5z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 13v8m0-8l5-3m-5 3l-5-3"
+              />
+            </svg>
+            Courses
+          </a>
+        </div>
+      </div>
 
       <!-- Profile dropdown menu -->
       <div class="nav-dropdown profile">
