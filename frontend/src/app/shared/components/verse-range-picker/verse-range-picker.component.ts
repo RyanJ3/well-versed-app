@@ -37,7 +37,7 @@ export interface VerseSelection {
   styleUrls: ['./verse-picker.component.scss'],
 })
 export class VersePickerComponent implements OnInit {
-  @Input() theme: 'enhanced' | 'minimal' | 'cyberpunk' = 'enhanced';
+  @Input() theme: 'enhanced' | 'minimal' | 'cyberpunk' | 'card-stack' = 'card-stack';
   @Input() showFilters = false;
   @Input() minimumVerses = 0;
   @Input() maximumVerses = 0; // 0 means no maximum
