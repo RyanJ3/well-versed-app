@@ -141,6 +141,9 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private createTestamentChart(testament: BibleTestament) {
+    if (typeof document === 'undefined') {
+      return;
+    }
     const chartId = this.getTestamentChartId(testament);
     const canvas = document.getElementById(chartId) as HTMLCanvasElement;
     
@@ -607,5 +610,13 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get memorizedVerses(): number {
     return this.bibleData.memorizedVerses;
+  }
+
+  get progressGroups() {
+    return [...this.oldTestament.groups, ...this.newTestament.groups].map(g => ({
+      name: g.name,
+      memorizedVerses: g.memorizedVerses,
+      shortName: this.getGroupShortName(g.name)
+    }));
   }
 }

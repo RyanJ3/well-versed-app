@@ -14,7 +14,14 @@
 
   <!-- Summary Stats -->
   <div class="stats-grid">
-    <app-segmented-progress-demo></app-segmented-progress-demo>
+    <app-segmented-progress-demo
+      [totalVerses]="totalVerses"
+      [memorizedVerses]="memorizedVerses"
+      [percentComplete]="percentComplete"
+      [oldTestamentMemorized]="oldTestament.memorizedVerses"
+      [newTestamentMemorized]="newTestament.memorizedVerses"
+      [groupsData]="progressGroups"
+    ></app-segmented-progress-demo>
   </div>
 
   <!-- Testament Progress -->

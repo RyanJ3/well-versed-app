@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -10,13 +10,12 @@ import { CommonModule } from '@angular/common';
 export class SegmentedProgressDemoComponent {
   progressViewMode: 'testament' | 'groups' = 'testament';
 
-  // Mock data from the original demo
-  totalVerses = 31102;
-  memorizedVerses = 8432;
-  percentComplete = 27;
-
-  oldTestamentMemorized = 5596;
-  newTestamentMemorized = 2836;
+  @Input() totalVerses = 0;
+  @Input() memorizedVerses = 0;
+  @Input() percentComplete = 0;
+  @Input() oldTestamentMemorized = 0;
+  @Input() newTestamentMemorized = 0;
+  @Input() groupsData: Array<{ name: string; memorizedVerses: number; shortName: string }> = [];
 
   groupColors: Record<string, string> = {
     'Law': '#10b981',
@@ -31,18 +30,6 @@ export class SegmentedProgressDemoComponent {
     'Revelation': '#ef4444'
   };
 
-  groupsData = [
-    { name: 'Law', memorizedVerses: 1879, shortName: 'Law' },
-    { name: 'History', memorizedVerses: 1345, shortName: 'History' },
-    { name: 'Wisdom', memorizedVerses: 892, shortName: 'Wisdom' },
-    { name: 'Major Prophets', memorizedVerses: 756, shortName: 'Major' },
-    { name: 'Minor Prophets', memorizedVerses: 724, shortName: 'Minor' },
-    { name: 'Gospels', memorizedVerses: 1456, shortName: 'Gospels' },
-    { name: 'Acts', memorizedVerses: 432, shortName: 'Acts' },
-    { name: 'Pauline Epistles', memorizedVerses: 678, shortName: 'Pauline' },
-    { name: 'General Epistles', memorizedVerses: 245, shortName: 'General' },
-    { name: 'Revelation', memorizedVerses: 25, shortName: 'Rev' }
-  ];
 
   toggleProgressView(): void {
     this.progressViewMode = this.progressViewMode === 'testament' ? 'groups' : 'testament';
