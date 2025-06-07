@@ -1,8 +1,9 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BibleData, BibleTestament, BibleGroup } from '../../core/models/bible';
+import { BibleData, BibleTestament } from '../../core/models/bible';
+import { BibleGroup } from '../../core/models/bible/bible-group.modle';
 
-interface ProgressSegment {
+export interface ProgressSegment {
   name: string;
   shortName: string;
   percent: number;

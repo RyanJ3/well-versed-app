@@ -12,3 +12,5 @@ export * from './bible-chapter.model';
 export * from './bible-book.model';
 export * from './bible-testament.model';
 export * from './bible-data.model';
+export * from './bible-group.modle';
+export * from './bible-verse.model';
