@@ -111,6 +111,11 @@ SQL_FILES = [
     {
         'file': '09-create-course-progress.sql',
         'description': 'Create course enrollment and progress tables'
+    },
+    {
+        'file': '10-demo-user-data.sql',
+        'description': 'Insert additional demo data for main user',
+        'skip_on_production': True
     }
 ]
 
