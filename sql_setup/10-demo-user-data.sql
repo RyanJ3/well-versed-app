@@ -279,3 +279,270 @@ WITH v AS (
 INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
 SELECT 1, id, 75, 6 FROM v
 ON CONFLICT DO NOTHING;
+
+-- Additional tracked verses for variety
+-- Genesis 1:1
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 1 AND chapter_number = 1 AND verse_number = 1
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 4 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 1 AND chapter_number = 1 AND verse_number = 1
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 60, 4 FROM v
+ON CONFLICT DO NOTHING;
+
+-- Exodus 20:13
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 2 AND chapter_number = 20 AND verse_number = 13
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 2 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 2 AND chapter_number = 20 AND verse_number = 13
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 50, 2 FROM v
+ON CONFLICT DO NOTHING;
+
+-- Psalm 119:105
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 19 AND chapter_number = 119 AND verse_number = 105
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 7 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 19 AND chapter_number = 119 AND verse_number = 105
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 80, 7 FROM v
+ON CONFLICT DO NOTHING;
+
+-- Isaiah 40:31
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 23 AND chapter_number = 40 AND verse_number = 31
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 3 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 23 AND chapter_number = 40 AND verse_number = 31
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 65, 3 FROM v
+ON CONFLICT DO NOTHING;
+
+-- Matthew 28:19
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 40 AND chapter_number = 28 AND verse_number = 19
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 5 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 40 AND chapter_number = 28 AND verse_number = 19
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 70, 5 FROM v
+ON CONFLICT DO NOTHING;
+
+-- Luke 2:11
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 42 AND chapter_number = 2 AND verse_number = 11
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 1 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 42 AND chapter_number = 2 AND verse_number = 11
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 40, 1 FROM v
+ON CONFLICT DO NOTHING;
+
+-- John 1:1
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 43 AND chapter_number = 1 AND verse_number = 1
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 6 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 43 AND chapter_number = 1 AND verse_number = 1
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 75, 6 FROM v
+ON CONFLICT DO NOTHING;
+
+-- Acts 2:38
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 44 AND chapter_number = 2 AND verse_number = 38
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 3 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 44 AND chapter_number = 2 AND verse_number = 38
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 60, 3 FROM v
+ON CONFLICT DO NOTHING;
+
+-- Romans 10:9
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 45 AND chapter_number = 10 AND verse_number = 9
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 4 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 45 AND chapter_number = 10 AND verse_number = 9
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 70, 4 FROM v
+ON CONFLICT DO NOTHING;
+
+-- 1 Corinthians 13:4
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 46 AND chapter_number = 13 AND verse_number = 4
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 3 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 46 AND chapter_number = 13 AND verse_number = 4
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 65, 3 FROM v
+ON CONFLICT DO NOTHING;
+
+-- Galatians 2:20
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 48 AND chapter_number = 2 AND verse_number = 20
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 5 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 48 AND chapter_number = 2 AND verse_number = 20
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 75, 5 FROM v
+ON CONFLICT DO NOTHING;
+
+-- Philippians 4:13
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 50 AND chapter_number = 4 AND verse_number = 13
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 8 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 50 AND chapter_number = 4 AND verse_number = 13
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 85, 8 FROM v
+ON CONFLICT DO NOTHING;
+
+-- Colossians 3:23
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 51 AND chapter_number = 3 AND verse_number = 23
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 4 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 51 AND chapter_number = 3 AND verse_number = 23
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 70, 4 FROM v
+ON CONFLICT DO NOTHING;
+
+-- 1 Thessalonians 5:17
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 52 AND chapter_number = 5 AND verse_number = 17
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 2 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 52 AND chapter_number = 5 AND verse_number = 17
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 50, 2 FROM v
+ON CONFLICT DO NOTHING;
+
+-- Hebrews 11:1
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 58 AND chapter_number = 11 AND verse_number = 1
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 5 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 58 AND chapter_number = 11 AND verse_number = 1
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 80, 5 FROM v
+ON CONFLICT DO NOTHING;
+
+-- James 1:2
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 59 AND chapter_number = 1 AND verse_number = 2
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 3 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 59 AND chapter_number = 1 AND verse_number = 2
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 60, 3 FROM v
+ON CONFLICT DO NOTHING;
+
+-- 1 Peter 5:7
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 60 AND chapter_number = 5 AND verse_number = 7
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 4 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 60 AND chapter_number = 5 AND verse_number = 7
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 70, 4 FROM v
+ON CONFLICT DO NOTHING;
+
+-- 1 John 4:8
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 62 AND chapter_number = 4 AND verse_number = 8
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 2 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 62 AND chapter_number = 4 AND verse_number = 8
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 55, 2 FROM v
+ON CONFLICT DO NOTHING;
+
+-- Revelation 3:20
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 66 AND chapter_number = 3 AND verse_number = 20
+)
+INSERT INTO user_verses (user_id, verse_id, practice_count)
+SELECT 1, id, 3 FROM v
+ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 66 AND chapter_number = 3 AND verse_number = 20
+)
+INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
+SELECT 1, id, 65, 3 FROM v
+ON CONFLICT DO NOTHING;
