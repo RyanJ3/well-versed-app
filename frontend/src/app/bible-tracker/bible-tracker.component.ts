@@ -48,6 +48,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   isSavingBulk = false;
   userId = 1; // Default test user
   includeApocrypha = false;
+  progressViewMode: 'testament' | 'groups' = 'testament';
 
 
   constructor(
@@ -311,6 +312,86 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     return monthlyData;
+  }
+
+  toggleProgressView(): void {
+    this.progressViewMode = this.progressViewMode === 'testament' ? 'groups' : 'testament';
+  }
+
+  getProgressSegments() {
+    if (this.progressViewMode === 'testament') {
+      const otMemorized = this.oldTestament.memorizedVerses;
+      const ntMemorized = this.newTestament.memorizedVerses;
+      const otPercent = Math.round((otMemorized / this.totalVerses) * 100);
+      const ntPercent = Math.round((ntMemorized / this.totalVerses) * 100);
+      const remainingPercent = Math.max(0, 100 - otPercent - ntPercent);
+
+      return [
+        {
+          name: 'Old Testament',
+          shortName: 'OT',
+          percent: otPercent,
+          color: '#f59e0b',
+          gradient: 'linear-gradient(135deg, #f59e0b, #d97706)',
+          verses: otMemorized
+        },
+        {
+          name: 'New Testament',
+          shortName: 'NT',
+          percent: ntPercent,
+          color: '#6366f1',
+          gradient: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+          verses: ntMemorized
+        },
+        {
+          name: 'Remaining',
+          shortName: '',
+          percent: remainingPercent,
+          color: '#e5e7eb',
+          gradient: 'linear-gradient(135deg, #e5e7eb, #d1d5db)',
+          verses: this.totalVerses - otMemorized - ntMemorized
+        }
+      ];
+    } else {
+      const segments: any[] = [];
+      let totalMemorized = 0;
+      const seen = new Set<string>();
+
+      this.testaments.forEach(t => {
+        t.groups.forEach(g => {
+          if (!seen.has(g.name)) {
+            seen.add(g.name);
+            if (g.memorizedVerses > 0) {
+              const percent = Math.round((g.memorizedVerses / this.totalVerses) * 100);
+              const color = this.getGroupColor(g.name);
+              segments.push({
+                name: g.name,
+                shortName: this.getGroupShortName(g.name),
+                percent,
+                color,
+                gradient: `linear-gradient(135deg, ${color}, ${color}dd)`,
+                verses: g.memorizedVerses
+              });
+              totalMemorized += g.memorizedVerses;
+            }
+          }
+        });
+      });
+
+      const remainingPercent = Math.round(((this.totalVerses - totalMemorized) / this.totalVerses) * 100);
+      if (remainingPercent > 0) {
+        segments.push({
+          name: 'Remaining',
+          shortName: '',
+          percent: remainingPercent,
+          color: '#e5e7eb',
+          gradient: 'linear-gradient(135deg, #e5e7eb, #d1d5db)',
+          verses: this.totalVerses - totalMemorized
+        });
+      }
+
+      return segments;
+    }
   }
 
   toggleAndSaveVerse(verse: BibleVerse): void {
