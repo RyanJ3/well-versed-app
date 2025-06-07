@@ -1,180 +1,69 @@
 <!-- frontend/src/app/bible-tracker/bible-tracker.component.html -->
-<div class="bible-selector-container">
-  <!-- Loading overlay for the entire tracker -->
-  <div *ngIf="isLoading" class="global-loading-overlay">
-    <div class="loading-spinner"></div>
-    <p>Loading Bible data...</p>
-  </div>
-
-  <!-- Grand Total -->
-  <div class="header">
-    <h1>Bible Memory Tracker</h1>
-    <p>Track your scripture memorization progress</p>
-  </div>
-
-  <!-- Summary Stats -->
-  <div class="stats-grid">
-    <!-- Total Progress -->
-    <div class="card">
-      <div class="stat-card">
-        <div class="stat-content">
-          <div class="stat-number">{{ memorizedVerses | number }}</div>
-          <div class="stat-label">Verses Memorized</div>
-          <div class="stat-progress text-green">{{ percentComplete }}% Complete</div>
-        </div>
-        <div class="mini-visual">
-          <canvas id="totalProgressChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Testament Progress -->
-  <div class="chart-grid">
-    <div class="card testament-card" *ngFor="let testament of testaments"
-         (click)="setTestament(testament)"
-         [class.active]="testament === selectedTestament">
-      <div class="radial-container">
-        <canvas [id]="getTestamentChartId(testament)"></canvas>
-      </div>
-      <h3 class="testament-title">{{ testament.name }}</h3>
-      <p class="testament-subtitle">{{ testament.memorizedVerses | number }} / {{ testament.totalVerses | number }} verses</p>
-      <div class="testament-legend">
-        <div class="legend-item" *ngFor="let group of getTestamentGroups(testament)">
-          <span class="legend-dot" [style.background]="getGroupColor(group.name)"></span>
-          <span class="legend-label">{{ getGroupShortName(group.name) }}</span>
-          <span class="legend-percent">{{ getGroupPercent(testament, group) }}%</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Book Groups -->
-  <div class="card" *ngIf="selectedTestament">
-    <h3 class="card-title">Book Groups Overview</h3>
-    
-    <div class="book-group" *ngFor="let group of selectedTestament.groups"
-         (click)="setGroup(group)"
-         [class.active]="group === selectedGroup">
-      <div class="group-info">
-        <div class="group-name">{{ group.name }}</div>
-        <div class="group-books">{{ getGroupBooksList(group) }}</div>
-      </div>
-      <div class="group-visual">
-        <div class="mini-bar">
-          <div class="mini-bar-fill" 
-               [style.width.%]="group.percentComplete" 
-               [style.background]="getGroupColor(group.name)"></div>
-        </div>
-        <div class="percent-label" [style.color]="getGroupColor(group.name)">{{ group.percentComplete }}%</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Book Cards -->
-  <div class="card" *ngIf="selectedGroup">
-    <h3 class="card-title">{{ selectedGroup.name }} Books</h3>
-    <div class="book-grid">
-      <div class="book-card" *ngFor="let book of selectedGroup.books"
-           [class.active]="book === selectedBook"
-           [class.apocryphal]="isApocryphalBook(book)"
-           (click)="setBook(book)">
-        <div class="book-name">{{ book.name }}</div>
-        <div class="book-progress">
-          <div class="book-progress-bar"
-               [style.width.%]="book.percentComplete"
-               [style.background]="getBookProgressColor(book)"></div>
-        </div>
-        <div class="book-stats">
-          <span>{{ book.totalChapters }} chapters</span>
-          <span [style.color]="getBookProgressColor(book)" style="font-weight: 600;">{{ book.percentComplete }}%</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Chapter Heatmap -->
-  <div class="card" *ngIf="selectedBook">
-    <h3 class="card-title">{{ selectedBook.name }} - Chapter Progress Heatmap</h3>
-    <div class="heatmap">
-      <ng-container *ngFor="let chapter of selectedBook.chapters">
-        <div *ngIf="isChapterVisible(chapter)"
-             class="heatmap-cell"
-             [class]="getHeatmapClass(chapter)"
-             [title]="'Chapter ' + chapter.chapterNumber + ': ' + chapter.percentComplete + '%'"
-             (click)="setChapter(chapter)">
-          {{ chapter.chapterNumber }}
-        </div>
-      </ng-container>
-    </div>
-    <div class="legend">
-      <div class="legend-item">
-        <div class="legend-color heat-0"></div>
-        <span>0%</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color heat-2"></div>
-        <span>1-40%</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color heat-4"></div>
-        <span>41-80%</span>
-      </div>
-      <div class="legend-item">
-        <div class="legend-color heat-complete"></div>
-        <span>81-100%</span>
-      </div>
-    </div>
-    <div class="action-container">
-      <button (click)="selectAllChapters()"
-              class="action-btn primary"
-              [disabled]="isLoading || isSavingBulk">
-        Memorize All Chapters
-      </button>
-    </div>
-  </div>
-
-
-  <!-- Verse Grid -->
-  <div class="card" *ngIf="selectedChapter">
-    <h3 class="card-title">{{ selectedBook?.name }} {{ selectedChapter.chapterNumber }} - Verse Progress</h3>
-    <div class="verse-header">
-      <div></div>
+<div class="w-full max-w-4xl mx-auto p-6 bg-gray-100">
+  <div class="bg-white rounded-xl shadow-lg p-8">
+    <div class="flex justify-between items-start mb-8">
       <div>
-        <span class="verse-count">{{ selectedChapter.memorizedVerses }}/{{ selectedChapter.totalVerses }}</span>
-        <span class="verse-label"> verses</span>
+        <div class="text-5xl font-black text-gray-900 tracking-tight">{{ memorizedVerses | number }}</div>
+        <div class="text-base font-medium text-gray-600 mt-2">Verses Memorized</div>
+        <div class="flex items-center gap-2 mt-3">
+          <div class="text-2xl font-bold text-green-600">{{ percentComplete }}%</div>
+          <div class="text-base font-semibold text-green-600">Complete</div>
+        </div>
       </div>
+      <button (click)="toggleProgressView()"
+              class="flex items-center gap-2 px-4 py-2.5 bg-gray-800 text-white rounded-lg text-sm font-bold shadow-md">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3v18m9-9H3"/>
+        </svg>
+        View {{ progressViewMode === 'testament' ? 'Groups' : 'Testament' }}
+      </button>
     </div>
-    <div class="verse-grid" [class.disabled]="isLoading || isSavingBulk">
-      <div class="verse-bubble" 
-           *ngFor="let verse of selectedChapter.verses"
-           [class.memorized]="verse.memorized"
-           [class.not-memorized]="!verse.memorized"
-           [class.apocryphal]="verse.isApocryphal"
-           (click)="!isLoading && !isSavingBulk && toggleAndSaveVerse(verse)">
-        {{ verse.verseNumber }}
+
+    <div class="mt-6">
+      <div class="flex h-12 rounded-full overflow-hidden shadow-2xl bg-gray-200 relative"
+           style="box-shadow: inset 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 10px 15px -3px rgba(0,0,0,0.1)">
+        <div *ngFor="let segment of getProgressSegments(); let i = index"
+             class="flex items-center justify-center relative transition-all duration-500 hover:brightness-110 cursor-pointer group"
+             [style.width.%]="segment.percent"
+             [style.background]="segment.gradient"
+             [style.border-top-left-radius]="i === 0 ? '9999px' : '0'"
+             [style.border-bottom-left-radius]="i === 0 ? '9999px' : '0'"
+             [style.border-top-right-radius]="i === getProgressSegments().length - 1 ? '9999px' : '0'"
+             [style.border-bottom-right-radius]="i === getProgressSegments().length - 1 ? '9999px' : '0'"
+             [style.box-shadow]="segment.name !== 'Remaining' ? 'inset 0 2px 4px rgba(0,0,0,0.1)' : 'none'"
+             [attr.title]="segment.name + ': ' + (segment.verses | number) + ' verses (' + segment.percent + '%)'">
+          <span *ngIf="segment.percent > 5 && segment.shortName" class="text-white text-sm font-black tracking-wide drop-shadow-lg group-hover:scale-110 transition-transform">{{ segment.shortName }}</span>
+          <span *ngIf="segment.percent > 2 && segment.percent <= 5 && segment.shortName" class="text-white text-xs font-bold drop-shadow-md">{{ segment.percent }}%</span>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-6 mt-8">
+        <div *ngFor="let segment of getProgressSegments(); let i = index" 
+             class="flex items-center gap-2 group cursor-pointer" 
+             *ngIf="segment.name !== 'Remaining'">
+          <div class="w-4 h-4 rounded shadow-md group-hover:scale-125 transition-transform"
+               [style.background]="segment.gradient" [style.box-shadow]="'0 2px 4px ' + segment.color + '40'"></div>
+          <span class="text-gray-700 font-medium text-base">{{ segment.name }}</span>
+          <span class="font-black text-gray-900 text-lg ml-1">{{ segment.percent }}%</span>
+        </div>
       </div>
     </div>
 
-    <!-- Chapter Actions -->
-    <div class="action-container">
-      <button (click)="selectAllVerses()" 
-              class="action-btn primary" 
-              [disabled]="isLoading || isSavingBulk">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-        Memorize All Verses
-      </button>
-      <button (click)="clearAllVerses()" 
-              class="action-btn secondary" 
-              [disabled]="isLoading || isSavingBulk">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-        Clear All Verses
-      </button>
+    <div class="mt-8 pt-6 border-t border-gray-200">
+      <div class="grid grid-cols-3 gap-4 text-center">
+        <div>
+          <div class="text-3xl font-black text-gray-900">{{ totalVerses | number }}</div>
+          <div class="text-sm font-medium text-gray-600 mt-1">Total Verses</div>
+        </div>
+        <div>
+          <div class="text-3xl font-black text-orange-600">{{ oldTestament.memorizedVerses | number }}</div>
+          <div class="text-sm font-medium text-gray-600 mt-1">Old Testament</div>
+        </div>
+        <div>
+          <div class="text-3xl font-black text-indigo-600">{{ newTestament.memorizedVerses | number }}</div>
+          <div class="text-sm font-medium text-gray-600 mt-1">New Testament</div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
