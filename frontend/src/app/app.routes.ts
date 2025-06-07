@@ -14,15 +14,15 @@ import { CourseListComponent } from './features/memorize/courses/course-list.com
 import { CourseBuilderComponent } from './features/memorize/courses/course-builder.component';
 import { LessonPracticeComponent } from './features/memorize/courses/lesson-practice/lesson-practice.component';
 
-//TODO move /flashcard paths to be /deck instead
+// Routing configuration
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'tracker', component: BibleTrackerComponent },
   { path: 'profile', component: ProfileComponent },
   { path: 'stats', component: StatsComponent },
-  { path: 'flashcard', component: DeckListComponent },
-  { path: 'flashcards', component: DeckListComponent },
-  { path: 'flashcards/study/:deckId', component: DeckStudyComponent },
+  { path: 'deck', component: DeckListComponent },
+  { path: 'decks', component: DeckListComponent },
+  { path: 'decks/study/:deckId', component: DeckStudyComponent },
   { path: 'deck-editor/:deckId', component: DeckEditorComponent },
   { path: 'courses/:courseId/lessons/:lessonId/practice', component: LessonPracticeComponent },
   {

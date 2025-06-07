@@ -722,7 +722,7 @@ export class LessonViewComponent implements OnInit {
   }
 
   goToFlashcards() {
-    this.router.navigate(['/flashcard']);
+    this.router.navigate(['/deck']);
   }
 
   goBack() {

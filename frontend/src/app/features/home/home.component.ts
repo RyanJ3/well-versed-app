@@ -74,7 +74,7 @@ export class HomeComponent {
         'Smart review scheduling',
         'Track confidence levels per verse'
       ],
-      route: '/flashcard',
+      route: '/deck',
       color: '#f59e0b'
     },
     {
