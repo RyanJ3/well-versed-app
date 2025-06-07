@@ -63,6 +63,11 @@ export interface DeckCardsResponse {
   cards: CardWithVerses[];
 }
 
+export interface DeckProgress {
+  deck_id: number;
+  memorized_count: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -128,6 +133,15 @@ export class DeckService {
       tap(res => console.log(`Loaded ${res.total_cards} cards`)),
       catchError(err => { console.error('Error loading deck cards', err); throw err; })
     );
+  }
+
+  getDeckProgress(deckId: number, userId: number): Observable<DeckProgress> {
+    return this.http
+      .get<DeckProgress>(`${this.apiUrl}/${deckId}/progress?user_id=${userId}`)
+      .pipe(
+        tap(res => console.log('Loaded deck progress', res)),
+        catchError(err => { console.error('Error loading deck progress', err); throw err; })
+      );
   }
 
   addVersesToDeck(
