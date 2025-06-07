@@ -49,6 +49,9 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   userId = 1; // Default test user
   includeApocrypha = false;
 
+  // New property for segmented progress view
+  progressViewMode: 'testament' | 'groups' = 'testament';
+
 
   constructor(
     private bibleService: BibleService,
@@ -135,7 +138,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   private initializeAllCharts() {
     // Initialize testament charts
     this.initializeTestamentCharts();
-    this.initializeTotalProgressChart();
+    // Remove the initializeTotalProgressChart call since we're not using the chart anymore
   }
 
   private initializeTestamentCharts() {
@@ -248,52 +251,89 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     this.testaments.forEach(testament => {
       this.createTestamentChart(testament);
     });
-    this.initializeTotalProgressChart();
   }
 
-  private initializeTotalProgressChart() {
-    const canvas = document.getElementById('totalProgressChart') as HTMLCanvasElement;
-    if (!canvas) return;
+  // New method to toggle between progress views
+  toggleProgressView(): void {
+    this.progressViewMode = this.progressViewMode === 'testament' ? 'groups' : 'testament';
+    this.cdr.detectChanges();
+  }
 
-    if (this.totalProgressChart) {
-      this.totalProgressChart.destroy();
-    }
+  // New method to get progress segments data
+  getProgressSegments(): any[] {
+    if (this.progressViewMode === 'testament') {
+      // Testament view
+      const otVerses = this.oldTestament.memorizedVerses;
+      const ntVerses = this.newTestament.memorizedVerses;
+      const totalVerses = this.totalVerses;
+      const otPercent = Math.round((otVerses / totalVerses) * 100);
+      const ntPercent = Math.round((ntVerses / totalVerses) * 100);
+      const remainingPercent = 100 - otPercent - ntPercent;
 
-    const monthlyData = this.generateMonthlyData();
-
-    this.totalProgressChart = new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        datasets: [{
-          label: 'Verses Memorized',
-          data: monthlyData,
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          borderWidth: 2,
-          tension: 0.4,
-          fill: true,
-          pointRadius: 0
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            displayColors: false,
-            callbacks: {
-              label: (ctx: any) => `${ctx.parsed.y} verses`
-            }
-          }
+      return [
+        {
+          name: 'Old Testament',
+          shortName: 'OT',
+          percent: otPercent,
+          color: '#f59e0b',
+          verses: otVerses
         },
-        scales: {
-          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-          x: { grid: { display: false } }
+        {
+          name: 'New Testament',
+          shortName: 'NT',
+          percent: ntPercent,
+          color: '#6366f1',
+          verses: ntVerses
+        },
+        {
+          name: 'Remaining',
+          shortName: '',
+          percent: remainingPercent,
+          color: '#e5e7eb',
+          verses: totalVerses - otVerses - ntVerses
         }
+      ];
+    } else {
+      // Groups view
+      const segments: any[] = [];
+      const totalVerses = this.totalVerses;
+
+      // Collect all groups from both testaments
+      const allGroups = [
+        ...this.oldTestament.groups,
+        ...this.newTestament.groups
+      ];
+
+      let totalMemorized = 0;
+
+      allGroups.forEach(group => {
+        if (group.memorizedVerses > 0) {
+          const percent = Math.round((group.memorizedVerses / totalVerses) * 100);
+          segments.push({
+            name: group.name,
+            shortName: this.getGroupShortName(group.name),
+            percent: percent,
+            color: this.getGroupColor(group.name),
+            verses: group.memorizedVerses
+          });
+          totalMemorized += group.memorizedVerses;
+        }
+      });
+
+      // Add remaining
+      const remainingPercent = Math.round(((totalVerses - totalMemorized) / totalVerses) * 100);
+      if (remainingPercent > 0) {
+        segments.push({
+          name: 'Remaining',
+          shortName: '',
+          percent: remainingPercent,
+          color: '#e5e7eb',
+          verses: totalVerses - totalMemorized
+        });
       }
-    });
+
+      return segments;
+    }
   }
 
   private generateMonthlyData(): number[] {
