@@ -144,7 +144,7 @@
     <div class="deck-actions-compact">
       <!-- My Decks Actions -->
       <ng-container *ngIf="viewMode === 'my-decks'">
-        <button class="action-button primary" [routerLink]="['/flashcards/study', deck.deck_id]">
+        <button class="action-button primary" [routerLink]="['/decks/study', deck.deck_id]">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <polygon points="5 3 19 12 5 21 5 3"/>
           </svg>
@@ -168,7 +168,7 @@
 
       <!-- Public/Saved Decks Actions -->
       <ng-container *ngIf="viewMode !== 'my-decks'">
-        <button class="action-button primary" [routerLink]="['/flashcards/study', deck.deck_id]">
+        <button class="action-button primary" [routerLink]="['/decks/study', deck.deck_id]">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <polygon points="5 3 19 12 5 21 5 3"/>
           </svg>

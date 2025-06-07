@@ -165,7 +165,7 @@ export class DeckStudyComponent implements OnInit {
   }
 
   exitStudy() {
-    this.router.navigate(['/flashcards']);
+    this.router.navigate(['/decks']);
   }
 
   onConfidenceChange() {

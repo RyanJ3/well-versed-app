@@ -465,6 +465,6 @@ export class DeckEditorComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/flashcards']);
+    this.router.navigate(['/decks']);
   }
 }
