@@ -1,5 +1,5 @@
 <!-- frontend/src/app/shared/components/verse-range-picker/verse-picker.component.html -->
-<div class="verse-picker hover-reveal" [ngClass]="'theme-' + theme">
+<div class="verse-picker hover-reveal">
   <div class="hover-container">
     <!-- Compact Preview -->
     <div
@@ -51,11 +51,10 @@
         [ngClass]="{ show: isOpen }"
         (click)="$event.stopPropagation()"
       >
-        <div class="content-divider"></div>
         <div class="controls-container">
           <!-- Mode Selection -->
           <div class="mode-selector-inline">
-            <button
+            <button [attr.data-mode]="modeOption"
               *ngFor="let modeOption of availableModes"
               [ngClass]="getModeButtonClass(modeOption)"
               (click)="onModeChange(modeOption)"
@@ -69,8 +68,9 @@
           <div class="book-row">
             <!-- Testament Filter -->
             <div class="testament-filter">
-              <label>
+              <label for="testament-old">
                 <input
+                  id="testament-old"
                   type="radio"
                   name="testament"
                   [value]="'old'"
@@ -79,8 +79,9 @@
                 />
                 OT
               </label>
-              <label>
+              <label for="testament-new">
                 <input
+                  id="testament-new"
                   type="radio"
                   name="testament"
                   [value]="'new'"
@@ -107,9 +108,12 @@
           <div class="verse-inputs">
             <!-- Start/Single Selection -->
             <div class="input-group">
-              <label class="input-label">{{
-                mode === "range" ? "Start" : "Select"
-              }}</label>
+                <label 
+                  class="input-label"
+                  [attr.data-label]="mode === 'range' ? 'start' : 'select'"
+                >
+                  {{ mode === "range" ? "Start" : "Select" }}
+                </label>
               <div class="input-row">
                 <select
                   [(ngModel)]="selectedChapter"
@@ -136,7 +140,7 @@
 
             <!-- End Selection (Range Mode) -->
             <div class="input-group" *ngIf="mode === 'range'">
-              <label class="input-label">End</label>
+              <label class="input-label" data-label="end">End</label>
               <div class="input-row">
                 <select
                   [(ngModel)]="selectedEndChapter"
