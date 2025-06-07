@@ -68,6 +68,11 @@ class DeckCardsResponse(BaseModel):
     cards: List[CardWithVerses]
 
 
+class DeckProgressResponse(BaseModel):
+    deck_id: int
+    memorized_count: int
+
+
 class AddVersesRequest(BaseModel):
     verse_codes: List[str]
     reference: Optional[str] = None  # For display purposes
@@ -213,6 +218,32 @@ async def get_user_decks(user_id: int, db: DatabaseConnection = Depends(get_db))
         )
 
     return DeckListResponse(total=len(deck_responses), decks=deck_responses)
+
+
+@router.get("/{deck_id}/progress", response_model=DeckProgressResponse)
+async def get_deck_progress(
+    deck_id: int,
+    user_id: int,
+    db: DatabaseConnection = Depends(get_db),
+):
+    """Return the number of cards the user has memorized for this deck."""
+    query = """
+        SELECT COUNT(*) AS memorized_count
+        FROM (
+            SELECT dc.card_id
+            FROM deck_cards dc
+            LEFT JOIN card_verses cv ON dc.card_id = cv.card_id
+            LEFT JOIN user_verses uv
+                ON cv.verse_id = uv.verse_id AND uv.user_id = %s
+            WHERE dc.deck_id = %s
+            GROUP BY dc.card_id
+            HAVING COUNT(cv.verse_id) = COUNT(uv.verse_id)
+        ) AS sub
+    """
+
+    row = db.fetch_one(query, (user_id, deck_id))
+    count = row["memorized_count"] if row else 0
+    return DeckProgressResponse(deck_id=deck_id, memorized_count=count)
 
 
 @router.get("/public", response_model=DeckListResponse)
