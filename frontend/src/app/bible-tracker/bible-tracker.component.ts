@@ -1,6 +1,6 @@
 // frontend/src/app/bible-tracker/bible-tracker.component.ts
-import { Component, OnInit, ChangeDetectorRef, OnDestroy, HostListener, AfterViewInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy, HostListener, AfterViewInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { DialogsModule } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -25,6 +25,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   private bibleData: BibleData;
   private subscriptions: Subscription = new Subscription();
   private testamentCharts: { [key: string]: Chart } = {};
+  private isBrowser: boolean;
   private groupColors: { [key: string]: string } = {
     'Law': '#10b981',
     'History': '#3b82f6',
@@ -55,8 +56,10 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     private userService: UserService,
     private modalService: ModalService,
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    @Inject(PLATFORM_ID) platformId: Object
   ) {
+    this.isBrowser = isPlatformBrowser(platformId);
     this.bibleData = this.bibleService.getBibleData();
     this.selectedTestament = this.defaultTestament;
     if (this.selectedTestament?.groups.length > 0) {
@@ -85,9 +88,11 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {
     // Initialize charts after view is initialized
-    setTimeout(() => {
-      this.initializeAllCharts();
-    }, 100);
+    if (this.isBrowser) {
+      setTimeout(() => {
+        this.initializeAllCharts();
+      }, 100);
+    }
   }
 
   ngOnDestroy() {
@@ -110,7 +115,9 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
       next: (verses: any) => {
         this.userVerses = verses;
         this.isLoading = false;
-        this.initializeAllCharts();
+        if (this.isBrowser) {
+          this.initializeAllCharts();
+        }
         this.cdr.detectChanges();
       },
       error: (error: any) => {
@@ -127,11 +134,17 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private initializeAllCharts() {
+    if (!this.isBrowser) {
+      return;
+    }
     // Initialize testament charts
     this.initializeTestamentCharts();
   }
 
   private initializeTestamentCharts() {
+    if (!this.isBrowser) {
+      return;
+    }
     // Wait for next tick to ensure DOM is ready
     setTimeout(() => {
       this.testaments.forEach(testament => {
@@ -141,6 +154,9 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private createTestamentChart(testament: BibleTestament) {
+    if (!this.isBrowser) {
+      return;
+    }
     const chartId = this.getTestamentChartId(testament);
     const canvas = document.getElementById(chartId) as HTMLCanvasElement;
     
@@ -238,6 +254,9 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private updateTestamentCharts() {
+    if (!this.isBrowser) {
+      return;
+    }
     this.testaments.forEach(testament => {
       this.createTestamentChart(testament);
     });
