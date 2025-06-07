@@ -38,14 +38,14 @@
       </div>
 
       <div class="flex flex-wrap gap-6 mt-8">
-        <div *ngFor="let segment of getProgressSegments(); let i = index" 
-             class="flex items-center gap-2 group cursor-pointer" 
-             *ngIf="segment.name !== 'Remaining'">
-          <div class="w-4 h-4 rounded shadow-md group-hover:scale-125 transition-transform"
-               [style.background]="segment.gradient" [style.box-shadow]="'0 2px 4px ' + segment.color + '40'"></div>
-          <span class="text-gray-700 font-medium text-base">{{ segment.name }}</span>
-          <span class="font-black text-gray-900 text-lg ml-1">{{ segment.percent }}%</span>
-        </div>
+        <ng-container *ngFor="let segment of getProgressSegments(); let i = index">
+          <div class="flex items-center gap-2 group cursor-pointer" *ngIf="segment.name !== 'Remaining'">
+            <div class="w-4 h-4 rounded shadow-md group-hover:scale-125 transition-transform"
+                 [style.background]="segment.gradient" [style.box-shadow]="'0 2px 4px ' + segment.color + '40'"></div>
+            <span class="text-gray-700 font-medium text-base">{{ segment.name }}</span>
+            <span class="font-black text-gray-900 text-lg ml-1">{{ segment.percent }}%</span>
+          </div>
+        </ng-container>
       </div>
     </div>
 
