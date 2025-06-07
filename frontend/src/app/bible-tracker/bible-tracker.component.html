@@ -14,20 +14,7 @@
 
   <!-- Summary Stats -->
   <div class="stats-grid">
-    <!-- Total Progress -->
-    <div class="card">
-      <div class="stat-card">
-        <div class="stat-content">
-          <div class="stat-number">{{ memorizedVerses | number }}</div>
-          <div class="stat-label">Verses Memorized</div>
-          <div class="stat-progress text-green">{{ percentComplete }}% Complete</div>
-        </div>
-        <div class="mini-visual">
-          <canvas id="totalProgressChart"></canvas>
-        </div>
-      </div>
-    </div>
-
+    <app-segmented-progress-demo></app-segmented-progress-demo>
   </div>
 
   <!-- Testament Progress -->
