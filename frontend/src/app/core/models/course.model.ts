@@ -31,6 +31,8 @@ export interface Lesson {
   article_text?: string;
   external_url?: string;
   external_title?: string;
+  /** Estimated minutes to complete the lesson */
+  expected_minutes?: number;
   flashcards_required: number;
   position: number;
 }
@@ -106,6 +108,8 @@ export interface CreateLessonRequest {
   description?: string;
   content_type: 'video' | 'article' | 'external_link' | 'quiz';
   content_data: LessonContent;
+  /** Estimated minutes to complete the lesson */
+  expected_minutes?: number;
   position?: number;
 }
 

@@ -37,6 +37,7 @@ interface Lesson {
   article_text?: string;
   external_url?: string;
   external_title?: string;
+  expected_minutes?: number;
   // Quiz specific fields
   quiz_verse_count?: number;
   quiz_pass_threshold?: number;
@@ -173,6 +174,7 @@ export class CourseBuilderComponent implements OnInit {
       article_text: [''],
       external_url: [''],
       external_title: [''],
+      expected_minutes: [10, [Validators.min(5), Validators.max(30)]],
       quiz_verse_count: [5],
       quiz_pass_threshold: [85],
       quiz_randomize: [true],
@@ -369,6 +371,7 @@ export class CourseBuilderComponent implements OnInit {
           article_text: lesson.content_data?.article_text,
           external_url: lesson.content_data?.external_url,
           external_title: lesson.content_data?.external_title,
+          expected_minutes: (lesson as any).expected_minutes || 10,
           quiz_verse_count: lesson.content_data?.quiz_config?.verse_count,
           quiz_pass_threshold: lesson.content_data?.quiz_config?.pass_threshold,
           quiz_randomize: lesson.content_data?.quiz_config?.randomize,
@@ -399,6 +402,7 @@ export class CourseBuilderComponent implements OnInit {
       article_text: lesson.article_text || '',
       external_url: lesson.external_url || '',
       external_title: lesson.external_title || '',
+      expected_minutes: lesson.expected_minutes || 10,
       quiz_verse_count: lesson.quiz_cards
         ? lesson.quiz_cards.reduce((t, c) => t + c.verseCodes.length, 0)
         : lesson.quiz_verse_count || 5,
@@ -427,6 +431,7 @@ export class CourseBuilderComponent implements OnInit {
     const newLesson: Lesson = {
       title: `Lesson ${this.lessons.length + 1}`,
       content_type: '',
+      expected_minutes: 10,
       quiz_verse_count: 5,
       quiz_pass_threshold: 85,
       quiz_randomize: true,
@@ -547,9 +552,15 @@ export class CourseBuilderComponent implements OnInit {
     this.autoSave();
   }
 
+  get totalExpectedMinutes(): number {
+    return this.lessons.reduce(
+      (sum, l) => sum + (l.expected_minutes || 0),
+      0,
+    );
+  }
+
   get estimatedDuration(): number {
-    // Estimate ~30 minutes per lesson
-    return Math.ceil(this.lessons.length * 0.5);
+    return Math.ceil(this.totalExpectedMinutes / 60);
   }
 
   get pieSlices() {
@@ -764,6 +775,7 @@ export class CourseBuilderComponent implements OnInit {
               description: lesson.description,
               content_type: lesson.content_type as any,
               content_data: this.buildContentData(lesson),
+              expected_minutes: lesson.expected_minutes,
               position: lesson.position,
             })
             .toPromise();
