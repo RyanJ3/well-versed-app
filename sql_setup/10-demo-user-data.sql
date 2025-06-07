@@ -203,6 +203,9 @@ WITH v AS (
 INSERT INTO user_verses (user_id, verse_id, practice_count)
 SELECT 1, id, 10 FROM v
 ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 43 AND chapter_number = 3 AND verse_number = 16
+)
 INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
 SELECT 1, id, 90, 10 FROM v
 ON CONFLICT DO NOTHING;
@@ -214,6 +217,9 @@ WITH v AS (
 INSERT INTO user_verses (user_id, verse_id, practice_count)
 SELECT 1, id, 8 FROM v
 ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 19 AND chapter_number = 23 AND verse_number = 1
+)
 INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
 SELECT 1, id, 80, 8 FROM v
 ON CONFLICT DO NOTHING;
@@ -225,6 +231,9 @@ WITH v AS (
 INSERT INTO user_verses (user_id, verse_id, practice_count)
 SELECT 1, id, 3 FROM v
 ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 45 AND chapter_number = 8 AND verse_number = 28
+)
 INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
 SELECT 1, id, 60, 3 FROM v
 ON CONFLICT DO NOTHING;
@@ -236,6 +245,9 @@ WITH v AS (
 INSERT INTO user_verses (user_id, verse_id, practice_count)
 SELECT 1, id, 5 FROM v
 ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 20 AND chapter_number = 3 AND verse_number = 5
+)
 INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
 SELECT 1, id, 70, 5 FROM v
 ON CONFLICT DO NOTHING;
@@ -247,6 +259,9 @@ WITH v AS (
 INSERT INTO user_verses (user_id, verse_id, practice_count)
 SELECT 1, id, 2 FROM v
 ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 44 AND chapter_number = 1 AND verse_number = 8
+)
 INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
 SELECT 1, id, 50, 2 FROM v
 ON CONFLICT DO NOTHING;
@@ -258,6 +273,9 @@ WITH v AS (
 INSERT INTO user_verses (user_id, verse_id, practice_count)
 SELECT 1, id, 6 FROM v
 ON CONFLICT DO NOTHING;
+WITH v AS (
+    SELECT id FROM bible_verses WHERE book_id = 49 AND chapter_number = 2 AND verse_number = 8
+)
 INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
 SELECT 1, id, 75, 6 FROM v
 ON CONFLICT DO NOTHING;
