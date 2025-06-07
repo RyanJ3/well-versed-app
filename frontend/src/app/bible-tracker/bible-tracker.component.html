@@ -87,17 +87,23 @@
     <div class="book-group" *ngFor="let group of selectedTestament.groups"
          (click)="setGroup(group)"
          [class.active]="group === selectedGroup">
-      <div class="group-info">
-        <div class="group-name">{{ group.name }}</div>
-        <div class="group-books">{{ getGroupBooksList(group) }}</div>
-      </div>
-      <div class="group-visual">
-        <div class="mini-bar">
-          <div class="mini-bar-fill" 
-               [style.width.%]="group.percentComplete" 
-               [style.background]="getGroupColor(group.name)"></div>
+      <!-- Background progress fill -->
+      <div class="progress-fill"
+           [style.width.%]="group.percentComplete"
+           [style.background]="getGroupColor(group.name)"></div>
+      <!-- Fading edge for progress bar -->
+      <div class="progress-fade"
+           [style.left]="'calc(' + group.percentComplete + '% - 48px)'"
+           [style.background]="'linear-gradient(to right, transparent, ' + getGroupColor(group.name) + '30)'"></div>
+
+      <div class="group-content">
+        <div class="group-info">
+          <div class="group-name">{{ group.name }}</div>
+          <div class="group-books">{{ getGroupBooksList(group) }}</div>
         </div>
-        <div class="percent-label" [style.color]="getGroupColor(group.name)">{{ group.percentComplete }}%</div>
+        <div class="percent-label" [style.color]="getGroupColor(group.name)">
+          {{ group.percentComplete }}%
+        </div>
       </div>
     </div>
   </div>
