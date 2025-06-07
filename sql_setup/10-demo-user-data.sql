@@ -1,27 +1,22 @@
 -- =====================================================
--- 10-demo-user2-data.sql
--- Demo data for second user with decks, courses, and tracker stats
+-- 10-demo-user-data.sql
+-- Demo data for the main user with decks, courses, and tracker stats
 -- =====================================================
 SET search_path TO wellversed01DEV;
-
--- Create demo user if not exists
-INSERT INTO users (user_id, email, name, first_name, last_name, include_apocrypha)
-VALUES (2, 'demo2@example.com', 'Demo Two', 'Demo', 'Two', false)
-ON CONFLICT (user_id) DO NOTHING;
 
 -- -----------------------------------------------------
 -- Flashcard decks
 -- -----------------------------------------------------
 INSERT INTO decks (user_id, name, description, is_public) VALUES
-    (2, 'Faith Foundations', 'Core verses about salvation by faith', true),
-    (2, 'Proverbs Wisdom', 'Guidance from Proverbs', true),
-    (2, 'Acts Highlights', 'Key moments from Acts', true),
-    (2, 'Short Verses', 'Simple starter verses', false)
+    (1, 'Faith Foundations', 'Core verses about salvation by faith', true),
+    (1, 'Proverbs Wisdom', 'Guidance from Proverbs', true),
+    (1, 'Acts Highlights', 'Key moments from Acts', true),
+    (1, 'Short Verses', 'Simple starter verses', false)
 ON CONFLICT DO NOTHING;
 
 -- Faith Foundations deck - Ephesians 2:8-9
 WITH d AS (
-    SELECT deck_id FROM decks WHERE user_id = 2 AND name = 'Faith Foundations'
+    SELECT deck_id FROM decks WHERE user_id = 1 AND name = 'Faith Foundations'
 ), v AS (
     SELECT id, verse_number FROM bible_verses
     WHERE book_id = 49 AND chapter_number = 2 AND verse_number BETWEEN 8 AND 9
@@ -39,7 +34,7 @@ ORDER BY v.verse_number;
 
 -- Proverbs Wisdom deck - Proverbs 3:5-6
 WITH d AS (
-    SELECT deck_id FROM decks WHERE user_id = 2 AND name = 'Proverbs Wisdom'
+    SELECT deck_id FROM decks WHERE user_id = 1 AND name = 'Proverbs Wisdom'
 ), v AS (
     SELECT id, verse_number FROM bible_verses
     WHERE book_id = 20 AND chapter_number = 3 AND verse_number BETWEEN 5 AND 6
@@ -57,7 +52,7 @@ ORDER BY v.verse_number;
 
 -- Acts Highlights deck - Acts 1:8
 WITH d AS (
-    SELECT deck_id FROM decks WHERE user_id = 2 AND name = 'Acts Highlights'
+    SELECT deck_id FROM decks WHERE user_id = 1 AND name = 'Acts Highlights'
 ), v AS (
     SELECT id FROM bible_verses
     WHERE book_id = 44 AND chapter_number = 1 AND verse_number = 8
@@ -73,7 +68,7 @@ FROM c;
 
 -- Short Verses deck - 1 Thessalonians 5:16
 WITH d AS (
-    SELECT deck_id FROM decks WHERE user_id = 2 AND name = 'Short Verses'
+    SELECT deck_id FROM decks WHERE user_id = 1 AND name = 'Short Verses'
 ), v AS (
     SELECT id FROM bible_verses
     WHERE book_id = 52 AND chapter_number = 5 AND verse_number = 16
@@ -93,7 +88,7 @@ FROM c;
 -- Course 1: Prayer 101
 WITH c AS (
     INSERT INTO courses (user_id, name, description, is_public)
-    VALUES (2, 'Prayer 101', 'Basics of developing a prayer life', true)
+    VALUES (1, 'Prayer 101', 'Basics of developing a prayer life', true)
     RETURNING course_id
 ),
 vid AS (
@@ -105,7 +100,7 @@ vid AS (
 ),
 art AS (
     INSERT INTO course_lessons (course_id, position, title, description, content_type, content_data)
-    SELECT course_id, 2, 'Read About Prayer', 'Short article on prayer', 'article',
+    SELECT course_id, 1, 'Read About Prayer', 'Short article on prayer', 'article',
            jsonb_build_object('article_text', 'Prayer is our direct line to God.')
     FROM c
     RETURNING lesson_id, course_id
@@ -120,7 +115,7 @@ FROM c;
 -- Course 2: Gospel of John
 WITH c AS (
     INSERT INTO courses (user_id, name, description, is_public)
-    VALUES (2, 'Gospel of John', 'Overview of the life of Jesus', true)
+    VALUES (1, 'Gospel of John', 'Overview of the life of Jesus', true)
     RETURNING course_id
 ),
 vid AS (
@@ -132,7 +127,7 @@ vid AS (
 ),
 art AS (
     INSERT INTO course_lessons (course_id, position, title, description, content_type, content_data)
-    SELECT course_id, 2, 'Article: Themes in John', 'Key themes explained', 'article',
+    SELECT course_id, 1, 'Article: Themes in John', 'Key themes explained', 'article',
            jsonb_build_object('article_text', 'John emphasizes belief and life in Christ.')
     FROM c
     RETURNING lesson_id, course_id
@@ -147,7 +142,7 @@ FROM c;
 -- Course 3: Romans Road Study
 WITH c AS (
     INSERT INTO courses (user_id, name, description, is_public)
-    VALUES (2, 'Romans Road Study', 'Important verses from Romans', false)
+    VALUES (1, 'Romans Road Study', 'Important verses from Romans', false)
     RETURNING course_id
 ),
 vid AS (
@@ -159,7 +154,7 @@ vid AS (
 ),
 art AS (
     INSERT INTO course_lessons (course_id, position, title, description, content_type, content_data)
-    SELECT course_id, 2, 'Article: Salvation Explained', 'Article on salvation', 'article',
+    SELECT course_id, 1, 'Article: Salvation Explained', 'Article on salvation', 'article',
            jsonb_build_object('article_text', 'Romans explains salvation clearly.')
     FROM c
     RETURNING lesson_id, course_id
@@ -174,7 +169,7 @@ FROM c;
 -- Course 4: Acts Adventure
 WITH c AS (
     INSERT INTO courses (user_id, name, description, is_public)
-    VALUES (2, 'Acts Adventure', 'Journey through Acts', true)
+    VALUES (1, 'Acts Adventure', 'Journey through Acts', true)
     RETURNING course_id
 ),
 vid AS (
@@ -186,7 +181,7 @@ vid AS (
 ),
 art AS (
     INSERT INTO course_lessons (course_id, position, title, description, content_type, content_data)
-    SELECT course_id, 2, 'Article: Early Church', 'Growth of the early church', 'article',
+    SELECT course_id, 1, 'Article: Early Church', 'Growth of the early church', 'article',
            jsonb_build_object('article_text', 'Acts describes the spread of the Gospel.')
     FROM c
     RETURNING lesson_id, course_id
@@ -199,17 +194,17 @@ SELECT c.course_id, 3, 'Acts Quiz', 'Quiz on Acts', 'quiz',
 FROM c;
 
 -- -----------------------------------------------------
--- Bible tracker data for user 2
+-- Bible tracker data for the main user
 -- -----------------------------------------------------
 -- John 3:16
 WITH v AS (
     SELECT id FROM bible_verses WHERE book_id = 43 AND chapter_number = 3 AND verse_number = 16
 )
 INSERT INTO user_verses (user_id, verse_id, practice_count)
-SELECT 2, id, 10 FROM v
+SELECT 1, id, 10 FROM v
 ON CONFLICT DO NOTHING;
 INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
-SELECT 2, id, 90, 10 FROM v
+SELECT 1, id, 90, 10 FROM v
 ON CONFLICT DO NOTHING;
 
 -- Psalm 23:1
@@ -217,10 +212,10 @@ WITH v AS (
     SELECT id FROM bible_verses WHERE book_id = 19 AND chapter_number = 23 AND verse_number = 1
 )
 INSERT INTO user_verses (user_id, verse_id, practice_count)
-SELECT 2, id, 8 FROM v
+SELECT 1, id, 8 FROM v
 ON CONFLICT DO NOTHING;
 INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
-SELECT 2, id, 80, 8 FROM v
+SELECT 1, id, 80, 8 FROM v
 ON CONFLICT DO NOTHING;
 
 -- Romans 8:28
@@ -228,10 +223,10 @@ WITH v AS (
     SELECT id FROM bible_verses WHERE book_id = 45 AND chapter_number = 8 AND verse_number = 28
 )
 INSERT INTO user_verses (user_id, verse_id, practice_count)
-SELECT 2, id, 3 FROM v
+SELECT 1, id, 3 FROM v
 ON CONFLICT DO NOTHING;
 INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
-SELECT 2, id, 60, 3 FROM v
+SELECT 1, id, 60, 3 FROM v
 ON CONFLICT DO NOTHING;
 
 -- Proverbs 3:5
@@ -239,10 +234,10 @@ WITH v AS (
     SELECT id FROM bible_verses WHERE book_id = 20 AND chapter_number = 3 AND verse_number = 5
 )
 INSERT INTO user_verses (user_id, verse_id, practice_count)
-SELECT 2, id, 5 FROM v
+SELECT 1, id, 5 FROM v
 ON CONFLICT DO NOTHING;
 INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
-SELECT 2, id, 70, 5 FROM v
+SELECT 1, id, 70, 5 FROM v
 ON CONFLICT DO NOTHING;
 
 -- Acts 1:8
@@ -250,10 +245,10 @@ WITH v AS (
     SELECT id FROM bible_verses WHERE book_id = 44 AND chapter_number = 1 AND verse_number = 8
 )
 INSERT INTO user_verses (user_id, verse_id, practice_count)
-SELECT 2, id, 2 FROM v
+SELECT 1, id, 2 FROM v
 ON CONFLICT DO NOTHING;
 INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
-SELECT 2, id, 50, 2 FROM v
+SELECT 1, id, 50, 2 FROM v
 ON CONFLICT DO NOTHING;
 
 -- Ephesians 2:8
@@ -261,8 +256,8 @@ WITH v AS (
     SELECT id FROM bible_verses WHERE book_id = 49 AND chapter_number = 2 AND verse_number = 8
 )
 INSERT INTO user_verses (user_id, verse_id, practice_count)
-SELECT 2, id, 6 FROM v
+SELECT 1, id, 6 FROM v
 ON CONFLICT DO NOTHING;
 INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, review_count)
-SELECT 2, id, 75, 6 FROM v
+SELECT 1, id, 75, 6 FROM v
 ON CONFLICT DO NOTHING;
