@@ -1,6 +1,6 @@
 // frontend/src/app/bible-tracker/bible-tracker.component.ts
-import { Component, OnInit, ChangeDetectorRef, OnDestroy, HostListener, AfterViewInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy, HostListener, AfterViewInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { DialogsModule } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -12,19 +12,20 @@ import { BibleService } from '../core/services/bible.service';
 import { UserService } from '../core/services/user.service';
 import { BibleVerse } from '../core/models/bible/bible-verse.model';
 import { ModalService } from '../core/services/modal.service';
+import { SegmentedProgressComponent } from '../shared/components/segmented-progress/segmented-progress.component';
 
 @Component({
   selector: 'app-bible-tracker',
   templateUrl: './bible-tracker.component.html',
   standalone: true,
-  imports: [CommonModule, RouterModule, DialogsModule, ButtonsModule],
+  imports: [CommonModule, RouterModule, DialogsModule, ButtonsModule, SegmentedProgressComponent],
   styleUrls: ['./bible-tracker.component.scss'],
 })
 export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
-  private bibleData: BibleData;
+  bibleData: BibleData;
   private subscriptions: Subscription = new Subscription();
   private testamentCharts: { [key: string]: Chart } = {};
-  private totalProgressChart: Chart | null = null;
+  private isBrowser: boolean;
   private groupColors: { [key: string]: string } = {
     'Law': '#10b981',
     'History': '#3b82f6',
@@ -55,8 +56,10 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     private userService: UserService,
     private modalService: ModalService,
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    @Inject(PLATFORM_ID) platformId: Object
   ) {
+    this.isBrowser = isPlatformBrowser(platformId);
     this.bibleData = this.bibleService.getBibleData();
     this.selectedTestament = this.defaultTestament;
     if (this.selectedTestament?.groups.length > 0) {
@@ -85,18 +88,17 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {
     // Initialize charts after view is initialized
-    setTimeout(() => {
-      this.initializeAllCharts();
-    }, 100);
+    if (this.isBrowser) {
+      setTimeout(() => {
+        this.initializeAllCharts();
+      }, 100);
+    }
   }
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
     // Destroy all charts
     Object.values(this.testamentCharts).forEach(chart => chart.destroy());
-    if (this.totalProgressChart) {
-      this.totalProgressChart.destroy();
-    }
   }
 
   @HostListener('window:resize', ['$event'])
@@ -104,9 +106,6 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     Object.values(this.testamentCharts).forEach(chart => {
       chart.resize();
     });
-    if (this.totalProgressChart) {
-      this.totalProgressChart.resize();
-    }
   }
 
   loadUserVerses() {
@@ -116,7 +115,9 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
       next: (verses: any) => {
         this.userVerses = verses;
         this.isLoading = false;
-        this.initializeAllCharts();
+        if (this.isBrowser) {
+          this.initializeAllCharts();
+        }
         this.cdr.detectChanges();
       },
       error: (error: any) => {
@@ -133,12 +134,17 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private initializeAllCharts() {
+    if (!this.isBrowser) {
+      return;
+    }
     // Initialize testament charts
     this.initializeTestamentCharts();
-    this.initializeTotalProgressChart();
   }
 
   private initializeTestamentCharts() {
+    if (!this.isBrowser) {
+      return;
+    }
     // Wait for next tick to ensure DOM is ready
     setTimeout(() => {
       this.testaments.forEach(testament => {
@@ -148,6 +154,9 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private createTestamentChart(testament: BibleTestament) {
+    if (!this.isBrowser) {
+      return;
+    }
     const chartId = this.getTestamentChartId(testament);
     const canvas = document.getElementById(chartId) as HTMLCanvasElement;
     
@@ -245,72 +254,12 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private updateTestamentCharts() {
+    if (!this.isBrowser) {
+      return;
+    }
     this.testaments.forEach(testament => {
       this.createTestamentChart(testament);
     });
-    this.initializeTotalProgressChart();
-  }
-
-  private initializeTotalProgressChart() {
-    const canvas = document.getElementById('totalProgressChart') as HTMLCanvasElement;
-    if (!canvas) return;
-
-    if (this.totalProgressChart) {
-      this.totalProgressChart.destroy();
-    }
-
-    const monthlyData = this.generateMonthlyData();
-
-    this.totalProgressChart = new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        datasets: [{
-          label: 'Verses Memorized',
-          data: monthlyData,
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
-          borderWidth: 2,
-          tension: 0.4,
-          fill: true,
-          pointRadius: 0
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            displayColors: false,
-            callbacks: {
-              label: (ctx: any) => `${ctx.parsed.y} verses`
-            }
-          }
-        },
-        scales: {
-          y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
-          x: { grid: { display: false } }
-        }
-      }
-    });
-  }
-
-  private generateMonthlyData(): number[] {
-    const currentMonth = new Date().getMonth();
-    const totalMemorized = this.memorizedVerses;
-    const monthlyData: number[] = [];
-
-    for (let i = 0; i <= currentMonth; i++) {
-      const progress = (i + 1) / (currentMonth + 1);
-      monthlyData.push(Math.round(totalMemorized * progress));
-    }
-
-    for (let i = currentMonth + 1; i < 12; i++) {
-      monthlyData.push(0);
-    }
-
-    return monthlyData;
   }
 
   toggleAndSaveVerse(verse: BibleVerse): void {
