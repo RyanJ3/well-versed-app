@@ -18,14 +18,13 @@
           <strong>Success!</strong> Profile updated successfully.
           <span *ngIf="profileForm.includeApocrypha"> Apocryphal books are now visible in the Bible tracker.</span>
           <span *ngIf="!profileForm.includeApocrypha"> Apocryphal books are now hidden in the Bible tracker.</span>
-  </div>
-  </div>
-</div>
-      <button class="alert-close" (click)="dismissSuccess()">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+        </div>
+        <button class="alert-close" (click)="dismissSuccess()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- Profile Hero Section -->
@@ -37,16 +36,16 @@
 
       <div class="hero-content">
         <div class="profile-avatar">
-          <span>{{ user.name.charAt(0).toUpperCase() }}</span>
+          <span>{{ user?.name ? user.name.charAt(0).toUpperCase() : '' }}</span>
         </div>
         <div class="profile-info">
-          <h1 class="profile-name">{{ user.name }}</h1>
-          <p class="profile-email">{{ user.email }}</p>
+          <h1 class="profile-name">{{ user?.name }}</h1>
+          <p class="profile-email">{{ user?.email }}</p>
           <p class="profile-join-date">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            Member since {{ user.createdAt | date:'mediumDate' }}
+            Member since {{ user?.createdAt | date:'mediumDate' }}
           </p>
         </div>
       </div>
