@@ -235,8 +235,6 @@ async def vote_request(request_id: int, vote: VoteRequest, db: DatabaseConnectio
         """
         INSERT INTO feature_request_votes (request_id, user_id, vote_type)
         VALUES (%s, %s, %s)
-        ON CONFLICT (request_id, user_id)
-        DO UPDATE SET vote_type = EXCLUDED.vote_type, voted_at = CURRENT_TIMESTAMP
         """,
         (request_id, vote.user_id, vote.vote_type)
     )
@@ -246,7 +244,15 @@ async def vote_request(request_id: int, vote: VoteRequest, db: DatabaseConnectio
 async def remove_vote(request_id: int, user_id: int, db: DatabaseConnection = Depends(get_db)):
     logger.info(f"Removing vote by user {user_id} from request {request_id}")
     db.execute(
-        "DELETE FROM feature_request_votes WHERE request_id = %s AND user_id = %s",
+        """
+        DELETE FROM feature_request_votes
+        WHERE vote_id = (
+            SELECT vote_id FROM feature_request_votes
+            WHERE request_id = %s AND user_id = %s
+            ORDER BY voted_at DESC
+            LIMIT 1
+        )
+        """,
         (request_id, user_id)
     )
     return {"message": "Vote removed"}

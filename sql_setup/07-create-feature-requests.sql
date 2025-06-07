@@ -19,11 +19,11 @@ CREATE TABLE feature_requests (
 
 -- Voting table (up/down votes)
 CREATE TABLE feature_request_votes (
+    vote_id SERIAL PRIMARY KEY,
     request_id INTEGER REFERENCES feature_requests(request_id) ON DELETE CASCADE,
     user_id INTEGER REFERENCES users(user_id) ON DELETE CASCADE,
     vote_type VARCHAR(4) NOT NULL CHECK (vote_type IN ('up','down')),
-    voted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (request_id, user_id)
+    voted_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Comments table

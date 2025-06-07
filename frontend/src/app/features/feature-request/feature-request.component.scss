@@ -348,6 +348,10 @@
   font-size: 1.25rem;
   font-weight: 700;
   color: #1f2937;
+
+  &.down {
+    color: #b91c1c;
+  }
 }
 
 // Request Content

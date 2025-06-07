@@ -161,53 +161,27 @@ export class FeatureRequestComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (request.user_vote === 'up') {
-      // Remove vote
-      this.featureRequestService.removeVote(request.id, this.currentUser.id as number).subscribe({
-        next: () => {
-          // Update local state
-          request.upvotes--;
-          request.user_vote = null;
-          request.has_voted = false;
-        },
-        error: (error) => {
-          console.error('Error removing vote:', error);
-          this.modalService.alert('Error', 'Failed to remove vote', 'danger');
-        }
-      });
-    } else {
-      // Add or change vote
-      this.featureRequestService.voteOnRequest(request.id, 'up', this.currentUser.id as number).subscribe({
-        next: () => {
-          // Update local state
-          if (request.user_vote === 'up') {
-            request.upvotes--;
-          }
-          request.upvotes++;
-
-          request.user_vote = 'up';
-          request.has_voted = true;
-        },
-        error: (error) => {
-          console.error('Error voting:', error);
-          this.modalService.alert('Error', 'Failed to submit vote', 'danger');
-        }
-      });
-    }
+    this.featureRequestService.voteOnRequest(request.id, 'up', this.currentUser.id as number).subscribe({
+      next: () => {
+        request.upvotes++;
+      },
+      error: (error) => {
+        console.error('Error voting:', error);
+        this.modalService.alert('Error', 'Failed to submit vote', 'danger');
+      }
+    });
   }
 
   downvote(request: FeatureRequest): void {
-    if (!this.currentUser || request.user_vote !== 'up') return;
+    if (!this.currentUser) return;
 
-    this.featureRequestService.removeVote(request.id, this.currentUser.id as number).subscribe({
+    this.featureRequestService.voteOnRequest(request.id, 'down', this.currentUser.id as number).subscribe({
       next: () => {
-        request.upvotes--;
-        request.user_vote = null;
-        request.has_voted = false;
+        request.downvotes++;
       },
       error: (error) => {
-        console.error('Error removing vote:', error);
-        this.modalService.alert('Error', 'Failed to remove vote', 'danger');
+        console.error('Error voting:', error);
+        this.modalService.alert('Error', 'Failed to submit vote', 'danger');
       }
     });
   }
