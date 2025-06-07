@@ -35,7 +35,7 @@
         <div class="segmented-progress">
           <div class="segmented-bar">
             <div class="segment" 
-                 *ngFor="let segment of getProgressSegments()"
+                 *ngFor="let segment of progressSegments"
                  [style.width.%]="segment.percent"
                  [style.background]="segment.color"
                  [title]="segment.name + ': ' + segment.verses + ' verses (' + segment.percent + '%)'">
@@ -47,7 +47,7 @@
 
           <!-- Legend -->
           <div class="progress-legend">
-            <div class="legend-item" *ngFor="let segment of getProgressSegments()">
+            <div class="legend-item" *ngFor="let segment of progressSegments">
               <ng-container *ngIf="segment.name !== 'Remaining'">
                 <div class="legend-dot" [style.background]="segment.color"></div>
                 <span class="legend-name">{{ segment.name }}</span>

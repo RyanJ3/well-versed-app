@@ -49,8 +49,9 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   userId = 1; // Default test user
   includeApocrypha = false;
 
-  // New property for segmented progress view
+  // Properties for segmented progress view
   progressViewMode: 'testament' | 'groups' = 'testament';
+  progressSegments: any[] = [];
 
 
   constructor(
@@ -120,6 +121,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
         this.userVerses = verses;
         this.isLoading = false;
         this.initializeAllCharts();
+        this.computeProgressSegments();
         this.cdr.detectChanges();
       },
       error: (error: any) => {
@@ -139,6 +141,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     // Initialize testament charts
     this.initializeTestamentCharts();
     // Remove the initializeTotalProgressChart call since we're not using the chart anymore
+    this.computeProgressSegments();
   }
 
   private initializeTestamentCharts() {
@@ -251,18 +254,19 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     this.testaments.forEach(testament => {
       this.createTestamentChart(testament);
     });
+    this.computeProgressSegments();
   }
 
-  // New method to toggle between progress views
+  // Toggle between progress views
   toggleProgressView(): void {
     this.progressViewMode = this.progressViewMode === 'testament' ? 'groups' : 'testament';
+    this.computeProgressSegments();
     this.cdr.detectChanges();
   }
 
-  // New method to get progress segments data
-  getProgressSegments(): any[] {
+  // Recalculate progress segments
+  private computeProgressSegments(): void {
     if (this.progressViewMode === 'testament') {
-      // Testament view
       const otVerses = this.oldTestament.memorizedVerses;
       const ntVerses = this.newTestament.memorizedVerses;
       const totalVerses = this.totalVerses;
@@ -270,40 +274,15 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
       const ntPercent = Math.round((ntVerses / totalVerses) * 100);
       const remainingPercent = 100 - otPercent - ntPercent;
 
-      return [
-        {
-          name: 'Old Testament',
-          shortName: 'OT',
-          percent: otPercent,
-          color: '#f59e0b',
-          verses: otVerses
-        },
-        {
-          name: 'New Testament',
-          shortName: 'NT',
-          percent: ntPercent,
-          color: '#6366f1',
-          verses: ntVerses
-        },
-        {
-          name: 'Remaining',
-          shortName: '',
-          percent: remainingPercent,
-          color: '#e5e7eb',
-          verses: totalVerses - otVerses - ntVerses
-        }
+      this.progressSegments = [
+        { name: 'Old Testament', shortName: 'OT', percent: otPercent, color: '#f59e0b', verses: otVerses },
+        { name: 'New Testament', shortName: 'NT', percent: ntPercent, color: '#6366f1', verses: ntVerses },
+        { name: 'Remaining', shortName: '', percent: remainingPercent, color: '#e5e7eb', verses: totalVerses - otVerses - ntVerses }
       ];
     } else {
-      // Groups view
       const segments: any[] = [];
       const totalVerses = this.totalVerses;
-
-      // Collect all groups from both testaments
-      const allGroups = [
-        ...this.oldTestament.groups,
-        ...this.newTestament.groups
-      ];
-
+      const allGroups = [...this.oldTestament.groups, ...this.newTestament.groups];
       let totalMemorized = 0;
 
       allGroups.forEach(group => {
@@ -312,7 +291,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
           segments.push({
             name: group.name,
             shortName: this.getGroupShortName(group.name),
-            percent: percent,
+            percent,
             color: this.getGroupColor(group.name),
             verses: group.memorizedVerses
           });
@@ -320,7 +299,6 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
         }
       });
 
-      // Add remaining
       const remainingPercent = Math.round(((totalVerses - totalMemorized) / totalVerses) * 100);
       if (remainingPercent > 0) {
         segments.push({
@@ -332,7 +310,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
         });
       }
 
-      return segments;
+      this.progressSegments = segments;
     }
   }
 
