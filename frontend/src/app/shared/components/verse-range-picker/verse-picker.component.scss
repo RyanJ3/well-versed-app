@@ -122,6 +122,9 @@
   gap: 0.5rem;
   border-bottom: 1px solid #e5e7eb;
   margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .mode-button {
@@ -220,7 +223,7 @@
     }
     
     &[for*="new"]::before {
-      content: '✨';
+      content: '📖';
     }
     
     &:has(input:checked) {
