@@ -60,7 +60,7 @@ export class BibleTestament {
 
   get percentComplete(): number {
     return this.totalVerses > 0
-      ? Math.round((this.memorizedVerses / this.totalVerses) * 100)
+      ? Math.round((this.memorizedVerses / this.totalVerses) * 1000) / 10
       : 0;
   }
 
