@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { BibleData } from '../../core/models/bible';
 
 interface ProgressSegment {
   name: string;
@@ -17,28 +18,10 @@ interface ProgressSegment {
   styleUrls: ['./segmented-progress.component.css']
 })
 export class SegmentedProgressComponent {
+  /** Bible data with memorization progress */
+  @Input() bibleData!: BibleData;
+
   progressViewMode: 'testament' | 'groups' = 'testament';
-
-  readonly totalVerses = 31102;
-  readonly memorizedVerses = 8432;
-
-  private readonly testamentData = {
-    OT: 5596,
-    NT: 2836
-  };
-
-  private readonly groupData: { [key: string]: number } = {
-    'Law': 1500,
-    'History': 1400,
-    'Wisdom': 1200,
-    'Major Prophets': 800,
-    'Minor Prophets': 696,
-    'Gospels': 1100,
-    'Acts': 400,
-    'Pauline Epistles': 800,
-    'General Epistles': 336,
-    'Revelation': 200
-  };
 
   private readonly colors: { [key: string]: string } = {
     'Old Testament': '#3b82f6',
@@ -61,9 +44,18 @@ export class SegmentedProgressComponent {
   }
 
   get segments(): ProgressSegment[] {
+    if (!this.bibleData) {
+      return [];
+    }
+
+    const totalVerses = this.bibleData.totalVerses;
+    const memorizedVerses = this.bibleData.memorizedVerses;
+
     if (this.progressViewMode === 'testament') {
-      const otPercent = Math.round((this.testamentData.OT / this.totalVerses) * 100);
-      const ntPercent = Math.round((this.testamentData.NT / this.totalVerses) * 100);
+      const otMem = this.bibleData.getTestamentByName('OLD').memorizedVerses;
+      const ntMem = this.bibleData.getTestamentByName('NEW').memorizedVerses;
+      const otPercent = Math.round((otMem / totalVerses) * 100);
+      const ntPercent = Math.round((ntMem / totalVerses) * 100);
       const remainingPercent = 100 - otPercent - ntPercent;
       return [
         {
@@ -71,45 +63,53 @@ export class SegmentedProgressComponent {
           shortName: 'OT',
           percent: otPercent,
           color: this.colors['Old Testament'],
-          verses: this.testamentData.OT
+          verses: otMem
         },
         {
           name: 'New Testament',
           shortName: 'NT',
           percent: ntPercent,
           color: this.colors['New Testament'],
-          verses: this.testamentData.NT
+          verses: ntMem
         },
         {
           name: 'Remaining',
           shortName: 'Remaining',
           percent: remainingPercent,
           color: this.colors['Remaining'],
-          verses: this.totalVerses - this.memorizedVerses
+          verses: totalVerses - memorizedVerses
         }
       ];
     }
 
     const result: ProgressSegment[] = [];
-    let totalPercent = 0;
-    for (const [name, verses] of Object.entries(this.groupData)) {
-      const percent = Math.round((verses / this.totalVerses) * 100);
-      totalPercent += percent;
+    const groupMap = new Map<string, { memorized: number }>();
+    this.bibleData.testaments.forEach(testament => {
+      testament.groups.forEach(group => {
+        const current = groupMap.get(group.name) || { memorized: 0 };
+        groupMap.set(group.name, { memorized: current.memorized + group.memorizedVerses });
+      });
+    });
+
+    let accountedPercent = 0;
+    for (const [name, info] of groupMap.entries()) {
+      const percent = Math.round((info.memorized / totalVerses) * 100);
+      accountedPercent += percent;
       result.push({
         name,
         shortName: this.getShortName(name),
         percent,
         color: this.colors[name],
-        verses
+        verses: info.memorized
       });
     }
-    const remainingPercent = 100 - totalPercent;
+    const remainingPercent = 100 - accountedPercent;
     result.push({
       name: 'Remaining',
       shortName: 'Remaining',
       percent: remainingPercent,
       color: this.colors['Remaining'],
-      verses: this.totalVerses - this.memorizedVerses
+      verses: totalVerses - memorizedVerses
     });
     return result;
   }
@@ -132,5 +132,3 @@ export class SegmentedProgressComponent {
     return map[name] || name;
   }
 }
-
-export { ProgressSegment };

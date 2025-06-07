@@ -22,7 +22,7 @@ import { SegmentedProgressComponent } from '../shared/components/segmented-progr
   styleUrls: ['./bible-tracker.component.scss'],
 })
 export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
-  private bibleData: BibleData;
+  bibleData: BibleData;
   private subscriptions: Subscription = new Subscription();
   private testamentCharts: { [key: string]: Chart } = {};
   private isBrowser: boolean;
