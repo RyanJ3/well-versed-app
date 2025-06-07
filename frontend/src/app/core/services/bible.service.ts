@@ -14,8 +14,11 @@ export class BibleService {
   private bibleData: BibleData;
   private isBrowser: boolean;
 
-  private preferencesSubject = new BehaviorSubject<{ includeApocrypha: boolean }>({
-    includeApocrypha: false
+  private preferredBibleId?: string;
+
+  private preferencesSubject = new BehaviorSubject<{ includeApocrypha: boolean; preferredBible?: string }>({
+    includeApocrypha: false,
+    preferredBible: undefined
   });
 
   public preferences$ = this.preferencesSubject.asObservable();
@@ -32,9 +35,21 @@ export class BibleService {
     return this.bibleData;
   }
 
-  updateUserPreferences(includeApocrypha: boolean): void {
+  updateUserPreferences(includeApocrypha: boolean, preferredBible?: string): void {
     this.bibleData.includeApocrypha = includeApocrypha;
-    this.preferencesSubject.next({ includeApocrypha });
+    if (preferredBible) {
+      this.preferredBibleId = preferredBible;
+    }
+    this.preferencesSubject.next({ includeApocrypha, preferredBible: this.preferredBibleId });
+  }
+
+  getAvailableBibles(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/bibles/translations`).pipe(
+      catchError(error => {
+        console.error('Error loading bible translations:', error);
+        return of([]);
+      })
+    );
   }
 
   getUserVerses(userId: number, includeApocrypha?: boolean): Observable<UserVerseDetail[]> {
@@ -166,10 +181,11 @@ export class BibleService {
    */
   getVerseTexts(userId: number, verseCodes: string[], bibleId?: string): Observable<Record<string, string>> {
     console.log(`Getting texts for ${verseCodes.length} verses`);
-    
+
+    const chosenBible = bibleId || this.preferredBibleId;
     const payload = {
       verse_codes: verseCodes,
-      bible_id: bibleId
+      bible_id: chosenBible
     };
 
     return this.http.post<Record<string, string>>(`${this.apiUrl}/user-verses/${userId}/verses/texts`, payload).pipe(

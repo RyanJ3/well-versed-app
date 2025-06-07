@@ -60,7 +60,7 @@ app.add_middleware(
 )
 
 # Import routers after app creation to avoid circular imports
-from routers import users, user_verses, decks, feature_requests, courses
+from routers import users, user_verses, decks, feature_requests, courses, bibles
 
 # Include routers
 app.include_router(users.router, prefix="/api/users", tags=["users"])
@@ -70,6 +70,7 @@ app.include_router(
     feature_requests.router, prefix="/api/feature-requests", tags=["feature_requests"]
 )
 app.include_router(courses.router, prefix="/api/courses", tags=["courses"])
+app.include_router(bibles.router, prefix="/api/bibles", tags=["bibles"])
 
 
 @app.get("/api/health")

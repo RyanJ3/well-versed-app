@@ -49,17 +49,7 @@ export class ProfileComponent implements OnInit {
   ];
   
   bibleOptions = [
-    { text: 'Select Bible Translation', value: '' },
-    { text: 'King James Version (KJV)', value: 'KJV' },
-    { text: 'New International Version (NIV)', value: 'NIV' },
-    { text: 'English Standard Version (ESV)', value: 'ESV' },
-    { text: 'New American Standard Bible (NASB)', value: 'NASB' },
-    { text: 'New Living Translation (NLT)', value: 'NLT' },
-    { text: 'Christian Standard Bible (CSB)', value: 'CSB' },
-    { text: 'New King James Version (NKJV)', value: 'NKJV' },
-    { text: 'Revised Standard Version (RSV)', value: 'RSV' },
-    { text: 'The Message (MSG)', value: 'MSG' },
-    { text: 'Amplified Bible (AMP)', value: 'AMP' }
+    { text: 'Select Bible Translation', value: '' }
   ];
   
   constructor(
@@ -69,6 +59,16 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUserProfile();
+    this.loadBibleOptions();
+  }
+
+  loadBibleOptions(): void {
+    this.bibleService.getAvailableBibles().subscribe(options => {
+      this.bibleOptions = [
+        { text: 'Select Bible Translation', value: '' },
+        ...options.map(o => ({ text: `${o.abbreviation} - ${o.name}`, value: o.id }))
+      ];
+    });
   }
   
   loadUserProfile(): void {
@@ -81,6 +81,10 @@ export class ProfileComponent implements OnInit {
         if (user) {
           // Initialize the form fields with user data
           this.initializeForm(user);
+          this.bibleService.updateUserPreferences(
+            user.includeApocrypha ?? false,
+            user.preferredBible || undefined
+          );
         }
         
         this.isLoading = false;
@@ -131,10 +135,11 @@ export class ProfileComponent implements OnInit {
       next: (updatedUser: any) => {
         console.log('Profile updated successfully:', updatedUser);
         
-        // Update Bible service with new apocrypha setting
-        if (updatedUser && updatedUser.includeApocrypha !== undefined) {
-          console.log(`Explicitly updating BibleService with includeApocrypha=${updatedUser.includeApocrypha}`);
-          this.bibleService.updateUserPreferences(updatedUser.includeApocrypha);
+        if (updatedUser) {
+          this.bibleService.updateUserPreferences(
+            updatedUser.includeApocrypha ?? false,
+            updatedUser.preferredBible || undefined
+          );
         }
         
         // Show success message
