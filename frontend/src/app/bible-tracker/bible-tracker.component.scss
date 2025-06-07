@@ -241,6 +241,8 @@
 
 /* Book groups */
 .book-group {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -252,14 +254,42 @@
   transition: all 0.2s ease;
 
   &:hover {
-    background: #f3f4f6;
     transform: translateX(4px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
   &.active {
-    background: #eff6ff;
-    border-left: 3px solid #3b82f6;
+    box-shadow: 0 0 0 2px #3b82f6;
   }
+}
+
+.group-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.progress-fill {
+  position: absolute;
+  inset: 0;
+  opacity: 0.25;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.book-group.active .progress-fill {
+  opacity: 0.35;
+}
+
+.progress-fade {
+  position: absolute;
+  inset-y: 0;
+  width: 3rem;
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 .group-info {
@@ -277,25 +307,6 @@
   color: #6b7280;
 }
 
-.group-visual {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.mini-bar {
-  flex: 1;
-  height: 8px;
-  background: #e5e7eb;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.mini-bar-fill {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.3s ease;
-}
 
 .percent-label {
   font-weight: 600;
