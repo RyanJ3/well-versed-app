@@ -1,6 +1,6 @@
 // frontend/src/app/features/courses/course-builder.component.ts
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormsModule,
@@ -131,6 +131,14 @@ export class CourseBuilderComponent implements OnInit {
     }
 
     this.courseForm.valueChanges.subscribe(() => this.autoSave());
+
+    this.lessonForm.valueChanges.subscribe(() => {
+      if (this.currentStep === 2 && this.selectedLessonIndex !== null) {
+        this.saveLessonToMemory();
+      } else {
+        this.autoSave();
+      }
+    });
 
     this.userService.currentUser$.subscribe((user) => {
       if (user) {
@@ -801,6 +809,21 @@ export class CourseBuilderComponent implements OnInit {
         };
       default:
         return {};
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onAnyButtonClick(event: Event) {
+    const target = event.target as HTMLElement;
+    if (target.closest('button') && this.currentStep === 2 && this.selectedLessonIndex !== null) {
+      this.saveLessonToMemory();
+    }
+  }
+
+  @HostListener('document:keydown')
+  onAnyKey() {
+    if (this.currentStep === 2 && this.selectedLessonIndex !== null) {
+      this.saveLessonToMemory();
     }
   }
 
