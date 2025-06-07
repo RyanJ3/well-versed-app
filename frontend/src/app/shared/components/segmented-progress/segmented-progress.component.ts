@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BibleData } from '../../core/models/bible';
+import { BibleData, BibleTestament, BibleGroup } from '../../core/models/bible';
 
 interface ProgressSegment {
   name: string;
@@ -84,8 +84,8 @@ export class SegmentedProgressComponent {
 
     const result: ProgressSegment[] = [];
     const groupMap = new Map<string, { memorized: number }>();
-    this.bibleData.testaments.forEach(testament => {
-      testament.groups.forEach(group => {
+    this.bibleData.testaments.forEach((testament: BibleTestament) => {
+      testament.groups.forEach((group: BibleGroup) => {
         const current = groupMap.get(group.name) || { memorized: 0 };
         groupMap.set(group.name, { memorized: current.memorized + group.memorizedVerses });
       });
