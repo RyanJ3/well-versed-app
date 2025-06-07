@@ -100,14 +100,6 @@ export class FeatureRequestService {
     );
   }
 
-  // Remove vote from a feature request
-  removeVote(requestId: number, userId: number): Observable<any> {
-    console.log(`Removing vote for request ${requestId} by user ${userId}`);
-    return this.http.delete(`${this.apiUrl}/${requestId}/vote/${userId}`).pipe(
-      tap(() => this.requestsUpdated.next(true)),
-      catchError(err => { console.error('Error removing vote', err); throw err; })
-    );
-  }
 
   // Get comments for a feature request
   getComments(requestId: number): Observable<FeatureRequestComment[]> {

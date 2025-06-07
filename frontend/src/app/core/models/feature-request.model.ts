@@ -34,8 +34,6 @@ export interface FeatureRequest {
   user_name: string;
   created_at: string;
   updated_at?: string;
-  has_voted?: boolean;
-  user_vote?: 'up' | 'down' | null;
   tags?: string[];
   comments_count?: number;
 }
