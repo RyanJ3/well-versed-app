@@ -4,6 +4,9 @@
 -- =====================================================
 SET search_path TO wellversed01DEV;
 
+-- Ensure only the main demo user exists
+DELETE FROM users WHERE user_id <> 1;
+
 -- -----------------------------------------------------
 -- Flashcard decks
 -- -----------------------------------------------------
