@@ -20,9 +20,9 @@ map_tag AS (
     SELECT course_id, tag_id FROM new_course, new_tag
 )
 INSERT INTO course_lessons (course_id, position, title, description, content_type, content_data, flashcards_required)
-SELECT course_id, 1, 'Why Memorize Scripture?', 'Reasons for memorizing the Bible', 'text', '{"text":"Memorizing scripture helps you meditate on God"}', 0 FROM new_course
+SELECT course_id, 1, 'Why Memorize Scripture?', 'Reasons for memorizing the Bible', 'text', '{"text":"Memorizing scripture helps you meditate on God"}'::jsonb, 0 FROM new_course
 UNION ALL
-SELECT course_id, 2, 'First Memory Challenge', 'Practice Romans Road verses', 'flashcards', '{"deck":"Romans Road"}', 5 FROM new_course;
+SELECT course_id, 2, 'First Memory Challenge', 'Practice Romans Road verses', 'flashcards', '{"deck":"Romans Road"}'::jsonb, 5 FROM new_course;
 
 -- Enroll the test user in the course and create lesson progress
 WITH course_id AS (
