@@ -116,6 +116,11 @@ SQL_FILES = [
         'file': '10-demo-user-data.sql',
         'description': 'Insert additional demo data for main user',
         'skip_on_production': True
+    },
+    {
+        'file': '11-user2-demo-data.sql',
+        'description': 'Insert demo content for second user',
+        'skip_on_production': True
     }
 ]
 

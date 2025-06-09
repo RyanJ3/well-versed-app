@@ -58,7 +58,8 @@ export class UserService {
       denomination: formData.denomination,
       preferred_bible: formData.preferredBible || formData.preferred_bible,
       // Use the normalized boolean value
-      include_apocrypha: includeApocrypha
+      include_apocrypha: includeApocrypha,
+      show_charts: formData.showCharts
     };
 
     console.log('Converted to API format:', apiRequestData);
@@ -103,6 +104,7 @@ export class UserService {
       denomination: apiResponse.denomination,
       preferredBible: apiResponse.preferred_bible,
       includeApocrypha: includeApocrypha,
+      showCharts: apiResponse.show_charts,
 
       versesMemorized: apiResponse.verses_memorized,
       streakDays: apiResponse.streak_days,

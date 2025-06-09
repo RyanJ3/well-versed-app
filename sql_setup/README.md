@@ -105,6 +105,7 @@ sql_setup/
 ├── 08-create-courses.sql        # Course and lesson tables
 ├── 09-create-course-progress.sql      # Enrollment and lesson progress
 ├── 10-demo-user-data.sql        # Additional demo content
+├── 11-user2-demo-data.sql       # Demo data for secondary user
 ├── bible_base_data.json         # Bible structure (books, chapters, verses)
 ├── requirements.txt             # Python dependencies
 ├── setup_database.py            # Main setup script

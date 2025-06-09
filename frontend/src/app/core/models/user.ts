@@ -15,6 +15,7 @@ export interface User {
   denomination?: string;
   preferredBible?: string;
   includeApocrypha?: boolean;
+  showCharts?: boolean;
   
   // Statistics
   versesMemorized?: number;
@@ -35,6 +36,7 @@ export interface UserApiResponse {
   denomination?: string;
   preferred_bible?: string;
   include_apocrypha?: boolean;
+  show_charts?: boolean;
   
   verses_memorized?: number;
   streak_days?: number;
@@ -48,4 +50,5 @@ export interface UserProfileUpdate {
   denomination?: string;
   preferred_bible?: string;
   include_apocrypha?: boolean;
+  show_charts?: boolean;
 }

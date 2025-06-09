@@ -26,6 +26,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   private testamentCharts: { [key: string]: Chart } = {};
   private totalProgressChart: Chart | null = null;
   private isBrowser: boolean;
+  private showCharts = true;
   private groupColors: { [key: string]: string } = {
     'Law': '#10b981',
     'History': '#3b82f6',
@@ -81,6 +82,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
         } else if (!this.userVerses.length) {
           this.loadUserVerses();
         }
+        this.showCharts = user.showCharts !== undefined ? user.showCharts : true;
       } else {
         this.loadUserVerses();
       }
@@ -92,7 +94,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {
     // Initialize charts after view is initialized
-    if (this.isBrowser) {
+    if (this.isBrowser && this.showCharts) {
       setTimeout(() => {
         this.initializeAllCharts();
       }, 100);
@@ -125,7 +127,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
       next: (verses: any) => {
         this.userVerses = verses;
         this.isLoading = false;
-        if (this.isBrowser) {
+        if (this.isBrowser && this.showCharts) {
           this.initializeAllCharts();
         }
         this.computeProgressSegments();
@@ -145,7 +147,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private initializeAllCharts() {
-    if (!this.isBrowser) {
+    if (!this.isBrowser || !this.showCharts) {
       return;
     }
     // Initialize testament charts
@@ -155,7 +157,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private initializeTestamentCharts() {
-    if (this.isBrowser) {
+    if (this.isBrowser && this.showCharts) {
       // Wait for next tick to ensure DOM is ready
       setTimeout(() => {
         this.testaments.forEach(testament => {
@@ -166,7 +168,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private createTestamentChart(testament: BibleTestament) {
-    if (!this.isBrowser) return;
+    if (!this.isBrowser || !this.showCharts) return;
     const chartId = this.getTestamentChartId(testament);
     const canvas = document.getElementById(chartId) as HTMLCanvasElement;
     
