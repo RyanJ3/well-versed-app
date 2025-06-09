@@ -13,6 +13,7 @@ import { FeatureRequestComponent } from './features/feature-request/feature-requ
 import { CourseListComponent } from './features/memorize/courses/course-list.component';
 import { CourseBuilderComponent } from './features/memorize/courses/course-builder.component';
 import { LessonPracticeComponent } from './features/memorize/courses/lesson-practice/lesson-practice.component';
+import { InboxComponent } from './features/inbox/inbox.component';
 
 // Routing configuration
 export const routes: Routes = [
@@ -33,5 +34,6 @@ export const routes: Routes = [
   { path: 'courses/create', component: CourseBuilderComponent },
   { path: 'courses', component: CourseListComponent },
   { path: 'flow', component: FlowComponent },
+  { path: 'inbox', component: InboxComponent },
   { path: '**', redirectTo: '' },
 ];
