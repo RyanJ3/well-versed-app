@@ -460,3 +460,16 @@ button:focus {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* Dark mode applied globally using color inversion */
+html {
+  filter: invert(1) hue-rotate(180deg);
+  background-color: #000;
+}
+
+img,
+video,
+picture,
+svg {
+  filter: invert(1) hue-rotate(180deg);
+}
