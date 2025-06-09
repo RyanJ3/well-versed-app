@@ -20,6 +20,7 @@ class UserResponse(BaseModel):
     denomination: Optional[str]
     preferred_bible: Optional[str]
     include_apocrypha: bool = False
+    show_charts: bool = True
     created_at: str
     verses_memorized: int = 0
     streak_days: int = 0
@@ -31,6 +32,7 @@ class UserUpdate(BaseModel):
     denomination: Optional[str] = None
     preferred_bible: Optional[str] = None
     include_apocrypha: Optional[bool] = None
+    show_charts: Optional[bool] = None
 
 def get_db():
     """Dependency to get database connection"""
@@ -43,7 +45,7 @@ async def get_user(user_id: int, db: DatabaseConnection = Depends(get_db)):
     
     # Get user info
     query = """
-        SELECT 
+        SELECT
             user_id as id,
             email,
             name,
@@ -52,6 +54,7 @@ async def get_user(user_id: int, db: DatabaseConnection = Depends(get_db)):
             denomination,
             preferred_bible,
             include_apocrypha,
+            show_charts,
             created_at::text
         FROM users
         WHERE user_id = %s
@@ -110,6 +113,10 @@ async def update_user(
     if user_update.include_apocrypha is not None:
         update_fields.append("include_apocrypha = %s")
         params.append(user_update.include_apocrypha)
+
+    if user_update.show_charts is not None:
+        update_fields.append("show_charts = %s")
+        params.append(user_update.show_charts)
     
     # Update name field (combine first and last)
     if user_update.first_name is not None or user_update.last_name is not None:

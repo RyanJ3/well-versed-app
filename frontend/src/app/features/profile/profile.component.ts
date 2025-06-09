@@ -30,7 +30,8 @@ export class ProfileComponent implements OnInit {
     lastName: '',
     denomination: '',
     preferredBible: '',
-    includeApocrypha: false
+    includeApocrypha: false,
+    showCharts: true
   };
   
   // Dropdown options
@@ -104,7 +105,8 @@ export class ProfileComponent implements OnInit {
       lastName: nameParts.slice(1).join(' ') || '',
       denomination: user.denomination || '',
       preferredBible: user.preferredBible || '',
-      includeApocrypha: user.includeApocrypha !== undefined ? user.includeApocrypha : false
+      includeApocrypha: user.includeApocrypha !== undefined ? user.includeApocrypha : false,
+      showCharts: user.showCharts !== undefined ? user.showCharts : true
     };
     
     console.log('Profile form initialized with:', this.profileForm);
@@ -122,7 +124,8 @@ export class ProfileComponent implements OnInit {
       lastName: this.profileForm.lastName,
       denomination: this.profileForm.denomination,
       preferredBible: this.profileForm.preferredBible,
-      includeApocrypha: this.profileForm.includeApocrypha
+      includeApocrypha: this.profileForm.includeApocrypha,
+      showCharts: this.profileForm.showCharts
     };
     
     console.log('Profile update payload:', profileUpdate);
