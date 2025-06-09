@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bible Verse Flashcard Inbox</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --purple: #8b5cf6;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --border: #334155;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(148, 163, 184, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        .gradient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .orb1 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+            top: -200px;
+            left: -200px;
+        }
+
+        .orb2 {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, var(--purple) 0%, transparent 70%);
+            bottom: -150px;
+            right: -150px;
+            animation-delay: -10s;
+        }
+
+        .orb3 {
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, var(--success) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -50px) scale(1.1); }
+            50% { transform: translate(-50px, 50px) scale(0.9); }
+            75% { transform: translate(30px, 30px) scale(1.05); }
+        }
+
+        /* Main container */
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--purple) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Quick capture section */
+        .quick-capture {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        .capture-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .capture-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .capture-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--primary);
+        }
+
+        .verse-input-group {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .verse-input {
+            background: var(--bg-tertiary);
+            border: 2px solid transparent;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            font-size: 1rem;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .verse-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .verse-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .parse-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 1rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .parse-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .parse-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Tags section */
+        .tags-section {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tag {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .tag:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .tag.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .add-tag-btn {
+            background: transparent;
+            border: 1px dashed var(--border);
+            border-radius: 2rem;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .add-tag-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Card preview */
+        .card-preview {
+            background: var(--bg-secondary);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .card-preview.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .preview-verse {
+            font-size: 1.125rem;
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+
+        .preview-reference {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Inbox section */
+        .inbox-section {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 2rem;
+            animation: fadeIn 0.8s ease-out 0.4s both;
+        }
+
+        .inbox-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .inbox-stats {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* Filter controls */
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Cards grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .flashcard {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .flashcard::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--purple) 100%);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .flashcard:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .flashcard:hover::before {
+            transform: translateX(0);
+        }
+
+        .card-content {
+            margin-bottom: 1rem;
+        }
+
+        .card-verse {
+            font-size: 1rem;
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .card-reference {
+            font-size: 0.875rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .card-tags {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .card-tag {
+            background: var(--bg-tertiary);
+            border-radius: 1rem;
+            padding: 0.125rem 0.5rem;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .card-action {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: all 0.2s ease;
+        }
+
+        .card-action:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        /* Review mode */
+        .review-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .review-mode.active {
+            display: flex;
+        }
+
+        .review-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 3rem;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .review-verse {
+            font-size: 1.5rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .review-reference {
+            font-size: 1.25rem;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 2rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .review-reference.show {
+            opacity: 1;
+        }
+
+        .review-controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .review-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
+
+        .review-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .close-review {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1.5rem;
+        }
+
+        /* Keyboard shortcuts */
+        .shortcuts {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+
+        .shortcuts:hover {
+            opacity: 1;
+        }
+
+        .shortcut {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .key {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            padding: 0.125rem 0.375rem;
+            font-family: monospace;
+        }
+
+        /* Animations */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .verse-input-group {
+                grid-template-columns: 1fr;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .review-card {
+                padding: 2rem;
+            }
+
+            .shortcuts {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="bg-animation">
+        <div class="gradient-orb orb1"></div>
+        <div class="gradient-orb orb2"></div>
+        <div class="gradient-orb orb3"></div>
+    </div>
+
+    <!-- Main app -->
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📖 Bible Verse Inbox</h1>
+            <p>Capture, organize, and memorize scripture with ease</p>
+        </div>
+
+        <!-- Quick capture section -->
+        <div class="quick-capture">
+            <div class="capture-header">
+                <div class="capture-title">
+                    <svg class="capture-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Quick Capture
+                </div>
+                <div class="capture-stats">
+                    <span id="todayCount">0</span> added today
+                </div>
+            </div>
+
+            <div class="verse-input-group">
+                <input type="text" class="verse-input" id="verseInput" 
+                       placeholder="Type or paste a verse reference (e.g., John 3:16 or Psalm 23:1-6)"
+                       autocomplete="off">
+                <button class="parse-btn" onclick="parseVerse()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Add to Inbox
+                </button>
+            </div>
+
+            <div class="tags-section">
+                <div class="tag" data-tag="prayer">🙏 Prayer</div>
+                <div class="tag" data-tag="promise">✨ Promise</div>
+                <div class="tag" data-tag="wisdom">💡 Wisdom</div>
+                <div class="tag" data-tag="comfort">💝 Comfort</div>
+                <button class="add-tag-btn">+ Custom Tag</button>
+            </div>
+
+            <div class="card-preview" id="cardPreview">
+                <div class="preview-verse" id="previewVerse"></div>
+                <div class="preview-reference" id="previewReference"></div>
+            </div>
+        </div>
+
+        <!-- Inbox section -->
+        <div class="inbox-section">
+            <div class="inbox-header">
+                <h2>Your Verse Inbox</h2>
+                <div class="inbox-stats">
+                    <div class="stat">
+                        <div class="stat-value" id="totalCards">0</div>
+                        <div class="stat-label">Total Cards</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="reviewDue">0</div>
+                        <div class="stat-label">Review Due</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value" id="streakDays">0</div>
+                        <div class="stat-label">Day Streak</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-controls">
+                <button class="filter-btn active" data-filter="all">
+                    All Cards
+                </button>
+                <button class="filter-btn" data-filter="new">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 00-2 2v6a2 2 0 002 2h2a1 1 0 100-2H6V7h4a1 1 0 100-2H6a2 2 0 00-2-2z" clip-rule="evenodd"></path>
+                    </svg>
+                    New
+                </button>
+                <button class="filter-btn" data-filter="review">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
+                    </svg>
+                    Review
+                </button>
+                <button class="filter-btn" data-filter="memorized">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    Memorized
+                </button>
+                <button class="filter-btn" onclick="startReview()">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"></path>
+                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    Start Review
+                </button>
+            </div>
+
+            <div class="cards-grid" id="cardsGrid">
+                <!-- Cards will be dynamically added here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Review mode -->
+    <div class="review-mode" id="reviewMode">
+        <div class="review-card">
+            <button class="close-review" onclick="closeReview()">×</button>
+            <div class="review-verse" id="reviewVerse"></div>
+            <div class="review-reference" id="reviewReference"></div>
+            <div class="review-controls">
+                <button class="review-btn" onclick="showAnswer()">Show Reference</button>
+                <button class="review-btn" onclick="nextCard()">Next Card</button>
+                <button class="review-btn" onclick="markMemorized()">Mark as Memorized</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard shortcuts -->
+    <div class="shortcuts">
+        <div class="shortcut">
+            <span class="key">A</span> Add new card
+        </div>
+        <div class="shortcut">
+            <span class="key">R</span> Start review
+        </div>
+        <div class="shortcut">
+            <span class="key">Space</span> Show answer
+        </div>
+        <div class="shortcut">
+            <span class="key">→</span> Next card
+        </div>
+    </div>
+
+    <script>
+        // Sample Bible verses data
+        const sampleVerses = {
+            'John 3:16': 'For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.',
+            'Psalm 23:1': 'The Lord is my shepherd, I lack nothing.',
+            'Philippians 4:13': 'I can do all this through him who gives me strength.',
+            'Proverbs 3:5-6': 'Trust in the Lord with all your heart and lean not on your own understanding; in all your ways submit to him, and he will make your paths straight.',
+            'Romans 8:28': 'And we know that in all things God works for the good of those who love him, who have been called according to his purpose.',
+            'Isaiah 40:31': 'But those who hope in the Lord will renew their strength. They will soar on wings like eagles; they will run and not grow weary, they will walk and not be faint.',
+            'Matthew 6:33': 'But seek first his kingdom and his righteousness, and all these things will be given to you as well.',
+            'Jeremiah 29:11': 'For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, plans to give you hope and a future.',
+            '1 Corinthians 13:4-5': 'Love is patient, love is kind. It does not envy, it does not boast, it is not proud. It does not dishonor others, it is not self-seeking, it is not easily angered, it keeps no record of wrongs.'
+        };
+
+        // App state
+        let cards = [];
+        let currentReviewIndex = 0;
+        let selectedTags = [];
+        let todayCount = 0;
+        let activeFilter = 'all';
+
+        // Initialize app
+        function init() {
+            loadCards();
+            updateStats();
+            renderCards();
+            setupEventListeners();
+            
+            // Add some sample cards
+            if (cards.length === 0) {
+                addSampleCards();
+            }
+        }
+
+        // Load cards from storage
+        function loadCards() {
+            const saved = localStorage.getItem('bibleCards');
+            if (saved) {
+                cards = JSON.parse(saved);
+            }
+        }
+
+        // Save cards to storage
+        function saveCards() {
+            localStorage.setItem('bibleCards', JSON.stringify(cards));
+        }
+
+        // Add sample cards
+        function addSampleCards() {
+            const samples = [
+                { reference: 'John 3:16', tags: ['promise', 'comfort'] },
+                { reference: 'Psalm 23:1', tags: ['comfort'] },
+                { reference: 'Philippians 4:13', tags: ['promise', 'wisdom'] }
+            ];
+            
+            samples.forEach(sample => {
+                const verse = sampleVerses[sample.reference];
+                if (verse) {
+                    addCard(verse, sample.reference, sample.tags);
+                }
+            });
+        }
+
+        // Parse verse input
+        function parseVerse() {
+            const input = document.getElementById('verseInput').value.trim();
+            if (!input) return;
+
+            // Try to find in sample verses
+            const verse = sampleVerses[input] || `This is where the verse text for ${input} would appear`;
+            
+            // Show preview
+            showPreview(verse, input);
+            
+            // Add to cards
+            addCard(verse, input, selectedTags);
+            
+            // Clear input
+            document.getElementById('verseInput').value = '';
+            selectedTags = [];
+            document.querySelectorAll('.tag').forEach(tag => tag.classList.remove('active'));
+        }
+
+        // Show preview
+        function showPreview(verse, reference) {
+            const preview = document.getElementById('cardPreview');
+            document.getElementById('previewVerse').textContent = verse;
+            document.getElementById('previewReference').textContent = reference;
+            preview.classList.add('show');
+        }
+
+        // Add card
+        function addCard(verse, reference, tags) {
+            const card = {
+                id: Date.now(),
+                verse: verse,
+                reference: reference,
+                tags: tags,
+                dateAdded: new Date().toISOString(),
+                reviewCount: 0,
+                memorized: false,
+                lastReview: null,
+                nextReview: new Date().toISOString()
+            };
+            
+            cards.unshift(card);
+            todayCount++;
+            saveCards();
+            updateStats();
+            renderCards();
+            
+            // Update today count
+            document.getElementById('todayCount').textContent = todayCount;
+        }
+
+        // Render cards
+        function renderCards() {
+            const grid = document.getElementById('cardsGrid');
+            const filteredCards = filterCards();
+            
+            grid.innerHTML = filteredCards.map(card => `
+                <div class="flashcard" data-id="${card.id}">
+                    <div class="card-content">
+                        <div class="card-verse">${truncateText(card.verse, 100)}</div>
+                        <div class="card-reference">${card.reference}</div>
+                    </div>
+                    <div class="card-meta">
+                        <div class="card-tags">
+                            ${card.tags.map(tag => `<span class="card-tag">${tag}</span>`).join('')}
+                        </div>
+                        <div class="card-actions">
+                            <button class="card-action" onclick="deleteCard(${card.id})">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filter cards
+        function filterCards() {
+            switch (activeFilter) {
+                case 'new':
+                    return cards.filter(card => card.reviewCount === 0);
+                case 'review':
+                    return cards.filter(card => new Date(card.nextReview) <= new Date());
+                case 'memorized':
+                    return cards.filter(card => card.memorized);
+                default:
+                    return cards;
+            }
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalCards').textContent = cards.length;
+            document.getElementById('reviewDue').textContent = cards.filter(card => 
+                new Date(card.nextReview) <= new Date() && !card.memorized
+            ).length;
+            
+            // Calculate streak (simplified)
+            const lastReview = cards.filter(card => card.lastReview)
+                .sort((a, b) => new Date(b.lastReview) - new Date(a.lastReview))[0];
+            
+            if (lastReview) {
+                const daysSince = Math.floor((new Date() - new Date(lastReview.lastReview)) / (1000 * 60 * 60 * 24));
+                document.getElementById('streakDays').textContent = daysSince <= 1 ? '1' : '0';
+            }
+        }
+
+        // Delete card
+        function deleteCard(id) {
+            cards = cards.filter(card => card.id !== id);
+            saveCards();
+            updateStats();
+            renderCards();
+        }
+
+        // Start review
+        function startReview() {
+            const reviewCards = cards.filter(card => !card.memorized);
+            if (reviewCards.length === 0) {
+                alert('No cards to review!');
+                return;
+            }
+            
+            currentReviewIndex = 0;
+            document.getElementById('reviewMode').classList.add('active');
+            showReviewCard();
+        }
+
+        // Show review card
+        function showReviewCard() {
+            const reviewCards = cards.filter(card => !card.memorized);
+            if (currentReviewIndex >= reviewCards.length) {
+                closeReview();
+                return;
+            }
+            
+            const card = reviewCards[currentReviewIndex];
+            document.getElementById('reviewVerse').textContent = card.verse;
+            document.getElementById('reviewReference').textContent = card.reference;
+            document.getElementById('reviewReference').classList.remove('show');
+        }
+
+        // Show answer
+        function showAnswer() {
+            document.getElementById('reviewReference').classList.add('show');
+        }
+
+        // Next card
+        function nextCard() {
+            currentReviewIndex++;
+            showReviewCard();
+        }
+
+        // Mark as memorized
+        function markMemorized() {
+            const reviewCards = cards.filter(card => !card.memorized);
+            if (currentReviewIndex < reviewCards.length) {
+                const card = reviewCards[currentReviewIndex];
+                const originalCard = cards.find(c => c.id === card.id);
+                originalCard.memorized = true;
+                originalCard.lastReview = new Date().toISOString();
+                saveCards();
+                updateStats();
+                nextCard();
+            }
+        }
+
+        // Close review
+        function closeReview() {
+            document.getElementById('reviewMode').classList.remove('active');
+            renderCards();
+        }
+
+        // Truncate text
+        function truncateText(text, maxLength) {
+            return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Tag selection
+            document.querySelectorAll('.tag').forEach(tag => {
+                tag.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const tagName = this.dataset.tag;
+                    if (selectedTags.includes(tagName)) {
+                        selectedTags = selectedTags.filter(t => t !== tagName);
+                    } else {
+                        selectedTags.push(tagName);
+                    }
+                });
+            });
+
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (this.dataset.filter) {
+                        activeFilter = this.dataset.filter;
+                        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        renderCards();
+                    }
+                });
+            });
+
+            // Enter key on input
+            document.getElementById('verseInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    parseVerse();
+                }
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.target.tagName === 'INPUT') return;
+                
+                switch(e.key.toLowerCase()) {
+                    case 'a':
+                        document.getElementById('verseInput').focus();
+                        break;
+                    case 'r':
+                        startReview();
+                        break;
+                    case ' ':
+                        if (document.getElementById('reviewMode').classList.contains('active')) {
+                            e.preventDefault();
+                            showAnswer();
+                        }
+                        break;
+                    case 'arrowright':
+                        if (document.getElementById('reviewMode').classList.contains('active')) {
+                            nextCard();
+                        }
+                        break;
+                }
+            });
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
