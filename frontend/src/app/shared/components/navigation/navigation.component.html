@@ -246,6 +246,27 @@
             My Stats
           </a>
           <a
+            routerLink="/inbox"
+            class="dropdown-item"
+            routerLinkActive="active"
+            (click)="closeMenu()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7a2 2 0 002 2h5l2 2 2-2h5a2 2 0 002-2z"
+              />
+            </svg>
+            Inbox
+          </a>
+          <a
             routerLink="/feature-requests"
             class="dropdown-item"
             routerLinkActive="active"
