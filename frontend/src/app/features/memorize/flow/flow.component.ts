@@ -11,6 +11,7 @@ import { UserService } from '../../../core/services/user.service';
 import { User } from '../../../core/models/user';
 import { UserVerseDetail } from '../../../core/models/bible';
 import { Subject, takeUntil } from 'rxjs';
+import { ConfidenceSliderComponent } from '../../../shared/components/confidence-slider/confidence-slider.component';
 
 interface FlowVerse {
   verseCode: string;
@@ -27,7 +28,12 @@ interface FlowVerse {
 @Component({
   selector: 'app-flow',
   standalone: true,
-  imports: [CommonModule, FormsModule, VersePickerComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    VersePickerComponent,
+    ConfidenceSliderComponent,
+  ],
   templateUrl: './flow.component.html',
   styleUrls: ['./flow.component.scss'],
 })
