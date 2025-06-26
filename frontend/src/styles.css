@@ -462,14 +462,14 @@ button:focus {
 }
 
 /* Dark mode applied globally using color inversion */
-html {
+html.dark-mode {
   filter: invert(1) hue-rotate(180deg);
   background-color: #000;
 }
 
-img,
-video,
-picture,
-svg {
+html.dark-mode img,
+html.dark-mode video,
+html.dark-mode picture,
+html.dark-mode svg {
   filter: invert(1) hue-rotate(180deg);
 }

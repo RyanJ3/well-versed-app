@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 import { User } from '../../core/models/user';
 import { UserService } from '../../core/services/user.service';
 import { BibleService } from '../../core/services/bible.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-profile',
@@ -30,7 +31,8 @@ export class ProfileComponent implements OnInit {
     lastName: '',
     denomination: '',
     preferredBible: '',
-    includeApocrypha: false
+    includeApocrypha: false,
+    darkMode: false
   };
   
   // Dropdown options
@@ -64,7 +66,8 @@ export class ProfileComponent implements OnInit {
   
   constructor(
     private userService: UserService,
-    private bibleService: BibleService
+    private bibleService: BibleService,
+    private themeService: ThemeService
   ) { }
 
   ngOnInit(): void {
@@ -104,7 +107,8 @@ export class ProfileComponent implements OnInit {
       lastName: nameParts.slice(1).join(' ') || '',
       denomination: user.denomination || '',
       preferredBible: user.preferredBible || '',
-      includeApocrypha: user.includeApocrypha !== undefined ? user.includeApocrypha : false
+      includeApocrypha: user.includeApocrypha !== undefined ? user.includeApocrypha : false,
+      darkMode: this.themeService.isDarkMode()
     };
     
     console.log('Profile form initialized with:', this.profileForm);
@@ -112,9 +116,12 @@ export class ProfileComponent implements OnInit {
   
   saveProfile(): void {
     if (!this.profileForm || this.isSaving) return;
-    
+
     console.log('Saving profile with data:', this.profileForm);
     this.isSaving = true;
+
+    // Apply dark mode preference immediately
+    this.themeService.setDarkMode(this.profileForm.darkMode);
     
     // Create a clean user profile update object
     const profileUpdate = {
