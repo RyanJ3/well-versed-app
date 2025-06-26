@@ -461,15 +461,50 @@ button:focus {
   }
 }
 
-/* Dark mode applied globally using color inversion */
+/* Dark mode theme */
 html.dark-mode {
-  filter: invert(1) hue-rotate(180deg);
-  background-color: #000;
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --purple: #8b5cf6;
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --border: #334155;
+  --glass-bg: rgba(30, 41, 59, 0.7);
+  --glass-border: rgba(148, 163, 184, 0.1);
 }
 
-html.dark-mode img,
-html.dark-mode video,
-html.dark-mode picture,
-html.dark-mode svg {
-  filter: invert(1) hue-rotate(180deg);
+html.dark-mode body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+html.dark-mode .bg-white,
+html.dark-mode .bg-gray-100,
+html.dark-mode .bg-blue-50 {
+  background-color: var(--bg-secondary);
+}
+
+html.dark-mode .bg-gray-200,
+html.dark-mode .bg-blue-100 {
+  background-color: var(--bg-tertiary);
+}
+
+html.dark-mode .text-gray-800,
+html.dark-mode .text-gray-700,
+html.dark-mode .text-gray-600 {
+  color: var(--text-primary);
+}
+
+html.dark-mode .text-gray-500 {
+  color: var(--text-secondary);
+}
+
+html.dark-mode .border {
+  border-color: var(--border);
 }
