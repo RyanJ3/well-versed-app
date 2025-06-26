@@ -31,6 +31,17 @@ body {
   background-color: var(--bg-primary);
 }
 
+/* Force dark mode by inverting all colors */
+html {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+img,
+svg,
+video {
+  filter: invert(1) hue-rotate(180deg);
+}
+
 /* Utility classes */
 .p-4 {
   padding: 1rem;
