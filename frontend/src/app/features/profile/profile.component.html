@@ -15,9 +15,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <div class="alert-text">
-          <strong>Success!</strong> Profile updated successfully.
-          <span *ngIf="profileForm.includeApocrypha"> Apocryphal books are now visible in the Bible tracker.</span>
-          <span *ngIf="!profileForm.includeApocrypha"> Apocryphal books are now hidden in the Bible tracker.</span>
+          Saved!
         </div>
         <button class="alert-close" (click)="dismissSuccess()">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
