@@ -1,5 +1,6 @@
 // frontend/src/app/app.component.ts
 import { Component } from '@angular/core';
+import { ThemeService } from './core/services/theme.service';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { NavigationComponent } from './shared/components/navigation/navigation.component';
@@ -20,5 +21,7 @@ import { ModalComponent } from './shared/components/modal/modal.component';
 export class AppComponent {
   title = 'Well Versed';
 
-  constructor() {}
+  constructor(private themeService: ThemeService) {
+    this.themeService.initializeTheme();
+  }
 }

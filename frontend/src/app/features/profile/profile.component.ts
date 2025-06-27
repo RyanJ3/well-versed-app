@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 import { User } from '../../core/models/user';
 import { UserService } from '../../core/services/user.service';
 import { BibleService } from '../../core/services/bible.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-profile',
@@ -30,7 +31,8 @@ export class ProfileComponent implements OnInit {
     lastName: '',
     denomination: '',
     preferredBible: '',
-    includeApocrypha: false
+    includeApocrypha: false,
+    useDarkMode: false
   };
   
   // Dropdown options
@@ -64,11 +66,13 @@ export class ProfileComponent implements OnInit {
   
   constructor(
     private userService: UserService,
-    private bibleService: BibleService
+    private bibleService: BibleService,
+    private themeService: ThemeService
   ) { }
 
   ngOnInit(): void {
     this.loadUserProfile();
+    this.profileForm.useDarkMode = this.themeService.isDarkMode();
   }
   
   loadUserProfile(): void {
@@ -98,13 +102,14 @@ export class ProfileComponent implements OnInit {
   // Initialize form with user data
   initializeForm(user: User): void {
     const nameParts = user.name.split(' ');
-    
+
     this.profileForm = {
       firstName: nameParts[0] || '',
       lastName: nameParts.slice(1).join(' ') || '',
       denomination: user.denomination || '',
       preferredBible: user.preferredBible || '',
-      includeApocrypha: user.includeApocrypha !== undefined ? user.includeApocrypha : false
+      includeApocrypha: user.includeApocrypha !== undefined ? user.includeApocrypha : false,
+      useDarkMode: this.themeService.isDarkMode()
     };
     
     console.log('Profile form initialized with:', this.profileForm);
@@ -114,6 +119,7 @@ export class ProfileComponent implements OnInit {
     if (!this.profileForm || this.isSaving) return;
 
     console.log('Saving profile with data:', this.profileForm);
+    this.themeService.setDarkMode(this.profileForm.useDarkMode);
     this.isSaving = true;
     
     // Create a clean user profile update object
@@ -157,5 +163,9 @@ export class ProfileComponent implements OnInit {
   
   dismissSuccess(): void {
     this.showSuccess = false;
+  }
+
+  onDarkModeChange(): void {
+    this.themeService.setDarkMode(this.profileForm.useDarkMode);
   }
 }
