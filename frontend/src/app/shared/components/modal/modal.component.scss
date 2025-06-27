@@ -60,6 +60,16 @@
       background-color: #d1fae5;
     }
   }
+
+  :host-context(html.dark-mode) & {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+
+    .modal-icon {
+      background-color: var(--bg-tertiary);
+    }
+  }
 }
 
 @keyframes slideIn {
@@ -102,6 +112,10 @@
   color: #1f2937;
   margin: 0;
   line-height: 1.25;
+
+  :host-context(html.dark-mode) & {
+    color: var(--text-primary);
+  }
 }
 
 .modal-body {
@@ -114,6 +128,10 @@
   line-height: 1.6;
   margin: 0;
   font-size: 1rem;
+
+  :host-context(html.dark-mode) & {
+    color: var(--text-secondary);
+  }
 }
 
 .modal-footer {
@@ -154,14 +172,31 @@
   &:active {
     transform: translateY(0);
   }
+
+  :host-context(html.dark-mode) & {
+    background-color: var(--primary);
+
+    &:hover {
+      background-color: var(--primary-dark);
+    }
+  }
 }
 
 .btn-secondary {
   background-color: #e5e7eb;
   color: #374151;
-  
+
   &:hover {
     background-color: #d1d5db;
+  }
+
+  :host-context(html.dark-mode) & {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+
+    &:hover {
+      background-color: var(--bg-secondary);
+    }
   }
 }
 
@@ -176,6 +211,14 @@
   
   &:active {
     transform: translateY(0);
+  }
+
+  :host-context(html.dark-mode) & {
+    background-color: var(--danger);
+
+    &:hover {
+      background-color: #b91c1c;
+    }
   }
 }
 

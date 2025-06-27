@@ -32,19 +32,15 @@ body {
 }
 
 /* Dark mode */
-html.dark-mode {
-  filter: invert(1) hue-rotate(180deg);
+html.dark-mode body {
+  color: var(--text-primary);
+  background: var(--bg-primary);
 }
 
 html.dark-mode img,
 html.dark-mode svg,
 html.dark-mode video {
-  filter: invert(1) hue-rotate(180deg);
-}
-
-html.dark-mode body {
-  color: var(--text-primary);
-  background-color: var(--bg-primary);
+  filter: none;
 }
 
 /* Utility classes */
@@ -518,4 +514,26 @@ html.dark-mode .text-gray-500 {
 
 html.dark-mode .border {
   border-color: var(--border);
+}
+
+html.dark-mode .card,
+html.dark-mode .modal-container,
+html.dark-mode .dropdown-menu,
+html.dark-mode .quick-capture {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+
+html.dark-mode .bg-tertiary,
+html.dark-mode .bg-secondary,
+html.dark-mode .bg-primary {
+  background-color: var(--bg-tertiary);
+}
+
+html.dark-mode .btn,
+html.dark-mode .btn-primary,
+html.dark-mode .btn-secondary,
+html.dark-mode .btn-danger {
+  color: var(--text-primary);
 }
