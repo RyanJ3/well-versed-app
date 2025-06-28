@@ -74,8 +74,13 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
         const newSetting = user.includeApocrypha || false;
         if (this.includeApocrypha !== newSetting) {
           this.includeApocrypha = newSetting;
+          // Update BibleData preference so testaments are generated correctly
+          this.bibleService.updateUserPreferences(newSetting);
           this.loadUserVerses();
         } else if (!this.userVerses.length) {
+          // Ensure the BibleData preference stays in sync even if the value did
+          // not change (e.g. direct navigation to tracker)
+          this.bibleService.updateUserPreferences(newSetting);
           this.loadUserVerses();
         }
       } else {
