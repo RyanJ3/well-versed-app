@@ -565,6 +565,45 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
+  async clearAllChapters(): Promise<void> {
+    if (!this.selectedBook) return;
+
+    const confirmed = await this.modalService.danger(
+      'Clear All Chapters?',
+      `Are you sure you want to clear all memorized verses in ${this.selectedBook.name}? This action cannot be undone.`,
+      'Clear Chapters'
+    );
+
+    if (!confirmed) return;
+
+    this.isSavingBulk = true;
+
+    this.bibleService.clearBook(
+      this.userId,
+      this.selectedBook.id
+    ).subscribe({
+      next: () => {
+        this.selectedBook!.chapters.forEach(ch => ch.clearAllVerses());
+        this.isSavingBulk = false;
+        this.updateTestamentCharts();
+        this.modalService.success(
+          'Book Cleared',
+          `${this.selectedBook!.name} has been cleared.`
+        );
+        this.cdr.detectChanges();
+      },
+      error: (error: any) => {
+        console.error('Error clearing book:', error);
+        this.isSavingBulk = false;
+        this.modalService.alert(
+          'Error Clearing Book',
+          'Unable to clear chapters in this book. Please try again.',
+          'danger'
+        );
+      }
+    });
+  }
+
   // Helper methods
   isChapterVisible(chapter: BibleChapter): boolean {
     return this.includeApocrypha || !chapter.isApocryphal;
