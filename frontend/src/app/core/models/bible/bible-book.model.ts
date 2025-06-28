@@ -24,7 +24,8 @@ const BOOK_ID_MAP: Record<string, number> = {
   // Apocryphal books
   'Tobit': 67, 'Judith': 68, '1 Maccabees': 69, '2 Maccabees': 70,
   'Wisdom of Solomon': 71, 'Sirach': 72, 'Baruch': 73,
-  '1 Esdras': 74, '3 Maccabees': 75, 'Prayer of Manasseh': 76
+  '1 Esdras': 74, '3 Maccabees': 75, 'Prayer of Manasseh': 76,
+  'Psalm 151': 77
 };
 
 /**
@@ -90,12 +91,6 @@ export class BibleBook {
      * Check if a specific chapter is apocryphal
      */
     isApocryphalChapter(chapterNumber: number): boolean {
-        // Special handling for Psalms
-        if (this.name === 'Psalms' && chapterNumber === 151) {
-            return true;
-        }
-
-        // Get the chapter
         const chapter = this.chapters.find(ch => ch.chapterNumber === chapterNumber);
         return chapter ? chapter.isApocryphal : false;
     }

@@ -952,10 +952,18 @@
         20,
         14,
         9,
-        6,
-        7
+        6
       ],
-      "notes": "Includes Psalm 151 (Eastern Orthodox)"
+      "notes": "Some traditions include Psalm 151 as apocrypha"
+    },
+    {
+      "name": "Psalm 151",
+      "testament": "Old Testament",
+      "bookGroup": "Wisdom",
+      "canonicalAffiliation": "Eastern Orthodox",
+      "chapters": [
+        7
+      ]
     },
     {
       "name": "Prayer of Manasseh",
@@ -963,7 +971,7 @@
       "bookGroup": "Wisdom",
       "canonicalAffiliation": "Eastern Orthodox",
       "chapters": [
-        15
+        14
       ]
     },
     {
@@ -1348,10 +1356,10 @@
       "chapters": [
         21,
         49,
-        100,
-        34,
         30,
-        29,
+        37,
+        31,
+        28,
         28,
         27,
         27,
@@ -1958,7 +1966,8 @@
       "canonicalAffiliation": "All",
       "chapters": [
         15
-      ]
+      ],
+      "notes": "KJV has only 14 verses"
     },
     {
       "name": "Jude",

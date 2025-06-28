@@ -30,8 +30,6 @@ export enum BookGroupType {
  * Constants for apocryphal chapters
  */
 export const apocryphalChapters: Record<string, number[]> = {
-  // Psalm 151 (in Psalms book)
-  'PSA': [151],
   
   // Additions to Esther (chapters 10-16 in Catholic Bible) 
   'EST': [10, 11, 12, 13, 14, 15, 16],
