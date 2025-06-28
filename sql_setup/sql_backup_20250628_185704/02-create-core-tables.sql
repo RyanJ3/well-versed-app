@@ -14,6 +14,7 @@ CREATE TABLE users (
     last_name VARCHAR(100),
     denomination VARCHAR(100),
     preferred_bible VARCHAR(50),
+    include_apocrypha BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -38,6 +39,7 @@ CREATE TABLE bible_verses (
     book_id INTEGER NOT NULL REFERENCES bible_books(book_id),
     chapter_number INTEGER NOT NULL,
     verse_number INTEGER NOT NULL,
+    is_apocryphal BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -76,6 +78,6 @@ CREATE TRIGGER update_user_verses_updated_at BEFORE UPDATE ON user_verses
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert test user
-INSERT INTO users (email, name, first_name, last_name)
-VALUES ('test@example.com', 'Test User', 'Test', 'User')
+INSERT INTO users (email, name, first_name, last_name, include_apocrypha) 
+VALUES ('test@example.com', 'Test User', 'Test', 'User', false)
 ON CONFLICT (email) DO NOTHING;

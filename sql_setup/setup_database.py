@@ -215,11 +215,7 @@ def populate_bible_data(conn):
             '1 Thessalonians': 52, '2 Thessalonians': 53, '1 Timothy': 54,
             '2 Timothy': 55, 'Titus': 56, 'Philemon': 57, 'Hebrews': 58,
             'James': 59, '1 Peter': 60, '2 Peter': 61, '1 John': 62,
-            '2 John': 63, '3 John': 64, 'Jude': 65, 'Revelation': 66,
-            # Apocryphal books
-            'Tobit': 67, 'Judith': 68, '1 Maccabees': 69, '2 Maccabees': 70,
-            'Wisdom of Solomon': 71, 'Sirach': 72, 'Baruch': 73,
-            '1 Esdras': 74, '3 Maccabees': 75, 'Prayer of Manasseh': 76
+            '2 John': 63, '3 John': 64, 'Jude': 65, 'Revelation': 66
         }
         
         # Book codes mapping
@@ -240,10 +236,7 @@ def populate_bible_data(conn):
             '1 Thessalonians': '1TH', '2 Thessalonians': '2TH', '1 Timothy': '1TI',
             '2 Timothy': '2TI', 'Titus': 'TIT', 'Philemon': 'PHM', 'Hebrews': 'HEB',
             'James': 'JAS', '1 Peter': '1PE', '2 Peter': '2PE', '1 John': '1JN',
-            '2 John': '2JN', '3 John': '3JN', 'Jude': 'JDE', 'Revelation': 'REV',
-            'Tobit': 'TOB', 'Judith': 'JDT', '1 Maccabees': '1MA', '2 Maccabees': '2MA',
-            'Wisdom of Solomon': 'WIS', 'Sirach': 'SIR', 'Baruch': 'BAR',
-            '1 Esdras': '1ES', '3 Maccabees': '3MA', 'Prayer of Manasseh': 'MAN'
+            '2 John': '2JN', '3 John': '3JN', 'Jude': 'JDE', 'Revelation': 'REV'
         }
         
         # Prepare data
@@ -254,9 +247,9 @@ def populate_bible_data(conn):
         
         for book in bible_data['books']:
             book_name = book['name']
-            
-            # Skip books with canonicalAffiliation NONE
-            if book.get('canonicalAffiliation') == 'NONE':
+
+            # Skip non-canonical books (Apocrypha)
+            if book.get('canonicalAffiliation') != 'All':
                 continue
             
             book_id = book_id_map.get(book_name)
@@ -280,11 +273,10 @@ def populate_bible_data(conn):
             for chapter_num, verse_count in enumerate(book['chapters'], 1):
                 for verse_num in range(1, verse_count + 1):
                     verse_code = f"{book_id}-{chapter_num}-{verse_num}"
-                    is_apocryphal = canonical_affiliation in ['Catholic', 'Eastern Orthodox']
-                    
-                    verses_to_insert.append((
-                        verse_code, book_id, chapter_num, verse_num, is_apocryphal
-                    ))
+
+                    verses_to_insert.append(
+                        (verse_code, book_id, chapter_num, verse_num)
+                    )
                     total_verses += 1
             
             # Progress indicator
@@ -316,10 +308,10 @@ def populate_bible_data(conn):
             
             execute_values(
                 cur,
-                """INSERT INTO bible_verses (verse_code, book_id, chapter_number, verse_number, is_apocryphal)
+                """INSERT INTO bible_verses (verse_code, book_id, chapter_number, verse_number)
                    VALUES %s ON CONFLICT (verse_code) DO NOTHING""",
                 batch,
-                template="(%s, %s, %s, %s, %s)"
+                template="(%s, %s, %s, %s)"
             )
             
             # Progress bar
