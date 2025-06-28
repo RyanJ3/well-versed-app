@@ -1,0 +1,7 @@
+tree 831a39bd2686219943b39aeaa75dcf6e8fc28c40:sql_setup/sql_backup_20250531_192715
+
+01-drop-schema.sql
+02-create-core-tables.sql
+03-create-decks.sql
+05-create-confidence-tracking.sql
+06-populate-test-data.sql

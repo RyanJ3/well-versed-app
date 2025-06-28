@@ -132,7 +132,11 @@ def populate_bible_data(conn):
                     verse_code = f"{book_id}-{chapter_num}-{verse_num}"
                     
                     # Check if this chapter/verse is apocryphal
-                    is_apocryphal = canonical_affiliation in ['Catholic', 'Eastern Orthodox']
+                    is_apocryphal = False
+                    if book_name == 'Psalms' and chapter_num == 151:
+                        is_apocryphal = True
+                    elif canonical_affiliation in ['Catholic', 'Eastern Orthodox']:
+                        is_apocryphal = True
                     
                     verses_to_insert.append((
                         verse_code, book_id, chapter_num, verse_num, is_apocryphal

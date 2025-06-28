@@ -1,0 +1,17 @@
+tree 831a39bd2686219943b39aeaa75dcf6e8fc28c40:sql_setup/sql_setup_backup_20250531_190837
+
+01-drop-schema.sql
+02-create-schema.sql
+02-create-schema.sql.old
+03-populate-bible-verses.sql
+04-test-data.sql
+05-create-decks.sql
+06-create-confidence-tracking.sql
+07-test-data-generation.sql
+bible_base_data.json
+requirements.txt
+setup.sh
+setup_database.py
+start_all.sh
+start_db.sh
+start_dev.sh
