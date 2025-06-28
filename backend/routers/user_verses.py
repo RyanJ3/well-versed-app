@@ -348,3 +348,21 @@ async def update_confidence(
     )
 
     return {"message": "Confidence updated"}
+
+
+@router.delete("/{user_id}")
+async def clear_user_memorization(
+    user_id: int, db: DatabaseConnection = Depends(get_db)
+) -> dict:
+    """Remove all memorization data for a user."""
+    logger.info(f"Clearing memorization data for user {user_id}")
+
+    try:
+        db.execute("DELETE FROM user_verse_confidence WHERE user_id = %s", (user_id,))
+        db.execute("DELETE FROM user_verses WHERE user_id = %s", (user_id,))
+        logger.info(f"Memorization data cleared for user {user_id}")
+        return {"message": "Memorization data cleared"}
+    except Exception as e:
+        logger.error(f"Failed to clear data for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to clear memorization data")
+

@@ -2,7 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { User } from '../../core/models/user';
 import { UserService } from '../../core/services/user.service';
 import { BibleService } from '../../core/services/bible.service';
@@ -64,7 +64,8 @@ export class ProfileComponent implements OnInit {
   
   constructor(
     private userService: UserService,
-    private bibleService: BibleService
+    private bibleService: BibleService,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
@@ -157,5 +158,19 @@ export class ProfileComponent implements OnInit {
   
   dismissSuccess(): void {
     this.showSuccess = false;
+  }
+
+  clearAllData(): void {
+    if (confirm('This will delete all your data. Are you sure?')) {
+      this.userService.clearMemorizationData().subscribe({
+        next: () => {
+          alert('All data has been removed.');
+          this.router.navigate(['/']);
+        },
+        error: (error: any) => {
+          console.error('Error clearing data:', error);
+        }
+      });
+    }
   }
 }

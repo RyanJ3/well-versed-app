@@ -141,3 +141,5 @@ async def update_user(
     except Exception as e:
         logger.error(f"Failed to update user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to update user")
+
+

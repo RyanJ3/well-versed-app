@@ -83,6 +83,15 @@ export class UserService {
     this.currentUserSubject.next(null);
   }
 
+  clearMemorizationData(): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/user-verses/1`).pipe(
+      catchError(error => {
+        console.error('Error clearing data:', error);
+        throw error;
+      })
+    );
+  }
+
   // Helper method to convert API response (snake_case) to User model (camelCase)
   private mapApiResponseToUser(apiResponse: UserApiResponse): User {
     // Convert include_apocrypha to a proper boolean if it exists
