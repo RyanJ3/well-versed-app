@@ -183,9 +183,17 @@ export class BibleData {
     throw new Error(`Group ${groupName} not found`);
   }
 
-  // Method to map user verses from API to the Bible model 
+  // Reset all memorization progress across every book and chapter
+  reset(): void {
+    this.testaments.forEach(testament => testament.reset());
+  }
+
+  // Method to map user verses from API to the Bible model
   mapUserVersesToModel(userVerses: UserVerseDetail[]): void {
     console.log(`Mapping ${userVerses.length} API verses to Bible model`);
+
+    // Clear any existing progress before applying new data
+    this.reset();
 
     // First pass: collect apocryphal status information by chapter
     const apocryphalInfo: Record<number, Record<number, boolean[]>> = {};
