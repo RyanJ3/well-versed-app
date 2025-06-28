@@ -164,11 +164,20 @@
       </div>
     </div>
     <div class="action-container">
-      <button (click)="selectAllChapters()"
-              class="action-btn primary"
-              [disabled]="isLoading || isSavingBulk">
-        Memorize All Chapters
-      </button>
+      <div class="left-actions">
+        <button (click)="clearAllChapters()"
+                class="action-btn secondary"
+                [disabled]="isLoading || isSavingBulk">
+          Clear All Chapters
+        </button>
+      </div>
+      <div class="right-actions">
+        <button (click)="selectAllChapters()"
+                class="action-btn primary"
+                [disabled]="isLoading || isSavingBulk">
+          Memorize All Chapters
+        </button>
+      </div>
     </div>
   </div>
 
@@ -196,22 +205,31 @@
 
     <!-- Chapter Actions -->
     <div class="action-container">
-      <button (click)="selectAllVerses()" 
-              class="action-btn primary" 
-              [disabled]="isLoading || isSavingBulk">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-        Memorize All Verses
-      </button>
-      <button (click)="clearAllVerses()" 
-              class="action-btn secondary" 
-              [disabled]="isLoading || isSavingBulk">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-        Clear All Verses
-      </button>
+      <div class="left-actions">
+        <a class="action-btn secondary"
+           [routerLink]="'/flow'"
+           [queryParams]="{ bookId: selectedBook?.id, chapter: selectedChapter?.chapterNumber }">
+          Practice in FLOW
+        </a>
+        <button (click)="clearAllVerses()"
+                class="action-btn secondary"
+                [disabled]="isLoading || isSavingBulk">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Clear All Verses
+        </button>
+      </div>
+      <div class="right-actions">
+        <button (click)="selectAllVerses()"
+                class="action-btn primary"
+                [disabled]="isLoading || isSavingBulk">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Memorize All Verses
+        </button>
+      </div>
     </div>
   </div>
 </div>

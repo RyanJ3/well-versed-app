@@ -1,5 +1,6 @@
 // frontend/src/app/features/memorize/flow/flow.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -42,6 +43,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   // Data
   verses: FlowVerse[] = [];
   currentSelection: VerseSelection | null = null;
+  initialSelection: VerseSelection | null = null;
   confidenceLevel = 50;
   isLoading = false;
   isSaving = false;
@@ -61,6 +63,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   constructor(
     private bibleService: BibleService,
     private userService: UserService,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit() {
@@ -70,6 +73,35 @@ export class FlowComponent implements OnInit, OnDestroy {
         if (user) {
           this.userId =
             typeof user.id === 'string' ? parseInt(user.id) : user.id;
+        }
+      });
+
+    this.route.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((params) => {
+        const bookId = parseInt(params['bookId']);
+        const chapter = parseInt(params['chapter']);
+        if (!isNaN(bookId) && !isNaN(chapter)) {
+          const book = this.bibleService.getBibleData().getBookById(bookId);
+          if (book) {
+            const chapterData = book.chapters[chapter - 1];
+            if (chapterData) {
+              const verseCodes = chapterData.verses.map(v => `${book.id}-${chapter}-${v.verseNumber}`);
+              this.initialSelection = {
+                mode: 'chapter',
+                startVerse: {
+                  book: book.name,
+                  bookId: book.id,
+                  chapter,
+                  verse: 1,
+                },
+                verseCodes,
+                verseCount: verseCodes.length,
+                reference: `${book.name} ${chapter}`,
+              };
+              this.onVerseSelectionChanged(this.initialSelection);
+            }
+          }
         }
       });
   }
