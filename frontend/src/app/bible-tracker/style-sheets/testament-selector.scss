@@ -66,6 +66,25 @@
   background: linear-gradient(to bottom, #6366f1, #818cf8);
 }
 
+.testament-card.apocrypha-testament {
+  border-left: 3px solid #8b5cf6; /* purple-500 */
+}
+
+.testament-card.apocrypha-testament.active {
+  border-color: #8b5cf6;
+  background-color: rgba(232, 231, 255, 0.2);
+}
+
+.testament-card.apocrypha-testament.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background: linear-gradient(to bottom, #8b5cf6, #a78bfa);
+}
+
 /* Testament Chart Styles */
 .testament-chart-container {
   position: relative;
