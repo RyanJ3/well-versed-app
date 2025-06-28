@@ -2,7 +2,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
+import { ModalService } from '../../core/services/modal.service';
 import { User } from '../../core/models/user';
 import { UserService } from '../../core/services/user.service';
 import { BibleService } from '../../core/services/bible.service';
@@ -64,7 +65,9 @@ export class ProfileComponent implements OnInit {
   
   constructor(
     private userService: UserService,
-    private bibleService: BibleService
+    private bibleService: BibleService,
+    private router: Router,
+    private modalService: ModalService
   ) { }
 
   ngOnInit(): void {
@@ -157,5 +160,26 @@ export class ProfileComponent implements OnInit {
   
   dismissSuccess(): void {
     this.showSuccess = false;
+  }
+
+  async clearAllData(): Promise<void> {
+    const confirmed = await this.modalService.danger(
+      'Clear All Data',
+      'This will remove all of your memorization progress. Your account will remain. This action cannot be undone.',
+      'Clear Data'
+    );
+
+    if (!confirmed) return;
+
+    this.userService.clearMemorizationData().subscribe({
+      next: () => {
+        this.modalService.success('Data Cleared', 'All memorization data has been removed.');
+        this.router.navigate(['/']);
+      },
+      error: (error: any) => {
+        console.error('Error clearing data:', error);
+        this.modalService.alert('Error', 'Failed to clear data. Please try again.', 'danger');
+      }
+    });
   }
 }
