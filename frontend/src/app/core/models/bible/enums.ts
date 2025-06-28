@@ -6,7 +6,8 @@
  */
 export enum TestamentType {
   OLD = 'Old Testament',
-  NEW = 'New Testament'
+  NEW = 'New Testament',
+  APOCRYPHA = 'Apocrypha'
 }
 
 /**

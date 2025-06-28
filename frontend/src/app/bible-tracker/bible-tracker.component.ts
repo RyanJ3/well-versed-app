@@ -147,6 +147,15 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   private initializeTestamentCharts() {
     // Wait for next tick to ensure DOM is ready
     setTimeout(() => {
+      // Clean up charts not in current testaments
+      Object.keys(this.testamentCharts).forEach(id => {
+        const stillExists = this.testaments.some(t => this.getTestamentChartId(t) === id);
+        if (!stillExists) {
+          this.testamentCharts[id].destroy();
+          delete this.testamentCharts[id];
+        }
+      });
+
       this.testaments.forEach(testament => {
         this.createTestamentChart(testament);
       });
@@ -269,20 +278,30 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.progressViewMode === 'testament') {
       const otVerses = this.oldTestament.memorizedVerses;
       const ntVerses = this.newTestament.memorizedVerses;
+      const apoVerses = this.includeApocrypha ? this.apocryphaTestament.memorizedVerses : 0;
       const totalVerses = this.totalVerses;
       const otPercent = Math.round((otVerses / totalVerses) * 100);
       const ntPercent = Math.round((ntVerses / totalVerses) * 100);
-      const remainingPercent = 100 - otPercent - ntPercent;
+      const apoPercent = this.includeApocrypha ? Math.round((apoVerses / totalVerses) * 100) : 0;
+      const remainingPercent = 100 - otPercent - ntPercent - apoPercent;
 
-      this.progressSegments = [
+      const segments = [
         { name: 'Old Testament', shortName: 'OT', percent: otPercent, color: '#f59e0b', verses: otVerses },
-        { name: 'New Testament', shortName: 'NT', percent: ntPercent, color: '#6366f1', verses: ntVerses },
-        { name: 'Remaining', shortName: '', percent: remainingPercent, color: '#e5e7eb', verses: totalVerses - otVerses - ntVerses }
+        { name: 'New Testament', shortName: 'NT', percent: ntPercent, color: '#6366f1', verses: ntVerses }
       ];
+      if (this.includeApocrypha) {
+        segments.push({ name: 'Apocrypha', shortName: 'Apoc.', percent: apoPercent, color: '#8b5cf6', verses: apoVerses });
+      }
+      segments.push({ name: 'Remaining', shortName: '', percent: remainingPercent, color: '#e5e7eb', verses: totalVerses - otVerses - ntVerses - apoVerses });
+
+      this.progressSegments = segments;
     } else {
       const segments: any[] = [];
       const totalVerses = this.totalVerses;
       const allGroups = [...this.oldTestament.groups, ...this.newTestament.groups];
+      if (this.includeApocrypha) {
+        allGroups.push(...this.apocryphaTestament.groups);
+      }
       let totalMemorized = 0;
 
       allGroups.forEach(group => {
@@ -560,7 +579,9 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   getTestamentClass(testament: BibleTestament): string {
-    return testament.name === 'Old Testament' ? 'old-testament' : 'new-testament';
+    if (testament.name === 'Old Testament') return 'old-testament';
+    if (testament.name === 'New Testament') return 'new-testament';
+    return 'apocrypha-testament';
   }
 
   isApocryphalBook(book: BibleBook): boolean {
@@ -671,6 +692,10 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get newTestament(): BibleTestament {
     return this.bibleData.getTestamentByName('NEW');
+  }
+
+  get apocryphaTestament(): BibleTestament {
+    return this.bibleData.getTestamentByName('APOCRYPHA');
   }
 
   get defaultTestament(): BibleTestament {

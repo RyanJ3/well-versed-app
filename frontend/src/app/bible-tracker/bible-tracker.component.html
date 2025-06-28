@@ -64,7 +64,8 @@
   <div class="chart-grid">
     <div class="card testament-card" *ngFor="let testament of testaments"
          (click)="setTestament(testament)"
-         [class.active]="testament === selectedTestament">
+         [class.active]="testament === selectedTestament"
+         [ngClass]="getTestamentClass(testament)">
       <div class="radial-container">
         <canvas [id]="getTestamentChartId(testament)"></canvas>
       </div>

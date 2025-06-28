@@ -34,13 +34,19 @@ export class BibleData {
     // Create testament objects
     const oldTestament = new BibleTestament(TestamentType.OLD);
     const newTestament = new BibleTestament(TestamentType.NEW);
+    const apocryphaTestament = new BibleTestament(TestamentType.APOCRYPHA);
 
     // Store in maps for lookups
     this.testamentMap.set('OLD', oldTestament);
     this.testamentMap.set('NEW', newTestament);
+    this.testamentMap.set('APOCRYPHA', apocryphaTestament);
 
-    // Create group maps
-    const groupMap = new Map<string, BibleGroup>();
+    // Create group maps per testament
+    const groupMaps: Record<string, Map<string, BibleGroup>> = {
+      OLD: new Map<string, BibleGroup>(),
+      NEW: new Map<string, BibleGroup>(),
+      APOCRYPHA: new Map<string, BibleGroup>()
+    };
 
     // Process each book from the JSON data
     BIBLE_DATA.books.forEach((bookData: any) => {
@@ -49,8 +55,20 @@ export class BibleData {
         return;
       }
 
-      const isOldTestament = bookData.testament === TestamentType.OLD;
-      const testament = isOldTestament ? oldTestament : newTestament;
+      let testament: BibleTestament;
+      if (bookData.canonicalAffiliation !== 'All') {
+        testament = apocryphaTestament;
+      } else {
+        const isOldTestament = bookData.testament === TestamentType.OLD;
+        testament = isOldTestament ? oldTestament : newTestament;
+      }
+
+      const groupMap =
+        testament === oldTestament
+          ? groupMaps.OLD
+          : testament === newTestament
+            ? groupMaps.NEW
+            : groupMaps.APOCRYPHA;
 
       // Get or create group
       if (!groupMap.has(bookData.bookGroup)) {
@@ -128,7 +146,10 @@ export class BibleData {
   }
 
   get testaments(): BibleTestament[] {
-    return Array.from(this.testamentMap.values());
+    const all = Array.from(this.testamentMap.values());
+    return this._includeApocrypha
+      ? all
+      : all.filter(t => t.name !== TestamentType.APOCRYPHA);
   }
 
   getTestamentByName(name: string): BibleTestament {
