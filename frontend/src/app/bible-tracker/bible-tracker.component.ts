@@ -47,7 +47,6 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   isLoading = true;
   isSavingBulk = false;
   userId = 1; // Default test user
-  includeApocrypha = false;
 
   // Properties for segmented progress view
   progressViewMode: 'testament' | 'groups' = 'testament';
@@ -70,17 +69,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnInit() {
     const userSub = this.userService.currentUser$.subscribe(user => {
-      if (user) {
-        const newSetting = user.includeApocrypha || false;
-        if (this.includeApocrypha !== newSetting) {
-          this.includeApocrypha = newSetting;
-          this.loadUserVerses();
-        } else if (!this.userVerses.length) {
-          this.loadUserVerses();
-        }
-      } else {
-        this.loadUserVerses();
-      }
+      this.loadUserVerses();
     });
 
     this.subscriptions.add(userSub);
@@ -116,7 +105,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   loadUserVerses() {
     this.isLoading = true;
 
-    this.bibleService.getUserVerses(this.userId, this.includeApocrypha).subscribe({
+    this.bibleService.getUserVerses(this.userId).subscribe({
       next: (verses: any) => {
         this.userVerses = verses;
         this.isLoading = false;
@@ -543,7 +532,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
 
   // Helper methods
   isChapterVisible(chapter: BibleChapter): boolean {
-    return this.includeApocrypha || !chapter.isApocryphal;
+    return !chapter.isApocryphal;
   }
 
   getVisibleChapters(book: BibleBook): BibleChapter[] {
@@ -564,9 +553,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   isApocryphalBook(book: BibleBook): boolean {
-    return book.canonicalAffiliation !== 'All' &&
-      (book.canonicalAffiliation === 'Catholic' ||
-        book.canonicalAffiliation === 'Eastern Orthodox');
+    return false;
   }
 
   // Chart helper methods

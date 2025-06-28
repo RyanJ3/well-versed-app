@@ -31,7 +31,7 @@ export class ProfileComponent implements OnInit {
     lastName: '',
     denomination: '',
     preferredBible: '',
-    includeApocrypha: false
+    
   };
   
   // Dropdown options
@@ -106,8 +106,7 @@ export class ProfileComponent implements OnInit {
       firstName: nameParts[0] || '',
       lastName: nameParts.slice(1).join(' ') || '',
       denomination: user.denomination || '',
-      preferredBible: user.preferredBible || '',
-      includeApocrypha: user.includeApocrypha !== undefined ? user.includeApocrypha : false
+      preferredBible: user.preferredBible || ''
     };
     
     console.log('Profile form initialized with:', this.profileForm);
@@ -124,8 +123,7 @@ export class ProfileComponent implements OnInit {
       firstName: this.profileForm.firstName,
       lastName: this.profileForm.lastName,
       denomination: this.profileForm.denomination,
-      preferredBible: this.profileForm.preferredBible,
-      includeApocrypha: this.profileForm.includeApocrypha
+      preferredBible: this.profileForm.preferredBible
     };
     
     console.log('Profile update payload:', profileUpdate);
@@ -133,12 +131,6 @@ export class ProfileComponent implements OnInit {
     this.userService.updateUser(profileUpdate).subscribe({
       next: (updatedUser: any) => {
         console.log('Profile updated successfully:', updatedUser);
-        
-        // Update Bible service with new apocrypha setting
-        if (updatedUser && updatedUser.includeApocrypha !== undefined) {
-          console.log(`Explicitly updating BibleService with includeApocrypha=${updatedUser.includeApocrypha}`);
-          this.bibleService.updateUserPreferences(updatedUser.includeApocrypha);
-        }
         
         // Show success message
         this.showSuccess = true;

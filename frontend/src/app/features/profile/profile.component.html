@@ -16,8 +16,7 @@
         </svg>
         <div class="alert-text">
           <strong>Success!</strong> Profile updated successfully.
-          <span *ngIf="profileForm.includeApocrypha"> Apocryphal books are now visible in the Bible tracker.</span>
-          <span *ngIf="!profileForm.includeApocrypha"> Apocryphal books are now hidden in the Bible tracker.</span>
+          
         </div>
         <button class="alert-close" (click)="dismissSuccess()">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,23 +125,6 @@
           </div>
         </div>
               
-        <div class="form-group">
-          <div class="toggle-container">
-            <input 
-              type="checkbox" 
-              id="includeApocrypha" 
-              class="toggle-input"
-              [(ngModel)]="profileForm.includeApocrypha" 
-              name="includeApocrypha">
-            <label for="includeApocrypha" class="toggle-label">
-              <span class="toggle-switch"></span>
-              <span class="toggle-text">
-                <strong>Include Apocrypha</strong>
-                <small>Show apocryphal books and chapters in the Bible tracker</small>
-              </span>
-            </label>
-          </div>
-        </div>
               
         <div class="form-actions">
           <button type="submit" class="btn btn-primary" [disabled]="isSaving">

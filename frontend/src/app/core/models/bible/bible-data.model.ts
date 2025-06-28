@@ -14,17 +14,9 @@ export class BibleData {
   // Store all books regardless of filter status
   private readonly _allBooks: BibleBook[] = [];
 
-  // Visible books after filtering (when not showing apocrypha)
   public readonly visibleBooks: BibleBook[] = [];
 
-  // Property to track apocrypha preference 
-  private _includeApocrypha: boolean = false;
-
-  // Getter to provide the appropriate book list based on preferences
   get books(): BibleBook[] {
-    if (this._includeApocrypha) {
-      return this._allBooks;
-    }
     return this.visibleBooks;
   }
 
@@ -44,11 +36,6 @@ export class BibleData {
 
     // Process each book from the JSON data
     BIBLE_DATA.books.forEach((bookData: any) => {
-      // Skip books with canonicalAffiliation NONE
-      if (bookData.canonicalAffiliation === 'NONE') {
-        return;
-      }
-
       const isOldTestament = bookData.testament === TestamentType.OLD;
       const testament = isOldTestament ? oldTestament : newTestament;
 
@@ -64,8 +51,7 @@ export class BibleData {
         testament,
         group,
         bookData.chapters,
-        progressData[bookData.name] || {},
-        bookData.canonicalAffiliation
+        progressData[bookData.name] || {}
       );
 
       // Add to book collections
@@ -80,52 +66,13 @@ export class BibleData {
       testament.addBook(book);
     });
 
-    // Initial filtering to populate visibleBooks
-    this.refreshBooksBasedOnSettings();
+    // All books are visible since apocrypha has been removed
+    this.visibleBooks.push(...this._allBooks);
 
     console.log(`Initialized ${this._allBooks.length} books in BibleData`);
   }
 
-  // Getter and setter for apocrypha preference
-  get includeApocrypha(): boolean {
-    return this._includeApocrypha;
-  }
 
-  set includeApocrypha(value: boolean) {
-    if (this._includeApocrypha !== value) {
-      this._includeApocrypha = value;
-      this.refreshBooksBasedOnSettings();
-    }
-  }
-
-  // Method to update book visibility based on apocrypha preference
-  refreshBooksBasedOnSettings(): void {
-    console.log(`Refreshing books with includeApocrypha=${this._includeApocrypha}`);
-
-    // Clear the visible books list
-    this.visibleBooks.length = 0;
-
-    // Populate the filtered books list
-    this._allBooks.forEach(book => {
-      // Add to visible books if it should be visible
-      if (this._includeApocrypha ||
-        (book.canonicalAffiliation === 'All') ||
-        (book.canonicalAffiliation !== 'Catholic' &&
-          book.canonicalAffiliation !== 'Eastern Orthodox')) {
-        this.visibleBooks.push(book);
-      }
-    });
-
-    console.log(`Filtered to ${this.visibleBooks.length} visible books out of ${this._allBooks.length} total books`);
-
-    // Update the groups in each testament to show/hide books
-    this.testaments.forEach(testament => {
-      testament.groups.forEach(group => {
-        // Filter books based on visibility
-        group.books = group.books.filter(book => this.visibleBooks.includes(book));
-      });
-    });
-  }
 
   get testaments(): BibleTestament[] {
     return Array.from(this.testamentMap.values());
@@ -187,41 +134,6 @@ export class BibleData {
   mapUserVersesToModel(userVerses: UserVerseDetail[]): void {
     console.log(`Mapping ${userVerses.length} API verses to Bible model`);
 
-    // First pass: collect apocryphal status information by chapter
-    const apocryphalInfo: Record<number, Record<number, boolean[]>> = {};
-    
-    userVerses.forEach(userVerse => {
-      try {
-        if (!userVerse.verse) {
-          return;
-        }
-
-        const { book_id, chapter_number, verse_number, isApocryphal } = userVerse.verse;
-        
-        // Initialize book record if not exists
-        if (!apocryphalInfo[book_id]) {
-          apocryphalInfo[book_id] = {};
-        }
-        
-        // Initialize chapter array if not exists
-        if (!apocryphalInfo[book_id][chapter_number]) {
-          const book = this.getBookById(book_id);
-          if (book && book.chapters[chapter_number - 1]) {
-            const chapter = book.chapters[chapter_number - 1];
-            apocryphalInfo[book_id][chapter_number] = new Array(chapter.verses.length).fill(false);
-          }
-        }
-        
-        // Set the apocryphal status for this verse
-        if (apocryphalInfo[book_id][chapter_number]) {
-          apocryphalInfo[book_id][chapter_number][verse_number - 1] = isApocryphal || false;
-        }
-      } catch (error) {
-        console.error('Error processing verse for apocryphal info:', error);
-      }
-    });
-    
-    // Second pass: update the model with apocryphal info and other verse data
     userVerses.forEach(userVerse => {
       try {
         if (!userVerse.verse) {
@@ -258,7 +170,6 @@ export class BibleData {
         verse.practiceCount = userVerse.practice_count || 0;
         verse.memorized = userVerse.practice_count > 0;
         verse.lastPracticed = userVerse.last_practiced;
-        verse.isApocryphal = isApocryphal || false;
       } catch (error) {
         console.error('Error mapping verse:', error);
       }

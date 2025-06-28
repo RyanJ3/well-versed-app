@@ -20,11 +20,7 @@ const BOOK_ID_MAP: Record<string, number> = {
   '1 Thessalonians': 52, '2 Thessalonians': 53, '1 Timothy': 54,
   '2 Timothy': 55, 'Titus': 56, 'Philemon': 57, 'Hebrews': 58,
   'James': 59, '1 Peter': 60, '2 Peter': 61, '1 John': 62,
-  '2 John': 63, '3 John': 64, 'Jude': 65, 'Revelation': 66,
-  // Apocryphal books
-  'Tobit': 67, 'Judith': 68, '1 Maccabees': 69, '2 Maccabees': 70,
-  'Wisdom of Solomon': 71, 'Sirach': 72, 'Baruch': 73,
-  '1 Esdras': 74, '3 Maccabees': 75, 'Prayer of Manasseh': 76
+  '2 John': 63, '3 John': 64, 'Jude': 65, 'Revelation': 66
 };
 
 /**
@@ -40,7 +36,6 @@ export class BibleBook {
         public readonly group: BibleGroup,
         versesPerChapter: number[],
         memorizedData: Record<number, number[]> = {},
-        public readonly canonicalAffiliation: string = 'All',
         public readonly order: number = 0
     ) {
         // Get numerical ID from book name
@@ -79,22 +74,13 @@ export class BibleBook {
      * Gets visible chapters based on user preferences
      */
     getVisibleChapters(includeApocrypha: boolean): BibleChapter[] {
-        if (includeApocrypha) {
-            return this.chapters;
-        }
-
-        return this.chapters.filter(chapter => !chapter.isApocryphal);
+        return this.chapters;
     }
 
     /**
      * Check if a specific chapter is apocryphal
      */
     isApocryphalChapter(chapterNumber: number): boolean {
-        // Special handling for Psalms
-        if (this.name === 'Psalms' && chapterNumber === 151) {
-            return true;
-        }
-
         // Get the chapter
         const chapter = this.chapters.find(ch => ch.chapterNumber === chapterNumber);
         return chapter ? chapter.isApocryphal : false;

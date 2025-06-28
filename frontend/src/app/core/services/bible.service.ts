@@ -14,11 +14,6 @@ export class BibleService {
   private bibleData: BibleData;
   private isBrowser: boolean;
 
-  private preferencesSubject = new BehaviorSubject<{ includeApocrypha: boolean }>({
-    includeApocrypha: false
-  });
-
-  public preferences$ = this.preferencesSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -32,16 +27,9 @@ export class BibleService {
     return this.bibleData;
   }
 
-  updateUserPreferences(includeApocrypha: boolean): void {
-    this.bibleData.includeApocrypha = includeApocrypha;
-    this.preferencesSubject.next({ includeApocrypha });
-  }
 
-  getUserVerses(userId: number, includeApocrypha?: boolean): Observable<UserVerseDetail[]> {
+  getUserVerses(userId: number): Observable<UserVerseDetail[]> {
     let params = new HttpParams();
-    if (includeApocrypha !== undefined) {
-      params = params.set('include_apocrypha', includeApocrypha.toString());
-    }
 
     const endpoint = `${this.apiUrl}/user-verses/${userId}`;
 
