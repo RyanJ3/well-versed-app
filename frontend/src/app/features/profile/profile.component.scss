@@ -462,6 +462,42 @@
   animation: spin 1s linear infinite;
 }
 
+.danger-zone {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 1px solid #d0d7de;
+  border-radius: 0.5rem;
+  background: #fff5f5;
+
+  h3 {
+    color: #cf222e;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: #57606a;
+    margin-bottom: 1rem;
+  }
+
+  .danger-actions {
+    text-align: right;
+  }
+
+  .btn-danger {
+    background: #cf222e;
+    color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background: #a40e26;
+    }
+  }
+}
+
 // Responsive Design
 @media (max-width: 768px) {
   
@@ -487,28 +523,5 @@
   .btn {
     width: 100%;
     justify-content: center;
-  }
-
-  .danger-zone {
-    margin-top: 2rem;
-    padding: 1.5rem;
-    border: 1px solid #f87171;
-    background: #fef2f2;
-    border-radius: 0.5rem;
-    text-align: center;
-
-    h3 {
-      color: #b91c1c;
-      margin-bottom: 0.5rem;
-    }
-
-    .btn-danger {
-      background: #dc2626;
-      color: #fff;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 0.375rem;
-      cursor: pointer;
-    }
   }
 }
