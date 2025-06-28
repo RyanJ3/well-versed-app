@@ -65,10 +65,10 @@ export class BibleData {
 
       const groupMap =
         testament === oldTestament
-          ? groupMaps.OLD
+          ? groupMaps['OLD']
           : testament === newTestament
-            ? groupMaps.NEW
-            : groupMaps.APOCRYPHA;
+            ? groupMaps['NEW']
+            : groupMaps['APOCRYPHA'];
 
       // Get or create group
       if (!groupMap.has(bookData.bookGroup)) {
