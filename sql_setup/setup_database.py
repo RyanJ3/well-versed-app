@@ -96,11 +96,6 @@ SQL_FILES = [
         'description': 'Create confidence tracking system'
     },
     {
-        'file': '06-populate-test-data.sql',
-        'description': 'Insert test data',
-        'skip_on_production': True  # Can be skipped with --no-test-data
-    },
-    {
         'file': '07-create-feature-requests.sql',
         'description': 'Create feature request tables'
     },
@@ -113,6 +108,14 @@ SQL_FILES = [
         'description': 'Create course enrollment and progress tables'
     }
 ]
+
+# SQL file that relies on populated bible_verses. This is executed
+# after populate_bible_data() completes.
+POPULATE_TEST_SQL = {
+    'file': '06-populate-test-data.sql',
+    'description': 'Insert test data',
+    'skip_on_production': True
+}
 
 def get_db_connection():
     """Create a database connection with retry logic"""
@@ -507,6 +510,13 @@ def main():
         # Populate Bible data
         if all_successful:
             success = populate_bible_data(conn)
+            if not success:
+                all_successful = False
+
+        # Insert test data that depends on bible_verses
+        if all_successful and not skip_test_data:
+            success = execute_sql_file(conn, POPULATE_TEST_SQL['file'],
+                                       POPULATE_TEST_SQL['description'])
             if not success:
                 all_successful = False
         
