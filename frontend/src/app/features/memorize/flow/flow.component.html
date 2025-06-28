@@ -1,32 +1,33 @@
 <!-- frontend/src/app/flow/flow.component.html -->
 <div class="flow-container">
-  <div class="flow-header">
-    <h1>FLOW Memorization</h1>
-    <p class="subtitle">
-      First Letter Of Word technique for scripture memorization
-    </p>
-  </div>
+  <div class="sidebar">
+    <div class="flow-header">
+      <h1>FLOW Memorization</h1>
+      <p class="subtitle">
+        First Letter Of Word technique for scripture memorization
+      </p>
+    </div>
 
-  <div class="controls-section">
-    <app-verse-picker
-      [theme]="'minimal'"
-      [disabledModes]="['single']"
-      [pageType]="'FLOW'"
-      [showFlowTip]="false"
-      [minimumVerses]="10"
-      [maximumVerses]="80"
-      [warningMessage]="warningMessage"
-      [initialSelection]="initialSelection"
-      (selectionApplied)="onVerseSelectionChanged($event)"
-    >
-    </app-verse-picker>
-    <div *ngIf="verses.length > 0" class="layout-controls">
-      <div class="button-group">
-        <button
-          class="layout-button"
-          [class.active]="layoutMode === 'grid'"
-          (click)="toggleLayout()"
-        >
+    <div class="controls-section">
+      <app-verse-picker
+        [theme]="'minimal'"
+        [disabledModes]="['single']"
+        [pageType]="'FLOW'"
+        [showFlowTip]="false"
+        [minimumVerses]="10"
+        [maximumVerses]="80"
+        [warningMessage]="warningMessage"
+        [initialSelection]="initialSelection"
+        (selectionApplied)="onVerseSelectionChanged($event)"
+      >
+      </app-verse-picker>
+      <div *ngIf="verses.length > 0" class="layout-controls">
+        <div class="button-group">
+          <button
+            class="layout-button"
+            [class.active]="layoutMode === 'grid'"
+            (click)="toggleLayout()"
+          >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -75,10 +76,13 @@
         Highlight 5th verses
       </label>
     </div>
+    </div>
   </div>
 
-  <!-- Loading State -->
-  <div *ngIf="isLoading" class="loading-container">
+  <div class="verses-container">
+    <div class="verses-scroll">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-container">
     <div class="loading-spinner"></div>
     <p>Loading verses...</p>
   </div>
@@ -136,35 +140,26 @@
 
   <!-- Confidence Section -->
   <div *ngIf="!isLoading && verses.length > 0" class="confidence-section">
-    <h3>Confidence Level</h3>
-    <p class="confidence-description">
-      How well do you know
-      {{ verses.length === 1 ? "this verse" : "these verses" }}?
-    </p>
-
-    <div class="slider-container">
-      <span class="slider-label">0%</span>
-      <input
-        type="range"
-        class="confidence-slider"
-        [(ngModel)]="confidenceLevel"
-        min="0"
-        max="100"
-        step="1"
-      />
-      <span class="slider-label">100%</span>
-    </div>
-
-    <div class="confidence-value">
-      Current confidence: <strong>{{ confidenceLevel }}%</strong>
-    </div>
-
-    <div class="action-buttons">
-      <button
-        class="btn btn-primary"
-        (click)="saveProgress()"
-        [disabled]="isSaving"
-      >
+    <div class="confidence-row">
+      <span class="confidence-label">Confidence Level</span>
+      <div class="slider-container">
+        <span class="slider-label">0%</span>
+        <input
+          type="range"
+          class="confidence-slider"
+          [(ngModel)]="confidenceLevel"
+          min="0"
+          max="100"
+          step="1"
+        />
+        <span class="slider-label">100%</span>
+      </div>
+      <div class="action-buttons">
+        <button
+          class="btn btn-primary"
+          (click)="saveProgress()"
+          [disabled]="isSaving"
+        >
         <svg
           *ngIf="!isSaving"
           xmlns="http://www.w3.org/2000/svg"
@@ -193,16 +188,17 @@
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-        Clear Progress
-      </button>
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+          Clear Progress
+        </button>
+      </div>
     </div>
 
     <div class="saved-indicator" [class.show]="showSavedMessage">
@@ -221,5 +217,7 @@
       </svg>
       Progress saved!
     </div>
+  </div>
+  </div>
   </div>
 </div>
