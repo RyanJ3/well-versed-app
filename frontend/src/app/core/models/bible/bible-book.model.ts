@@ -91,12 +91,6 @@ export class BibleBook {
      * Check if a specific chapter is apocryphal
      */
     isApocryphalChapter(chapterNumber: number): boolean {
-        // Special handling for Psalms
-        if (this.name === 'Psalms' && chapterNumber === 151) {
-            return true;
-        }
-
-        // Get the chapter
         const chapter = this.chapters.find(ch => ch.chapterNumber === chapterNumber);
         return chapter ? chapter.isApocryphal : false;
     }
