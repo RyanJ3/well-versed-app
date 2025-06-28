@@ -6,18 +6,22 @@
 }
 
 .sidebar {
-  width: 300px;
+  width: 360px;
   position: fixed;
   top: 0;
   bottom: 0;
   left: 0;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
+  overflow-x: visible;
   padding: 1.5rem;
+  z-index: 100;
 }
 
 .verses-container {
   flex: 1;
-  margin-left: 300px;
+  margin-left: 360px;
   height: 100vh;
   overflow: hidden;
   padding: 2rem;
@@ -59,12 +63,13 @@
 
   .layout-controls {
     display: flex;
-    gap: 1rem;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   .button-group {
     display: flex;
+    flex-direction: column;
     border-radius: 0.5rem;
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -109,7 +114,8 @@
 
   .display-options {
     display: flex;
-    gap: 1.5rem;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   .checkbox-option {
