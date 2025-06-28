@@ -24,7 +24,8 @@ const BOOK_ID_MAP: Record<string, number> = {
   // Apocryphal books
   'Tobit': 67, 'Judith': 68, '1 Maccabees': 69, '2 Maccabees': 70,
   'Wisdom of Solomon': 71, 'Sirach': 72, 'Baruch': 73,
-  '1 Esdras': 74, '3 Maccabees': 75, 'Prayer of Manasseh': 76
+  '1 Esdras': 74, '3 Maccabees': 75, 'Prayer of Manasseh': 76,
+  'Psalm 151': 77
 };
 
 /**

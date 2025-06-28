@@ -6,8 +6,6 @@
  * This helps the app know which individual chapters to hide when apocrypha setting is disabled
  */
 export const apocryphalChapters: Record<string, number[]> = {
-  // Psalm 151 (in Psalms book)
-  'PSA': [151],
   
   // Additions to Esther (chapters 10-16 in Catholic Bible) 
   'EST': [10, 11, 12, 13, 14, 15, 16],
@@ -33,11 +31,6 @@ export function isApocryphalChapter(bookId: number, chapterNumber: number): bool
   if (apocryphalChapters[bookId]) {
     // Check if the chapter number is in the list of apocryphal chapters
     return apocryphalChapters[bookId].includes(chapterNumber);
-  }
-  
-  // Special case for Psalm 151
-  if (bookId === 'PSA' && chapterNumber === 151) {
-    return true;
   }
   
   return false;
