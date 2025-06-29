@@ -478,7 +478,10 @@ export class FlowComponent implements OnInit, OnDestroy {
     this.showMemorization = true;
   }
 
-  onMemorizationCompleted() {
+  onMemorizationCompleted(result: { memorized: boolean }) {
     this.showMemorization = false;
+    if (result.memorized) {
+      this.updateMemorizationStatus();
+    }
   }
 }

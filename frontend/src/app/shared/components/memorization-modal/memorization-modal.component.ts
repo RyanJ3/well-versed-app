@@ -148,6 +148,22 @@ interface Verse {
               <button class="next-btn" (click)="nextReview()">Next</button>
             </div>
           </ng-container>
+
+          <!-- Save Prompt -->
+          <ng-container *ngIf="promptSave">
+            <div class="completion-message">
+              <h3>Great job!</h3>
+              <p>Would you like to mark this chapter as memorized?</p>
+              <div class="nav-buttons">
+                <button class="prev-btn" (click)="complete(false)">
+                  Not Yet
+                </button>
+                <button class="next-btn" (click)="complete(true)">
+                  Save & Finish
+                </button>
+              </div>
+            </div>
+          </ng-container>
         </div>
 
         <audio #player [src]="currentAudio" class="hidden"></audio>
@@ -184,6 +200,8 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
   currentReviewStage = 0;
   reviewIndex = 0;
 
+  promptSave = false;
+
   completedSteps = 0;
   totalSteps = 0;
 
@@ -197,7 +215,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
   }
 
   get progressDetail(): string {
-    if (this.setup) {
+    if (this.setup || this.promptSave) {
       return '';
     }
     if (!this.review) {
@@ -219,6 +237,9 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
   }
 
   get currentInstruction(): string {
+    if (this.promptSave) {
+      return '';
+    }
     switch (this.currentStage) {
       case 0:
         return 'Read the verses aloud 2-3 times';
@@ -338,26 +359,35 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
       this.currentReviewStage++;
     }
     if (this.currentReviewStage >= this.reviewStages.length) {
-      this.complete();
+      this.showSavePrompt();
     }
     this.completedSteps++;
   }
 
-  async complete() {
-    try {
-      const chapterNum = this.verses[0]?.chapter || 1;
-      await this.bibleService
-        .saveChapter(this.userId, this.chapterId, chapterNum)
-        .toPromise();
-      this.completed.emit({ memorized: true });
-    } catch (err) {
-      console.error('Error marking chapter memorized', err);
+  showSavePrompt() {
+    this.review = false;
+    this.promptSave = true;
+  }
+
+  async complete(save: boolean) {
+    if (save) {
+      try {
+        const chapterNum = this.verses[0]?.chapter || 1;
+        await this.bibleService
+          .saveChapter(this.userId, this.chapterId, chapterNum)
+          .toPromise();
+        this.completed.emit({ memorized: true });
+      } catch (err) {
+        console.error('Error marking chapter memorized', err);
+        this.completed.emit({ memorized: false });
+      }
+    } else {
       this.completed.emit({ memorized: false });
     }
     this.completedSteps = this.totalSteps;
     this.visible = false;
     this.router.navigate(['/profile'], {
-      queryParams: { memorized: true },
+      queryParams: { memorized: save },
     });
   }
 
