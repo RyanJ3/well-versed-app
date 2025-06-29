@@ -9,6 +9,7 @@ import {
 } from '../../../shared/components/verse-range-picker/verse-range-picker.component';
 import { BibleService } from '../../../core/services/bible.service';
 import { UserService } from '../../../core/services/user.service';
+import { MemorizationModalComponent } from '../../../shared/components/memorization-modal/memorization-modal.component';
 import { User } from '../../../core/models/user';
 import { UserVerseDetail } from '../../../core/models/bible';
 import { Subject, takeUntil } from 'rxjs';
@@ -25,10 +26,24 @@ interface FlowVerse {
   verse: number;
 }
 
+interface ModalVerse {
+  code: string;
+  text: string;
+  reference: string;
+  bookId: number;
+  chapter: number;
+  verse: number;
+}
+
 @Component({
   selector: 'app-flow',
   standalone: true,
-  imports: [CommonModule, FormsModule, VersePickerComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    VersePickerComponent,
+    MemorizationModalComponent,
+  ],
   templateUrl: './flow.component.html',
   styleUrls: ['./flow.component.scss'],
 })
@@ -54,6 +69,12 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   // Add property for selected book
   selectedBook: any = null;
+
+  // Memorization modal state
+  showMemorization = false;
+  versesForModal: ModalVerse[] = [];
+  modalBookId = 0;
+  modalChapterName = '';
 
   // Request management
   private destroy$ = new Subject<void>();
@@ -86,7 +107,9 @@ export class FlowComponent implements OnInit, OnDestroy {
           if (book) {
             const chapterData = book.chapters[chapter - 1];
             if (chapterData) {
-              const verseCodes = chapterData.verses.map(v => `${book.id}-${chapter}-${v.verseNumber}`);
+              const verseCodes = chapterData.verses.map(
+                (v) => `${book.id}-${chapter}-${v.verseNumber}`,
+              );
               this.initialSelection = {
                 mode: 'chapter',
                 startVerse: {
@@ -432,5 +455,33 @@ export class FlowComponent implements OnInit, OnDestroy {
     }
     // Removed memorized class to keep cells white
     return classes.join(' ');
+  }
+
+  startMemorization() {
+    if (!this.verses.length || !this.selectedBook) return;
+
+    this.versesForModal = this.verses.map((v) => {
+      const [bookId, chapter, verse] = v.verseCode.split('-').map(Number);
+      return {
+        code: v.verseCode,
+        text: v.text,
+        reference: v.reference,
+        bookId,
+        chapter,
+        verse,
+      } as ModalVerse;
+    });
+
+    const first = this.verses[0];
+    this.modalBookId = this.selectedBook.id;
+    this.modalChapterName = `${this.selectedBook.name} ${first.chapter}`;
+    this.showMemorization = true;
+  }
+
+  onMemorizationCompleted(result: { memorized: boolean }) {
+    this.showMemorization = false;
+    if (result.memorized) {
+      this.updateMemorizationStatus();
+    }
   }
 }
