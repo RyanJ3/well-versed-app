@@ -1,5 +1,5 @@
 // frontend/src/app/features/memorize/flow/flow.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,6 +25,16 @@ interface FlowVerse {
   verse: number;
 }
 
+type PracticeStage = 'full' | 'initials' | 'memory';
+
+interface VerseGroup {
+  verses: FlowVerse[];
+  currentStage: PracticeStage;
+  confidence: number;
+  audioBlob?: Blob;
+  audioUrl?: string;
+}
+
 @Component({
   selector: 'app-flow',
   standalone: true,
@@ -39,6 +49,18 @@ export class FlowComponent implements OnInit, OnDestroy {
   highlightFifthVerse = true;
   showSavedMessage = false;
   warningMessage: string | null = null;
+
+  // Practice settings
+  showSettings = true;
+  versesPerGroup = 2;
+  groups: VerseGroup[] = [];
+  currentGroupIndex = 0;
+  isPracticing = false;
+  canRecord = false;
+  isRecording = false;
+  mediaRecorder: MediaRecorder | null = null;
+  audioChunks: Blob[] = [];
+  @ViewChild('audioPlayer') audioPlayer!: ElementRef<HTMLAudioElement>;
 
   // Data
   verses: FlowVerse[] = [];
@@ -67,6 +89,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    this.checkMicrophonePermission();
     this.userService.currentUser$
       .pipe(takeUntil(this.destroy$))
       .subscribe((user: User | null) => {
@@ -110,6 +133,7 @@ export class FlowComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.loadVersesCancel$.complete();
+    this.cleanup();
   }
 
   onVerseSelectionChanged(selection: VerseSelection) {
@@ -432,5 +456,175 @@ export class FlowComponent implements OnInit, OnDestroy {
     }
     // Removed memorized class to keep cells white
     return classes.join(' ');
+  }
+
+  selectVersesPerGroup(count: number) {
+    this.versesPerGroup = count;
+  }
+
+  async startPractice() {
+    this.showSettings = false;
+    this.createGroups();
+    if (this.groups.length > 0) {
+      this.isPracticing = true;
+    }
+  }
+
+  createGroups() {
+    this.groups = [];
+    for (let i = 0; i < this.verses.length; i += this.versesPerGroup) {
+      const slice = this.verses.slice(i, i + this.versesPerGroup);
+      this.groups.push({ verses: slice, currentStage: 'full', confidence: 50 });
+    }
+    this.currentGroupIndex = 0;
+  }
+
+  get currentGroup(): VerseGroup | null {
+    return this.groups[this.currentGroupIndex] || null;
+  }
+
+  getCurrentGroupReference(): string {
+    const group = this.currentGroup;
+    if (!group) return '';
+    const verses = group.verses;
+    if (verses.length === 1) {
+      return verses[0].reference;
+    } else {
+      const first = verses[0];
+      const last = verses[verses.length - 1];
+      if (first.chapter === last.chapter) {
+        return `${first.reference}-${last.verse}`;
+      } else {
+        return `${first.reference}-${last.chapter}:${last.verse}`;
+      }
+    }
+  }
+
+  nextStage() {
+    const group = this.currentGroup;
+    if (!group) return;
+
+    if (group.currentStage === 'full') {
+      group.currentStage = 'initials';
+    } else if (group.currentStage === 'initials') {
+      group.currentStage = 'memory';
+    } else {
+      this.finishGroup();
+    }
+  }
+
+  previousStage() {
+    const group = this.currentGroup;
+    if (!group) return;
+
+    if (group.currentStage === 'initials') {
+      group.currentStage = 'full';
+    } else if (group.currentStage === 'memory') {
+      group.currentStage = 'initials';
+    } else if (this.currentGroupIndex > 0) {
+      this.currentGroupIndex--;
+    }
+  }
+
+  getNextButtonText(): string {
+    const group = this.currentGroup;
+    if (!group) return 'Next';
+
+    switch (group.currentStage) {
+      case 'full':
+        return 'Continue to FLOW';
+      case 'initials':
+        return 'Continue to Recite';
+      case 'memory':
+        return 'Next Group';
+      default:
+        return 'Next';
+    }
+  }
+
+  finishGroup() {
+    if (this.currentGroupIndex < this.groups.length - 1) {
+      this.currentGroupIndex++;
+    } else {
+      this.completePractice();
+    }
+  }
+
+  async completePractice() {
+    this.isPracticing = false;
+    if (this.currentSelection?.startVerse && this.selectedBook) {
+      await this.bibleService
+        .saveChapter(
+          this.userId,
+          this.selectedBook.id,
+          this.currentSelection.startVerse.chapter,
+        )
+        .toPromise();
+    }
+    this.showSavedMessage = true;
+    setTimeout(() => (this.showSavedMessage = false), 3000);
+  }
+
+  async checkMicrophonePermission() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((t) => t.stop());
+      this.canRecord = true;
+    } catch {
+      this.canRecord = false;
+    }
+  }
+
+  async toggleRecording() {
+    if (this.isRecording) {
+      this.stopRecording();
+    } else {
+      await this.startRecording();
+    }
+  }
+
+  async startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.mediaRecorder = new MediaRecorder(stream);
+      this.audioChunks = [];
+      this.mediaRecorder.ondataavailable = (e) => this.audioChunks.push(e.data);
+      this.mediaRecorder.onstop = () => {
+        const blob = new Blob(this.audioChunks, { type: 'audio/webm' });
+        const group = this.groups[this.currentGroupIndex];
+        group.audioBlob = blob;
+        group.audioUrl = URL.createObjectURL(blob);
+        stream.getTracks().forEach((t) => t.stop());
+      };
+      this.mediaRecorder.start();
+      this.isRecording = true;
+    } catch (err) {
+      console.error('Recording error', err);
+    }
+  }
+
+  stopRecording() {
+    if (this.mediaRecorder && this.isRecording) {
+      this.mediaRecorder.stop();
+      this.isRecording = false;
+    }
+  }
+
+  playAudio() {
+    if (this.audioPlayer) {
+      this.audioPlayer.nativeElement.play();
+    }
+  }
+
+  cleanup() {
+    if (this.mediaRecorder && this.isRecording) {
+      this.mediaRecorder.stop();
+    }
+
+    this.groups.forEach((g) => {
+      if (g.audioUrl) {
+        URL.revokeObjectURL(g.audioUrl);
+      }
+    });
   }
 }

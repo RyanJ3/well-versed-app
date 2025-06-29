@@ -77,6 +77,20 @@
     </div>
   </div>
 
+  <!-- Initial Settings Overlay -->
+  <div class="settings-overlay" *ngIf="showSettings && verses.length > 0">
+    <div class="settings-card">
+      <h2>Practice Settings</h2>
+      <p>How many verses per group?</p>
+      <div class="verse-options">
+        <button [class.selected]="versesPerGroup === 1" (click)="selectVersesPerGroup(1)">1</button>
+        <button [class.selected]="versesPerGroup === 2" (click)="selectVersesPerGroup(2)">2</button>
+        <button [class.selected]="versesPerGroup === 3" (click)="selectVersesPerGroup(3)">3</button>
+      </div>
+      <button class="start-button" (click)="startPractice()">Start Practice</button>
+    </div>
+  </div>
+
   <!-- Loading State -->
   <div *ngIf="isLoading" class="loading-container">
     <div class="loading-spinner"></div>
@@ -93,7 +107,7 @@
 
   <!-- Grid View -->
   <div
-    *ngIf="!isLoading && verses.length > 0 && layoutMode === 'grid'"
+    *ngIf="!isLoading && !isPracticing && verses.length > 0 && layoutMode === 'grid'"
     class="grid-view"
   >
     <div class="custom-grid">
@@ -124,7 +138,7 @@
 
   <!-- Single Column View -->
   <div
-    *ngIf="!isLoading && verses.length > 0 && layoutMode === 'single'"
+    *ngIf="!isLoading && !isPracticing && verses.length > 0 && layoutMode === 'single'"
     class="single-view"
   >
     <div *ngFor="let verse of verses" [class]="getVerseClass(verse)">
@@ -134,8 +148,43 @@
     </div>
   </div>
 
+  <!-- Practice Area -->
+  <div class="practice-area" *ngIf="isPracticing && currentGroup">
+    <div class="stage-progress">
+      <div class="stage-item" [class.active]="currentGroup.currentStage === 'full'">Read</div>
+      <div class="stage-item" [class.active]="currentGroup.currentStage === 'initials'">FLOW</div>
+      <div class="stage-item" [class.active]="currentGroup.currentStage === 'memory'">Recite</div>
+    </div>
+    <div class="verse-display">
+      <div class="verse-reference">{{ getCurrentGroupReference() }}</div>
+      <div *ngIf="currentGroup.currentStage === 'full'">
+        <p *ngFor="let v of currentGroup.verses">{{ v.text }}</p>
+      </div>
+      <div *ngIf="currentGroup.currentStage === 'initials'">
+        <p *ngFor="let v of currentGroup.verses">{{ v.firstLetters }}</p>
+      </div>
+      <div *ngIf="currentGroup.currentStage === 'memory'" class="memory-stage">
+        <p class="memory-prompt">Recite from memory</p>
+      </div>
+    </div>
+    <div class="recording-section">
+      <button class="record-btn" (click)="toggleRecording()" [class.recording]="isRecording" [disabled]="!canRecord">
+        <span *ngIf="!currentGroup.audioUrl">{{ isRecording ? 'Recording...' : 'Record' }}</span>
+        <span *ngIf="currentGroup.audioUrl && !isRecording">Recorded ✓</span>
+      </button>
+      <div class="audio-controls" *ngIf="currentGroup.audioUrl && !isRecording">
+        <audio #audioPlayer [src]="currentGroup.audioUrl"></audio>
+        <button class="audio-btn" (click)="playAudio()">Play</button>
+      </div>
+    </div>
+    <div class="nav-buttons">
+      <button class="nav-btn secondary" (click)="previousStage()">Back</button>
+      <button class="nav-btn primary" (click)="nextStage()">{{ getNextButtonText() }}</button>
+    </div>
+  </div>
+
   <!-- Confidence Section -->
-  <div *ngIf="!isLoading && verses.length > 0" class="confidence-section">
+  <div *ngIf="!isLoading && !isPracticing && verses.length > 0" class="confidence-section">
     <h3>Confidence Level</h3>
     <p class="confidence-description">
       How well do you know

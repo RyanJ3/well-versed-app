@@ -104,6 +104,128 @@
   }
 }
 
+// Settings Overlay
+.settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+
+  .settings-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    text-align: center;
+
+    .verse-options {
+      display: flex;
+      gap: 1rem;
+      margin: 1rem 0;
+
+      button {
+        padding: 0.5rem 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem;
+        cursor: pointer;
+
+        &.selected {
+          background-color: #3b82f6;
+          color: white;
+        }
+      }
+    }
+
+    .start-button {
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background-color: #10b981;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      cursor: pointer;
+    }
+  }
+}
+
+// Practice Area
+.practice-area {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+
+  .stage-progress {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    .stage-item {
+      flex: 1;
+      text-align: center;
+      padding: 0.25rem;
+      border-bottom: 2px solid #e5e7eb;
+
+      &.active {
+        border-color: #3b82f6;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .verse-display {
+    margin-bottom: 1rem;
+
+    .memory-prompt {
+      font-weight: 600;
+      color: #1e3a8a;
+    }
+  }
+
+  .recording-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    .record-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      border: 1px solid #e5e7eb;
+      cursor: pointer;
+
+      &.recording {
+        background-color: #f87171;
+        color: white;
+      }
+    }
+  }
+
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+
+    .nav-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      border: 1px solid #e5e7eb;
+      cursor: pointer;
+
+      &.primary {
+        background-color: #3b82f6;
+        color: white;
+      }
+    }
+  }
+}
+
 // Loading State
 .loading-container {
   display: flex;
