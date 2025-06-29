@@ -75,6 +75,19 @@ interface Verse {
               class="progress-inner"
               [style.width.%]="progressPercentage"
             ></div>
+            <div class="stage-markers">
+              <div
+                class="marker"
+                *ngFor="let m of stageMarkers"
+                [style.left.%]="m.position"
+              >
+                <div
+                  class="marker-dot"
+                  [class.completed]="m.completed"
+                  [class.current]="m.current"
+                ></div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -238,6 +251,9 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
   completedSteps = 0;
   totalSteps = 0;
 
+  /** Information about each stage used for progress markers */
+  stageInfos: { subSteps: number }[] = [];
+
   private destroy$ = new Subject<void>();
   private userId = 1;
 
@@ -259,6 +275,19 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
     return `Review ${step} / ${total} (Stage ${
       this.currentReviewStage + 1
     } of ${this.reviewStages.length})`;
+  }
+
+  get stageMarkers() {
+    let acc = 0;
+    return this.stageInfos.map((info) => {
+      const start = acc;
+      const end = acc + info.subSteps;
+      const position = (start / this.totalSteps) * 100;
+      const completed = this.completedSteps >= end;
+      const current = this.completedSteps >= start && this.completedSteps < end;
+      acc = end;
+      return { position, completed, current };
+    });
   }
 
   get canGoBack(): boolean {
@@ -313,7 +342,8 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
   start() {
     this.setup = false;
     this.createGroups();
-    this.totalSteps = this.verseGroups.length * 3;
+    this.stageInfos = this.verseGroups.map(() => ({ subSteps: 3 }));
+    this.totalSteps = this.stageInfos.reduce((sum, s) => sum + s.subSteps, 0);
     this.completedSteps = 0;
   }
 
@@ -378,11 +408,11 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
     }
     this.currentReviewStage = 0;
     this.reviewIndex = 0;
-    const reviewSteps = this.reviewStages.reduce(
-      (sum, stg) => sum + stg.length,
-      0,
+    this.stageInfos.push(
+      ...this.reviewStages.map((stg) => ({ subSteps: stg.length })),
     );
-    this.totalSteps += reviewSteps;
+    this.stageInfos.push({ subSteps: 1 });
+    this.totalSteps = this.stageInfos.reduce((sum, s) => sum + s.subSteps, 0);
   }
 
   nextReview() {
