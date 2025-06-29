@@ -45,6 +45,77 @@
   color: #4b5563;
 }
 
+.verse-bubbles {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding: 0.5rem 0;
+}
+
+.group-bubble {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.group-bubble.completed .verse-number {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.group-bubble.current .verse-number {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.group-bubble .verse-number {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: #d1d5db;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.verse-numbers {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.stage-dots {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.stage-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #d1d5db;
+}
+
+.stage-dot.active {
+  background: #3b82f6;
+}
+
+.stage-dot.completed {
+  background: #10b981;
+}
+
+.check-icon {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #10b981;
+  font-weight: 600;
+}
+
 .progress-bar {
   width: 100%;
   height: 0.5rem;

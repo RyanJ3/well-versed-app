@@ -37,6 +37,39 @@ interface Verse {
               >{{ progressPercentage }}% Complete</span
             >
           </div>
+
+          <div class="verse-bubbles">
+            <ng-container *ngFor="let group of verseGroups; let i = index">
+              <div
+                class="group-bubble"
+                [class.completed]="i < currentGroupIndex"
+                [class.current]="i === currentGroupIndex"
+              >
+                <div class="verse-numbers">
+                  <div *ngFor="let verse of group" class="verse-number">
+                    {{ verse.verse }}
+                  </div>
+                </div>
+                <div class="stage-dots" *ngIf="i === currentGroupIndex">
+                  <div
+                    class="stage-dot"
+                    [class.completed]="currentStage > 0"
+                  ></div>
+                  <div
+                    class="stage-dot"
+                    [class.completed]="currentStage > 1"
+                    [class.active]="currentStage === 1"
+                  ></div>
+                  <div
+                    class="stage-dot"
+                    [class.active]="currentStage === 2"
+                  ></div>
+                </div>
+                <span class="check-icon" *ngIf="i < currentGroupIndex">✓</span>
+              </div>
+            </ng-container>
+          </div>
+
           <div class="progress-bar">
             <div
               class="progress-inner"
