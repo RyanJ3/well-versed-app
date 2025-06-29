@@ -1,18 +1,23 @@
 /* frontend/src/app/shared/components/memorization-modal/memorization-modal.component.scss */
-.memorization-overlay {
+.memorization-modal-overlay {
   position: fixed;
   inset: 0;
-  background: linear-gradient(to bottom, #eef2ff, #ede9fe);
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 1000;
-  overflow: hidden;
 }
 
-.memorization-container {
+.memorization-modal-container {
+  background: linear-gradient(to bottom, #eef2ff, #ede9fe);
   display: flex;
   flex-direction: column;
-  height: 100%;
+  width: 90%;
   max-width: 64rem;
-  margin: 0 auto;
+  max-height: 90vh;
+  border-radius: 0.75rem;
+  overflow: hidden;
 }
 
 .modal-header {

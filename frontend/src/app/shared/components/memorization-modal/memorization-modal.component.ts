@@ -28,8 +28,8 @@ interface Verse {
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="memorization-overlay" *ngIf="visible">
-      <div class="memorization-container">
+    <div class="memorization-modal-overlay" *ngIf="visible">
+      <div class="memorization-modal-container">
         <div class="modal-header">
           <div class="header-row">
             <h2>{{ chapterName }}</h2>
