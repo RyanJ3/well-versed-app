@@ -82,6 +82,7 @@ interface Verse {
               </div>
             </div>
 
+            <p class="group-progress">{{ progressDetail }}</p>
             <p class="instructions">{{ currentInstruction }}</p>
 
             <div class="verse-display">
@@ -116,11 +117,17 @@ interface Verse {
               </button>
             </div>
 
-            <button class="next-btn" (click)="next()">Next</button>
+            <div class="nav-buttons">
+              <button class="prev-btn" (click)="prev()" [disabled]="!canGoBack">
+                Previous
+              </button>
+              <button class="next-btn" (click)="next()">Next</button>
+            </div>
           </ng-container>
 
           <!-- Review Stage -->
           <ng-container *ngIf="review">
+            <p class="group-progress">{{ progressDetail }}</p>
             <p class="instructions">
               Review {{ reviewIndex + 1 }} /
               {{ reviewStages[currentReviewStage].length }}
@@ -134,7 +141,12 @@ interface Verse {
                 <p class="verse-text">{{ v.text }}</p>
               </div>
             </div>
-            <button class="next-btn" (click)="nextReview()">Next</button>
+            <div class="nav-buttons">
+              <button class="prev-btn" (click)="prev()" [disabled]="!canGoBack">
+                Previous
+              </button>
+              <button class="next-btn" (click)="nextReview()">Next</button>
+            </div>
           </ng-container>
         </div>
 
@@ -182,6 +194,28 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
     return this.totalSteps
       ? Math.round((this.completedSteps / this.totalSteps) * 100)
       : 0;
+  }
+
+  get progressDetail(): string {
+    if (this.setup) {
+      return '';
+    }
+    if (!this.review) {
+      return `Group ${this.currentGroupIndex + 1} of ${this.verseGroups.length}`;
+    }
+    const step = this.reviewIndex + 1;
+    const total = this.reviewStages[this.currentReviewStage].length;
+    return `Review ${step} / ${total} (Stage ${
+      this.currentReviewStage + 1
+    } of ${this.reviewStages.length})`;
+  }
+
+  get canGoBack(): boolean {
+    if (this.setup) return false;
+    if (!this.review) {
+      return this.currentStage > 0 || this.currentGroupIndex > 0;
+    }
+    return this.reviewIndex > 0 || this.currentReviewStage > 0;
   }
 
   get currentInstruction(): string {
@@ -247,6 +281,29 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
       if (this.currentGroupIndex >= this.verseGroups.length) {
         this.prepareReview();
       }
+    }
+  }
+
+  prev() {
+    if (this.review) {
+      if (this.reviewIndex > 0) {
+        this.reviewIndex--;
+      } else if (this.currentReviewStage > 0) {
+        this.currentReviewStage--;
+        this.reviewIndex =
+          this.reviewStages[this.currentReviewStage].length - 1;
+      }
+    } else {
+      if (this.currentStage > 0) {
+        this.currentStage--;
+      } else if (this.currentGroupIndex > 0) {
+        this.currentGroupIndex--;
+        this.currentStage = 2;
+        this.currentAudio = null;
+      }
+    }
+    if (this.completedSteps > 0) {
+      this.completedSteps--;
     }
   }
 
