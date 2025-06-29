@@ -7,6 +7,20 @@
     </p>
   </div>
 
+  <!-- Settings Overlay -->
+  <div class="settings-overlay" *ngIf="showSettings && verses.length > 0">
+    <div class="settings-card">
+      <h2>Select Group Size</h2>
+      <p>How many verses would you like to practice at once?</p>
+      <div class="verse-options">
+        <button class="verse-option" [class.selected]="groupSize === 1" (click)="selectGroupSize(1)">1</button>
+        <button class="verse-option" [class.selected]="groupSize === 2" (click)="selectGroupSize(2)">2</button>
+        <button class="verse-option" [class.selected]="groupSize === 3" (click)="selectGroupSize(3)">3</button>
+      </div>
+      <button class="start-button" (click)="startFlow()">Start Memorizing</button>
+    </div>
+  </div>
+
   <div class="controls-section">
     <app-verse-picker
       [theme]="'minimal'"
@@ -93,7 +107,7 @@
 
   <!-- Grid View -->
   <div
-    *ngIf="!isLoading && verses.length > 0 && layoutMode === 'grid'"
+    *ngIf="!isLoading && verses.length > 0 && layoutMode === 'grid' && groups.length === 0"
     class="grid-view"
   >
     <div class="custom-grid">
@@ -124,13 +138,61 @@
 
   <!-- Single Column View -->
   <div
-    *ngIf="!isLoading && verses.length > 0 && layoutMode === 'single'"
+    *ngIf="!isLoading && verses.length > 0 && layoutMode === 'single' && groups.length === 0"
     class="single-view"
   >
     <div *ngFor="let verse of verses" [class]="getVerseClass(verse)">
       <div class="verse-reference">{{ verse.reference }}</div>
       <div class="first-letters">{{ verse.firstLetters }}</div>
       <div class="verse-text" *ngIf="showVerseText">{{ verse.text }}</div>
+    </div>
+  </div>
+
+  <!-- Practice Area -->
+  <div class="practice-area" *ngIf="!showSettings && groups.length > 0">
+    <div class="stage-progress">
+      <div class="stage-item" [class.active]="currentStage === 'full'">
+        <div class="stage-dot"></div>
+        <span>Read</span>
+      </div>
+      <div class="stage-line"></div>
+      <div class="stage-item" [class.active]="currentStage === 'initials'">
+        <div class="stage-dot"></div>
+        <span>FLOW</span>
+      </div>
+      <div class="stage-line"></div>
+      <div class="stage-item" [class.active]="currentStage === 'memory'">
+        <div class="stage-dot"></div>
+        <span>Recite</span>
+      </div>
+    </div>
+
+    <div class="verse-container">
+      <div class="verse-reference">
+        Group {{ currentGroupIndex + 1 }} of {{ iterationGroups.length }}
+      </div>
+      <div class="verse-content">
+        <div *ngIf="currentStage === 'full'">
+          <p *ngFor="let v of currentGroup">{{ v.text }}</p>
+        </div>
+        <div *ngIf="currentStage === 'initials'">
+          <p *ngFor="let v of currentGroup">{{ v.firstLetters }}</p>
+        </div>
+        <div *ngIf="currentStage === 'memory'" class="memory-stage">
+          <p>Recite from memory</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="instruction-box">
+      <p *ngIf="currentStage === 'full'">Read the verses aloud several times.</p>
+      <p *ngIf="currentStage === 'initials'">Use the first letters as prompts.</p>
+      <p *ngIf="currentStage === 'memory'">Try quoting without looking.</p>
+    </div>
+
+    <div class="nav-buttons">
+      <button class="nav-btn secondary" (click)="previousStage()" [disabled]="currentStage === 'full' && currentGroupIndex === 0">Back</button>
+      <button class="nav-btn primary" (click)="nextStage()">Next</button>
     </div>
   </div>
 

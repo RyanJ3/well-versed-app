@@ -40,6 +40,14 @@ export class FlowComponent implements OnInit, OnDestroy {
   showSavedMessage = false;
   warningMessage: string | null = null;
 
+  // Memorization flow
+  showSettings = false;
+  groupSize = 1;
+  groups: FlowVerse[][] = [];
+  currentGroupIndex = 0;
+  currentStage: 'full' | 'initials' | 'memory' = 'full';
+  iterationGroups: FlowVerse[][] = [];
+
   // Data
   verses: FlowVerse[] = [];
   currentSelection: VerseSelection | null = null;
@@ -139,6 +147,13 @@ export class FlowComponent implements OnInit, OnDestroy {
 
     // Load new verses
     this.loadVerses();
+
+    // Reset flow state for new selection
+    this.groups = [];
+    this.iterationGroups = [];
+    this.showSettings = true;
+    this.currentStage = 'full';
+    this.currentGroupIndex = 0;
   }
 
   async loadVerses() {
@@ -432,5 +447,81 @@ export class FlowComponent implements OnInit, OnDestroy {
     }
     // Removed memorized class to keep cells white
     return classes.join(' ');
+  }
+
+  selectGroupSize(size: number) {
+    this.groupSize = size;
+  }
+
+  startFlow() {
+    this.showSettings = false;
+    this.createGroups(this.groupSize);
+    this.iterationGroups = [...this.groups];
+    this.currentGroupIndex = 0;
+    this.currentStage = 'full';
+  }
+
+  private createGroups(size: number) {
+    this.groups = [];
+    for (let i = 0; i < this.verses.length; i += size) {
+      this.groups.push(this.verses.slice(i, i + size));
+    }
+  }
+
+  get currentGroup(): FlowVerse[] {
+    return this.iterationGroups[this.currentGroupIndex] || [];
+  }
+
+  nextStage() {
+    if (!this.iterationGroups.length) return;
+
+    if (this.currentStage === 'full') {
+      this.currentStage = 'initials';
+    } else if (this.currentStage === 'initials') {
+      this.currentStage = 'memory';
+    } else {
+      if (this.currentGroupIndex < this.iterationGroups.length - 1) {
+        this.currentGroupIndex++;
+        this.currentStage = 'full';
+      } else if (this.iterationGroups.length > 1) {
+        const combined: FlowVerse[][] = [];
+        for (let i = 0; i < this.iterationGroups.length; i += 2) {
+          const first = this.iterationGroups[i];
+          const second = this.iterationGroups[i + 1] || [];
+          combined.push([...first, ...second]);
+        }
+        this.iterationGroups = combined;
+        this.currentGroupIndex = 0;
+        this.currentStage = 'full';
+      } else {
+        this.completeChapter();
+      }
+    }
+  }
+
+  previousStage() {
+    if (!this.iterationGroups.length) return;
+
+    if (this.currentStage === 'initials') {
+      this.currentStage = 'full';
+    } else if (this.currentStage === 'memory') {
+      this.currentStage = 'initials';
+    } else if (this.currentGroupIndex > 0) {
+      this.currentGroupIndex--;
+      this.currentStage = 'memory';
+    }
+  }
+
+  private completeChapter() {
+    if (!this.selectedBook || !this.currentSelection?.startVerse) return;
+    const bookId = this.selectedBook.id;
+    const chapter = this.currentSelection.startVerse.chapter;
+    this.bibleService
+      .saveChapter(this.userId, bookId, chapter)
+      .toPromise()
+      .then(() => {
+        this.showSavedMessage = true;
+        setTimeout(() => (this.showSavedMessage = false), 3000);
+      });
   }
 }

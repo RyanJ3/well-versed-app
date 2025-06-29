@@ -104,6 +104,116 @@
   }
 }
 
+// Simple styles for practice overlay
+.settings-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.settings-card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  text-align: center;
+}
+
+.verse-options {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.verse-option {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.verse-option.selected {
+  background: #e0e7ff;
+  border-color: #6366f1;
+}
+
+.start-button {
+  padding: 0.5rem 1rem;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.practice-area {
+  margin-top: 2rem;
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+}
+
+.stage-progress {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.stage-item {
+  text-align: center;
+}
+
+.stage-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  margin: 0 auto 0.25rem;
+}
+
+.stage-item.active .stage-dot {
+  background: #3b82f6;
+}
+
+.verse-container {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.instruction-box {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.nav-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.nav-btn {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.nav-btn.primary {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.nav-btn.secondary {
+  background: #f3f4f6;
+}
+
 // Loading State
 .loading-container {
   display: flex;
