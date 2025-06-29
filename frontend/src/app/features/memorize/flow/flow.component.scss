@@ -90,6 +90,42 @@
     gap: 1.5rem;
   }
 
+  .start-memorization {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+
+    .btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      background-color: #3b82f6;
+      color: white;
+
+      svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      &:hover:not(:disabled) {
+        background-color: #2563eb;
+        transform: translateY(-1px);
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+  }
+
   .checkbox-option {
     display: flex;
     align-items: center;
@@ -434,6 +470,14 @@
     .display-options {
       flex-direction: column;
       gap: 0.75rem;
+    }
+
+    .start-memorization {
+      flex-direction: column;
+
+      button {
+        width: 100%;
+      }
     }
   }
 

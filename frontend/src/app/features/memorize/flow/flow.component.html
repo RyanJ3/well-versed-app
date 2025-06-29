@@ -75,6 +75,30 @@
         Highlight 5th verses
       </label>
     </div>
+
+    <!-- Quick access start button -->
+    <div *ngIf="verses.length > 0" class="start-memorization">
+      <button
+        class="btn btn-primary"
+        (click)="startMemorization()"
+        [disabled]="verses.length === 0"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v8m4-4H8"
+          />
+        </svg>
+        Start Memorization
+      </button>
+    </div>
   </div>
 
   <!-- Loading State -->
