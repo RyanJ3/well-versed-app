@@ -30,69 +30,115 @@ interface Verse {
   template: `
     <div class="memorization-overlay" *ngIf="visible">
       <div class="memorization-container">
-        <!-- Setup Stage -->
-        <ng-container *ngIf="setup">
-          <h2>Memorization Setup</h2>
-          <p>Select how many verses to practice at once</p>
-          <div class="group-selector">
-            <button
-              *ngFor="let s of [1, 2, 3]"
-              (click)="setGroupSize(s)"
-              [class.active]="groupSize === s"
+        <div class="modal-header">
+          <div class="header-row">
+            <h2>{{ chapterName }}</h2>
+            <span class="progress-text"
+              >{{ progressPercentage }}% Complete</span
             >
-              {{ s }}
-            </button>
           </div>
-          <button class="start-btn" (click)="start()">Start</button>
-        </ng-container>
-
-        <!-- Practice Stage -->
-        <ng-container *ngIf="!setup && !review">
-          <div class="progress">
-            Group {{ currentGroupIndex + 1 }} / {{ verseGroups.length }}
+          <div class="progress-bar">
+            <div
+              class="progress-inner"
+              [style.width.%]="progressPercentage"
+            ></div>
           </div>
+        </div>
 
-          <div class="verse-display" *ngIf="currentStage === 0">
-            <p *ngFor="let v of verseGroups[currentGroupIndex]">{{ v.text }}</p>
-            <p class="instruction">Read aloud 2-3 times</p>
-          </div>
+        <div class="modal-content">
+          <!-- Setup Stage -->
+          <ng-container *ngIf="setup">
+            <div class="setup">
+              <h2>Memorization Setup</h2>
+              <p>Select how many verses to practice at once</p>
+              <div class="group-selector">
+                <button
+                  *ngFor="let s of [1, 2, 3]"
+                  (click)="setGroupSize(s)"
+                  [class.active]="groupSize === s"
+                >
+                  {{ s }}
+                </button>
+              </div>
+              <button class="start-btn" (click)="start()">Start</button>
+            </div>
+          </ng-container>
 
-          <div class="verse-display" *ngIf="currentStage === 1">
-            <p *ngFor="let v of verseGroups[currentGroupIndex]">
-              {{ getInitials(v.text) }}
+          <!-- Practice Stage -->
+          <ng-container *ngIf="!setup && !review">
+            <div class="stage-indicators">
+              <div
+                class="stage"
+                *ngFor="let s of ['Read', 'Flow', 'Memory']; let i = index"
+              >
+                <div
+                  class="stage-circle"
+                  [class.active]="currentStage === i"
+                  [class.completed]="currentStage > i"
+                >
+                  {{ s.charAt(0) }}
+                </div>
+                <span class="stage-label">{{ s }}</span>
+              </div>
+            </div>
+
+            <p class="instructions">{{ currentInstruction }}</p>
+
+            <div class="verse-display">
+              <div
+                class="verse-block"
+                *ngFor="
+                  let v of verseGroups[currentGroupIndex];
+                  let idx = index
+                "
+              >
+                <p class="verse-ref">{{ v.reference }}</p>
+                <p class="verse-text">{{ getVerseDisplay(v) }}</p>
+              </div>
+            </div>
+
+            <div class="recording-section">
+              <button
+                class="record-btn"
+                (click)="toggleRecording()"
+                [class.recording]="isRecording"
+              >
+                {{
+                  isRecording ? 'Stop' : currentAudio ? 'Re-record' : 'Record'
+                }}
+              </button>
+              <button
+                *ngIf="currentAudio"
+                class="play-btn"
+                (click)="playAudio()"
+              >
+                Play
+              </button>
+            </div>
+
+            <button class="next-btn" (click)="next()">Next</button>
+          </ng-container>
+
+          <!-- Review Stage -->
+          <ng-container *ngIf="review">
+            <p class="instructions">
+              Review {{ reviewIndex + 1 }} /
+              {{ reviewStages[currentReviewStage].length }}
             </p>
-            <p class="instruction">Read using first letters</p>
-          </div>
+            <div class="verse-display">
+              <div
+                class="verse-block"
+                *ngFor="let v of reviewStages[currentReviewStage][reviewIndex]"
+              >
+                <p class="verse-ref">{{ v.reference }}</p>
+                <p class="verse-text">{{ v.text }}</p>
+              </div>
+            </div>
+            <button class="next-btn" (click)="nextReview()">Next</button>
+          </ng-container>
+        </div>
 
-          <div class="verse-display" *ngIf="currentStage === 2">
-            <p class="instruction">Recite from memory</p>
-          </div>
-
-          <div class="recording-controls">
-            <button (click)="toggleRecording()" [class.recording]="isRecording">
-              {{ isRecording ? 'Stop' : currentAudio ? 'Re-record' : 'Record' }}
-            </button>
-            <audio #player *ngIf="currentAudio" [src]="currentAudio"></audio>
-            <button *ngIf="currentAudio" (click)="playAudio()">Play</button>
-          </div>
-
-          <button class="next-btn" (click)="next()">Next</button>
-        </ng-container>
-
-        <!-- Review Stage -->
-        <ng-container *ngIf="review">
-          <div class="progress">
-            Review {{ reviewIndex + 1 }} /
-            {{ reviewStages[currentReviewStage].length }}
-          </div>
-          <div class="verse-display">
-            <p *ngFor="let v of reviewStages[currentReviewStage][reviewIndex]">
-              {{ v.text }}
-            </p>
-            <p class="instruction">Recite from memory</p>
-          </div>
-          <button class="next-btn" (click)="nextReview()">Next</button>
-        </ng-container>
+        <audio #player [src]="currentAudio" class="hidden"></audio>
       </div>
     </div>
   `,
@@ -126,8 +172,28 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
   currentReviewStage = 0;
   reviewIndex = 0;
 
+  completedSteps = 0;
+  totalSteps = 0;
+
   private destroy$ = new Subject<void>();
   private userId = 1;
+
+  get progressPercentage(): number {
+    return this.totalSteps
+      ? Math.round((this.completedSteps / this.totalSteps) * 100)
+      : 0;
+  }
+
+  get currentInstruction(): string {
+    switch (this.currentStage) {
+      case 0:
+        return 'Read the verses aloud 2-3 times';
+      case 1:
+        return 'Read using first letters';
+      default:
+        return 'Recite from memory';
+    }
+  }
 
   constructor(
     private bibleService: BibleService,
@@ -159,6 +225,8 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
   start() {
     this.setup = false;
     this.createGroups();
+    this.totalSteps = this.verseGroups.length * 3;
+    this.completedSteps = 0;
   }
 
   createGroups() {
@@ -170,7 +238,9 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
   next() {
     if (this.currentStage < 2) {
       this.currentStage++;
+      this.completedSteps++;
     } else {
+      this.completedSteps++;
       this.currentStage = 0;
       this.currentGroupIndex++;
       this.currentAudio = null;
@@ -197,6 +267,11 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
     }
     this.currentReviewStage = 0;
     this.reviewIndex = 0;
+    const reviewSteps = this.reviewStages.reduce(
+      (sum, stg) => sum + stg.length,
+      0,
+    );
+    this.totalSteps += reviewSteps;
   }
 
   nextReview() {
@@ -208,6 +283,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
     if (this.currentReviewStage >= this.reviewStages.length) {
       this.complete();
     }
+    this.completedSteps++;
   }
 
   async complete() {
@@ -221,6 +297,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
       console.error('Error marking chapter memorized', err);
       this.completed.emit({ memorized: false });
     }
+    this.completedSteps = this.totalSteps;
     this.visible = false;
     this.router.navigate(['/profile'], {
       queryParams: { memorized: true },
@@ -232,6 +309,16 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
       .split(' ')
       .map((word) => word[0] || '')
       .join(' ');
+  }
+
+  getVerseDisplay(v: Verse): string {
+    if (this.currentStage === 0) {
+      return v.text;
+    }
+    if (this.currentStage === 1) {
+      return this.getInitials(v.text);
+    }
+    return '• • •';
   }
 
   async toggleRecording() {

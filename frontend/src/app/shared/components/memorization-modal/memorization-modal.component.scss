@@ -2,25 +2,268 @@
 .memorization-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: linear-gradient(to bottom, #eef2ff, #ede9fe);
   z-index: 1000;
+  overflow: hidden;
 }
 
 .memorization-container {
-  background: #fff;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  padding: 1rem;
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+.modal-header {
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  padding: 1rem 1.5rem;
+}
+
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.header-row h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.progress-text {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 0.5rem;
+  background: #e5e7eb;
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.progress-inner {
+  height: 100%;
+  background: linear-gradient(to right, #3b82f6, #9333ea);
+  width: 0;
+  transition: width 0.3s ease;
+}
+
+.modal-content {
+  flex: 1;
   overflow-y: auto;
+  padding: 2rem 1.5rem;
+}
+
+.setup {
+  text-align: center;
+}
+
+.group-selector {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.group-selector button {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: #e5e7eb;
+  cursor: pointer;
+  font-size: 1.125rem;
+  transition: background 0.2s;
 }
 
 .group-selector button.active {
-  font-weight: bold;
+  background: #3b82f6;
+  color: #ffffff;
 }
 
-.recording-controls button.recording {
-  color: red;
+.start-btn {
+  padding: 0.75rem 1.5rem;
+  background: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.start-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.stage-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stage-circle {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #d1d5db;
+  color: #374151;
+  transition:
+    transform 0.2s,
+    background 0.2s;
+}
+
+.stage-circle.active {
+  background: #3b82f6;
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.stage-circle.completed {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.stage-label {
+  font-size: 0.875rem;
+  color: #374151;
+}
+
+.instructions {
+  text-align: center;
+  font-size: 1.125rem;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+
+.verse-display {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.verse-block + .verse-block {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.verse-ref {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.verse-text {
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.recording-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.record-btn {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: #3b82f6;
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.record-btn:hover {
+  transform: scale(1.05);
+}
+
+.record-btn.recording {
+  background: #ef4444;
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.play-btn {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.play-btn:hover {
+  transform: scale(1.05);
+}
+
+.next-btn,
+.start-btn {
+  display: inline-block;
+  margin-top: 1rem;
+}
+
+.next-btn {
+  padding: 0.75rem 1.5rem;
+  background: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.next-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.progress {
+  /* legacy class from previous template */
 }
