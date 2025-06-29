@@ -42,15 +42,15 @@ interface Verse {
             <ng-container *ngFor="let group of verseGroups; let i = index">
               <div
                 class="group-bubble"
-                [class.completed]="i < currentGroupIndex"
-                [class.current]="i === currentGroupIndex"
+                [class.completed]="isGroupCompleted(i)"
+                [class.current]="isGroupActive(i)"
               >
                 <div class="verse-numbers">
                   <div *ngFor="let verse of group" class="verse-number">
                     {{ verse.verse }}
                   </div>
                 </div>
-                <div class="stage-dots" *ngIf="i === currentGroupIndex">
+                <div class="stage-dots" *ngIf="isGroupActive(i) && !review">
                   <div
                     class="stage-dot"
                     [class.completed]="currentStage > 0"
@@ -469,6 +469,20 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
       return this.getInitials(v.text);
     }
     return '• • •';
+  }
+
+  isGroupActive(index: number): boolean {
+    if (!this.review) {
+      return index === this.currentGroupIndex;
+    }
+    const currentVerses =
+      this.reviewStages[this.currentReviewStage][this.reviewIndex];
+    const codes = new Set(currentVerses.map((v) => v.code));
+    return this.verseGroups[index].some((v) => codes.has(v.code));
+  }
+
+  isGroupCompleted(index: number): boolean {
+    return index < this.currentGroupIndex;
   }
 
   async toggleRecording() {
