@@ -150,20 +150,27 @@
 
   <!-- Practice Area -->
   <div class="practice-area" *ngIf="isPracticing && currentGroup">
+    <div class="group-progress">
+      Set {{ currentGroupIndex + 1 }} of {{ groups.length }}
+    </div>
     <div class="stage-progress">
-      <div class="stage-item" [class.active]="currentGroup.currentStage === 'full'">Read</div>
-      <div class="stage-item" [class.active]="currentGroup.currentStage === 'initials'">FLOW</div>
-      <div class="stage-item" [class.active]="currentGroup.currentStage === 'memory'">Recite</div>
+      <div
+        class="stage-item"
+        *ngFor="let stage of currentGroup.stages; let idx = index"
+        [class.active]="currentGroup.stageIndex === idx"
+      >
+        {{ stage === 'full' ? 'Read' : stage === 'initials' ? 'FLOW' : 'Recite' }}
+      </div>
     </div>
     <div class="verse-display">
       <div class="verse-reference">{{ getCurrentGroupReference() }}</div>
-      <div *ngIf="currentGroup.currentStage === 'full'">
+      <div *ngIf="currentGroup.stages[currentGroup.stageIndex] === 'full'">
         <p *ngFor="let v of currentGroup.verses">{{ v.text }}</p>
       </div>
-      <div *ngIf="currentGroup.currentStage === 'initials'">
+      <div *ngIf="currentGroup.stages[currentGroup.stageIndex] === 'initials'">
         <p *ngFor="let v of currentGroup.verses">{{ v.firstLetters }}</p>
       </div>
-      <div *ngIf="currentGroup.currentStage === 'memory'" class="memory-stage">
+      <div *ngIf="currentGroup.stages[currentGroup.stageIndex] === 'memory'" class="memory-stage">
         <p class="memory-prompt">Recite from memory</p>
       </div>
     </div>

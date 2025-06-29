@@ -29,7 +29,8 @@ type PracticeStage = 'full' | 'initials' | 'memory';
 
 interface VerseGroup {
   verses: FlowVerse[];
-  currentStage: PracticeStage;
+  stages: PracticeStage[];
+  stageIndex: number;
   confidence: number;
   audioBlob?: Blob;
   audioUrl?: string;
@@ -55,6 +56,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   versesPerGroup = 2;
   groups: VerseGroup[] = [];
   currentGroupIndex = 0;
+  practiceLevel = 0;
   isPracticing = false;
   canRecord = false;
   isRecording = false;
@@ -464,23 +466,49 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   async startPractice() {
     this.showSettings = false;
-    this.createGroups();
+    this.practiceLevel = 0;
+    this.groups = this.buildInitialGroups();
+    this.currentGroupIndex = 0;
     if (this.groups.length > 0) {
       this.isPracticing = true;
     }
   }
 
-  createGroups() {
-    this.groups = [];
+  buildInitialGroups(): VerseGroup[] {
+    const res: VerseGroup[] = [];
     for (let i = 0; i < this.verses.length; i += this.versesPerGroup) {
       const slice = this.verses.slice(i, i + this.versesPerGroup);
-      this.groups.push({ verses: slice, currentStage: 'full', confidence: 50 });
+      res.push({
+        verses: slice,
+        stages: ['full', 'initials', 'memory'],
+        stageIndex: 0,
+        confidence: 50,
+      });
     }
-    this.currentGroupIndex = 0;
+    return res;
   }
 
   get currentGroup(): VerseGroup | null {
     return this.groups[this.currentGroupIndex] || null;
+  }
+
+  pairGroups(groups: VerseGroup[]): VerseGroup[] {
+    const result: VerseGroup[] = [];
+    for (let i = 0; i < groups.length; i += 2) {
+      const first = groups[i];
+      const second = groups[i + 1];
+      const verses = [...first.verses];
+      if (second) {
+        verses.push(...second.verses);
+      }
+      result.push({
+        verses,
+        stages: ['memory'],
+        stageIndex: 0,
+        confidence: 50,
+      });
+    }
+    return result;
   }
 
   getCurrentGroupReference(): string {
@@ -504,12 +532,11 @@ export class FlowComponent implements OnInit, OnDestroy {
     const group = this.currentGroup;
     if (!group) return;
 
-    if (group.currentStage === 'full') {
-      group.currentStage = 'initials';
-    } else if (group.currentStage === 'initials') {
-      group.currentStage = 'memory';
+    if (group.stageIndex < group.stages.length - 1) {
+      group.stageIndex++;
     } else {
       this.finishGroup();
+      return;
     }
   }
 
@@ -517,10 +544,8 @@ export class FlowComponent implements OnInit, OnDestroy {
     const group = this.currentGroup;
     if (!group) return;
 
-    if (group.currentStage === 'initials') {
-      group.currentStage = 'full';
-    } else if (group.currentStage === 'memory') {
-      group.currentStage = 'initials';
+    if (group.stageIndex > 0) {
+      group.stageIndex--;
     } else if (this.currentGroupIndex > 0) {
       this.currentGroupIndex--;
     }
@@ -529,22 +554,28 @@ export class FlowComponent implements OnInit, OnDestroy {
   getNextButtonText(): string {
     const group = this.currentGroup;
     if (!group) return 'Next';
-
-    switch (group.currentStage) {
-      case 'full':
-        return 'Continue to FLOW';
-      case 'initials':
-        return 'Continue to Recite';
-      case 'memory':
-        return 'Next Group';
-      default:
-        return 'Next';
+    const stage = group.stages[group.stageIndex];
+    if (group.stageIndex < group.stages.length - 1) {
+      return stage === 'full'
+        ? 'Continue to FLOW'
+        : 'Continue to Recite';
     }
+    if (this.currentGroupIndex < this.groups.length - 1) {
+      return 'Next Group';
+    }
+    return this.groups.length > 1 ? 'Next Set' : 'Finish';
   }
 
   finishGroup() {
     if (this.currentGroupIndex < this.groups.length - 1) {
       this.currentGroupIndex++;
+      return;
+    }
+
+    if (this.groups.length > 1) {
+      this.practiceLevel++;
+      this.groups = this.pairGroups(this.groups);
+      this.currentGroupIndex = 0;
     } else {
       this.completePractice();
     }
