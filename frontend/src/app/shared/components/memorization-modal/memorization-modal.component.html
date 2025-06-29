@@ -1,0 +1,247 @@
+<!-- frontend/src/app/shared/components/memorization-modal/memorization-modal.component.html -->
+<div class="memorization-modal-overlay" *ngIf="visible">
+  <div class="memorization-modal-container" @fadeIn>
+    <!-- Exit Button -->
+    <button class="exit-btn" (click)="confirmExit()">×</button>
+
+    <div class="modal-header">
+      <div class="header-row">
+        <h2>{{ chapterName }}</h2>
+        <div class="progress-info">
+          <span class="progress-text">{{ progressPercentage }}% Complete</span>
+        </div>
+      </div>
+
+      <div class="verse-bubbles-wrapper">
+        <div class="verse-bubbles-container" #verseBubblesContainer>
+          <div class="verse-bubbles" [class.has-border]="hasActiveBorder">
+            <div class="active-border" *ngIf="hasActiveBorder" [style.left.px]="borderLeft" [style.width.px]="borderWidth"></div>
+            <ng-container *ngFor="let group of getOriginalGroups(); let i = index">
+              <div
+                class="group-bubble"
+                [class.completed]="isGroupCompleted(i)"
+                [class.current]="isGroupActive(i)"
+              >
+                <div class="verse-numbers">
+                  <div *ngFor="let verse of group" class="verse-number">
+                    {{ verse.verse }}
+                  </div>
+                </div>
+                <div class="stage-dots" *ngIf="isGroupActive(i) && currentStage?.stageType === 'individual' && !setup">
+                  <div
+                    class="stage-dot"
+                    [class.completed]="currentStepIndex > 0"
+                  ></div>
+                  <div
+                    class="stage-dot"
+                    [class.completed]="currentStepIndex > 1"
+                    [class.active]="currentStepIndex === 1"
+                  ></div>
+                  <div
+                    class="stage-dot"
+                    [class.active]="currentStepIndex === 2"
+                  ></div>
+                </div>
+                <span class="check-icon" *ngIf="isGroupCompleted(i) && currentStageIndex > 0">✓</span>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-bar">
+        <div
+          class="progress-inner"
+          [style.width.%]="progressPercentage"
+        ></div>
+        <div class="progress-markers">
+          <div
+            *ngFor="let marker of progressMarkers"
+            class="marker"
+            [class.star-marker]="marker.type === 'star'"
+            [class.flag-marker]="marker.type === 'flag'"
+            [style.left.%]="marker.position"
+          >
+            <div *ngIf="marker.type === 'star'" class="star-container">
+              <!-- Star popup -->
+              <div 
+                *ngIf="starPopup && starPopup.starId === marker.id" 
+                class="star-popup"
+                [@popupSlide]="starPopup.show ? 'show' : 'hide'"
+              >
+                <span class="popup-icon">🌟</span>
+                <span class="popup-text">Group {{ starPopup.groupNumber }} Complete!</span>
+              </div>
+              
+              <svg 
+                class="star-outline" 
+                width="20" 
+                height="20" 
+                viewBox="0 0 24 24" 
+                fill="none"
+              >
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" 
+                      stroke="#9ca3af" 
+                      stroke-width="2" 
+                      stroke-linejoin="round"/>
+              </svg>
+              <svg 
+                *ngIf="marker.completed"
+                class="star-filled" 
+                width="20" 
+                height="20" 
+                viewBox="0 0 24 24" 
+                fill="#fbbf24"
+                @starFill
+              >
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+            </div>
+            <div *ngIf="marker.type === 'flag'" class="flag-container">
+              <div 
+                class="flag"
+                [class.completed]="marker.completed"
+                *ngIf="marker.completed"
+                @flagRaise
+              >
+                🚩
+              </div>
+              <div class="flag-pole" [class.completed]="marker.completed"></div>
+              <span class="flag-label">{{ marker.label }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-content">
+      <!-- Setup Stage -->
+      <ng-container *ngIf="setup">
+        <div class="setup" @slideUp>
+          <div class="setup-header">
+            <h2>Let's Start Memorizing!</h2>
+            <p class="setup-subtitle">Choose how many verses you'd like to practice at once</p>
+          </div>
+          
+          <div class="group-selector">
+            <div 
+              class="group-option" 
+              *ngFor="let s of [1, 2, 3]"
+              (click)="setGroupSize(s)"
+              [class.active]="groupSize === s"
+            >
+              <div class="option-icon">
+                <span class="verse-count">{{ s }}</span>
+              </div>
+              <div class="option-label">
+                {{ s === 1 ? 'One at a time' : s === 2 ? 'Pairs' : 'Triplets' }}
+              </div>
+              <div class="option-description">
+                {{ s === 1 ? 'Best for beginners' : s === 2 ? 'Recommended' : 'Challenge mode' }}
+              </div>
+            </div>
+          </div>
+
+          <div class="setup-preview">
+            <p>You'll practice {{ getGroupCount() }} groups of verses</p>
+            <p class="time-estimate">Estimated time: {{ estimatedTime }} minutes</p>
+          </div>
+
+          <button class="start-btn" (click)="start()">
+            <span>Begin Memorization</span>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>
+            </svg>
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- Practice Stage -->
+      <ng-container *ngIf="!setup && !promptSave && currentStage">
+        <div class="practice-wrapper">
+          <div class="practice-header">
+            <div class="stage-indicators" @slideUp>
+              <div
+                class="stage"
+                *ngFor="let s of stageNames; let i = index"
+              >
+                <div
+                  class="stage-circle"
+                  [class.active]="currentStepIndex === i"
+                  [class.completed]="currentStepIndex > i"
+                >
+                  <span *ngIf="currentStepIndex <= i">{{ getStageChar(s) }}</span>
+                  <svg *ngIf="currentStepIndex > i" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <span class="stage-label">{{ s }}</span>
+              </div>
+            </div>
+
+            <p class="group-progress">{{ progressDetail }}</p>
+            <p class="instructions">{{ currentInstruction }}</p>
+          </div>
+
+          <div class="verse-display">
+            <div
+              class="verse-block"
+              *ngFor="let v of currentVerses; let idx = index"
+              @slideUp
+            >
+              <p class="verse-ref">{{ v.reference }}</p>
+              <p class="verse-text" [class.memory-mode]="currentStepIndex === 2">{{ getVerseDisplay(v) }}</p>
+            </div>
+          </div>
+
+          <div class="nav-buttons">
+            <button class="prev-btn" (click)="prev()" [disabled]="!canGoBack">
+              Previous
+            </button>
+            <button class="next-btn" (click)="next()">Next</button>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Save Prompt -->
+      <ng-container *ngIf="promptSave">
+        <div class="completion-message" @celebration>
+          <div class="celebration-icon">🎉</div>
+          <h3>Incredible Achievement!</h3>
+          <p>You've successfully memorized {{ chapterName }}!</p>
+          <div class="completion-stats">
+            <div class="stat">
+              <span class="stat-value">{{ verses.length }}</span>
+              <span class="stat-label">Verses</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ allStages.length }}</span>
+              <span class="stat-label">Stages</span>
+            </div>
+          </div>
+          <p class="save-prompt">Would you like to mark this chapter as memorized?</p>
+          <div class="completion-buttons">
+            <button class="secondary-btn" (click)="complete(false)">
+              Practice More
+            </button>
+            <button class="primary-btn" (click)="complete(true)">
+              Save &amp; Celebrate!
+            </button>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- Exit Confirmation Modal -->
+    <div class="confirm-modal-overlay" *ngIf="showExitConfirm" (click)="cancelExit()">
+      <div class="confirm-modal" (click)="$event.stopPropagation()" @slideUp>
+        <h3>Exit Practice?</h3>
+        <p>Your progress will be lost if you exit now.</p>
+        <div class="confirm-buttons">
+          <button class="secondary-btn" (click)="cancelExit()">Keep Practicing</button>
+          <button class="danger-btn" (click)="confirmExitAction()">Exit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
