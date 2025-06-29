@@ -162,6 +162,26 @@
     <div class="action-buttons">
       <button
         class="btn btn-primary"
+        (click)="startMemorization()"
+        [disabled]="isSaving || verses.length === 0"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v8m4-4H8"
+          />
+        </svg>
+        Start Memorization
+      </button>
+      <button
+        class="btn btn-primary"
         (click)="saveProgress()"
         [disabled]="isSaving"
       >
@@ -223,3 +243,12 @@
     </div>
   </div>
 </div>
+
+<app-memorization-modal
+  *ngIf="showMemorization"
+  [verses]="versesForModal"
+  [chapterId]="modalBookId"
+  [chapterName]="modalChapterName"
+  [verseCount]="verses.length"
+  (completed)="onMemorizationCompleted()"
+></app-memorization-modal>
