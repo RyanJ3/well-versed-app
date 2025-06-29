@@ -1,0 +1,82 @@
+<div class="modal-backdrop" *ngIf="show" (click)="onClose()"></div>
+<div class="modal-container" *ngIf="show">
+  <div class="modal-content">
+    <button class="modal-close" (click)="onClose()">&times;</button>
+
+    <div *ngIf="verses.length > 0" class="layout-controls">
+      <div class="button-group">
+        <button
+          class="layout-button"
+          [class.active]="layoutMode === 'grid'"
+          (click)="toggleLayout()"
+        >
+          Grid
+        </button>
+        <button
+          class="layout-button"
+          [class.active]="layoutMode === 'single'"
+          (click)="toggleLayout()"
+        >
+          Single
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="verses.length > 0" class="display-options">
+      <label class="checkbox-option">
+        <input type="checkbox" [(ngModel)]="showVerseText" />
+        Show full verse text
+      </label>
+      <label class="checkbox-option">
+        <input type="checkbox" [(ngModel)]="highlightFifthVerse" />
+        Highlight 5th verses
+      </label>
+    </div>
+
+    <div *ngIf="verses.length > 0 && layoutMode === 'grid'" class="grid-view">
+      <div class="custom-grid">
+        <div class="grid-row" *ngFor="let row of gridRows">
+          <div *ngFor="let verse of row" [class]="getVerseClass(verse)">
+            <ng-container *ngIf="verse">
+              <div class="verse-reference">{{ verse.reference }}</div>
+              <div class="first-letters" *ngIf="verse.firstLetters">
+                {{ verse.firstLetters }}
+              </div>
+              <div class="verse-text" *ngIf="showVerseText">{{ verse.text }}</div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="verses.length > 0 && layoutMode === 'single'" class="single-view">
+      <div *ngFor="let verse of verses" [class]="getVerseClass(verse)">
+        <div class="verse-reference">{{ verse.reference }}</div>
+        <div class="first-letters">{{ verse.firstLetters }}</div>
+        <div class="verse-text" *ngIf="showVerseText">{{ verse.text }}</div>
+      </div>
+    </div>
+
+    <div *ngIf="verses.length > 0" class="confidence-section">
+      <h3>Confidence Level</h3>
+      <div class="slider-container">
+        <span class="slider-label">0%</span>
+        <input
+          type="range"
+          class="confidence-slider"
+          [(ngModel)]="confidenceLevel"
+          min="0"
+          max="100"
+          step="1"
+        />
+        <span class="slider-label">100%</span>
+      </div>
+      <div class="confidence-value">
+        Current confidence: <strong>{{ confidenceLevel }}%</strong>
+      </div>
+      <div class="action-buttons">
+        <button class="btn btn-primary" (click)="onComplete()">Done</button>
+      </div>
+    </div>
+  </div>
+</div>

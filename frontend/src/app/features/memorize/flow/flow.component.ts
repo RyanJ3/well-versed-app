@@ -1,12 +1,12 @@
 // frontend/src/app/features/memorize/flow/flow.component.ts
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import {
   VersePickerComponent,
   VerseSelection,
 } from '../../../shared/components/verse-range-picker/verse-range-picker.component';
+import { PracticeModalComponent } from '../../shared/components/practice-modal/practice-modal.component';
 import { BibleService } from '../../../core/services/bible.service';
 import { UserService } from '../../../core/services/user.service';
 import { User } from '../../../core/models/user';
@@ -28,29 +28,22 @@ interface FlowVerse {
 @Component({
   selector: 'app-flow',
   standalone: true,
-  imports: [CommonModule, FormsModule, VersePickerComponent],
+  imports: [CommonModule, VersePickerComponent, PracticeModalComponent],
   templateUrl: './flow.component.html',
   styleUrls: ['./flow.component.scss'],
 })
 export class FlowComponent implements OnInit, OnDestroy {
-  // View state
-  layoutMode: 'grid' | 'single' = 'grid';
-  showVerseText = false;
-  highlightFifthVerse = true;
-  showSavedMessage = false;
   warningMessage: string | null = null;
 
   // Data
   verses: FlowVerse[] = [];
   currentSelection: VerseSelection | null = null;
   initialSelection: VerseSelection | null = null;
-  confidenceLevel = 50;
   isLoading = false;
-  isSaving = false;
   userId = 1;
 
-  // Grid rows for manual grid
-  gridRows: FlowVerse[][] = [];
+  // Modal state
+  showPracticeModal = false;
 
   // Add property for selected book
   selectedBook: any = null;
@@ -64,6 +57,7 @@ export class FlowComponent implements OnInit, OnDestroy {
     private bibleService: BibleService,
     private userService: UserService,
     private route: ActivatedRoute,
+    private router: Router,
   ) {}
 
   ngOnInit() {
@@ -199,8 +193,8 @@ export class FlowComponent implements OnInit, OnDestroy {
       // Update memorization status from user data
       this.updateMemorizationStatus();
 
-      // Prepare grid data
-      this.prepareGridRows();
+      // Open practice modal when verses are ready
+      this.showPracticeModal = true;
     } catch (error: any) {
       // Check if error is due to cancellation
       if (error?.name === 'EmptyError') {
@@ -242,147 +236,6 @@ export class FlowComponent implements OnInit, OnDestroy {
       .join(' ');
   }
 
-  prepareGridRows() {
-    this.gridRows = [];
-    if (this.layoutMode === 'grid') {
-      // Group verses into rows of 5
-      for (let i = 0; i < this.verses.length; i += 5) {
-        const row = [];
-        for (let j = 0; j < 5; j++) {
-          row.push(this.verses[i + j] || null);
-        }
-        this.gridRows.push(row);
-      }
-    }
-  }
-
-  toggleLayout() {
-    this.layoutMode = this.layoutMode === 'grid' ? 'single' : 'grid';
-    this.prepareGridRows();
-  }
-
-  async saveProgress() {
-    if (!this.verses.length || !this.selectedBook) return;
-
-    this.isSaving = true;
-
-    try {
-      // Convert confidence to practice count (percentage/10)
-      const practiceCount = Math.ceil(this.confidenceLevel / 10);
-
-      // Use bulk save for better performance
-      const verseCodes = this.verses.map((v) => v.verseCode);
-      const bookId = this.selectedBook.id;
-
-      // Group by chapter for bulk operations
-      const chapterGroups: Map<number, number[]> = new Map();
-
-      verseCodes.forEach((code) => {
-        const [_, chapter, verse] = code.split('-').map(Number);
-        if (!chapterGroups.has(chapter)) {
-          chapterGroups.set(chapter, []);
-        }
-        chapterGroups.get(chapter)!.push(verse);
-      });
-
-      // Save each chapter as a batch
-      const savePromises = Array.from(chapterGroups.entries()).map(
-        ([chapter, verses]) => {
-          // If it's a full chapter, use chapter save endpoint
-          const chapterData = this.selectedBook.chapters[chapter - 1];
-          if (verses.length === chapterData.verses.length) {
-            return this.bibleService
-              .saveChapter(this.userId, bookId, chapter)
-              .toPromise();
-          } else {
-            // Otherwise save individual verses
-            return Promise.all(
-              verses.map((verse) =>
-                this.bibleService
-                  .saveVerse(this.userId, bookId, chapter, verse, practiceCount)
-                  .toPromise(),
-              ),
-            );
-          }
-        },
-      );
-
-      await Promise.all(savePromises);
-
-      // Update memorization status
-      this.verses.forEach((verse) => {
-        verse.isMemorized = true;
-      });
-
-      // Show saved message
-      this.showSavedMessage = true;
-      setTimeout(() => {
-        this.showSavedMessage = false;
-      }, 3000);
-    } catch (error) {
-      console.error('Error saving progress:', error);
-    } finally {
-      this.isSaving = false;
-    }
-  }
-
-  clearProgress() {
-    if (!this.verses.length || !this.selectedBook) return;
-
-    this.isSaving = true;
-
-    try {
-      const bookId = this.selectedBook.id;
-
-      // Group by chapter for bulk operations
-      const chapterGroups: Map<number, number[]> = new Map();
-
-      this.verses.forEach((verse) => {
-        const [_, chapter, verseNum] = verse.verseCode.split('-').map(Number);
-        if (!chapterGroups.has(chapter)) {
-          chapterGroups.set(chapter, []);
-        }
-        chapterGroups.get(chapter)!.push(verseNum);
-      });
-
-      // Clear each chapter as a batch
-      const clearPromises = Array.from(chapterGroups.entries()).map(
-        ([chapter, verses]) => {
-          // If it's a full chapter, use chapter clear endpoint
-          const chapterData = this.selectedBook.chapters[chapter - 1];
-          if (verses.length === chapterData.verses.length) {
-            return this.bibleService
-              .clearChapter(this.userId, bookId, chapter)
-              .toPromise();
-          } else {
-            // Otherwise clear individual verses
-            return Promise.all(
-              verses.map((verse) =>
-                this.bibleService
-                  .deleteVerse(this.userId, bookId, chapter, verse)
-                  .toPromise(),
-              ),
-            );
-          }
-        },
-      );
-
-      Promise.all(clearPromises).then(() => {
-        // Update memorization status
-        this.verses.forEach((verse) => {
-          verse.isMemorized = false;
-        });
-
-        // Reset confidence
-        this.confidenceLevel = 50;
-
-        this.isSaving = false;
-      });
-    } catch (error) {
-      console.error('Error clearing progress:', error);
-      this.isSaving = false;
-    }
-  }
 
   // Helper methods
   private getVerseReference(
@@ -417,20 +270,33 @@ export class FlowComponent implements OnInit, OnDestroy {
         this.verses.forEach((verse) => {
           verse.isMemorized = memorizedSet.has(verse.verseCode);
         });
-
-        // Update grid data after status change
-        this.prepareGridRows();
       });
   }
 
-  getVerseClass(verse: FlowVerse | null): string {
-    if (!verse) return 'empty-cell';
-
-    const classes = ['verse-cell'];
-    if (verse.isFifth && this.highlightFifthVerse) {
-      classes.push('fifth-verse');
-    }
-    // Removed memorized class to keep cells white
-    return classes.join(' ');
+  onPracticeClosed() {
+    this.showPracticeModal = false;
   }
+
+  onPracticeCompleted() {
+    if (!this.selectedBook || !this.currentSelection?.startVerse) {
+      this.showPracticeModal = false;
+      return;
+    }
+
+    const chapter = this.currentSelection.startVerse.chapter;
+    const bookId = this.selectedBook.id;
+
+    this.bibleService.saveChapter(this.userId, bookId, chapter).subscribe({
+      next: () => {
+        this.showPracticeModal = false;
+        this.router.navigate(['/user']);
+      },
+      error: () => {
+        this.showPracticeModal = false;
+        this.router.navigate(['/user']);
+      },
+    });
+  }
+
+  // No visual helpers needed here; handled in modal
 }
