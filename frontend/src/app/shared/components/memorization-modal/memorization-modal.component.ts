@@ -5,6 +5,8 @@ import {
   EventEmitter,
   OnInit,
   OnDestroy,
+  AfterViewChecked,
+  HostListener,
   ViewChild,
   ElementRef,
 } from '@angular/core';
@@ -13,6 +15,7 @@ import { Router } from '@angular/router';
 import { BibleService } from '../../../core/services/bible.service';
 import { UserService } from '../../../core/services/user.service';
 import { Subject, takeUntil } from 'rxjs';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 
 interface Verse {
   code: string;
@@ -23,236 +26,112 @@ interface Verse {
   verse: number;
 }
 
+interface ReviewStage {
+  groups: Verse[][];
+  stageType: 'individual' | 'review' | 'final';
+  stageLevel: number; // 0 for individual, 1+ for review levels
+}
+
+interface ProgressMarker {
+  position: number;
+  type: 'star' | 'flag';
+  completed: boolean;
+  id: string;
+  label?: string;
+}
+
+interface StarPopup {
+  starId: string;
+  groupNumber: number;
+  show: boolean;
+}
+
 @Component({
   selector: 'app-memorization-modal',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="memorization-modal-overlay" *ngIf="visible">
-      <div class="memorization-modal-container">
-        <div class="modal-header">
-          <div class="header-row">
-            <h2>{{ chapterName }}</h2>
-            <span class="progress-text"
-              >{{ progressPercentage }}% Complete</span
-            >
-          </div>
-
-          <div class="verse-bubbles">
-            <ng-container *ngFor="let group of verseGroups; let i = index">
-              <div
-                class="group-bubble"
-                [class.completed]="isGroupCompleted(i)"
-                [class.current]="isGroupActive(i)"
-              >
-                <div class="verse-numbers">
-                  <div *ngFor="let verse of group" class="verse-number">
-                    {{ verse.verse }}
-                  </div>
-                </div>
-                <div class="stage-dots" *ngIf="isGroupActive(i) && !review">
-                  <div
-                    class="stage-dot"
-                    [class.completed]="currentStage > 0"
-                  ></div>
-                  <div
-                    class="stage-dot"
-                    [class.completed]="currentStage > 1"
-                    [class.active]="currentStage === 1"
-                  ></div>
-                  <div
-                    class="stage-dot"
-                    [class.active]="currentStage === 2"
-                  ></div>
-                </div>
-                <span class="check-icon" *ngIf="i < currentGroupIndex">✓</span>
-              </div>
-            </ng-container>
-          </div>
-
-          <div class="progress-bar">
-            <div
-              class="progress-inner"
-              [style.width.%]="progressPercentage"
-            ></div>
-            <div class="stage-markers">
-              <div
-                class="marker"
-                *ngFor="let m of stageMarkers"
-                [style.left.%]="m.position"
-              >
-                <div
-                  class="marker-dot"
-                  [class.completed]="m.completed"
-                  [class.current]="m.current"
-                ></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-content">
-          <!-- Setup Stage -->
-          <ng-container *ngIf="setup">
-            <div class="setup">
-              <h2>Memorization Setup</h2>
-              <p>Select how many verses to practice at once</p>
-              <div class="group-selector">
-                <button
-                  *ngFor="let s of [1, 2, 3]"
-                  (click)="setGroupSize(s)"
-                  [class.active]="groupSize === s"
-                >
-                  {{ s }}
-                </button>
-              </div>
-              <button class="start-btn" (click)="start()">Start</button>
-            </div>
-          </ng-container>
-
-          <!-- Practice Stage -->
-          <ng-container *ngIf="!setup && !review">
-            <div class="stage-indicators">
-              <div
-                class="stage"
-                *ngFor="let s of ['Read', 'Flow', 'Memory']; let i = index"
-              >
-                <div
-                  class="stage-circle"
-                  [class.active]="currentStage === i"
-                  [class.completed]="currentStage > i"
-                >
-                  {{ s.charAt(0) }}
-                </div>
-                <span class="stage-label">{{ s }}</span>
-              </div>
-            </div>
-
-            <p class="group-progress">{{ progressDetail }}</p>
-            <p class="instructions">{{ currentInstruction }}</p>
-
-            <div class="verse-display">
-              <div
-                class="verse-block"
-                *ngFor="
-                  let v of verseGroups[currentGroupIndex];
-                  let idx = index
-                "
-              >
-                <p class="verse-ref">{{ v.reference }}</p>
-                <p class="verse-text">{{ getVerseDisplay(v) }}</p>
-              </div>
-            </div>
-
-            <div class="recording-section">
-              <button
-                class="record-btn"
-                (click)="toggleRecording()"
-                [class.recording]="isRecording"
-              >
-                {{
-                  isRecording ? 'Stop' : currentAudio ? 'Re-record' : 'Record'
-                }}
-              </button>
-              <button
-                *ngIf="currentAudio"
-                class="play-btn"
-                (click)="playAudio()"
-              >
-                Play
-              </button>
-            </div>
-
-            <div class="nav-buttons">
-              <button class="prev-btn" (click)="prev()" [disabled]="!canGoBack">
-                Previous
-              </button>
-              <button class="next-btn" (click)="next()">Next</button>
-            </div>
-          </ng-container>
-
-          <!-- Review Stage -->
-          <ng-container *ngIf="review">
-            <p class="group-progress">{{ progressDetail }}</p>
-            <p class="instructions">
-              Review {{ reviewIndex + 1 }} /
-              {{ reviewStages[currentReviewStage].length }}
-            </p>
-            <div class="verse-display">
-              <div
-                class="verse-block"
-                *ngFor="let v of reviewStages[currentReviewStage][reviewIndex]"
-              >
-                <p class="verse-ref">{{ v.reference }}</p>
-                <p class="verse-text">{{ v.text }}</p>
-              </div>
-            </div>
-            <div class="nav-buttons">
-              <button class="prev-btn" (click)="prev()" [disabled]="!canGoBack">
-                Previous
-              </button>
-              <button class="next-btn" (click)="nextReview()">Next</button>
-            </div>
-          </ng-container>
-
-          <!-- Save Prompt -->
-          <ng-container *ngIf="promptSave">
-            <div class="completion-message">
-              <h3>Great job!</h3>
-              <p>Would you like to mark this chapter as memorized?</p>
-              <div class="nav-buttons">
-                <button class="prev-btn" (click)="complete(false)">
-                  Not Yet
-                </button>
-                <button class="next-btn" (click)="complete(true)">
-                  Save & Finish
-                </button>
-              </div>
-            </div>
-          </ng-container>
-        </div>
-
-        <audio #player [src]="currentAudio" class="hidden"></audio>
-      </div>
-    </div>
-  `,
+  animations: [
+    trigger('fadeIn', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'scale(0.9)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'scale(1)' }))
+      ])
+    ]),
+    trigger('slideUp', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(20px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ]),
+    trigger('celebration', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'scale(0)' }),
+        animate('500ms cubic-bezier(0.68, -0.55, 0.265, 1.55)', 
+          style({ opacity: 1, transform: 'scale(1)' }))
+      ])
+    ]),
+    trigger('starFill', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'scale(0) rotate(180deg)' }),
+        animate('400ms cubic-bezier(0.68, -0.55, 0.265, 1.55)', 
+          style({ opacity: 1, transform: 'scale(1) rotate(0deg)' }))
+      ])
+    ]),
+    trigger('flagRaise', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(10px)' }),
+        animate('500ms cubic-bezier(0.68, -0.55, 0.265, 1.55)', 
+          style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ]),
+    trigger('popupSlide', [
+      state('show', style({
+        opacity: 1,
+        transform: 'translateY(0)'
+      })),
+      state('hide', style({
+        opacity: 0,
+        transform: 'translateY(10px)'
+      })),
+      transition('hide => show', animate('300ms ease-out')),
+      transition('show => hide', animate('200ms ease-in'))
+    ])
+  ],
+  templateUrl: './memorization-modal.component.html',
   styleUrls: ['./memorization-modal.component.scss'],
 })
-export class MemorizationModalComponent implements OnInit, OnDestroy {
+export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewChecked {
   @Input() verses: Verse[] = [];
-  @Input() chapterId = 0; // book id
+  @Input() chapterId = 0;
   @Input() chapterName = '';
   @Input() verseCount = 0;
 
   @Output() completed = new EventEmitter<{ memorized: boolean }>();
 
-  @ViewChild('player') player!: ElementRef<HTMLAudioElement>;
+  @ViewChild('verseBubblesContainer') verseBubblesContainer!: ElementRef<HTMLDivElement>;
 
   visible = true;
   setup = true;
   groupSize = 2;
 
-  verseGroups: Verse[][] = [];
-  currentGroupIndex = 0;
-  currentStage = 0;
-
-  isRecording = false;
-  mediaRecorder?: MediaRecorder;
-  audioChunks: Blob[] = [];
-  currentAudio: string | null = null;
-
-  review = false;
-  reviewStages: Verse[][][] = [];
-  currentReviewStage = 0;
-  reviewIndex = 0;
+  // All stages including reviews
+  allStages: ReviewStage[] = [];
+  currentStageIndex = 0;
+  currentSubStageIndex = 0;
+  currentStepIndex = 0; // 0: Read, 1: Flow, 2: Memory
 
   promptSave = false;
-
   completedSteps = 0;
   totalSteps = 0;
 
-  /** Information about each stage used for progress markers */
-  stageInfos: { subSteps: number }[] = [];
+  showExitConfirm = false;
+
+  borderLeft = 0;
+  borderWidth = 0;
+  hasActiveBorder = false;
+
+  progressMarkers: ProgressMarker[] = [];
+  starPopup: StarPopup | null = null;
 
   private destroy$ = new Subject<void>();
   private userId = 1;
@@ -263,52 +142,63 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
       : 0;
   }
 
-  get progressDetail(): string {
-    if (this.setup || this.promptSave) {
-      return '';
-    }
-    if (!this.review) {
-      return `Group ${this.currentGroupIndex + 1} of ${this.verseGroups.length}`;
-    }
-    const step = this.reviewIndex + 1;
-    const total = this.reviewStages[this.currentReviewStage].length;
-    return `Review ${step} / ${total} (Stage ${
-      this.currentReviewStage + 1
-    } of ${this.reviewStages.length})`;
+  get currentStage(): ReviewStage | null {
+    return this.allStages[this.currentStageIndex] || null;
   }
 
-  get stageMarkers() {
-    let acc = 0;
-    return this.stageInfos.map((info) => {
-      const start = acc;
-      const end = acc + info.subSteps;
-      const position = (start / this.totalSteps) * 100;
-      const completed = this.completedSteps >= end;
-      const current = this.completedSteps >= start && this.completedSteps < end;
-      acc = end;
-      return { position, completed, current };
-    });
+  get currentVerses(): Verse[] {
+    if (!this.currentStage) return [];
+    return this.currentStage.groups[this.currentSubStageIndex] || [];
+  }
+
+  get progressDetail(): string {
+    if (this.setup || this.promptSave || !this.currentStage) {
+      return '';
+    }
+    
+    if (this.currentStage.stageType === 'individual') {
+      return `Group ${this.currentSubStageIndex + 1} of ${this.currentStage.groups.length}`;
+    } else if (this.currentStage.stageType === 'review') {
+      return `Review Level ${this.currentStage.stageLevel} - Set ${this.currentSubStageIndex + 1} of ${this.currentStage.groups.length}`;
+    } else {
+      return 'Final Review - All Verses';
+    }
   }
 
   get canGoBack(): boolean {
-    if (this.setup) return false;
-    if (!this.review) {
-      return this.currentStage > 0 || this.currentGroupIndex > 0;
-    }
-    return this.reviewIndex > 0 || this.currentReviewStage > 0;
+    if (this.setup || this.promptSave) return false;
+    return this.completedSteps > 0;
   }
 
   get currentInstruction(): string {
     if (this.promptSave) {
       return '';
     }
-    switch (this.currentStage) {
+    switch (this.currentStepIndex) {
       case 0:
         return 'Read the verses aloud 2-3 times';
       case 1:
-        return 'Read using first letters';
+        return 'Read using only the first letters';
       default:
-        return 'Recite from memory';
+        return 'Recite from memory (dots are placeholders)';
+    }
+  }
+
+  get estimatedTime(): number {
+    const groupCount = Math.ceil(this.verses.length / this.groupSize);
+    return Math.round(groupCount * 3 * 1.5); // 1.5 minutes per stage average
+  }
+
+  get stageNames(): string[] {
+    return ['Read', 'Flow', 'Memory'];
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if (event.key === 'Escape' && !this.setup && !this.promptSave) {
+      this.confirmExit();
+    } else if (event.key === 'Enter' && !this.setup) {
+      this.next();
     }
   }
 
@@ -332,7 +222,99 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    this.stopRecording();
+  }
+
+  ngAfterViewChecked() {
+    this.updateActiveBorder();
+  }
+
+  updateActiveBorder() {
+    if (this.setup || this.promptSave || !this.currentStage) {
+      this.hasActiveBorder = false;
+      return;
+    }
+
+    const activeIndices = this.getActiveGroupIndices();
+    if (activeIndices.length === 0) {
+      this.hasActiveBorder = false;
+      return;
+    }
+
+    setTimeout(() => {
+      const bubbles = document.querySelectorAll('.group-bubble');
+      if (bubbles.length === 0) return;
+
+      const firstIndex = Math.min(...activeIndices);
+      const lastIndex = Math.max(...activeIndices);
+
+      const firstBubble = bubbles[firstIndex] as HTMLElement;
+      const lastBubble = bubbles[lastIndex] as HTMLElement;
+
+      if (firstBubble && lastBubble) {
+        const container = document.querySelector('.verse-bubbles') as HTMLElement;
+        if (container) {
+          const containerRect = container.getBoundingClientRect();
+          const firstRect = firstBubble.getBoundingClientRect();
+          const lastRect = lastBubble.getBoundingClientRect();
+
+          this.borderLeft = firstRect.left - containerRect.left - 8;
+          this.borderWidth = (lastRect.right - firstRect.left) + 16;
+          this.hasActiveBorder = true;
+        }
+      }
+    }, 50);
+  }
+
+  scrollToActiveVerses() {
+    if (!this.verseBubblesContainer) return;
+    
+    setTimeout(() => {
+      const activeIndices = this.getActiveGroupIndices();
+      if (activeIndices.length === 0) return;
+      
+      const bubbles = document.querySelectorAll('.group-bubble');
+      const firstIndex = Math.min(...activeIndices);
+      const firstBubble = bubbles[firstIndex] as HTMLElement;
+      
+      if (firstBubble) {
+        const container = this.verseBubblesContainer.nativeElement;
+        const bubbleLeft = firstBubble.offsetLeft;
+        const bubbleWidth = firstBubble.offsetWidth;
+        const containerWidth = container.offsetWidth;
+        
+        // Center the active bubbles if possible
+        const scrollPosition = bubbleLeft - (containerWidth / 2) + (bubbleWidth / 2);
+        container.scrollTo({ left: Math.max(0, scrollPosition), behavior: 'smooth' });
+      }
+    }, 100);
+  }
+
+  getActiveGroupIndices(): number[] {
+    if (!this.currentStage) return [];
+    
+    const currentVerses = this.currentVerses;
+    const verseCodes = new Set(currentVerses.map(v => v.code));
+    
+    const indices: number[] = [];
+    let groupIndex = 0;
+    
+    for (let i = 0; i < this.verses.length; i += this.groupSize) {
+      const group = this.verses.slice(i, i + this.groupSize);
+      if (group.some(v => verseCodes.has(v.code))) {
+        indices.push(groupIndex);
+      }
+      groupIndex++;
+    }
+    
+    return indices;
+  }
+
+  getOriginalGroups(): Verse[][] {
+    const groups: Verse[][] = [];
+    for (let i = 0; i < this.verses.length; i += this.groupSize) {
+      groups.push(this.verses.slice(i, i + this.groupSize));
+    }
+    return groups;
   }
 
   setGroupSize(size: number) {
@@ -341,94 +323,228 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
 
   start() {
     this.setup = false;
-    this.createGroups();
-    this.stageInfos = this.verseGroups.map(() => ({ subSteps: 3 }));
-    this.totalSteps = this.stageInfos.reduce((sum, s) => sum + s.subSteps, 0);
+    this.buildAllStages();
+    this.buildProgressMarkers();
+    this.currentStageIndex = 0;
+    this.currentSubStageIndex = 0;
+    this.currentStepIndex = 0;
     this.completedSteps = 0;
+    
+    // Scroll to first verses
+    this.scrollToActiveVerses();
   }
 
-  createGroups() {
-    for (let i = 0; i < this.verses.length; i += this.groupSize) {
-      this.verseGroups.push(this.verses.slice(i, i + this.groupSize));
+  buildAllStages() {
+    this.allStages = [];
+    
+    // Individual stages
+    const originalGroups = this.getOriginalGroups();
+    this.allStages.push({
+      groups: originalGroups,
+      stageType: 'individual',
+      stageLevel: 0
+    });
+    
+    // Progressive review stages
+    let currentGroups = [...originalGroups];
+    let reviewLevel = 1;
+    
+    while (currentGroups.length > 1) {
+      const nextGroups: Verse[][] = [];
+      
+      // Pair groups by 2s
+      for (let i = 0; i < currentGroups.length; i += 2) {
+        if (i + 1 < currentGroups.length) {
+          // Combine two groups
+          nextGroups.push([...currentGroups[i], ...currentGroups[i + 1]]);
+        } else {
+          // Odd group remains alone
+          nextGroups.push(currentGroups[i]);
+        }
+      }
+      
+      this.allStages.push({
+        groups: nextGroups,
+        stageType: 'review',
+        stageLevel: reviewLevel
+      });
+      
+      currentGroups = nextGroups;
+      reviewLevel++;
     }
+    
+    // Final review (all verses)
+    this.allStages.push({
+      groups: [this.verses],
+      stageType: 'final',
+      stageLevel: reviewLevel
+    });
+    
+    // Calculate total steps
+    this.totalSteps = 0;
+    for (const stage of this.allStages) {
+      this.totalSteps += stage.groups.length * 3; // 3 steps per group
+    }
+  }
+
+  buildProgressMarkers() {
+    this.progressMarkers = [];
+    let stepCount = 0;
+    
+    for (let stageIdx = 0; stageIdx < this.allStages.length; stageIdx++) {
+      const stage = this.allStages[stageIdx];
+      
+      // Stars for individual groups
+      if (stage.stageType === 'individual') {
+        for (let groupIdx = 0; groupIdx < stage.groups.length; groupIdx++) {
+          stepCount += 3; // 3 steps per group
+          const position = (stepCount / this.totalSteps) * 100;
+          
+          this.progressMarkers.push({
+            position,
+            type: 'star',
+            completed: false,
+            id: `star-${stageIdx}-${groupIdx}`,
+            label: `Group ${groupIdx + 1}`
+          });
+        }
+      } else {
+        // Count steps for review stages
+        stepCount += stage.groups.length * 3;
+      }
+      
+      // Flag at the end of each stage
+      const position = (stepCount / this.totalSteps) * 100;
+      const phaseNumber = stage.stageType === 'individual' ? 1 : stage.stageLevel + 1;
+      
+      this.progressMarkers.push({
+        position,
+        type: 'flag',
+        completed: false,
+        id: `flag-${stageIdx}`,
+        label: stage.stageType === 'final' ? 'Final' : `Phase ${phaseNumber}`
+      });
+    }
+  }
+
+  updateProgressMarkers() {
+    let stepCount = 0;
+    
+    for (let stageIdx = 0; stageIdx < this.allStages.length; stageIdx++) {
+      const stage = this.allStages[stageIdx];
+      
+      if (stage.stageType === 'individual') {
+        for (let groupIdx = 0; groupIdx < stage.groups.length; groupIdx++) {
+          stepCount += 3;
+          
+          // Update stars for individual groups
+          const marker = this.progressMarkers.find(m => m.id === `star-${stageIdx}-${groupIdx}`);
+          if (marker && !marker.completed && this.completedSteps >= stepCount) {
+            // Show popup before marking complete
+            this.showStarPopup(`star-${stageIdx}-${groupIdx}`, groupIdx + 1);
+            setTimeout(() => {
+              marker.completed = true;
+              this.hideStarPopup();
+            }, 1000);
+          }
+        }
+      } else {
+        stepCount += stage.groups.length * 3;
+      }
+      
+      // Update flags for completed stages
+      const flagMarker = this.progressMarkers.find(m => m.id === `flag-${stageIdx}`);
+      if (flagMarker) {
+        flagMarker.completed = this.completedSteps >= stepCount;
+      }
+    }
+  }
+
+  showStarPopup(starId: string, groupNumber: number) {
+    this.starPopup = {
+      starId,
+      groupNumber,
+      show: true
+    };
+  }
+
+  hideStarPopup() {
+    if (this.starPopup) {
+      this.starPopup.show = false;
+      setTimeout(() => {
+        this.starPopup = null;
+      }, 200);
+    }
+  }
+
+  getGroupCount(): number {
+    return Math.ceil(this.verses.length / this.groupSize);
   }
 
   next() {
-    if (this.currentStage < 2) {
-      this.currentStage++;
-      this.completedSteps++;
+    if (!this.currentStage) return;
+    
+    this.completedSteps++;
+    
+    if (this.currentStepIndex < 2) {
+      // Move to next step (Read -> Flow -> Memory)
+      this.currentStepIndex++;
     } else {
-      this.completedSteps++;
-      this.currentStage = 0;
-      this.currentGroupIndex++;
-      this.currentAudio = null;
-      if (this.currentGroupIndex >= this.verseGroups.length) {
-        this.prepareReview();
+      // Completed current group
+      this.currentStepIndex = 0;
+      
+      if (this.currentSubStageIndex < this.currentStage.groups.length - 1) {
+        // Move to next group in current stage
+        this.currentSubStageIndex++;
+        this.scrollToActiveVerses();
+      } else {
+        // Completed current stage
+        this.currentSubStageIndex = 0;
+        this.currentStageIndex++;
+        
+        if (this.currentStageIndex >= this.allStages.length) {
+          // All stages completed
+          this.showSavePrompt();
+        } else {
+          // Scroll back to beginning for review stages
+          if (this.verseBubblesContainer) {
+            this.verseBubblesContainer.nativeElement.scrollTo({ left: 0, behavior: 'smooth' });
+          }
+          this.scrollToActiveVerses();
+        }
       }
     }
+    
+    // Update markers after state change
+    this.updateProgressMarkers();
   }
 
   prev() {
-    if (this.review) {
-      if (this.reviewIndex > 0) {
-        this.reviewIndex--;
-      } else if (this.currentReviewStage > 0) {
-        this.currentReviewStage--;
-        this.reviewIndex =
-          this.reviewStages[this.currentReviewStage].length - 1;
-      }
+    if (this.completedSteps <= 0) return;
+    
+    this.completedSteps--;
+    
+    if (this.currentStepIndex > 0) {
+      this.currentStepIndex--;
     } else {
-      if (this.currentStage > 0) {
-        this.currentStage--;
-      } else if (this.currentGroupIndex > 0) {
-        this.currentGroupIndex--;
-        this.currentStage = 2;
-        this.currentAudio = null;
+      this.currentStepIndex = 2;
+      
+      if (this.currentSubStageIndex > 0) {
+        this.currentSubStageIndex--;
+      } else {
+        // Move to previous stage
+        this.currentStageIndex--;
+        if (this.currentStageIndex >= 0 && this.allStages[this.currentStageIndex]) {
+          this.currentSubStageIndex = this.allStages[this.currentStageIndex].groups.length - 1;
+        }
       }
     }
-    if (this.completedSteps > 0) {
-      this.completedSteps--;
-    }
-  }
-
-  prepareReview() {
-    this.review = true;
-    let groups = this.verseGroups.slice();
-    while (groups.length > 1) {
-      const stage: Verse[][] = [];
-      for (let i = 0; i < groups.length; i += 2) {
-        const pair = groups.slice(i, i + 2).flat();
-        stage.push(pair);
-      }
-      this.reviewStages.push(stage);
-      groups = stage;
-    }
-    if (groups.length === 1) {
-      this.reviewStages.push([groups[0]]);
-    }
-    this.currentReviewStage = 0;
-    this.reviewIndex = 0;
-    this.stageInfos.push(
-      ...this.reviewStages.map((stg) => ({ subSteps: stg.length })),
-    );
-    this.stageInfos.push({ subSteps: 1 });
-    this.totalSteps = this.stageInfos.reduce((sum, s) => sum + s.subSteps, 0);
-  }
-
-  nextReview() {
-    this.reviewIndex++;
-    if (this.reviewIndex >= this.reviewStages[this.currentReviewStage].length) {
-      this.reviewIndex = 0;
-      this.currentReviewStage++;
-    }
-    if (this.currentReviewStage >= this.reviewStages.length) {
-      this.showSavePrompt();
-    }
-    this.completedSteps++;
+    
+    this.scrollToActiveVerses();
+    this.updateProgressMarkers();
   }
 
   showSavePrompt() {
-    this.review = false;
     this.promptSave = true;
   }
 
@@ -447,11 +563,23 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
     } else {
       this.completed.emit({ memorized: false });
     }
-    this.completedSteps = this.totalSteps;
     this.visible = false;
     this.router.navigate(['/profile'], {
       queryParams: { memorized: save },
     });
+  }
+
+  confirmExit() {
+    this.showExitConfirm = true;
+  }
+
+  cancelExit() {
+    this.showExitConfirm = false;
+  }
+
+  confirmExitAction() {
+    this.visible = false;
+    this.completed.emit({ memorized: false });
   }
 
   getInitials(text: string): string {
@@ -462,64 +590,30 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
   }
 
   getVerseDisplay(v: Verse): string {
-    if (this.currentStage === 0) {
+    if (this.currentStepIndex === 0) {
       return v.text;
     }
-    if (this.currentStage === 1) {
+    if (this.currentStepIndex === 1) {
       return this.getInitials(v.text);
     }
-    return '• • •';
+    // Return dots for memory mode
+    const wordCount = v.text.split(' ').length;
+    return Array(Math.min(wordCount, 10)).fill('•').join(' ') + (wordCount > 10 ? '...' : '');
   }
 
-  isGroupActive(index: number): boolean {
-    if (!this.review) {
-      return index === this.currentGroupIndex;
-    }
-    const currentVerses =
-      this.reviewStages[this.currentReviewStage][this.reviewIndex];
-    const codes = new Set(currentVerses.map((v) => v.code));
-    return this.verseGroups[index].some((v) => codes.has(v.code));
+  isGroupActive(originalGroupIndex: number): boolean {
+    const activeIndices = this.getActiveGroupIndices();
+    return activeIndices.includes(originalGroupIndex);
   }
 
-  isGroupCompleted(index: number): boolean {
-    return index < this.currentGroupIndex;
+  isGroupCompleted(originalGroupIndex: number): boolean {
+    if (this.promptSave) return true;
+    if (!this.currentStage || this.currentStage.stageType !== 'individual') return true;
+    if (this.currentStageIndex > 0) return true; // All groups completed in individual stage
+    return originalGroupIndex < this.currentSubStageIndex;
   }
 
-  async toggleRecording() {
-    if (this.isRecording) {
-      this.stopRecording();
-    } else {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
-        this.mediaRecorder = new MediaRecorder(stream);
-        this.audioChunks = [];
-        this.mediaRecorder.ondataavailable = (e) =>
-          this.audioChunks.push(e.data);
-        this.mediaRecorder.onstop = () => {
-          const blob = new Blob(this.audioChunks, { type: 'audio/webm' });
-          this.currentAudio = URL.createObjectURL(blob);
-          stream.getTracks().forEach((t) => t.stop());
-        };
-        this.mediaRecorder.start();
-        this.isRecording = true;
-      } catch (err) {
-        console.error('Recording error', err);
-      }
-    }
-  }
-
-  stopRecording() {
-    if (this.mediaRecorder && this.isRecording) {
-      this.mediaRecorder.stop();
-      this.isRecording = false;
-    }
-  }
-
-  playAudio() {
-    if (this.player) {
-      this.player.nativeElement.play();
-    }
+  getStageChar(stage: string): string {
+    return stage.charAt(0);
   }
 }
