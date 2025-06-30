@@ -11,11 +11,12 @@ import {
   ElementRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BibleService } from '../../../core/services/bible.service';
 import { UserService } from '../../../core/services/user.service';
 import { BibleBook } from '../../../core/models/bible';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, interval } from 'rxjs';
 import { trigger, state, style, transition, animate, keyframes } from '@angular/animations';
 
 interface Verse {
@@ -52,10 +53,15 @@ interface Particle {
   y: string;
 }
 
+interface Settings {
+  fontSize: number;
+  displayMode: 'single' | 'grid';
+}
+
 @Component({
   selector: 'app-memorization-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   animations: [
     trigger('fadeIn', [
       transition(':enter', [
@@ -169,6 +175,32 @@ interface Particle {
           style({ transform: 'scale(1) rotate(0)', opacity: 1, offset: 1 })
         ]))
       ])
+    ]),
+    trigger('fallingStar', [
+      transition(':enter', [
+        animate('500ms cubic-bezier(0.4, 0, 0.2, 1)', keyframes([
+          style({ 
+            transform: 'translate(0, 0) scale(1) rotate(0deg)',
+            opacity: 1,
+            offset: 0 
+          }),
+          style({ 
+            transform: 'translate(calc((var(--end-x) - var(--start-x)) * 0.3), calc((var(--end-y) - var(--start-y)) * 0.2 - 10px)) scale(1.2) rotate(120deg)',
+            opacity: 1,
+            offset: 0.3 
+          }),
+          style({ 
+            transform: 'translate(calc((var(--end-x) - var(--start-x)) * 0.7), calc((var(--end-y) - var(--start-y)) * 0.6)) scale(1.1) rotate(240deg)',
+            opacity: 1,
+            offset: 0.7 
+          }),
+          style({ 
+            transform: 'translate(calc(var(--end-x) - var(--start-x)), calc(var(--end-y) - var(--start-y))) scale(1) rotate(360deg)',
+            opacity: 0,
+            offset: 1 
+          })
+        ]))
+      ])
     ])
   ],
   templateUrl: './memorization-modal.component.html',
@@ -219,6 +251,15 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   // Time tracking
   startTime = 0;
   timeSpent = 0;
+  elapsedTime = '0:00';
+  private timerInterval$?: any;
+
+  // Settings
+  showSettings = false;
+  settings: Settings = {
+    fontSize: 18,
+    displayMode: 'single'
+  };
 
   // UI state
   borderLeft = 0;
@@ -239,6 +280,11 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   isSaving = false;
   saveError = false;
   showSuccessCheck = false;
+
+  // Falling star animation
+  showFallingStar = false;
+  fallingStarStart = { x: '0px', y: '0px' };
+  fallingStarEnd = { x: '0px', y: '0px' };
 
   // Book chapter data
   private bookChapters = 0;
@@ -336,6 +382,9 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
         }
       });
     
+    // Load saved settings
+    this.loadSettings();
+    
     // Parse chapter info and get next chapter
     this.parseChapterInfo();
     this.detectSingleChapterBook();
@@ -345,10 +394,72 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    if (this.timerInterval$) {
+      this.timerInterval$.unsubscribe();
+    }
   }
 
   ngAfterViewChecked() {
     this.updateActiveBorder();
+  }
+
+  private loadSettings() {
+    const saved = localStorage.getItem('memorization-settings');
+    if (saved) {
+      try {
+        this.settings = JSON.parse(saved);
+      } catch (e) {
+        // Use defaults
+      }
+    }
+  }
+
+  saveSettings() {
+    localStorage.setItem('memorization-settings', JSON.stringify(this.settings));
+  }
+
+  toggleSettings() {
+    this.showSettings = !this.showSettings;
+  }
+
+  increaseFontSize() {
+    if (this.settings.fontSize < 28) {
+      this.settings.fontSize += 2;
+      this.saveSettings();
+    }
+  }
+
+  decreaseFontSize() {
+    if (this.settings.fontSize > 12) {
+      this.settings.fontSize -= 2;
+      this.saveSettings();
+    }
+  }
+
+  getGridColumnCount(): number {
+    const count = this.currentVerses.length;
+    if (count === 3) return 3;
+    if (count === 4) return 4;
+    if (count === 5) return 5;
+    return 3; // Default
+  }
+
+  private startTimer() {
+    this.timerInterval$ = interval(1000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        this.elapsedTime = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      });
+  }
+
+  private stopTimer() {
+    if (this.timerInterval$) {
+      this.timerInterval$.unsubscribe();
+      this.timerInterval$ = undefined;
+    }
   }
 
   parseChapterInfo() {
@@ -434,7 +545,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   getStageIcon(stage: string): string {
     switch (stage) {
       case 'Read':
-        return '📖';
+        return '📚';
       case 'Flow':
         return '〰️';
       case 'Memory':
@@ -446,11 +557,6 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
 
   getStageChar(stage: string): string {
     return stage.charAt(0);
-  }
-
-  getPopupIcon(): string {
-    const icons = ['🌟', '⭐', '✨', '💫'];
-    return icons[Math.floor(Math.random() * icons.length)];
   }
 
   formatTime(milliseconds: number): string {
@@ -563,6 +669,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   start() {
     this.setup = false;
     this.startTime = Date.now();
+    this.startTimer();
     this.buildAllStages();
     this.buildProgressMarkers();
     this.currentStageIndex = 0;
@@ -684,7 +791,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
         if (marker && !marker.completed && this.completedSteps >= stepCount) {
           const message = this.getStarMessage(stage, groupIdx, marker.type === 'finish');
           this.showStarPopup(marker.id, message);
-          this.createParticleEffect(marker);
+          this.animateFallingStar(marker);
           
           setTimeout(() => {
             marker.completed = true;
@@ -746,6 +853,32 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
       setTimeout(() => {
         this.starPopup = null;
       }, 200);
+    }
+  }
+
+  animateFallingStar(marker: ProgressMarker) {
+    const popup = document.querySelector('.star-popup') as HTMLElement;
+    const starElement = document.querySelector(`[id="${marker.id}"]`)?.querySelector('.star-outline') as HTMLElement;
+    
+    if (popup && starElement) {
+      const popupRect = popup.getBoundingClientRect();
+      const starRect = starElement.getBoundingClientRect();
+      
+      this.fallingStarStart = {
+        x: (popupRect.left + popupRect.width / 2) + 'px',
+        y: (popupRect.top + popupRect.height / 2) + 'px'
+      };
+      
+      this.fallingStarEnd = {
+        x: (starRect.left + starRect.width / 2) + 'px',
+        y: (starRect.top + starRect.height / 2) + 'px'
+      };
+      
+      this.showFallingStar = true;
+      
+      setTimeout(() => {
+        this.showFallingStar = false;
+      }, 600);
     }
   }
 
@@ -850,6 +983,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
 
   showSavePrompt() {
     this.timeSpent = Date.now() - this.startTime;
+    this.stopTimer();
     this.promptSave = true;
     
     this.showConfetti = true;
@@ -906,11 +1040,13 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   }
 
   confirmExitWithoutSave() {
+    this.stopTimer();
     this.visible = false;
     this.completed.emit({ memorized: false });
   }
 
   goToTracker() {
+    this.stopTimer();
     this.visible = false;
     this.completed.emit({ memorized: true });
     this.router.navigate(['/profile'], {
@@ -919,12 +1055,14 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   }
 
   goToFlow() {
+    this.stopTimer();
     this.visible = false;
     this.completed.emit({ memorized: true });
     this.router.navigate(['/flow']);
   }
 
   closeModal() {
+    this.stopTimer();
     this.visible = false;
     this.completed.emit({ memorized: this.hasMarkedComplete });
   }
@@ -938,6 +1076,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   }
 
   confirmExitAction() {
+    this.stopTimer();
     this.visible = false;
     this.completed.emit({ memorized: false });
   }
@@ -967,8 +1106,21 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
 
   isGroupCompleted(originalGroupIndex: number): boolean {
     if (this.promptSave) return true;
-    if (!this.currentStage || this.currentStage.stageType !== 'individual') return true;
-    if (this.currentStageIndex > 0) return true;
-    return originalGroupIndex < this.currentSubStageIndex;
+    if (!this.currentStage || this.currentStageIndex === 0) {
+      // In first stage, only completed if we've passed it
+      if (this.currentStage?.stageType === 'individual') {
+        return originalGroupIndex < this.currentSubStageIndex;
+      }
+    }
+    // After first stage, all are completed
+    return this.currentStageIndex > 0;
+  }
+
+  shouldShowAsReset(originalGroupIndex: number): boolean {
+    // When in review phases, show all bubbles as reset (gray) unless they're active
+    if (this.currentStageIndex > 0 && !this.promptSave) {
+      return !this.isGroupActive(originalGroupIndex);
+    }
+    return false;
   }
 }
