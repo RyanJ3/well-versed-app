@@ -8,105 +8,23 @@
   <div class="main-layout">
     <!-- Left Sidebar -->
     <aside class="sidebar" *ngIf="!isLoading">
-      <!-- Verse Picker Section -->
-      <div class="sidebar-section">
-        <app-verse-picker
-          [theme]="'minimal'"
-          [disabledModes]="['single']"
-          [pageType]="'FLOW'"
-          [showFlowTip]="false"
-          [minimumVerses]="10"
-          [maximumVerses]="80"
-          [warningMessage]="warningMessage"
-          [initialSelection]="initialSelection"
-          (selectionApplied)="onVerseSelectionChanged($event)"
-        >
-        </app-verse-picker>
-      </div>
-
-      <!-- Controls only shown when verses are loaded -->
-      <ng-container *ngIf="verses.length > 0">
-        <!-- Progress Indicator -->
-        <div class="sidebar-section progress-section">
-          <h3 class="section-title">Progress</h3>
-          <div class="progress-container">
-            <div class="progress-bar">
-              <div class="progress-fill" 
-                   [style.width.%]="progressPercent"
-                   [class.complete]="progressPercent === 100">
-              </div>
-            </div>
-            <div class="progress-text">
-              <span *ngIf="progressPercent < 100">{{ memorizedCount }}/{{ verses.length }} verses</span>
-              <span *ngIf="progressPercent === 100" class="complete-text">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                Complete!
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Layout Options -->
+      <!-- Group 1: picker and action buttons -->
+      <div class="sidebar-group actions-group">
         <div class="sidebar-section">
-          <h3 class="section-title">Layout</h3>
-          <div class="radio-group">
-            <label class="radio-option">
-              <input type="radio" name="layout" [(ngModel)]="layoutMode" value="grid" />
-              <span>5-Column Grid</span>
-            </label>
-            <label class="radio-option">
-              <input type="radio" name="layout" [(ngModel)]="layoutMode" value="single" />
-              <span>Single Column</span>
-            </label>
-            <label class="radio-option">
-              <input type="radio" name="layout" [(ngModel)]="layoutMode" value="text" />
-              <span>Standard Text</span>
-            </label>
-          </div>
+          <app-verse-picker
+            [theme]="'minimal'"
+            [disabledModes]="['single']"
+            [pageType]="'FLOW'"
+            [showFlowTip]="false"
+            [minimumVerses]="10"
+            [maximumVerses]="80"
+            [warningMessage]="warningMessage"
+            [initialSelection]="initialSelection"
+            (selectionApplied)="onVerseSelectionChanged($event)"
+          >
+          </app-verse-picker>
         </div>
-
-        <!-- Display Options -->
-        <div class="sidebar-section">
-          <h3 class="section-title">Display</h3>
-          <div class="checkbox-group">
-            <label class="checkbox-option">
-              <input type="checkbox" [(ngModel)]="showVerseText" />
-              <span>Show full verse text</span>
-            </label>
-            <label class="checkbox-option">
-              <input type="checkbox" [(ngModel)]="highlightFifthVerse" />
-              <span>Highlight 5th verses</span>
-            </label>
-            <label class="checkbox-option">
-              <input type="checkbox" [(ngModel)]="showOnlyUnmemorized" />
-              <span>Show only unmemorized</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Font Size (only for text view) -->
-        <div class="sidebar-section" *ngIf="layoutMode === 'text'">
-          <h3 class="section-title">Font Size</h3>
-          <div class="font-controls">
-            <button class="font-btn" (click)="decreaseFontSize()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-            </button>
-            <span class="font-value">{{ fontSize }}px</span>
-            <button class="font-btn" (click)="increaseFontSize()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="sidebar-section actions">
+        <div class="sidebar-section actions" *ngIf="verses.length > 0">
           <button class="action-btn primary" (click)="startMemorization()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
@@ -131,9 +49,88 @@
             <span>Mark All as Memorized</span>
           </button>
         </div>
+      </div>
 
-        <!-- Verse Bubbles Preview -->
-        <div class="sidebar-section verse-preview" *ngIf="verses.length > 0">
+      <!-- Group 2: layout and display settings -->
+      <div class="sidebar-group settings-group" *ngIf="verses.length > 0">
+        <div class="sidebar-section">
+          <h3 class="section-title">Layout</h3>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="layout" [(ngModel)]="layoutMode" value="grid" />
+              <span>5-Column Grid</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="layout" [(ngModel)]="layoutMode" value="single" />
+              <span>Single Column</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="layout" [(ngModel)]="layoutMode" value="text" />
+              <span>Standard Text</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h3 class="section-title">Display</h3>
+          <div class="checkbox-group">
+            <label class="checkbox-option">
+              <input type="checkbox" [(ngModel)]="showVerseText" />
+              <span>Show full verse text</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" [(ngModel)]="highlightFifthVerse" />
+              <span>Highlight 5th verses</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" [(ngModel)]="showOnlyUnmemorized" />
+              <span>Show only unmemorized</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="sidebar-section" *ngIf="layoutMode === 'text'">
+          <h3 class="section-title">Font Size</h3>
+          <div class="font-controls">
+            <button class="font-btn" (click)="decreaseFontSize()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+            <span class="font-value">{{ fontSize }}px</span>
+            <button class="font-btn" (click)="increaseFontSize()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Group 3: progress and quick toggle -->
+      <div class="sidebar-group progress-group" *ngIf="verses.length > 0">
+        <div class="sidebar-section progress-section">
+          <h3 class="section-title">Progress</h3>
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div class="progress-fill"
+                   [style.width.%]="progressPercent"
+                   [class.complete]="progressPercent === 100">
+              </div>
+            </div>
+            <div class="progress-text">
+              <span *ngIf="progressPercent < 100">{{ memorizedCount }}/{{ verses.length }} verses</span>
+              <span *ngIf="progressPercent === 100" class="complete-text">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Complete!
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="sidebar-section verse-preview">
           <h3 class="section-title">Quick Toggle</h3>
           <div class="verse-bubbles-preview">
             <div class="verse-bubble"
@@ -147,7 +144,7 @@
             </div>
           </div>
         </div>
-      </ng-container>
+      </div>
     </aside>
 
     <!-- Main Content Area -->
