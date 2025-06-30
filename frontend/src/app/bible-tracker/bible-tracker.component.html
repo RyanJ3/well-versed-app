@@ -208,7 +208,7 @@
       <div class="left-actions">
         <a class="action-btn secondary"
            [routerLink]="'/flow'"
-           [queryParams]="{ bookId: selectedBook.id, chapter: selectedChapter.chapterNumber }">
+           [queryParams]="{ bookId: selectedBook!.id, chapter: selectedChapter!.chapterNumber }">
           Practice in FLOW
         </a>
         <button (click)="clearAllVerses()"
