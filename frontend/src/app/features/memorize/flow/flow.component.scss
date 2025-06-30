@@ -4,7 +4,7 @@
 }
 
 .flow-container {
-  height: 100vh;
+  flex: 1; // Fill available height from the layout container
   background: #f8fafc;
   display: flex;
   flex-direction: column;
@@ -694,7 +694,7 @@
 // Responsive Design
 @media (max-width: 1024px) {
   .flow-container {
-    height: 100vh; // Maintain full height on tablets
+    flex: 1; // Maintain flexible height on tablets
   }
   
   .main-layout {
@@ -718,7 +718,7 @@
 
 @media (max-width: 768px) {
   .flow-container {
-    height: 100vh; // Ensure full height on mobile
+    flex: 1; // Ensure flexible height on mobile
   }
   
   .flow-header {
