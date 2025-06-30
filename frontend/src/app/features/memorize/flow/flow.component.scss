@@ -41,10 +41,10 @@
   padding: 1.5rem;
   flex: 1;
   // overflow handled by content area
-  max-width: 1600px;
-  margin: 0 auto;
   width: 100%;
   box-sizing: border-box; // Include padding in height calculation
+  margin: 0; // allow sidebar to sit flush left
+  padding-left: 0; // remove left spacing
 }
 
 // Sidebar
