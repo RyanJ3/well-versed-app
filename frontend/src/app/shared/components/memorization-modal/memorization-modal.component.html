@@ -70,7 +70,7 @@
                 [@popupSlide]="starPopup.show ? 'show' : 'hide'"
               >
                 <span class="popup-icon">🌟</span>
-                <span class="popup-text">Group {{ starPopup.groupNumber }} Complete!</span>
+                <span class="popup-text">{{ starPopup.message }}</span>
               </div>
               
               <svg 
@@ -160,22 +160,22 @@
       <ng-container *ngIf="!setup && !promptSave && currentStage">
         <div class="practice-wrapper">
           <div class="practice-header">
-            <div class="stage-indicators" @slideUp>
+            <div class="stage-indicators-compact" @slideUp>
               <div
-                class="stage"
+                class="stage-compact"
                 *ngFor="let s of stageNames; let i = index"
+                [attr.data-tooltip]="s"
               >
                 <div
-                  class="stage-circle"
+                  class="stage-circle-compact"
                   [class.active]="currentStepIndex === i"
                   [class.completed]="currentStepIndex > i"
                 >
                   <span *ngIf="currentStepIndex <= i">{{ getStageChar(s) }}</span>
-                  <svg *ngIf="currentStepIndex > i" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <svg *ngIf="currentStepIndex > i" width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                 </div>
-                <span class="stage-label">{{ s }}</span>
               </div>
             </div>
 
