@@ -42,7 +42,7 @@ interface ProgressMarker {
 
 interface StarPopup {
   starId: string;
-  groupNumber: number;
+  message: string;
   show: boolean;
 }
 
@@ -352,13 +352,20 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     while (currentGroups.length > 1) {
       const nextGroups: Verse[][] = [];
       
-      // Pair groups by 2s
+      // Pair groups by 2s, but handle remainder specially
       for (let i = 0; i < currentGroups.length; i += 2) {
         if (i + 1 < currentGroups.length) {
           // Combine two groups
           nextGroups.push([...currentGroups[i], ...currentGroups[i + 1]]);
+        } else if (i === currentGroups.length - 1 && currentGroups.length > 2) {
+          // If there's a remainder and we have more than 2 groups,
+          // combine it with the previous group
+          const lastGroup = nextGroups[nextGroups.length - 1];
+          if (lastGroup) {
+            lastGroup.push(...currentGroups[i]);
+          }
         } else {
-          // Odd group remains alone
+          // First review stage with odd number
           nextGroups.push(currentGroups[i]);
         }
       }
@@ -373,13 +380,6 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
       reviewLevel++;
     }
     
-    // Final review (all verses)
-    this.allStages.push({
-      groups: [this.verses],
-      stageType: 'final',
-      stageLevel: reviewLevel
-    });
-    
     // Calculate total steps
     this.totalSteps = 0;
     for (const stage of this.allStages) {
@@ -393,37 +393,40 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     
     for (let stageIdx = 0; stageIdx < this.allStages.length; stageIdx++) {
       const stage = this.allStages[stageIdx];
+      const isLastStage = stageIdx === this.allStages.length - 1;
       
-      // Stars for individual groups
-      if (stage.stageType === 'individual') {
-        for (let groupIdx = 0; groupIdx < stage.groups.length; groupIdx++) {
-          stepCount += 3; // 3 steps per group
-          const position = (stepCount / this.totalSteps) * 100;
-          
-          this.progressMarkers.push({
-            position,
-            type: 'star',
-            completed: false,
-            id: `star-${stageIdx}-${groupIdx}`,
-            label: `Group ${groupIdx + 1}`
-          });
-        }
-      } else {
-        // Count steps for review stages
-        stepCount += stage.groups.length * 3;
+      // Stars for all groups except the last one in each stage
+      for (let groupIdx = 0; groupIdx < stage.groups.length - (isLastStage ? 0 : 1); groupIdx++) {
+        stepCount += 3; // 3 steps per group
+        const position = (stepCount / this.totalSteps) * 100;
+        
+        this.progressMarkers.push({
+          position,
+          type: 'star',
+          completed: false,
+          id: `star-${stageIdx}-${groupIdx}`,
+          label: `Group ${groupIdx + 1}`
+        });
       }
       
-      // Flag at the end of each stage
-      const position = (stepCount / this.totalSteps) * 100;
-      const phaseNumber = stage.stageType === 'individual' ? 1 : stage.stageLevel + 1;
+      // Add steps for the last group if not marked with star
+      if (!isLastStage) {
+        stepCount += 3;
+      }
       
-      this.progressMarkers.push({
-        position,
-        type: 'flag',
-        completed: false,
-        id: `flag-${stageIdx}`,
-        label: stage.stageType === 'final' ? 'Final' : `Phase ${phaseNumber}`
-      });
+      // Flag at the end of each stage (except the last)
+      if (!isLastStage) {
+        const position = (stepCount / this.totalSteps) * 100;
+        const phaseNumber = stage.stageType === 'individual' ? 1 : stage.stageLevel + 1;
+        
+        this.progressMarkers.push({
+          position,
+          type: 'flag',
+          completed: false,
+          id: `flag-${stageIdx}`,
+          label: `Phase ${phaseNumber}`
+        });
+      }
     }
   }
 
@@ -432,38 +435,52 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     
     for (let stageIdx = 0; stageIdx < this.allStages.length; stageIdx++) {
       const stage = this.allStages[stageIdx];
+      const isLastStage = stageIdx === this.allStages.length - 1;
       
-      if (stage.stageType === 'individual') {
-        for (let groupIdx = 0; groupIdx < stage.groups.length; groupIdx++) {
-          stepCount += 3;
-          
-          // Update stars for individual groups
-          const marker = this.progressMarkers.find(m => m.id === `star-${stageIdx}-${groupIdx}`);
-          if (marker && !marker.completed && this.completedSteps >= stepCount) {
-            // Show popup before marking complete
-            this.showStarPopup(`star-${stageIdx}-${groupIdx}`, groupIdx + 1);
-            setTimeout(() => {
-              marker.completed = true;
-              this.hideStarPopup();
-            }, 1000);
-          }
+      // Update stars for all groups
+      for (let groupIdx = 0; groupIdx < stage.groups.length - (isLastStage ? 0 : 1); groupIdx++) {
+        stepCount += 3;
+        
+        const marker = this.progressMarkers.find(m => m.id === `star-${stageIdx}-${groupIdx}`);
+        if (marker && !marker.completed && this.completedSteps >= stepCount) {
+          // Show popup before marking complete
+          const message = this.getStarMessage(stage, groupIdx);
+          this.showStarPopup(`star-${stageIdx}-${groupIdx}`, message);
+          setTimeout(() => {
+            marker.completed = true;
+            this.hideStarPopup();
+          }, 1000);
         }
-      } else {
-        stepCount += stage.groups.length * 3;
+      }
+      
+      // Add steps for unmarked last group
+      if (!isLastStage) {
+        stepCount += 3;
       }
       
       // Update flags for completed stages
-      const flagMarker = this.progressMarkers.find(m => m.id === `flag-${stageIdx}`);
-      if (flagMarker) {
-        flagMarker.completed = this.completedSteps >= stepCount;
+      if (!isLastStage) {
+        const flagMarker = this.progressMarkers.find(m => m.id === `flag-${stageIdx}`);
+        if (flagMarker) {
+          flagMarker.completed = this.completedSteps >= stepCount;
+        }
       }
     }
   }
 
-  showStarPopup(starId: string, groupNumber: number) {
+  getStarMessage(stage: ReviewStage, groupIdx: number): string {
+    if (stage.stageType === 'individual') {
+      return `Group ${groupIdx + 1} Complete!`;
+    } else if (stage.stageType === 'review') {
+      return `Review Set ${groupIdx + 1} Complete!`;
+    }
+    return 'Section Complete!';
+  }
+
+  showStarPopup(starId: string, message: string) {
     this.starPopup = {
       starId,
-      groupNumber,
+      message,
       show: true
     };
   }
