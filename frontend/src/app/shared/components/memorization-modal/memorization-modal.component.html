@@ -31,7 +31,7 @@
 
       <div class="verse-bubbles-wrapper">
         <div class="verse-bubbles-container" #verseBubblesContainer>
-          <div class="verse-bubbles">
+          <div class="verse-bubbles" [class.review-phase]="currentStageIndex > 0">
             <div 
               class="active-border-container" 
               *ngIf="hasActiveBorder" 
@@ -57,7 +57,7 @@
                     {{ verse.verse }}
                   </div>
                 </div>
-                <div class="stage-dots" *ngIf="isGroupActive(i) && !setup">
+                <div class="stage-dots" *ngIf="shouldShowDots(i)">
                   <div
                     class="stage-dot"
                     [class.completed]="currentStepIndex > 0"

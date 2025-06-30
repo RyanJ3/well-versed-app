@@ -180,6 +180,10 @@
   padding: 0.75rem 1rem;
   position: relative;
   min-width: min-content;
+
+  &.review-phase {
+    gap: 0.25rem;
+  }
 }
 
 // More compact active border with rounded corners
