@@ -1,5 +1,4 @@
-// frontend/src/app/features/memorize/flow/flow.component.ts
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,6 +12,7 @@ import { UserService } from '../../../core/services/user.service';
 import { MemorizationModalComponent } from '../../../shared/components/memorization-modal/memorization-modal.component';
 import { User } from '../../../core/models/user';
 import { UserVerseDetail } from '../../../core/models/bible';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 interface FlowVerse {
   verseCode: string;
@@ -50,32 +50,15 @@ interface ModalVerse {
 })
 export class FlowComponent implements OnInit, OnDestroy {
   // View state
-  private _layoutMode: 'grid' | 'single' | 'text' = 'grid';
-  get layoutMode() {
-    return this._layoutMode;
-  }
-  set layoutMode(value: 'grid' | 'single' | 'text') {
-    this._layoutMode = value;
-    this.prepareGridRows();
-  }
-  
-  showVerseText = false;
+  layoutMode: 'grid' | 'single' = 'grid';
+  isTextMode = false;
   highlightFifthVerse = true;
-  private _showOnlyUnmemorized = false;
-  get showOnlyUnmemorized() {
-    return this._showOnlyUnmemorized;
-  }
-  set showOnlyUnmemorized(value: boolean) {
-    this._showOnlyUnmemorized = value;
-    this.applyFilters();
-  }
   showSavedMessage = false;
   warningMessage: string | null = null;
   fontSize = 16;
 
   // Data
   verses: FlowVerse[] = [];
-  filteredVerses: FlowVerse[] = [];
   gridRows: FlowVerse[][] = [];
   currentSelection: VerseSelection | null = null;
   initialSelection: VerseSelection | null = null;
@@ -111,8 +94,40 @@ export class FlowComponent implements OnInit, OnDestroy {
     private bibleService: BibleService,
     private userService: UserService,
     private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private sanitizer: DomSanitizer
   ) {}
+
+  // Keyboard shortcuts
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    // Ignore if user is typing in an input field
+    if (event.target instanceof HTMLInputElement || 
+        event.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+
+    switch (event.key.toLowerCase()) {
+      case 'arrowleft':
+        if (this.hasPreviousChapter()) {
+          event.preventDefault();
+          this.navigateToPreviousChapter();
+        }
+        break;
+      case 'arrowright':
+        if (this.hasNextChapter()) {
+          event.preventDefault();
+          this.navigateToNextChapter();
+        }
+        break;
+      case 't':
+        if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+          event.preventDefault();
+          this.toggleViewMode();
+        }
+        break;
+    }
+  }
 
   ngOnInit() {
     // Get current user
@@ -190,14 +205,14 @@ export class FlowComponent implements OnInit, OnDestroy {
         .getBookById(selection.startVerse.bookId);
     }
 
-    // Validate FLOW requirements
+    // Updated validation logic: only warn if it's NOT a full chapter AND less than 10 verses
     if (selection.mode !== 'chapter' && selection.verseCount < 10) {
       this.warningMessage = 'Please select at least 10 verses or an entire chapter.';
       this.verses = [];
-      this.filteredVerses = [];
       return;
     }
 
+    // Clear warning for valid selections
     this.warningMessage = null;
     this.loadVersesCancel$.next();
     this.loadVerses();
@@ -208,7 +223,6 @@ export class FlowComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
     this.verses = [];
-    this.filteredVerses = [];
     const currentRequestId = ++this.requestCounter;
 
     try {
@@ -240,14 +254,13 @@ export class FlowComponent implements OnInit, OnDestroy {
       });
 
       this.updateMemorizationStatus();
-      this.applyFilters();
+      this.prepareGridRows();
       this.updateProgress();
     } catch (error: any) {
       if (error?.name === 'EmptyError') return; // Cancelled
       
       console.error('Error loading verses:', error);
       this.verses = [];
-      this.filteredVerses = [];
       alert('Failed to load verses. Please check your connection and try again.');
     } finally {
       if (currentRequestId === this.requestCounter) {
@@ -272,22 +285,51 @@ export class FlowComponent implements OnInit, OnDestroy {
       .join(' ');
   }
 
-  private applyFilters() {
-    if (this.showOnlyUnmemorized) {
-      this.filteredVerses = this.verses.filter(v => !v.isMemorized);
-    } else {
-      this.filteredVerses = [...this.verses];
+  formatFirstLetters(verse: FlowVerse): SafeHtml {
+    if (!verse.firstLetters) return '';
+    
+    let formatted = verse.firstLetters;
+    
+    // Handle paragraph markers
+    if (formatted.includes('**¶')) {
+      if (this.isTextMode) {
+        // In text mode, remove paragraph markers (verse refs are already bold)
+        formatted = formatted.replace(/\*\*¶/g, '');
+      } else {
+        // In FLOW layouts, replace with line breaks
+        formatted = formatted.replace(/\*\*¶/g, '<br>');
+      }
     }
+    
+    return this.sanitizer.sanitize(1, formatted) || '';
+  }
+
+  setViewMode(mode: 'flow' | 'text') {
+    this.isTextMode = mode === 'text';
+    if (mode === 'flow') {
+      this.prepareGridRows();
+    }
+  }
+
+  toggleViewMode() {
+    this.isTextMode = !this.isTextMode;
+    if (!this.isTextMode) {
+      this.prepareGridRows();
+    }
+  }
+
+  setLayoutMode(mode: 'grid' | 'single') {
+    this.layoutMode = mode;
     this.prepareGridRows();
   }
 
   private prepareGridRows() {
     this.gridRows = [];
-    if (this.layoutMode === 'grid' && this.filteredVerses.length > 0) {
-      for (let i = 0; i < this.filteredVerses.length; i += 5) {
+    if (this.layoutMode === 'grid' && this.verses.length > 0) {
+      for (let i = 0; i < this.verses.length; i += 5) {
         const row = [];
         for (let j = 0; j < 5; j++) {
-          row.push(this.filteredVerses[i + j] || null);
+          row.push(this.verses[i + j] || null);
         }
         this.gridRows.push(row);
       }
@@ -310,7 +352,6 @@ export class FlowComponent implements OnInit, OnDestroy {
         });
 
         this.updateProgress();
-        this.applyFilters();
       });
   }
 
@@ -448,8 +489,160 @@ export class FlowComponent implements OnInit, OnDestroy {
     }
   }
 
-  startMemorization() {
+  hasPreviousChapter(): boolean {
+    if (!this.selectedBook || !this.currentSelection) return false;
+    
+    const currentChapter = this.currentSelection.startVerse?.chapter || 1;
+    
+    // Check if there's a previous chapter in current book
+    if (currentChapter > 1) return true;
+    
+    // Check if there's a previous book
+    const currentBookId = this.selectedBook.id;
+    return currentBookId > 1;
+  }
+
+  hasNextChapter(): boolean {
+    if (!this.selectedBook || !this.currentSelection) return false;
+    
+    const currentChapter = this.currentSelection.startVerse?.chapter || 1;
+    
+    // Check if there's a next chapter in current book
+    if (currentChapter < this.selectedBook.chapters.length) return true;
+    
+    // Check if there's a next book
+    const currentBookId = this.selectedBook.id;
+    return currentBookId < 66; // 66 books in the Bible
+  }
+
+  getPreviousChapterLabel(): string {
+    if (!this.selectedBook || !this.currentSelection) return '';
+    
+    const currentChapter = this.currentSelection.startVerse?.chapter || 1;
+    
+    if (currentChapter > 1) {
+      // Previous chapter in same book
+      return `${this.selectedBook.name} ${currentChapter - 1}`;
+    } else {
+      // Last chapter of previous book
+      const prevBookId = this.selectedBook.id - 1;
+      if (prevBookId >= 1) {
+        const prevBook = this.bibleService.getBibleData().getBookById(prevBookId);
+        if (prevBook) {
+          const lastChapter = prevBook.chapters.length;
+          return lastChapter === 1 ? prevBook.name : `${prevBook.name} ${lastChapter}`;
+        }
+      }
+    }
+    
+    return '';
+  }
+
+  getNextChapterLabel(): string {
+    if (!this.selectedBook || !this.currentSelection) return '';
+    
+    const currentChapter = this.currentSelection.startVerse?.chapter || 1;
+    
+    if (currentChapter < this.selectedBook.chapters.length) {
+      // Next chapter in same book
+      return `${this.selectedBook.name} ${currentChapter + 1}`;
+    } else {
+      // First chapter of next book
+      const nextBookId = this.selectedBook.id + 1;
+      if (nextBookId <= 66) {
+        const nextBook = this.bibleService.getBibleData().getBookById(nextBookId);
+        if (nextBook) {
+          return nextBook.chapters.length === 1 ? nextBook.name : `${nextBook.name} 1`;
+        }
+      }
+    }
+    
+    return '';
+  }
+
+  navigateToPreviousChapter() {
+    if (!this.selectedBook || !this.currentSelection) return;
+    
+    const currentChapter = this.currentSelection.startVerse?.chapter || 1;
+    let targetBookId = this.selectedBook.id;
+    let targetChapter = currentChapter - 1;
+    
+    if (targetChapter < 1) {
+      // Go to previous book's last chapter
+      targetBookId--;
+      if (targetBookId >= 1) {
+        const prevBook = this.bibleService.getBibleData().getBookById(targetBookId);
+        if (prevBook) {
+          targetChapter = prevBook.chapters.length;
+        }
+      }
+    }
+    
+    this.navigateToChapter(targetBookId, targetChapter);
+  }
+
+  navigateToNextChapter() {
+    if (!this.selectedBook || !this.currentSelection) return;
+    
+    const currentChapter = this.currentSelection.startVerse?.chapter || 1;
+    let targetBookId = this.selectedBook.id;
+    let targetChapter = currentChapter + 1;
+    
+    if (targetChapter > this.selectedBook.chapters.length) {
+      // Go to next book's first chapter
+      targetBookId++;
+      targetChapter = 1;
+    }
+    
+    this.navigateToChapter(targetBookId, targetChapter);
+  }
+
+  private navigateToChapter(bookId: number, chapter: number) {
+    const book = this.bibleService.getBibleData().getBookById(bookId);
+    if (!book) return;
+
+    const chapterData = book.chapters[chapter - 1];
+    if (!chapterData) return;
+
+    const verseCodes = chapterData.verses.map(
+      v => `${book.id}-${chapter}-${v.verseNumber}`
+    );
+
+    const selection: VerseSelection = {
+      mode: 'chapter',
+      startVerse: {
+        book: book.name,
+        bookId: book.id,
+        chapter,
+        verse: 1,
+      },
+      verseCodes,
+      verseCount: verseCodes.length,
+      reference: `${book.name} ${chapter}`,
+    };
+
+    // Update initialSelection to sync with verse picker
+    this.initialSelection = selection;
+    this.onVerseSelectionChanged(selection);
+  }
+
+  async startMemorization() {
     if (!this.verses.length || !this.selectedBook) return;
+
+    const missingCodes = this.verses.filter(v => !v.text).map(v => v.verseCode);
+    if (missingCodes.length) {
+      try {
+        const texts = await this.bibleService.getVerseTexts(this.userId, missingCodes).toPromise();
+        this.verses.forEach(v => {
+          if (!v.text && texts && texts[v.verseCode]) {
+            v.text = texts[v.verseCode];
+            v.firstLetters = this.extractFirstLetters(v.text);
+          }
+        });
+      } catch (err) {
+        console.error('Error fetching missing verse texts', err);
+      }
+    }
 
     this.versesForModal = this.verses.map(v => {
       const [bookId, chapter, verse] = v.verseCode.split('-').map(Number);
@@ -472,59 +665,6 @@ export class FlowComponent implements OnInit, OnDestroy {
     this.showMemorization = false;
     if (result.memorized) {
       this.updateMemorizationStatus();
-    }
-  }
-
-  async saveProgress() {
-    if (!this.verses.length || !this.selectedBook) return;
-
-    this.isSaving = true;
-
-    try {
-      const bookId = this.selectedBook.id;
-      const chapterGroups = new Map<number, number[]>();
-
-      // Group memorized verses by chapter
-      this.verses
-        .filter(v => v.isMemorized)
-        .forEach(verse => {
-          const [_, chapter, verseNum] = verse.verseCode.split('-').map(Number);
-          if (!chapterGroups.has(chapter)) {
-            chapterGroups.set(chapter, []);
-          }
-          chapterGroups.get(chapter)!.push(verseNum);
-        });
-
-      // Save each chapter
-      const savePromises = Array.from(chapterGroups.entries()).map(
-        ([chapter, verses]) => {
-          const chapterData = this.selectedBook.chapters[chapter - 1];
-          
-          // Use bulk save for full chapters
-          if (verses.length === chapterData.verses.length) {
-            return this.bibleService
-              .saveChapter(this.userId, bookId, chapter)
-              .toPromise();
-          }
-          
-          // Save individual verses
-          return Promise.all(
-            verses.map(verse =>
-              this.bibleService
-                .saveVerse(this.userId, bookId, chapter, verse, 1)
-                .toPromise()
-            )
-          );
-        }
-      );
-
-      await Promise.all(savePromises);
-      this.showSaveNotification();
-    } catch (error) {
-      console.error('Error saving progress:', error);
-      alert('Failed to save progress');
-    } finally {
-      this.isSaving = false;
     }
   }
 
@@ -577,7 +717,6 @@ export class FlowComponent implements OnInit, OnDestroy {
       });
       
       this.updateProgress();
-      this.applyFilters();
       this.showSaveNotification();
     } catch (error) {
       console.error('Error marking all as memorized:', error);

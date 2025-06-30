@@ -1,4 +1,3 @@
-<!-- frontend/src/app/flow/flow.component.html -->
 <div class="flow-container">
   <div class="flow-header">
     <h1>FLOW Memorization</h1>
@@ -7,9 +6,9 @@
 
   <div class="main-layout">
     <!-- Left Sidebar -->
-    <aside class="sidebar" *ngIf="!isLoading">
+    <aside class="sidebar">
       <!-- Verse Picker -->
-      <div class="sidebar-section">
+      <div class="verse-picker-section">
         <app-verse-picker
           [theme]="'minimal'"
           [disabledModes]="['single']"
@@ -63,7 +62,7 @@
             <line x1="3" y1="18" x2="21" y2="18" />
           </svg>
         </button>
-        <div class="menu-content" *ngIf="openMenu === 'toggle'">
+        <div class="menu-content scrollable-menu" *ngIf="openMenu === 'toggle'">
           <div class="sidebar-section verse-preview">
             <div class="verse-bubbles-preview">
               <div class="verse-bubble" *ngFor="let verse of verses" [class.memorized]="verse.isMemorized" [class.not-memorized]="!verse.isMemorized" [class.saving]="verse.isSaving" [title]="'Verse ' + verse.verse + (verse.isMemorized ? ' (memorized)' : '')" (click)="toggleVerse(verse)">
@@ -93,44 +92,36 @@
             <line x1="3" y1="18" x2="21" y2="18" />
           </svg>
         </button>
-        <div class="menu-content" *ngIf="openMenu === 'layout'">
+        <div class="menu-content scrollable-menu" *ngIf="openMenu === 'layout'">
           <div class="sidebar-section">
-            <h3 class="section-title">Layout</h3>
+            <h3 class="section-title">View Mode</h3>
             <div class="radio-group">
               <label class="radio-option">
-                <input type="radio" name="layout" [(ngModel)]="layoutMode" value="grid" />
+                <input type="radio" name="viewMode" [checked]="!isTextMode" (change)="setViewMode('flow')" />
+                <span>FLOW Layout</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="viewMode" [checked]="isTextMode" (change)="setViewMode('text')" />
+                <span>Plain Text</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="sidebar-section" *ngIf="!isTextMode">
+            <h3 class="section-title">FLOW Layout Options</h3>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="gridLayout" [checked]="layoutMode === 'grid'" (change)="setLayoutMode('grid')" />
                 <span>5-Column Grid</span>
               </label>
               <label class="radio-option">
-                <input type="radio" name="layout" [(ngModel)]="layoutMode" value="single" />
+                <input type="radio" name="gridLayout" [checked]="layoutMode === 'single'" (change)="setLayoutMode('single')" />
                 <span>Single Column</span>
-              </label>
-              <label class="radio-option">
-                <input type="radio" name="layout" [(ngModel)]="layoutMode" value="text" />
-                <span>Standard Text</span>
               </label>
             </div>
           </div>
 
           <div class="sidebar-section">
-            <h3 class="section-title">Display</h3>
-            <div class="checkbox-group">
-              <label class="checkbox-option">
-                <input type="checkbox" [(ngModel)]="showVerseText" />
-                <span>Show full verse text</span>
-              </label>
-              <label class="checkbox-option">
-                <input type="checkbox" [(ngModel)]="highlightFifthVerse" />
-                <span>Highlight 5th verses</span>
-              </label>
-              <label class="checkbox-option">
-                <input type="checkbox" [(ngModel)]="showOnlyUnmemorized" />
-                <span>Show only unmemorized</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="sidebar-section" *ngIf="layoutMode === 'text'">
             <h3 class="section-title">Font Size</h3>
             <div class="font-controls">
               <button class="font-btn" (click)="decreaseFontSize()">
@@ -145,6 +136,31 @@
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
               </button>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <h3 class="section-title">Display Options</h3>
+            <div class="checkbox-group">
+              <label class="checkbox-option">
+                <input type="checkbox" [(ngModel)]="highlightFifthVerse" />
+                <span>Highlight 5th verses</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="sidebar-section keyboard-shortcuts">
+            <h3 class="section-title">Keyboard Shortcuts</h3>
+            <div class="shortcut-list">
+              <div class="shortcut">
+                <kbd>&larr;</kbd> Previous chapter
+              </div>
+              <div class="shortcut">
+                <kbd>&rarr;</kbd> Next chapter
+              </div>
+              <div class="shortcut">
+                <kbd>T</kbd> Toggle view mode
+              </div>
             </div>
           </div>
         </div>
@@ -167,8 +183,8 @@
       </div>
 
       <!-- Grid View -->
-      <div *ngIf="!isLoading && filteredVerses.length > 0 && layoutMode === 'grid'" class="grid-view">
-        <div class="verse-grid">
+      <div *ngIf="!isLoading && verses.length > 0 && layoutMode === 'grid' && !isTextMode" class="grid-view">
+        <div class="verse-grid" [style.font-size.px]="fontSize">
           <div *ngFor="let row of gridRows" class="grid-row">
             <div *ngFor="let verse of row" 
                  [class]="getVerseClass(verse)"
@@ -182,8 +198,7 @@
                     </svg>
                   </div>
                 </div>
-                <div class="first-letters">{{ verse.firstLetters || 'No text available' }}</div>
-                <div class="full-text" *ngIf="showVerseText">{{ verse.text }}</div>
+                <div class="first-letters" [innerHTML]="formatFirstLetters(verse)"></div>
               </ng-container>
             </div>
           </div>
@@ -191,8 +206,8 @@
       </div>
 
       <!-- Single Column View -->
-      <div *ngIf="!isLoading && filteredVerses.length > 0 && layoutMode === 'single'" class="single-view">
-        <div *ngFor="let verse of filteredVerses" 
+      <div *ngIf="!isLoading && verses.length > 0 && layoutMode === 'single' && !isTextMode" class="single-view" [style.font-size.px]="fontSize">
+        <div *ngFor="let verse of verses" 
              [class]="getVerseClass(verse)"
              [attr.data-verse]="verse.verseCode">
           <div class="verse-ref" (click)="toggleVerse(verse)">
@@ -203,16 +218,14 @@
               </svg>
             </div>
           </div>
-          <div class="first-letters">{{ verse.firstLetters || 'No text available' }}</div>
-          <div class="full-text" *ngIf="showVerseText">{{ verse.text }}</div>
+          <div class="first-letters" [innerHTML]="formatFirstLetters(verse)"></div>
         </div>
       </div>
 
       <!-- Text View -->
-      <div *ngIf="!isLoading && filteredVerses.length > 0 && layoutMode === 'text'" 
+      <div *ngIf="!isLoading && verses.length > 0 && isTextMode" 
            class="text-view" 
            [style.font-size.px]="fontSize">
-        <h2 class="passage-title">{{ getPassageTitle() }}</h2>
         
         <!-- Progress Summary -->
         <div class="text-progress" *ngIf="progressPercent < 100">
@@ -221,24 +234,17 @@
         
         <div class="passage-content">
           <p class="verse-text">
-            <span *ngFor="let verse of filteredVerses; let i = index"
+            <span *ngFor="let verse of verses; let i = index"
                   [class.highlight-fifth]="verse.isFifth && highlightFifthVerse"
                   [class.memorized-verse]="verse.isMemorized">
               <sup class="verse-num" 
                    [class.memorized]="verse.isMemorized"
-                   (click)="toggleVerse(verse)">{{ verse.verse }}</sup>
-              <span *ngIf="showVerseText">{{ verse.text }}</span>
-              <span *ngIf="!showVerseText">{{ verse.firstLetters }}</span>
-              <span *ngIf="i < filteredVerses.length - 1"> </span>
+                   (click)="toggleVerse(verse)"><strong>{{ verse.verse }}</strong></sup>
+              <span [innerHTML]="formatFirstLetters(verse)"></span>
+              <span *ngIf="i < verses.length - 1"> </span>
             </span>
           </p>
         </div>
-      </div>
-
-      <!-- No Results (when filtered) -->
-      <div *ngIf="!isLoading && verses.length > 0 && filteredVerses.length === 0" class="empty-state">
-        <div class="empty-icon">✅</div>
-        <p>All verses are memorized! Turn off "Show only unmemorized" to see all verses.</p>
       </div>
     </main>
   </div>

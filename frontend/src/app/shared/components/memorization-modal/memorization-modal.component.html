@@ -7,14 +7,31 @@
     <div class="modal-header">
       <div class="header-row">
         <h2>{{ displayChapterName }}</h2>
-        <div class="progress-info">
-          <span class="progress-text">{{ progressPercentage }}% Complete</span>
+        <div class="header-controls">
+          <!-- Timer Display -->
+          <div class="timer-display" *ngIf="!setup && !promptSave">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span>{{ elapsedTime }}</span>
+          </div>
+          <!-- Settings Button -->
+          <button class="settings-btn" *ngIf="!setup && !promptSave" (click)="toggleSettings()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M12 1v6m0 6v6m3.22-10.22l4.24-4.24m-4.24 13.68l4.24 4.24M20 12h-6m-8 0H1m3.22-9.46L8.46 7.78m0 8.44l-4.24 4.24"></path>
+            </svg>
+          </button>
+          <div class="progress-info">
+            <span class="progress-text">{{ progressPercentage }}% Complete</span>
+          </div>
         </div>
       </div>
 
       <div class="verse-bubbles-wrapper">
         <div class="verse-bubbles-container" #verseBubblesContainer>
-          <div class="verse-bubbles">
+          <div class="verse-bubbles" [class.review-phase]="currentStageIndex > 0">
             <div 
               class="active-border-container" 
               *ngIf="hasActiveBorder" 
@@ -30,6 +47,8 @@
                 class="group-bubble"
                 [class.completed]="isGroupCompleted(i)"
                 [class.current]="isGroupActive(i)"
+                [class.reset]="shouldShowAsReset(i)"
+                [class.merge-left]="shouldMergeWithPrev(i)"
                 (mouseenter)="hoveredGroup = i"
                 (mouseleave)="hoveredGroup = -1"
                 [class.hovered]="hoveredGroup === i"
@@ -39,24 +58,15 @@
                     {{ verse.verse }}
                   </div>
                 </div>
-                <div class="stage-dots" *ngIf="isGroupActive(i) && currentStage?.stageType === 'individual' && !setup">
-                  <div
-                    class="stage-dot"
-                    [class.completed]="currentStepIndex > 0"
-                  ></div>
-                  <div
-                    class="stage-dot"
-                    [class.completed]="currentStepIndex > 1"
-                    [class.active]="currentStepIndex === 1"
-                  ></div>
-                  <div
-                    class="stage-dot"
-                    [class.active]="currentStepIndex === 2"
-                  ></div>
-                </div>
-                <span class="check-icon" *ngIf="isGroupCompleted(i) && currentStageIndex > 0">✓</span>
+                <!-- stage dots are now positioned centrally for merged groups -->
+                <span class="check-icon" *ngIf="isGroupCompleted(i) && !shouldShowAsReset(i)">✓</span>
               </div>
             </ng-container>
+            <div class="stage-dots-overlay" *ngIf="showStageDots && !setup" [style.left.px]="stageDotsLeft">
+              <div class="stage-dot" [class.completed]="currentStepIndex > 0"></div>
+              <div class="stage-dot" [class.completed]="currentStepIndex > 1" [class.active]="currentStepIndex === 1"></div>
+              <div class="stage-dot" [class.active]="currentStepIndex === 2"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -191,9 +201,48 @@
         </div>
       </ng-container>
 
+      <!-- Settings Panel -->
+      <div class="settings-panel" *ngIf="showSettings && !setup && !promptSave" @slideUp>
+        <h3>Display Settings</h3>
+        
+        <div class="setting-group">
+          <label class="setting-label">Font Size</label>
+          <div class="font-controls">
+            <button class="font-btn" (click)="decreaseFontSize()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+            <span class="font-value">{{ settings.fontSize }}px</span>
+            <button class="font-btn" (click)="increaseFontSize()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <label class="setting-label">Display Mode</label>
+          <div class="display-options">
+            <label class="radio-option">
+              <input type="radio" name="displayMode" value="single" 
+                     [(ngModel)]="settings.displayMode" (change)="saveSettings()">
+              <span>Verse by Verse</span>
+            </label>
+            <label class="radio-option" *ngIf="currentVerses.length < 6">
+              <input type="radio" name="displayMode" value="grid" 
+                     [(ngModel)]="settings.displayMode" (change)="saveSettings()">
+              <span>{{ getGridColumnCount() }}-Column Grid</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
       <!-- Practice Stage -->
       <ng-container *ngIf="!setup && !promptSave && currentStage">
-        <div class="practice-wrapper">
+        <div class="practice-wrapper" [class.with-settings]="showSettings">
           <div class="practice-header">
             <div class="stage-indicators-compact" @slideUp>
               <div
@@ -216,14 +265,33 @@
             <p class="instructions">{{ currentInstruction }}</p>
           </div>
 
-          <div class="verse-display">
-            <div
-              class="verse-block"
-              *ngFor="let v of currentVerses; let idx = index"
-              [@verseTransition]="currentStepIndex"
-            >
-              <p class="verse-ref">{{ v.reference }}</p>
-              <p class="verse-text" [class.memory-mode]="currentStepIndex === 2">{{ getVerseDisplay(v) }}</p>
+          <div class="verse-display" [style.font-size.px]="settings.fontSize">
+            <!-- Single Verse Display Mode -->
+            <div *ngIf="settings.displayMode === 'single'" class="single-mode">
+              <div
+                class="verse-block"
+                *ngFor="let v of currentVerses; let idx = index"
+                [@verseTransition]="currentStepIndex"
+              >
+                <p class="verse-ref">{{ v.reference }}</p>
+                <p class="verse-text" [class.memory-mode]="currentStepIndex === 2">{{ getVerseDisplay(v) }}</p>
+              </div>
+            </div>
+
+            <!-- Grid Display Mode -->
+            <div *ngIf="settings.displayMode === 'grid' && currentVerses.length < 6" class="grid-mode">
+              <div class="verse-grid" [class.cols-3]="currentVerses.length === 3"
+                                     [class.cols-4]="currentVerses.length === 4"
+                                     [class.cols-5]="currentVerses.length === 5">
+                <div
+                  class="verse-cell"
+                  *ngFor="let v of currentVerses; let idx = index"
+                  [@verseTransition]="currentStepIndex"
+                >
+                  <p class="verse-ref">{{ v.reference }}</p>
+                  <p class="verse-text" [class.memory-mode]="currentStepIndex === 2">{{ getVerseDisplay(v) }}</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -253,7 +321,7 @@
             
             <!-- Special message for completing the Bible -->
             <p class="bible-complete-message" *ngIf="isLastChapterOfBible">
-              🎊 Congratulations! You've completed the entire Bible! 🎊
+              🎉 Congratulations! You've completed the entire Bible! 🎉
             </p>
             
             <div class="completion-stats">
@@ -297,37 +365,12 @@
               </svg>
             </div>
 
-            <!-- Navigation Options -->
-            <div class="navigation-options" *ngIf="showNavigationOptions" @slideUp>
-              <p class="nav-prompt">What would you like to do next?</p>
-              
-              <div class="nav-buttons-group">
-                <button class="nav-option-btn tracker-btn" (click)="goToTracker()">
-                  <span class="nav-icon">📊</span>
-                  <div class="nav-text">
-                    <span class="nav-title">View Progress</span>
-                    <span class="nav-subtitle">See your achievement in the tracker</span>
-                  </div>
-                </button>
-
-                <button class="nav-option-btn flow-btn" (click)="goToFlow()" *ngIf="!isLastChapterOfBible">
-                  <span class="nav-icon">📖</span>
-                  <div class="nav-text">
-                    <span class="nav-title">Learn Next Chapter</span>
-                    <span class="nav-subtitle">Continue with {{ nextChapterName }}</span>
-                  </div>
-                </button>
-
-                <button class="nav-option-btn close-btn" (click)="closeModal()">
-                  <span class="nav-icon">✕</span>
-                  <div class="nav-text">
-                    <span class="nav-title">Close</span>
-                    <span class="nav-subtitle">Return to where you were</span>
-                  </div>
-                </button>
-              </div>
-            </div>
           </div>
+        </div>
+        <div class="final-nav-buttons" *ngIf="showNavigationOptions">
+          <button class="secondary-btn" (click)="goToTracker()">View Progress</button>
+          <button class="primary-btn" (click)="goToFlow()" *ngIf="!isLastChapterOfBible">Next Chapter</button>
+          <button class="prev-btn" (click)="closeModal()">Close</button>
         </div>
       </ng-container>
     </div>
@@ -343,8 +386,15 @@
       class="star-popup"
       [@popupSlide]="starPopup.show ? 'show' : 'hide'"
     >
-      <span class="popup-icon">{{ getPopupIcon() }}</span>
+      <span class="popup-icon">⭐</span>
       <span class="popup-text">{{ starPopup.message }}</span>
+    </div>
+
+    <!-- Falling Star Animation -->
+    <div class="falling-star" *ngIf="showFallingStar" [style.--start-x]="fallingStarStart.x" 
+         [style.--start-y]="fallingStarStart.y" [style.--end-x]="fallingStarEnd.x" 
+         [style.--end-y]="fallingStarEnd.y" @fallingStar>
+      ⭐
     </div>
 
     <!-- Particle Effect Container -->
