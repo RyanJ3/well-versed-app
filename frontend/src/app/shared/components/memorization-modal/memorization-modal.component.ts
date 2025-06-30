@@ -14,6 +14,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { BibleService } from '../../../core/services/bible.service';
 import { UserService } from '../../../core/services/user.service';
+import { BibleBook } from '../../../core/models/bible';
 import { Subject, takeUntil } from 'rxjs';
 import { trigger, state, style, transition, animate, keyframes } from '@angular/animations';
 
@@ -366,14 +367,14 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   async detectSingleChapterBook() {
     try {
       // Get book info to determine total chapters
-      const books = await this.bibleService.getBooks().toPromise();
-      const currentBookInfo = books?.find(book => 
-        book.name === this.currentBook || 
+      const books = this.bibleService.getBibleData().books;
+      const currentBookInfo = books.find((book: BibleBook) =>
+        book.name === this.currentBook ||
         book.name === this.chapterName
       );
-      
+
       if (currentBookInfo) {
-        this.bookChapters = currentBookInfo.chapters || 1;
+        this.bookChapters = currentBookInfo.chapters.length || 1;
         this.isSingleChapterBook = this.bookChapters === 1;
       }
     } catch (error) {
