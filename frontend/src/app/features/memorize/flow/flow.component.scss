@@ -8,7 +8,7 @@
   background: #f8fafc;
   display: flex;
   flex-direction: column;
-  // allow main content to scroll within specific sections
+  overflow: hidden; // Prevent page scrolling
   position: relative; // Ensure proper positioning context
 }
 

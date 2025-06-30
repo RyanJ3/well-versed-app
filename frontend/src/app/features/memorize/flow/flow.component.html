@@ -24,6 +24,16 @@
         </app-verse-picker>
       </div>
 
+      <!-- Start Button -->
+      <div class="sidebar-section actions" *ngIf="verses.length > 0">
+        <button class="action-btn primary" (click)="startMemorization()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>Start Memorization</span>
+        </button>
+      </div>
+
       <!-- Progress -->
       <div class="sidebar-section progress-section" *ngIf="verses.length > 0">
         <h3 class="section-title">Progress</h3>
@@ -39,36 +49,6 @@
               </svg>
               Complete!
             </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Actions Menu -->
-      <div class="sidebar-menu" *ngIf="verses.length > 0">
-        <button class="menu-header" (click)="toggleMenu('actions')">
-          <span>Actions</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-        <div class="menu-content" *ngIf="openMenu === 'actions'">
-          <div class="sidebar-section actions">
-            <button class="action-btn primary" (click)="startMemorization()">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polygon points="5 3 19 12 5 21 5 3"></polygon>
-              </svg>
-              <span>Start Memorization</span>
-            </button>
-
-            <button class="action-btn secondary" (click)="markAllMemorized()" [disabled]="isSaving">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9 11 12 14 22 4"></polyline>
-                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
-              </svg>
-              <span>Mark All as Memorized</span>
-            </button>
           </div>
         </div>
       </div>
@@ -90,6 +70,15 @@
                 {{ verse.verse }}
               </div>
             </div>
+          </div>
+          <div class="sidebar-section actions">
+            <button class="action-btn secondary" (click)="markAllMemorized()" [disabled]="isSaving">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 11 12 14 22 4"></polyline>
+                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+              </svg>
+              <span>Mark All as Memorized</span>
+            </button>
           </div>
         </div>
       </div>

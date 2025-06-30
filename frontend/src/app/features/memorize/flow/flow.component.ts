@@ -105,7 +105,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   private saveQueue$ = new Subject<FlowVerse>();
 
   // sidebar menu state
-  openMenu: 'actions' | 'layout' | 'toggle' | null = null;
+  openMenu: 'layout' | 'toggle' | null = null;
 
   constructor(
     private bibleService: BibleService,
@@ -601,7 +601,7 @@ export class FlowComponent implements OnInit, OnDestroy {
     return book ? book.name : `Book ${bookId}`;
   }
 
-  toggleMenu(menu: 'actions' | 'layout' | 'toggle') {
+  toggleMenu(menu: 'layout' | 'toggle') {
     this.openMenu = this.openMenu === menu ? null : menu;
   }
 }
