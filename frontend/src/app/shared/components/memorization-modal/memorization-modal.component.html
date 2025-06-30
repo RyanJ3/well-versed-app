@@ -48,6 +48,7 @@
                 [class.completed]="isGroupCompleted(i)"
                 [class.current]="isGroupActive(i)"
                 [class.reset]="shouldShowAsReset(i)"
+                [class.merge-left]="shouldMergeWithPrev(i)"
                 (mouseenter)="hoveredGroup = i"
                 (mouseleave)="hoveredGroup = -1"
                 [class.hovered]="hoveredGroup === i"
@@ -57,24 +58,15 @@
                     {{ verse.verse }}
                   </div>
                 </div>
-                <div class="stage-dots" *ngIf="shouldShowDots(i)">
-                  <div
-                    class="stage-dot"
-                    [class.completed]="currentStepIndex > 0"
-                  ></div>
-                  <div
-                    class="stage-dot"
-                    [class.completed]="currentStepIndex > 1"
-                    [class.active]="currentStepIndex === 1"
-                  ></div>
-                  <div
-                    class="stage-dot"
-                    [class.active]="currentStepIndex === 2"
-                  ></div>
-                </div>
+                <!-- stage dots are now positioned centrally for merged groups -->
                 <span class="check-icon" *ngIf="isGroupCompleted(i) && !shouldShowAsReset(i)">✓</span>
               </div>
             </ng-container>
+            <div class="stage-dots-overlay" *ngIf="showStageDots && !setup" [style.left.px]="stageDotsLeft">
+              <div class="stage-dot" [class.completed]="currentStepIndex > 0"></div>
+              <div class="stage-dot" [class.completed]="currentStepIndex > 1" [class.active]="currentStepIndex === 1"></div>
+              <div class="stage-dot" [class.active]="currentStepIndex === 2"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -373,37 +365,12 @@
               </svg>
             </div>
 
-            <!-- Navigation Options -->
-            <div class="navigation-options" *ngIf="showNavigationOptions" @slideUp>
-              <p class="nav-prompt">What would you like to do next?</p>
-              
-              <div class="nav-buttons-group">
-                <button class="nav-option-btn tracker-btn" (click)="goToTracker()">
-                  <span class="nav-icon">📊</span>
-                  <div class="nav-text">
-                    <span class="nav-title">View Progress</span>
-                    <span class="nav-subtitle">See your achievement in the tracker</span>
-                  </div>
-                </button>
-
-                <button class="nav-option-btn flow-btn" (click)="goToFlow()" *ngIf="!isLastChapterOfBible">
-                  <span class="nav-icon">📖</span>
-                  <div class="nav-text">
-                    <span class="nav-title">Learn Next Chapter</span>
-                    <span class="nav-subtitle">Continue with {{ nextChapterName }}</span>
-                  </div>
-                </button>
-
-                <button class="nav-option-btn close-btn" (click)="closeModal()">
-                  <span class="nav-icon">✕</span>
-                  <div class="nav-text">
-                    <span class="nav-title">Close</span>
-                    <span class="nav-subtitle">Return to where you were</span>
-                  </div>
-                </button>
-              </div>
-            </div>
           </div>
+        </div>
+        <div class="final-nav-buttons" *ngIf="showNavigationOptions">
+          <button class="secondary-btn" (click)="goToTracker()">View Progress</button>
+          <button class="primary-btn" (click)="goToFlow()" *ngIf="!isLastChapterOfBible">Next Chapter</button>
+          <button class="prev-btn" (click)="closeModal()">Close</button>
         </div>
       </ng-container>
     </div>

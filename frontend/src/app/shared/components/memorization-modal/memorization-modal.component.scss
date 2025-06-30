@@ -270,6 +270,10 @@
     transform: scale(1);
     box-shadow: none;
   }
+
+  &.merge-left {
+    margin-left: -0.75rem;
+  }
 }
 
 .verse-numbers {
@@ -304,6 +308,15 @@
   display: flex;
   gap: 0.25rem;
   margin-top: 0.5rem;
+}
+
+.stage-dots-overlay {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.25rem;
+  pointer-events: none;
 }
 
 .stage-dot {
@@ -1184,6 +1197,16 @@
     transform: translateY(-1px);
     box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);
   }
+}
+
+.final-nav-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 /* Completion Section */

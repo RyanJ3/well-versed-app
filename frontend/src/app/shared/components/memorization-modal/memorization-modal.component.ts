@@ -265,6 +265,8 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   borderLeft = 0;
   borderWidth = 0;
   hasActiveBorder = false;
+  stageDotsLeft = 0;
+  showStageDots = false;
   hoveredGroup = -1;
   progressMarkers: ProgressMarker[] = [];
   starPopup: StarPopup | null = null;
@@ -579,12 +581,14 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   updateActiveBorder() {
     if (this.setup || this.promptSave || !this.currentStage) {
       this.hasActiveBorder = false;
+      this.showStageDots = false;
       return;
     }
 
     const activeIndices = this.getActiveGroupIndices();
     if (activeIndices.length === 0) {
       this.hasActiveBorder = false;
+      this.showStageDots = false;
       return;
     }
 
@@ -607,7 +611,9 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
 
           this.borderLeft = firstRect.left - containerRect.left - 12;
           this.borderWidth = (lastRect.right - firstRect.left) + 24;
+          this.stageDotsLeft = (firstRect.left + lastRect.right) / 2 - containerRect.left;
           this.hasActiveBorder = true;
+          this.showStageDots = true;
         }
       }
     }, 50);
@@ -1126,6 +1132,11 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
       return !this.isGroupActive(originalGroupIndex) && !this.completedGroups.has(originalGroupIndex);
     }
     return false;
+  }
+
+  shouldMergeWithPrev(index: number): boolean {
+    if (this.currentStageIndex === 0) return false;
+    return this.isGroupActive(index) && this.isGroupActive(index - 1);
   }
 
   shouldShowDots(originalGroupIndex: number): boolean {
