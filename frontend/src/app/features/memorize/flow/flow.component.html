@@ -2,272 +2,255 @@
 <div class="flow-container">
   <div class="flow-header">
     <h1>FLOW Memorization</h1>
-    <p class="subtitle">
-      First Letter Of Word technique for scripture memorization
-    </p>
+    <p class="subtitle">First Letter Of Word technique for scripture memorization</p>
   </div>
 
-  <div class="controls-section">
-    <app-verse-picker
-      [theme]="'minimal'"
-      [disabledModes]="['single']"
-      [pageType]="'FLOW'"
-      [showFlowTip]="false"
-      [minimumVerses]="10"
-      [maximumVerses]="80"
-      [warningMessage]="warningMessage"
-      [initialSelection]="initialSelection"
-      (selectionApplied)="onVerseSelectionChanged($event)"
-    >
-    </app-verse-picker>
-    <div *ngIf="verses.length > 0" class="layout-controls">
-      <div class="button-group">
-        <button
-          class="layout-button"
-          [class.active]="layoutMode === 'grid'"
-          (click)="toggleLayout()"
+  <div class="main-layout">
+    <!-- Left Sidebar -->
+    <aside class="sidebar" *ngIf="!isLoading">
+      <!-- Verse Picker Section -->
+      <div class="sidebar-section">
+        <app-verse-picker
+          [theme]="'minimal'"
+          [disabledModes]="['single']"
+          [pageType]="'FLOW'"
+          [showFlowTip]="false"
+          [minimumVerses]="10"
+          [maximumVerses]="80"
+          [warningMessage]="warningMessage"
+          [initialSelection]="initialSelection"
+          (selectionApplied)="onVerseSelectionChanged($event)"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
-            />
-          </svg>
-          5-Column Grid
-        </button>
-        <button
-          class="layout-button"
-          [class.active]="layoutMode === 'single'"
-          (click)="toggleLayout()"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 6h16M4 12h16M4 18h16"
-            />
-          </svg>
-          Single Column
-        </button>
+        </app-verse-picker>
       </div>
-    </div>
 
-    <div *ngIf="verses.length > 0" class="display-options">
-      <label class="checkbox-option">
-        <input type="checkbox" [(ngModel)]="showVerseText" />
-        Show full verse text
-      </label>
-      <label class="checkbox-option">
-        <input type="checkbox" [(ngModel)]="highlightFifthVerse" />
-        Highlight 5th verses
-      </label>
-    </div>
-
-    <!-- Quick access start button -->
-    <div *ngIf="verses.length > 0" class="start-memorization">
-      <button
-        class="btn btn-primary"
-        (click)="startMemorization()"
-        [disabled]="verses.length === 0"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 8v8m4-4H8"
-          />
-        </svg>
-        Start Memorization
-      </button>
-    </div>
-  </div>
-
-  <!-- Loading State -->
-  <div *ngIf="isLoading" class="loading-container">
-    <div class="loading-spinner"></div>
-    <p>Loading verses...</p>
-  </div>
-
-  <!-- Prompt when no selection applied -->
-  <div *ngIf="!isLoading && verses.length === 0" class="selection-prompt">
-    <span class="prompt-emoji" aria-hidden="true">📖</span>
-    <span class="prompt-text">
-      Select verses above and click <strong>Apply Selection</strong> to begin.
-    </span>
-  </div>
-
-  <!-- Grid View -->
-  <div
-    *ngIf="!isLoading && verses.length > 0 && layoutMode === 'grid'"
-    class="grid-view"
-  >
-    <div class="custom-grid">
-      <div class="grid-row" *ngFor="let row of gridRows">
-        <div *ngFor="let verse of row" [class]="getVerseClass(verse)">
-          <ng-container *ngIf="verse">
-            <div class="verse-reference">{{ verse.reference }}</div>
-            <div class="first-letters" *ngIf="verse.firstLetters">
-              {{ verse.firstLetters }}
+      <!-- Controls only shown when verses are loaded -->
+      <ng-container *ngIf="verses.length > 0">
+        <!-- Progress Indicator -->
+        <div class="sidebar-section progress-section">
+          <h3 class="section-title">Progress</h3>
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div class="progress-fill" 
+                   [style.width.%]="progressPercent"
+                   [class.complete]="progressPercent === 100">
+              </div>
             </div>
-            <div
-              class="first-letters error"
-              *ngIf="!verse.firstLetters && !verse.text"
-            >
-              No verse text available
+            <div class="progress-text">
+              <span *ngIf="progressPercent < 100">{{ memorizedCount }}/{{ verses.length }} verses</span>
+              <span *ngIf="progressPercent === 100" class="complete-text">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Complete!
+              </span>
             </div>
-            <div class="verse-text" *ngIf="showVerseText">
-              <span *ngIf="verse.text">{{ verse.text }}</span>
-              <span *ngIf="!verse.text" class="error-text"
-                >Verse text could not be loaded</span
-              >
+          </div>
+        </div>
+
+        <!-- Layout Options -->
+        <div class="sidebar-section">
+          <h3 class="section-title">Layout</h3>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="layout" [(ngModel)]="layoutMode" value="grid" />
+              <span>5-Column Grid</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="layout" [(ngModel)]="layoutMode" value="single" />
+              <span>Single Column</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="layout" [(ngModel)]="layoutMode" value="text" />
+              <span>Standard Text</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Display Options -->
+        <div class="sidebar-section">
+          <h3 class="section-title">Display</h3>
+          <div class="checkbox-group">
+            <label class="checkbox-option">
+              <input type="checkbox" [(ngModel)]="showVerseText" />
+              <span>Show full verse text</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" [(ngModel)]="highlightFifthVerse" />
+              <span>Highlight 5th verses</span>
+            </label>
+            <label class="checkbox-option">
+              <input type="checkbox" [(ngModel)]="showOnlyUnmemorized" />
+              <span>Show only unmemorized</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Font Size (only for text view) -->
+        <div class="sidebar-section" *ngIf="layoutMode === 'text'">
+          <h3 class="section-title">Font Size</h3>
+          <div class="font-controls">
+            <button class="font-btn" (click)="decreaseFontSize()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+            <span class="font-value">{{ fontSize }}px</span>
+            <button class="font-btn" (click)="increaseFontSize()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="sidebar-section actions">
+          <button class="action-btn primary" (click)="startMemorization()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>Start Memorization</span>
+          </button>
+
+          <button class="action-btn secondary" (click)="saveProgress()" [disabled]="isSaving">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            <span>{{ isSaving ? 'Saving...' : 'Save Progress' }}</span>
+          </button>
+
+          <button class="action-btn tertiary" (click)="markAllMemorized()" [disabled]="isSaving">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 11 12 14 22 4"></polyline>
+              <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+            </svg>
+            <span>Mark All as Memorized</span>
+          </button>
+        </div>
+
+        <!-- Verse Bubbles Preview -->
+        <div class="sidebar-section verse-preview" *ngIf="verses.length > 0">
+          <h3 class="section-title">Quick Toggle</h3>
+          <div class="verse-bubbles-preview">
+            <div class="verse-bubble"
+                 *ngFor="let verse of verses"
+                 [class.memorized]="verse.isMemorized"
+                 [class.not-memorized]="!verse.isMemorized"
+                 [class.saving]="verse.isSaving"
+                 [title]="'Verse ' + verse.verse + (verse.isMemorized ? ' (memorized)' : '')"
+                 (click)="toggleVerse(verse)">
+              {{ verse.verse }}
             </div>
-          </ng-container>
+          </div>
+        </div>
+      </ng-container>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="content-area">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading verses...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && verses.length === 0" class="empty-state">
+        <div class="empty-icon">📖</div>
+        <p>Select verses and click <strong>Apply Selection</strong> to begin.</p>
+      </div>
+
+      <!-- Grid View -->
+      <div *ngIf="!isLoading && filteredVerses.length > 0 && layoutMode === 'grid'" class="grid-view">
+        <div class="verse-grid">
+          <div *ngFor="let row of gridRows" class="grid-row">
+            <div *ngFor="let verse of row" 
+                 [class]="getVerseClass(verse)"
+                 [attr.data-verse]="verse?.verseCode">
+              <ng-container *ngIf="verse">
+                <div class="verse-ref" (click)="toggleVerse(verse)">
+                  {{ getVerseReference(verse) }}
+                  <div class="memorized-indicator" *ngIf="verse.isMemorized">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </div>
+                </div>
+                <div class="first-letters">{{ verse.firstLetters || 'No text available' }}</div>
+                <div class="full-text" *ngIf="showVerseText">{{ verse.text }}</div>
+              </ng-container>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+
+      <!-- Single Column View -->
+      <div *ngIf="!isLoading && filteredVerses.length > 0 && layoutMode === 'single'" class="single-view">
+        <div *ngFor="let verse of filteredVerses" 
+             [class]="getVerseClass(verse)"
+             [attr.data-verse]="verse.verseCode">
+          <div class="verse-ref" (click)="toggleVerse(verse)">
+            {{ getVerseReference(verse) }}
+            <div class="memorized-indicator" *ngIf="verse.isMemorized">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+          </div>
+          <div class="first-letters">{{ verse.firstLetters || 'No text available' }}</div>
+          <div class="full-text" *ngIf="showVerseText">{{ verse.text }}</div>
+        </div>
+      </div>
+
+      <!-- Text View -->
+      <div *ngIf="!isLoading && filteredVerses.length > 0 && layoutMode === 'text'" 
+           class="text-view" 
+           [style.font-size.px]="fontSize">
+        <h2 class="passage-title">{{ getPassageTitle() }}</h2>
+        
+        <!-- Progress Summary -->
+        <div class="text-progress" *ngIf="progressPercent < 100">
+          <span>{{ memorizedCount }} of {{ verses.length }} verses memorized</span>
+        </div>
+        
+        <div class="passage-content">
+          <p class="verse-text">
+            <span *ngFor="let verse of filteredVerses; let i = index"
+                  [class.highlight-fifth]="verse.isFifth && highlightFifthVerse"
+                  [class.memorized-verse]="verse.isMemorized">
+              <sup class="verse-num" 
+                   [class.memorized]="verse.isMemorized"
+                   (click)="toggleVerse(verse)">{{ verse.verse }}</sup>
+              <span *ngIf="showVerseText">{{ verse.text }}</span>
+              <span *ngIf="!showVerseText">{{ verse.firstLetters }}</span>
+              <span *ngIf="i < filteredVerses.length - 1"> </span>
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <!-- No Results (when filtered) -->
+      <div *ngIf="!isLoading && verses.length > 0 && filteredVerses.length === 0" class="empty-state">
+        <div class="empty-icon">✅</div>
+        <p>All verses are memorized! Turn off "Show only unmemorized" to see all verses.</p>
+      </div>
+    </main>
   </div>
 
-  <!-- Single Column View -->
-  <div
-    *ngIf="!isLoading && verses.length > 0 && layoutMode === 'single'"
-    class="single-view"
-  >
-    <div *ngFor="let verse of verses" [class]="getVerseClass(verse)">
-      <div class="verse-reference">{{ verse.reference }}</div>
-      <div class="first-letters">{{ verse.firstLetters }}</div>
-      <div class="verse-text" *ngIf="showVerseText">{{ verse.text }}</div>
-    </div>
-  </div>
-
-  <!-- Confidence Section -->
-  <div *ngIf="!isLoading && verses.length > 0" class="confidence-section">
-    <h3>Confidence Level</h3>
-    <p class="confidence-description">
-      How well do you know
-      {{ verses.length === 1 ? "this verse" : "these verses" }}?
-    </p>
-
-    <div class="slider-container">
-      <span class="slider-label">0%</span>
-      <input
-        type="range"
-        class="confidence-slider"
-        [(ngModel)]="confidenceLevel"
-        min="0"
-        max="100"
-        step="1"
-      />
-      <span class="slider-label">100%</span>
-    </div>
-
-    <div class="confidence-value">
-      Current confidence: <strong>{{ confidenceLevel }}%</strong>
-    </div>
-
-    <div class="action-buttons">
-      <button
-        class="btn btn-primary"
-        (click)="startMemorization()"
-        [disabled]="isSaving || verses.length === 0"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 8v8m4-4H8"
-          />
-        </svg>
-        Start Memorization
-      </button>
-      <button
-        class="btn btn-primary"
-        (click)="saveProgress()"
-        [disabled]="isSaving"
-      >
-        <svg
-          *ngIf="!isSaving"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2"
-          />
-        </svg>
-        <span *ngIf="isSaving">Saving...</span>
-        <span *ngIf="!isSaving">Save Progress</span>
-      </button>
-
-      <button
-        class="btn btn-secondary"
-        (click)="clearProgress()"
-        [disabled]="isSaving"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-        Clear Progress
-      </button>
-    </div>
-
-    <div class="saved-indicator" [class.show]="showSavedMessage">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M5 13l4 4L19 7"
-        />
-      </svg>
-      Progress saved!
-    </div>
+  <!-- Success Notification -->
+  <div class="notification" [class.show]="showSavedMessage">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span>Progress saved successfully!</span>
   </div>
 </div>
 
+<!-- Memorization Modal -->
 <app-memorization-modal
   *ngIf="showMemorization"
   [verses]="versesForModal"
