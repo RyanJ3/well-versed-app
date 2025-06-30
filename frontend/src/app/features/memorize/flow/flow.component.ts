@@ -104,6 +104,9 @@ export class FlowComponent implements OnInit, OnDestroy {
   private requestCounter = 0;
   private saveQueue$ = new Subject<FlowVerse>();
 
+  // sidebar menu state
+  openMenu: 'actions' | 'layout' | 'toggle' | null = null;
+
   constructor(
     private bibleService: BibleService,
     private userService: UserService,
@@ -596,5 +599,9 @@ export class FlowComponent implements OnInit, OnDestroy {
   private getBookName(bookId: number): string {
     const book = this.bibleService.getBibleData().getBookById(bookId);
     return book ? book.name : `Book ${bookId}`;
+  }
+
+  toggleMenu(menu: 'actions' | 'layout' | 'toggle') {
+    this.openMenu = this.openMenu === menu ? null : menu;
   }
 }

@@ -8,7 +8,7 @@
   background: #f8fafc;
   display: flex;
   flex-direction: column;
-  overflow: hidden; // Prevent any overflow on main container
+  // allow main content to scroll within specific sections
   position: relative; // Ensure proper positioning context
 }
 
@@ -40,7 +40,7 @@
   gap: 1.5rem;
   padding: 1.5rem;
   flex: 1;
-  overflow: hidden; // Prevent overflow on layout
+  // overflow handled by content area
   max-width: 1600px;
   margin: 0 auto;
   width: 100%;
@@ -95,6 +95,29 @@
 
   .sidebar-group {
     margin-bottom: 2rem;
+  }
+
+  .sidebar-menu {
+    margin-bottom: 1.5rem;
+  }
+
+  .menu-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+  }
+
+  .menu-content {
+    margin-top: 0.75rem;
   }
 
   .progress-group {
