@@ -92,6 +92,18 @@
       letter-spacing: 0.025em;
     }
   }
+
+  .sidebar-group {
+    margin-bottom: 2rem;
+  }
+
+  .progress-group {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding-bottom: 1rem;
+    overflow: hidden;
+  }
   
   // Progress Section
   .progress-section {

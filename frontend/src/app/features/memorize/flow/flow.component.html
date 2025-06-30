@@ -8,23 +8,26 @@
   <div class="main-layout">
     <!-- Left Sidebar -->
     <aside class="sidebar" *ngIf="!isLoading">
-      <!-- Group 1: picker and action buttons -->
-      <div class="sidebar-group actions-group">
-        <div class="sidebar-section">
-          <app-verse-picker
-            [theme]="'minimal'"
-            [disabledModes]="['single']"
-            [pageType]="'FLOW'"
-            [showFlowTip]="false"
-            [minimumVerses]="10"
-            [maximumVerses]="80"
-            [warningMessage]="warningMessage"
-            [initialSelection]="initialSelection"
-            (selectionApplied)="onVerseSelectionChanged($event)"
-          >
-          </app-verse-picker>
-        </div>
-        <div class="sidebar-section actions" *ngIf="verses.length > 0">
+      <!-- Verse Picker -->
+      <div class="sidebar-section">
+        <app-verse-picker
+          [theme]="'minimal'"
+          [disabledModes]="['single']"
+          [pageType]="'FLOW'"
+          [showFlowTip]="false"
+          [minimumVerses]="10"
+          [maximumVerses]="80"
+          [warningMessage]="warningMessage"
+          [initialSelection]="initialSelection"
+          (selectionApplied)="onVerseSelectionChanged($event)"
+        >
+        </app-verse-picker>
+      </div>
+
+
+      <!-- Group 1: action buttons -->
+      <div class="sidebar-group actions-group" *ngIf="verses.length > 0">
+        <div class="sidebar-section actions">
           <button class="action-btn primary" (click)="startMemorization()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="5 3 19 12 5 21 5 3"></polygon>
@@ -51,7 +54,36 @@
         </div>
       </div>
 
-      <!-- Group 2: layout and display settings -->
+      <!-- Group 2: progress and quick toggle -->
+      <div class="sidebar-group progress-group" *ngIf="verses.length > 0">
+        <div class="sidebar-section progress-section">
+          <h3 class="section-title">Progress</h3>
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="progressPercent" [class.complete]="progressPercent === 100"></div>
+            </div>
+            <div class="progress-text">
+              <span *ngIf="progressPercent < 100">{{ memorizedCount }}/{{ verses.length }} verses</span>
+              <span *ngIf="progressPercent === 100" class="complete-text">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Complete!
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="sidebar-section verse-preview">
+          <h3 class="section-title">Quick Toggle</h3>
+          <div class="verse-bubbles-preview">
+            <div class="verse-bubble" *ngFor="let verse of verses" [class.memorized]="verse.isMemorized" [class.not-memorized]="!verse.isMemorized" [class.saving]="verse.isSaving" [title]="'Verse ' + verse.verse + (verse.isMemorized ? ' (memorized)' : '')" (click)="toggleVerse(verse)">
+              {{ verse.verse }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Group 3: layout and display settings -->
       <div class="sidebar-group settings-group" *ngIf="verses.length > 0">
         <div class="sidebar-section">
           <h3 class="section-title">Layout</h3>
@@ -108,43 +140,6 @@
         </div>
       </div>
 
-      <!-- Group 3: progress and quick toggle -->
-      <div class="sidebar-group progress-group" *ngIf="verses.length > 0">
-        <div class="sidebar-section progress-section">
-          <h3 class="section-title">Progress</h3>
-          <div class="progress-container">
-            <div class="progress-bar">
-              <div class="progress-fill"
-                   [style.width.%]="progressPercent"
-                   [class.complete]="progressPercent === 100">
-              </div>
-            </div>
-            <div class="progress-text">
-              <span *ngIf="progressPercent < 100">{{ memorizedCount }}/{{ verses.length }} verses</span>
-              <span *ngIf="progressPercent === 100" class="complete-text">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                Complete!
-              </span>
-            </div>
-          </div>
-        </div>
-        <div class="sidebar-section verse-preview">
-          <h3 class="section-title">Quick Toggle</h3>
-          <div class="verse-bubbles-preview">
-            <div class="verse-bubble"
-                 *ngFor="let verse of verses"
-                 [class.memorized]="verse.isMemorized"
-                 [class.not-memorized]="!verse.isMemorized"
-                 [class.saving]="verse.isSaving"
-                 [title]="'Verse ' + verse.verse + (verse.isMemorized ? ' (memorized)' : '')"
-                 (click)="toggleVerse(verse)">
-              {{ verse.verse }}
-            </div>
-          </div>
-        </div>
-      </div>
     </aside>
 
     <!-- Main Content Area -->
