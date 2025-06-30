@@ -4,11 +4,11 @@
 }
 
 .flow-container {
-  height: 100vh;
+  flex: 1; // Fill available height from the layout container
   background: #f8fafc;
   display: flex;
   flex-direction: column;
-  overflow: hidden; // Prevent any overflow on main container
+  overflow: hidden; // Prevent page scrolling
   position: relative; // Ensure proper positioning context
 }
 
@@ -40,11 +40,11 @@
   gap: 1.5rem;
   padding: 1.5rem;
   flex: 1;
-  overflow: hidden; // Prevent overflow on layout
-  max-width: 1600px;
-  margin: 0 auto;
+  // overflow handled by content area
   width: 100%;
   box-sizing: border-box; // Include padding in height calculation
+  margin: 0; // allow sidebar to sit flush left
+  padding-left: 0; // remove left spacing
 }
 
 // Sidebar
@@ -91,6 +91,41 @@
       text-transform: uppercase;
       letter-spacing: 0.025em;
     }
+  }
+
+  .sidebar-group {
+    margin-bottom: 2rem;
+  }
+
+  .sidebar-menu {
+    margin-bottom: 1.5rem;
+  }
+
+  .menu-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    cursor: pointer;
+  }
+
+  .menu-content {
+    margin-top: 0.75rem;
+  }
+
+  .progress-group {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding-bottom: 1rem;
+    overflow: hidden;
   }
   
   // Progress Section
@@ -659,7 +694,7 @@
 // Responsive Design
 @media (max-width: 1024px) {
   .flow-container {
-    height: 100vh; // Maintain full height on tablets
+    flex: 1; // Maintain flexible height on tablets
   }
   
   .main-layout {
@@ -683,7 +718,7 @@
 
 @media (max-width: 768px) {
   .flow-container {
-    height: 100vh; // Ensure full height on mobile
+    flex: 1; // Ensure flexible height on mobile
   }
   
   .flow-header {

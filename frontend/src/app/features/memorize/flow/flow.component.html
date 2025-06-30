@@ -8,7 +8,7 @@
   <div class="main-layout">
     <!-- Left Sidebar -->
     <aside class="sidebar" *ngIf="!isLoading">
-      <!-- Verse Picker Section -->
+      <!-- Verse Picker -->
       <div class="sidebar-section">
         <app-verse-picker
           [theme]="'minimal'"
@@ -24,130 +24,132 @@
         </app-verse-picker>
       </div>
 
-      <!-- Controls only shown when verses are loaded -->
-      <ng-container *ngIf="verses.length > 0">
-        <!-- Progress Indicator -->
-        <div class="sidebar-section progress-section">
-          <h3 class="section-title">Progress</h3>
-          <div class="progress-container">
-            <div class="progress-bar">
-              <div class="progress-fill" 
-                   [style.width.%]="progressPercent"
-                   [class.complete]="progressPercent === 100">
+      <!-- Start Button -->
+      <div class="sidebar-section actions" *ngIf="verses.length > 0">
+        <button class="action-btn primary" (click)="startMemorization()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>Start Memorization</span>
+        </button>
+      </div>
+
+      <!-- Progress -->
+      <div class="sidebar-section progress-section" *ngIf="verses.length > 0">
+        <h3 class="section-title">Progress</h3>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="progressPercent" [class.complete]="progressPercent === 100"></div>
+          </div>
+          <div class="progress-text">
+            <span *ngIf="progressPercent < 100">{{ memorizedCount }}/{{ verses.length }} verses</span>
+            <span *ngIf="progressPercent === 100" class="complete-text">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Complete!
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Toggle Menu -->
+      <div class="sidebar-menu" *ngIf="verses.length > 0">
+        <button class="menu-header" (click)="toggleMenu('toggle')">
+          <span>Quick Toggle</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <div class="menu-content" *ngIf="openMenu === 'toggle'">
+          <div class="sidebar-section verse-preview">
+            <div class="verse-bubbles-preview">
+              <div class="verse-bubble" *ngFor="let verse of verses" [class.memorized]="verse.isMemorized" [class.not-memorized]="!verse.isMemorized" [class.saving]="verse.isSaving" [title]="'Verse ' + verse.verse + (verse.isMemorized ? ' (memorized)' : '')" (click)="toggleVerse(verse)">
+                {{ verse.verse }}
               </div>
             </div>
-            <div class="progress-text">
-              <span *ngIf="progressPercent < 100">{{ memorizedCount }}/{{ verses.length }} verses</span>
-              <span *ngIf="progressPercent === 100" class="complete-text">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                  <polyline points="20 6 9 17 4 12"></polyline>
+          </div>
+          <div class="sidebar-section actions">
+            <button class="action-btn secondary" (click)="markAllMemorized()" [disabled]="isSaving">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 11 12 14 22 4"></polyline>
+                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
+              </svg>
+              <span>Mark All as Memorized</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layout Menu -->
+      <div class="sidebar-menu" *ngIf="verses.length > 0">
+        <button class="menu-header" (click)="toggleMenu('layout')">
+          <span>Layout & Display</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <div class="menu-content" *ngIf="openMenu === 'layout'">
+          <div class="sidebar-section">
+            <h3 class="section-title">Layout</h3>
+            <div class="radio-group">
+              <label class="radio-option">
+                <input type="radio" name="layout" [(ngModel)]="layoutMode" value="grid" />
+                <span>5-Column Grid</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="layout" [(ngModel)]="layoutMode" value="single" />
+                <span>Single Column</span>
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="layout" [(ngModel)]="layoutMode" value="text" />
+                <span>Standard Text</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <h3 class="section-title">Display</h3>
+            <div class="checkbox-group">
+              <label class="checkbox-option">
+                <input type="checkbox" [(ngModel)]="showVerseText" />
+                <span>Show full verse text</span>
+              </label>
+              <label class="checkbox-option">
+                <input type="checkbox" [(ngModel)]="highlightFifthVerse" />
+                <span>Highlight 5th verses</span>
+              </label>
+              <label class="checkbox-option">
+                <input type="checkbox" [(ngModel)]="showOnlyUnmemorized" />
+                <span>Show only unmemorized</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="sidebar-section" *ngIf="layoutMode === 'text'">
+            <h3 class="section-title">Font Size</h3>
+            <div class="font-controls">
+              <button class="font-btn" (click)="decreaseFontSize()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
-                Complete!
-              </span>
+              </button>
+              <span class="font-value">{{ fontSize }}px</span>
+              <button class="font-btn" (click)="increaseFontSize()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Layout Options -->
-        <div class="sidebar-section">
-          <h3 class="section-title">Layout</h3>
-          <div class="radio-group">
-            <label class="radio-option">
-              <input type="radio" name="layout" [(ngModel)]="layoutMode" value="grid" />
-              <span>5-Column Grid</span>
-            </label>
-            <label class="radio-option">
-              <input type="radio" name="layout" [(ngModel)]="layoutMode" value="single" />
-              <span>Single Column</span>
-            </label>
-            <label class="radio-option">
-              <input type="radio" name="layout" [(ngModel)]="layoutMode" value="text" />
-              <span>Standard Text</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Display Options -->
-        <div class="sidebar-section">
-          <h3 class="section-title">Display</h3>
-          <div class="checkbox-group">
-            <label class="checkbox-option">
-              <input type="checkbox" [(ngModel)]="showVerseText" />
-              <span>Show full verse text</span>
-            </label>
-            <label class="checkbox-option">
-              <input type="checkbox" [(ngModel)]="highlightFifthVerse" />
-              <span>Highlight 5th verses</span>
-            </label>
-            <label class="checkbox-option">
-              <input type="checkbox" [(ngModel)]="showOnlyUnmemorized" />
-              <span>Show only unmemorized</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Font Size (only for text view) -->
-        <div class="sidebar-section" *ngIf="layoutMode === 'text'">
-          <h3 class="section-title">Font Size</h3>
-          <div class="font-controls">
-            <button class="font-btn" (click)="decreaseFontSize()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-            </button>
-            <span class="font-value">{{ fontSize }}px</span>
-            <button class="font-btn" (click)="increaseFontSize()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="sidebar-section actions">
-          <button class="action-btn primary" (click)="startMemorization()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="5 3 19 12 5 21 5 3"></polygon>
-            </svg>
-            <span>Start Memorization</span>
-          </button>
-
-          <button class="action-btn secondary" (click)="saveProgress()" [disabled]="isSaving">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
-              <polyline points="17 21 17 13 7 13 7 21"></polyline>
-              <polyline points="7 3 7 8 15 8"></polyline>
-            </svg>
-            <span>{{ isSaving ? 'Saving...' : 'Save Progress' }}</span>
-          </button>
-
-          <button class="action-btn tertiary" (click)="markAllMemorized()" [disabled]="isSaving">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 11 12 14 22 4"></polyline>
-              <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
-            </svg>
-            <span>Mark All as Memorized</span>
-          </button>
-        </div>
-
-        <!-- Verse Bubbles Preview -->
-        <div class="sidebar-section verse-preview" *ngIf="verses.length > 0">
-          <h3 class="section-title">Quick Toggle</h3>
-          <div class="verse-bubbles-preview">
-            <div class="verse-bubble"
-                 *ngFor="let verse of verses"
-                 [class.memorized]="verse.isMemorized"
-                 [class.not-memorized]="!verse.isMemorized"
-                 [class.saving]="verse.isSaving"
-                 [title]="'Verse ' + verse.verse + (verse.isMemorized ? ' (memorized)' : '')"
-                 (click)="toggleVerse(verse)">
-              {{ verse.verse }}
-            </div>
-          </div>
-        </div>
-      </ng-container>
     </aside>
 
     <!-- Main Content Area -->
