@@ -584,6 +584,15 @@ export class FlowComponent implements OnInit, OnDestroy {
     }
   }
 
+  private formatVerseReference(bookId: number, chapter: number, verse: number): string {
+    const book = this.bibleService.getBibleData().getBookById(bookId);
+    const bookName = book ? book.name : `Book ${bookId}`;
+    if (book && book.chapters.length === 1) {
+      return `${bookName} ${verse}`;
+    }
+    return `${bookName} ${chapter}:${verse}`;
+  }
+
   private getBookName(bookId: number): string {
     const book = this.bibleService.getBibleData().getBookById(bookId);
     return book ? book.name : `Book ${bookId}`;
