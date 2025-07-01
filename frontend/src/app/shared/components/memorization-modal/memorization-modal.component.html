@@ -59,7 +59,7 @@
                   </div>
                 </div>
                 <!-- stage dots are now positioned centrally for merged groups -->
-                <span class="check-icon" *ngIf="isGroupCompleted(i) && !shouldShowAsReset(i)">✓</span>
+                <span class="check-icon" *ngIf="isCheckmarkIndex(i) && !shouldShowAsReset(i)">✓</span>
               </div>
             </ng-container>
             <div class="stage-dots-overlay" *ngIf="showStageDots && !setup" [style.left.px]="stageDotsLeft">

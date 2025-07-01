@@ -198,6 +198,9 @@ export class FlowComponent implements OnInit, OnDestroy {
   onVerseSelectionChanged(selection: VerseSelection) {
     this.currentSelection = selection;
 
+    // Default to plain text view when a selection is applied
+    this.isTextMode = true;
+
     // Store selected book
     if (selection.startVerse) {
       this.selectedBook = this.bibleService

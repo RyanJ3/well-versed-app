@@ -284,6 +284,8 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   showSuccessCheck = false;
   // Tracks which original groups have been completed in the current phase
   completedGroups = new Set<number>();
+  // Starting index of each completed group for displaying a single checkmark
+  completedGroupStarts = new Set<number>();
 
   // Falling star animation
   showFallingStar = false;
@@ -681,6 +683,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     this.buildAllStages();
     this.buildProgressMarkers();
     this.completedGroups.clear();
+    this.completedGroupStarts.clear();
     this.currentStageIndex = 0;
     this.currentSubStageIndex = 0;
     this.currentStepIndex = 0;
@@ -938,6 +941,10 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
       // Mark the current group as completed before moving on
       const finishedIndices = this.getActiveGroupIndices();
       finishedIndices.forEach(i => this.completedGroups.add(i));
+      if (finishedIndices.length) {
+        const first = Math.min(...finishedIndices);
+        this.completedGroupStarts.add(first);
+      }
 
       this.currentStepIndex = 0;
 
@@ -948,6 +955,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
         this.currentSubStageIndex = 0;
         this.currentStageIndex++;
         this.completedGroups.clear();
+        this.completedGroupStarts.clear();
 
         if (this.currentStageIndex >= this.allStages.length) {
           this.showSavePrompt();
@@ -985,11 +993,16 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
         this.currentSubStageIndex--;
         const indices = this.getActiveGroupIndices();
         indices.forEach(i => this.completedGroups.delete(i));
+        if (indices.length) {
+          const first = Math.min(...indices);
+          this.completedGroupStarts.delete(first);
+        }
       } else {
         this.currentStageIndex--;
         if (this.currentStageIndex >= 0 && this.allStages[this.currentStageIndex]) {
           this.currentSubStageIndex = this.allStages[this.currentStageIndex].groups.length - 1;
           this.completedGroups.clear();
+          this.completedGroupStarts.clear();
         }
       }
     }
@@ -1124,6 +1137,13 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   isGroupCompleted(originalGroupIndex: number): boolean {
     if (this.promptSave) return true;
     return this.completedGroups.has(originalGroupIndex);
+  }
+
+  isCheckmarkIndex(originalGroupIndex: number): boolean {
+    if (!this.isGroupCompleted(originalGroupIndex)) {
+      return false;
+    }
+    return this.completedGroupStarts.has(originalGroupIndex);
   }
 
   shouldShowAsReset(originalGroupIndex: number): boolean {
