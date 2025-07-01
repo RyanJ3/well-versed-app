@@ -74,6 +74,14 @@ def test_update_user_preferences():
         user = r.json()
         logger.info(f"Updated include_apocrypha: {user.get('include_apocrypha')}")
 
+def test_get_bibles():
+    """Test fetching available Bible translations"""
+    r = requests.get(f"{BASE_URL}/bibles")
+    logger.info(f"Get bibles: {r.status_code}")
+    if r.status_code == 200:
+        data = r.json()
+        logger.info(f"Retrieved {len(data)} bibles")
+
 if __name__ == "__main__":
     logger.info("Testing Well Versed API with numerical book IDs...")
     try:
@@ -84,6 +92,7 @@ if __name__ == "__main__":
         test_save_chapter()
         test_clear_chapter()
         test_update_user_preferences()
+        test_get_bibles()
         logger.info("All tests passed!")
     except Exception as e:
         logger.error(f"Test failed: {e}")

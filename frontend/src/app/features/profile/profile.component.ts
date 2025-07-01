@@ -50,17 +50,7 @@ export class ProfileComponent implements OnInit {
   ];
   
   bibleOptions = [
-    { text: 'Select Bible Translation', value: '' },
-    { text: 'King James Version (KJV)', value: 'KJV' },
-    { text: 'New International Version (NIV)', value: 'NIV' },
-    { text: 'English Standard Version (ESV)', value: 'ESV' },
-    { text: 'New American Standard Bible (NASB)', value: 'NASB' },
-    { text: 'New Living Translation (NLT)', value: 'NLT' },
-    { text: 'Christian Standard Bible (CSB)', value: 'CSB' },
-    { text: 'New King James Version (NKJV)', value: 'NKJV' },
-    { text: 'Revised Standard Version (RSV)', value: 'RSV' },
-    { text: 'The Message (MSG)', value: 'MSG' },
-    { text: 'Amplified Bible (AMP)', value: 'AMP' }
+    { text: 'Select Bible Translation', value: '' }
   ];
   
   constructor(
@@ -71,7 +61,29 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    this.loadBibleOptions();
     this.loadUserProfile();
+  }
+
+  loadBibleOptions(): void {
+    const desired = ['KJV', 'NIV', 'ESV', 'NASB', 'NLT', 'CSB', 'NKJV', 'RSV', 'MSG', 'AMP'];
+    this.bibleService.getAvailableBibles().subscribe({
+      next: (versions) => {
+        const options = [{ text: 'Select Bible Translation', value: '' }];
+        versions.forEach(v => {
+          if (desired.includes(v.abbreviation)) {
+            options.push({ text: `${v.name} (${v.abbreviation})`, value: v.abbreviation });
+          }
+        });
+        // Only replace if we received results
+        if (options.length > 1) {
+          this.bibleOptions = options;
+        }
+      },
+      error: (err) => {
+        console.error('Error loading bible versions', err);
+      }
+    });
   }
   
   loadUserProfile(): void {

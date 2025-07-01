@@ -40,3 +40,12 @@ export interface MemorizationProgress {
   progress: number;
   lastPracticed?: Date;
 }
+
+/**
+ * Basic information about a Bible translation
+ */
+export interface BibleVersion {
+  id: string;
+  abbreviation: string;
+  name: string;
+}

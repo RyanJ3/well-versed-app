@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Observable, of, throwError, BehaviorSubject } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
-import { BibleData, UserVerseDetail } from '../models/bible';
+import { BibleData, UserVerseDetail, BibleVersion } from '../models/bible';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -180,6 +180,18 @@ export class BibleService {
         const emptyTexts: Record<string, string> = {};
         verseCodes.forEach(code => emptyTexts[code] = '');
         return of(emptyTexts);
+      })
+    );
+  }
+
+  /**
+   * Get available Bible translations from the backend
+   */
+  getAvailableBibles(): Observable<BibleVersion[]> {
+    return this.http.get<BibleVersion[]>(`${this.apiUrl}/bibles`).pipe(
+      catchError((error: HttpErrorResponse) => {
+        console.error('Error getting bibles:', error);
+        return of([]);
       })
     );
   }

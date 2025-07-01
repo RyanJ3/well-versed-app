@@ -50,6 +50,7 @@ uvicorn main:app --reload
 - `POST /api/feature-requests/{id}/comments` - Add a comment
 - `GET /api/feature-requests/user/{user_id}` - Requests by user
 - `GET /api/feature-requests/trending` - Trending requests
+- `GET /api/bibles` - List available Bible translations
 
 ## Testing
 
@@ -71,3 +72,5 @@ Use with main docker-compose.yml in project root.
 ## Files
 - `backend/services/api_bible.py` - API Bible service
 - `backend/routers/user_verses.py` - Includes `/verses/texts` endpoint
+- `backend/routers/bibles.py` - Provides `/api/bibles` endpoint
+
