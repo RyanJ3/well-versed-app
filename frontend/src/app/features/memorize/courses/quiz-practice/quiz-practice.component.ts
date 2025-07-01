@@ -386,6 +386,7 @@ export class QuizPracticeComponent implements OnInit, OnDestroy {
   courseId!: number;
   lessonId!: number;
   userId = 1;
+  preferredBibleId = '';
 
   // Lesson data
   lesson: any;
@@ -434,6 +435,10 @@ export class QuizPracticeComponent implements OnInit, OnDestroy {
     this.userService.currentUser$.subscribe((user) => {
       if (user) {
         this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+        const abbr = user.preferredBible || '';
+        this.bibleService.getBibleIdFromAbbreviation(abbr).subscribe(id => {
+          this.preferredBibleId = id || '';
+        });
       }
     });
 
@@ -468,7 +473,7 @@ export class QuizPracticeComponent implements OnInit, OnDestroy {
 
       // Load verse texts
       const texts = await this.bibleService
-        .getVerseTexts(this.userId, verseCodes)
+        .getVerseTexts(this.userId, verseCodes, this.preferredBibleId)
         .toPromise();
 
       this.quizVerses = verseCodes.map((code) => {

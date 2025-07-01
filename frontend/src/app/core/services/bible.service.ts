@@ -1,7 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError, BehaviorSubject } from 'rxjs';
-import { tap, catchError, switchMap } from 'rxjs/operators';
+import { tap, catchError, switchMap, map } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { BibleData, UserVerseDetail, BibleVersion } from '../models/bible';
 import { environment } from '../../../environments/environment';
@@ -17,6 +17,10 @@ export class BibleService {
   private preferencesSubject = new BehaviorSubject<{ includeApocrypha: boolean }>({
     includeApocrypha: false
   });
+
+  // Cache of Bible versions and map from abbreviation to ID
+  private bibleVersions: BibleVersion[] | null = null;
+  private bibleIdMap: Map<string, string> = new Map();
 
   public preferences$ = this.preferencesSubject.asObservable();
 
@@ -188,11 +192,33 @@ export class BibleService {
    * Get available Bible translations from the backend
    */
   getAvailableBibles(): Observable<BibleVersion[]> {
+    if (this.bibleVersions) {
+      return of(this.bibleVersions);
+    }
+
     return this.http.get<BibleVersion[]>(`${this.apiUrl}/bibles`).pipe(
+      tap((versions) => {
+        this.bibleVersions = versions;
+        this.bibleIdMap.clear();
+        versions.forEach(v => this.bibleIdMap.set(v.abbreviation, v.id));
+      }),
       catchError((error: HttpErrorResponse) => {
         console.error('Error getting bibles:', error);
         return of([]);
       })
+    );
+  }
+
+  /**
+   * Get the API.Bible ID for a given abbreviation
+   */
+  getBibleIdFromAbbreviation(abbr: string): Observable<string | null> {
+    if (this.bibleVersions) {
+      return of(this.bibleIdMap.get(abbr) || null);
+    }
+
+    return this.getAvailableBibles().pipe(
+      map(() => this.bibleIdMap.get(abbr) || null)
     );
   }
 

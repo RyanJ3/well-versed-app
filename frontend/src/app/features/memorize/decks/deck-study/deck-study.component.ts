@@ -48,9 +48,10 @@ export class DeckStudyComponent implements OnInit {
     this.userService.currentUser$.subscribe(user => {
       if (user) {
         this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
-        // Map preferred Bible to API Bible ID if needed
-        // For now, we'll use the default from the backend
-        this.preferredBibleId = ''; // Let backend use its default
+        const abbr = user.preferredBible || '';
+        this.bibleService.getBibleIdFromAbbreviation(abbr).subscribe(id => {
+          this.preferredBibleId = id || '';
+        });
       }
     });
 

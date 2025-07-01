@@ -74,6 +74,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   
   // User
   userId = 1;
+  preferredBibleId = '';
 
   // Memorization modal
   showMemorization = false;
@@ -136,6 +137,10 @@ export class FlowComponent implements OnInit, OnDestroy {
       .subscribe((user: User | null) => {
         if (user) {
           this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+          const abbr = user.preferredBible || '';
+          this.bibleService.getBibleIdFromAbbreviation(abbr).subscribe(id => {
+            this.preferredBibleId = id || '';
+          });
         }
       });
 
@@ -227,7 +232,7 @@ export class FlowComponent implements OnInit, OnDestroy {
 
     try {
       const verseTexts = await this.bibleService
-        .getVerseTexts(this.userId, this.currentSelection.verseCodes)
+        .getVerseTexts(this.userId, this.currentSelection.verseCodes, this.preferredBibleId)
         .pipe(takeUntil(this.loadVersesCancel$))
         .toPromise();
 
@@ -632,7 +637,9 @@ export class FlowComponent implements OnInit, OnDestroy {
     const missingCodes = this.verses.filter(v => !v.text).map(v => v.verseCode);
     if (missingCodes.length) {
       try {
-        const texts = await this.bibleService.getVerseTexts(this.userId, missingCodes).toPromise();
+        const texts = await this.bibleService
+          .getVerseTexts(this.userId, missingCodes, this.preferredBibleId)
+          .toPromise();
         this.verses.forEach(v => {
           if (!v.text && texts && texts[v.verseCode]) {
             v.text = texts[v.verseCode];

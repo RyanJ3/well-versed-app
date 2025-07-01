@@ -332,6 +332,7 @@ export class LessonPracticeComponent implements OnInit, OnDestroy {
   courseId!: number;
   lessonId!: number;
   userId = 1;
+  preferredBibleId = '';
 
   // Practice settings
   showSettings = true;
@@ -378,6 +379,10 @@ export class LessonPracticeComponent implements OnInit, OnDestroy {
     this.userService.currentUser$.subscribe((user) => {
       if (user) {
         this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+        const abbr = user.preferredBible || '';
+        this.bibleService.getBibleIdFromAbbreviation(abbr).subscribe(id => {
+          this.preferredBibleId = id || '';
+        });
       }
     });
 
@@ -413,7 +418,7 @@ export class LessonPracticeComponent implements OnInit, OnDestroy {
 
   async createVerseSets() {
     const texts = await this.bibleService
-      .getVerseTexts(this.userId, this.allVerseCodes)
+      .getVerseTexts(this.userId, this.allVerseCodes, this.preferredBibleId)
       .toPromise();
 
     for (let i = 0; i < this.allVerseCodes.length; i += this.versesPerSet) {
