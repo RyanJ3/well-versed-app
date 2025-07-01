@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil, debounceTime } from 'rxjs';
+import { Subject, takeUntil, debounceTime, firstValueFrom } from 'rxjs';
 import {
   VersePickerComponent,
   VerseSelection,
@@ -138,9 +138,9 @@ export class FlowComponent implements OnInit, OnDestroy {
         if (user) {
           this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
           const abbr = user.preferredBible || '';
-          this.bibleService.getBibleIdFromAbbreviation(abbr).subscribe(id => {
-            this.preferredBibleId = id || '';
-          });
+          this.bibleService
+            .getBibleIdFromAbbreviation(abbr)
+            .subscribe(id => (this.preferredBibleId = id || ''));
         }
       });
 
@@ -225,6 +225,13 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   async loadVerses() {
     if (!this.currentSelection) return;
+
+    // Ensure we know the user's preferred Bible ID
+    if (!this.preferredBibleId) {
+      const abbr = this.userService.getCurrentUser()?.preferredBible || '';
+      this.preferredBibleId =
+        (await firstValueFrom(this.bibleService.getBibleIdFromAbbreviation(abbr))) || '';
+    }
 
     this.isLoading = true;
     this.verses = [];
