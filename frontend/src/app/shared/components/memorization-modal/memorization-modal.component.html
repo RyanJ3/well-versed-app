@@ -17,12 +17,7 @@
             <span>{{ elapsedTime }}</span>
           </div>
           <!-- Settings Button -->
-          <button class="settings-btn" *ngIf="!setup && !promptSave" (click)="toggleSettings()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M12 1v6m0 6v6m3.22-10.22l4.24-4.24m-4.24 13.68l4.24 4.24M20 12h-6m-8 0H1m3.22-9.46L8.46 7.78m0 8.44l-4.24 4.24"></path>
-            </svg>
-          </button>
+          <button class="settings-btn" *ngIf="!setup && !promptSave" (click)="toggleSettings()">⚙️</button>
           <div class="progress-info">
             <span class="progress-text">{{ progressPercentage }}% Complete</span>
           </div>
@@ -203,8 +198,53 @@
 
       <!-- Settings Panel -->
       <div class="settings-panel" *ngIf="showSettings && !setup && !promptSave" @slideUp>
+        <div class="stage-indicators-compact">
+          <div
+            class="stage-compact"
+            *ngFor="let s of stageNames; let i = index"
+            [attr.data-tooltip]="s"
+          >
+            <div
+              class="stage-circle-compact"
+              [class.active]="currentStepIndex === i"
+              [class.completed]="currentStepIndex > i"
+              [style.background]="getStageColor(i)"
+            >
+              <span class="stage-icon" [innerHTML]="getStageIcon(s)"></span>
+            </div>
+          </div>
+        </div>
+
         <h3>Display Settings</h3>
         
+        <div class="setting-group">
+          <label class="setting-label">View Mode</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="viewMode" value="flow" [(ngModel)]="settings.displayMode" (change)="saveSettings()" />
+              <span>FLOW Layout</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="viewMode" value="text" [(ngModel)]="settings.displayMode" (change)="saveSettings()" />
+              <span>Plain Text</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-group" *ngIf="settings.displayMode === 'flow'">
+          <label class="setting-label">FLOW Layout Options</label>
+          <div class="radio-group">
+            <label class="radio-option">
+              <input type="radio" name="gridLayout" value="grid" [(ngModel)]="layoutMode" (change)="layoutMode='grid';saveSettings()" />
+              <span>5-Column Grid</span>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="gridLayout" value="single" [(ngModel)]="layoutMode" (change)="layoutMode='single';saveSettings()" />
+              <span>Single Column</span>
+            </label>
+          </div>
+        </div>
+
         <div class="setting-group">
           <label class="setting-label">Font Size</label>
           <div class="font-controls">
@@ -224,17 +264,11 @@
         </div>
 
         <div class="setting-group">
-          <label class="setting-label">Display Mode</label>
-          <div class="display-options">
-            <label class="radio-option">
-              <input type="radio" name="displayMode" value="single" 
-                     [(ngModel)]="settings.displayMode" (change)="saveSettings()">
-              <span>Verse by Verse</span>
-            </label>
-            <label class="radio-option" *ngIf="currentVerses.length < 6">
-              <input type="radio" name="displayMode" value="grid" 
-                     [(ngModel)]="settings.displayMode" (change)="saveSettings()">
-              <span>{{ getGridColumnCount() }}-Column Grid</span>
+          <label class="setting-label">Display Options</label>
+          <div class="checkbox-group">
+            <label class="checkbox-option">
+              <input type="checkbox" [(ngModel)]="highlightFifthVerse" />
+              <span>Highlight 5th verses</span>
             </label>
           </div>
         </div>
@@ -244,7 +278,7 @@
       <ng-container *ngIf="!setup && !promptSave && currentStage">
         <div class="practice-wrapper" [class.with-settings]="showSettings">
           <div class="practice-header">
-            <div class="stage-indicators-compact" @slideUp>
+            <div class="stage-indicators-compact" *ngIf="!showSettings" @slideUp>
               <div
                 class="stage-compact"
                 *ngFor="let s of stageNames; let i = index"
@@ -267,9 +301,10 @@
 
           <div class="verse-display" [style.font-size.px]="settings.fontSize">
             <!-- Single Verse Display Mode -->
-            <div *ngIf="settings.displayMode === 'single'" class="single-mode">
+            <div *ngIf="settings.displayMode === 'flow' && layoutMode === 'single'" class="single-mode">
               <div
                 class="verse-block"
+                [class.highlight-fifth]="highlightFifthVerse && v.isFifth"
                 *ngFor="let v of currentVerses; let idx = index"
                 [@verseTransition]="currentStepIndex"
               >
@@ -279,12 +314,13 @@
             </div>
 
             <!-- Grid Display Mode -->
-            <div *ngIf="settings.displayMode === 'grid' && currentVerses.length < 6" class="grid-mode">
+            <div *ngIf="settings.displayMode === 'flow' && layoutMode === 'grid' && currentVerses.length < 6" class="grid-mode">
               <div class="verse-grid" [class.cols-3]="currentVerses.length === 3"
                                      [class.cols-4]="currentVerses.length === 4"
                                      [class.cols-5]="currentVerses.length === 5">
                 <div
                   class="verse-cell"
+                  [class.highlight-fifth]="highlightFifthVerse && v.isFifth"
                   *ngFor="let v of currentVerses; let idx = index"
                   [@verseTransition]="currentStepIndex"
                 >
@@ -292,6 +328,16 @@
                   <p class="verse-text" [class.memory-mode]="currentStepIndex === 2">{{ getVerseDisplay(v) }}</p>
                 </div>
               </div>
+            </div>
+
+            <!-- Text Display Mode -->
+            <div *ngIf="settings.displayMode === 'text'" class="text-mode">
+              <p class="combined-text">
+                <span *ngFor="let v of currentVerses; let i = index">
+                  <sup class="verse-num">{{ v.verse }}</sup>
+                  {{ getVerseDisplay(v) }}<span *ngIf="i < currentVerses.length - 1"> </span>
+                </span>
+              </p>
             </div>
           </div>
 
@@ -381,9 +427,10 @@
     </div>
 
     <!-- Star Popup (positioned fixed) -->
-    <div 
-      *ngIf="starPopup && starPopup.show" 
+    <div
+      *ngIf="starPopup && starPopup.show"
       class="star-popup"
+      [class.visible]="starPopupVisible"
       [@popupSlide]="starPopup.show ? 'show' : 'hide'"
     >
       <span class="popup-icon">⭐</span>

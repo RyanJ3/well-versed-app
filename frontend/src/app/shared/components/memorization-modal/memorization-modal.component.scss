@@ -460,6 +460,11 @@
   align-items: center;
   gap: 0.75rem;
   white-space: nowrap;
+  visibility: hidden;
+
+  &.visible {
+    visibility: visible;
+  }
   
   &::after {
     content: '';
@@ -791,13 +796,13 @@
 /* Settings Panel */
 .settings-panel {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 3.5rem;
+  left: 0;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   padding: 1.5rem;
-  border-radius: 0 0 0 1rem;
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+  border-radius: 0 1rem 1rem 0;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
   z-index: 10;
   min-width: 280px;
   
@@ -899,7 +904,7 @@
   overflow: hidden;
   
   &.with-settings {
-    padding-right: 300px;
+    padding-left: 300px;
   }
 }
 
@@ -1041,6 +1046,11 @@
 // Single mode display
 .single-mode {
   .verse-block {
+    &.highlight-fifth {
+      background: #dbeafe;
+      padding: 1rem;
+      border-radius: 0.75rem;
+    }
     & + & {
       border-top: 2px solid #f3f4f6;
       margin-top: 2rem;
@@ -1055,6 +1065,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.text-mode {
+  .combined-text {
+    text-align: justify;
+  }
+
+  .verse-num {
+    font-size: 0.75em;
+    color: #6b7280;
+    margin-right: 0.25em;
+  }
 }
 
 .verse-grid {
@@ -1081,6 +1103,11 @@
   padding: 1.5rem;
   text-align: center;
   transition: all 0.3s;
+
+  &.highlight-fifth {
+    background: #dbeafe;
+    border: 1px solid #93c5fd;
+  }
   
   &:hover {
     transform: translateY(-2px);
@@ -1092,7 +1119,7 @@
   font-weight: 800;
   color: #374151;
   margin-bottom: 0.75rem;
-  font-size: 0.875rem;
+  font-size: 0.8em;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   display: inline-block;
@@ -1104,10 +1131,10 @@
 .verse-text {
   color: #1f2937;
   line-height: 1.8;
-  font-size: 1.25rem;
-  
+  font-size: 1em;
+
   &.memory-mode {
-    font-size: 1.75rem;
+    font-size: 1.5em;
     letter-spacing: 0.75em;
     color: #9ca3af;
     font-family: monospace;
@@ -1685,6 +1712,6 @@
   }
   
   .practice-wrapper.with-settings {
-    padding-right: 0;
+    padding-left: 0;
   }
 }

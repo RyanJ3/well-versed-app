@@ -55,7 +55,7 @@ interface Particle {
 
 interface Settings {
   fontSize: number;
-  displayMode: 'single' | 'grid';
+  displayMode: 'flow' | 'text';
 }
 
 @Component({
@@ -258,8 +258,10 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   showSettings = false;
   settings: Settings = {
     fontSize: 18,
-    displayMode: 'single'
+    displayMode: 'flow'
   };
+  layoutMode: 'grid' | 'single' = 'grid';
+  highlightFifthVerse = true;
 
   // UI state
   borderLeft = 0;
@@ -270,6 +272,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   hoveredGroup = -1;
   progressMarkers: ProgressMarker[] = [];
   starPopup: StarPopup | null = null;
+  starPopupVisible = false;
   floatingMessage = '';
   showParticles = false;
   particles: Particle[] = [];
@@ -411,7 +414,13 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     const saved = localStorage.getItem('memorization-settings');
     if (saved) {
       try {
-        this.settings = JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        this.settings = {
+          fontSize: parsed.fontSize || 18,
+          displayMode: parsed.displayMode || 'flow'
+        };
+        this.layoutMode = parsed.layoutMode || 'grid';
+        this.highlightFifthVerse = parsed.highlightFifthVerse !== false;
       } catch (e) {
         // Use defaults
       }
@@ -419,7 +428,13 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   }
 
   saveSettings() {
-    localStorage.setItem('memorization-settings', JSON.stringify(this.settings));
+    const data = {
+      fontSize: this.settings.fontSize,
+      displayMode: this.settings.displayMode,
+      layoutMode: this.layoutMode,
+      highlightFifthVerse: this.highlightFifthVerse
+    };
+    localStorage.setItem('memorization-settings', JSON.stringify(data));
   }
 
   toggleSettings() {
@@ -678,6 +693,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     this.setup = false;
     this.startTime = Date.now();
     this.startTimer();
+    this.verses.forEach((v, i) => (v as any).isFifth = (i + 1) % 5 === 0);
     this.buildAllStages();
     this.buildProgressMarkers();
     this.completedGroups.clear();
@@ -833,16 +849,17 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   }
 
   showStarPopup(starId: string, message: string) {
+    this.starPopupVisible = false;
     this.starPopup = {
       starId,
       message,
       show: true
     };
-    
+
     setTimeout(() => {
       const starElement = document.querySelector(`[id="${starId}"]`)?.closest('.marker') as HTMLElement;
       const popup = document.querySelector('.star-popup') as HTMLElement;
-      
+
       if (starElement && popup) {
         const starRect = starElement.getBoundingClientRect();
         const popupRect = popup.getBoundingClientRect();
@@ -853,6 +870,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
         popup.style.left = `${Math.max(10, Math.min(left, window.innerWidth - popupRect.width - 10))}px`;
         popup.style.top = `${Math.max(10, top)}px`;
       }
+      this.starPopupVisible = true;
     }, 50);
   }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -98,36 +98,6 @@ export class FlowComponent implements OnInit, OnDestroy {
     private sanitizer: DomSanitizer
   ) {}
 
-  // Keyboard shortcuts
-  @HostListener('window:keydown', ['$event'])
-  handleKeyboardEvent(event: KeyboardEvent) {
-    // Ignore if user is typing in an input field
-    if (event.target instanceof HTMLInputElement || 
-        event.target instanceof HTMLTextAreaElement) {
-      return;
-    }
-
-    switch (event.key.toLowerCase()) {
-      case 'arrowleft':
-        if (this.hasPreviousChapter()) {
-          event.preventDefault();
-          this.navigateToPreviousChapter();
-        }
-        break;
-      case 'arrowright':
-        if (this.hasNextChapter()) {
-          event.preventDefault();
-          this.navigateToNextChapter();
-        }
-        break;
-      case 't':
-        if (!event.ctrlKey && !event.metaKey && !event.altKey) {
-          event.preventDefault();
-          this.toggleViewMode();
-        }
-        break;
-    }
-  }
 
   ngOnInit() {
     // Get current user

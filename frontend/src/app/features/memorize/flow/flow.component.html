@@ -149,20 +149,6 @@
             </div>
           </div>
 
-          <div class="sidebar-section keyboard-shortcuts">
-            <h3 class="section-title">Keyboard Shortcuts</h3>
-            <div class="shortcut-list">
-              <div class="shortcut">
-                <kbd>&larr;</kbd> Previous chapter
-              </div>
-              <div class="shortcut">
-                <kbd>&rarr;</kbd> Next chapter
-              </div>
-              <div class="shortcut">
-                <kbd>T</kbd> Toggle view mode
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -170,6 +156,21 @@
 
     <!-- Main Content Area -->
     <main class="content-area">
+      <div class="passage-header" *ngIf="verses.length > 0">
+        <button class="nav-btn" (click)="navigateToPreviousChapter()" [disabled]="!hasPreviousChapter()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          <span class="nav-label">{{ getPreviousChapterLabel() }}</span>
+        </button>
+        <h2 class="passage-title">{{ getPassageTitle() }}</h2>
+        <button class="nav-btn" (click)="navigateToNextChapter()" [disabled]="!hasNextChapter()">
+          <span class="nav-label">{{ getNextChapterLabel() }}</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
       <!-- Loading State -->
       <div *ngIf="isLoading" class="loading-state">
         <div class="spinner"></div>
