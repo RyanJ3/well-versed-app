@@ -1066,7 +1066,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     this.stopTimer();
     this.visible = false;
     this.completed.emit({ memorized: true });
-    this.router.navigate(['/profile'], {
+    this.router.navigate(['/tracker'], {
       queryParams: { memorized: true },
     });
   }
@@ -1075,7 +1075,21 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     this.stopTimer();
     this.visible = false;
     this.completed.emit({ memorized: true });
-    this.router.navigate(['/flow']);
+    let queryParams: any = {};
+    if (this.nextChapterName) {
+      const match = this.nextChapterName.match(/^(.+?)\s+(\d+)$/);
+      if (match) {
+        const bookName = match[1];
+        const chapterNum = parseInt(match[2], 10);
+        const nextBook = this.bibleService
+          .getBibleData()
+          .books.find((b: BibleBook) => b.name === bookName);
+        if (nextBook) {
+          queryParams = { bookId: nextBook.id, chapter: chapterNum };
+        }
+      }
+    }
+    this.router.navigate(['/flow'], { queryParams });
   }
 
   closeModal() {
