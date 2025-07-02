@@ -1,3 +1,4 @@
+<!-- frontend/src/app/flow/flow.component.html -->
 <div class="flow-container">
   <div class="flow-header">
     <h1>FLOW Memorization</h1>
@@ -153,10 +154,10 @@
             <h3 class="section-title">Keyboard Shortcuts</h3>
             <div class="shortcut-list">
               <div class="shortcut">
-                <kbd>&larr;</kbd> Previous chapter
+                <kbd>←</kbd> Previous chapter
               </div>
               <div class="shortcut">
-                <kbd>&rarr;</kbd> Next chapter
+                <kbd>→</kbd> Next chapter
               </div>
               <div class="shortcut">
                 <kbd>T</kbd> Toggle view mode
@@ -180,6 +181,29 @@
       <div *ngIf="!isLoading && verses.length === 0" class="empty-state">
         <div class="empty-icon">📖</div>
         <p>Select verses and click <strong>Apply Selection</strong> to begin.</p>
+      </div>
+
+      <!-- Title with navigation for all views -->
+      <div class="passage-header" *ngIf="!isLoading && verses.length > 0">
+        <button class="nav-btn" 
+                (click)="navigateToPreviousChapter()" 
+                [disabled]="!hasPreviousChapter()"
+                [title]="getPreviousChapterLabel()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          <span class="nav-label">{{ getPreviousChapterLabel() }}</span>
+        </button>
+        <h2 class="passage-title">{{ getPassageTitle() }}</h2>
+        <button class="nav-btn" 
+                (click)="navigateToNextChapter()" 
+                [disabled]="!hasNextChapter()"
+                [title]="getNextChapterLabel()">
+          <span class="nav-label">{{ getNextChapterLabel() }}</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
       </div>
 
       <!-- Grid View -->

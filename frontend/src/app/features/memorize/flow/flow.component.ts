@@ -1,3 +1,4 @@
+// frontend/src/app/features/memorize/flow/flow.component.ts
 import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -626,23 +627,8 @@ export class FlowComponent implements OnInit, OnDestroy {
     this.onVerseSelectionChanged(selection);
   }
 
-  async startMemorization() {
+  startMemorization() {
     if (!this.verses.length || !this.selectedBook) return;
-
-    const missingCodes = this.verses.filter(v => !v.text).map(v => v.verseCode);
-    if (missingCodes.length) {
-      try {
-        const texts = await this.bibleService.getVerseTexts(this.userId, missingCodes).toPromise();
-        this.verses.forEach(v => {
-          if (!v.text && texts && texts[v.verseCode]) {
-            v.text = texts[v.verseCode];
-            v.firstLetters = this.extractFirstLetters(v.text);
-          }
-        });
-      } catch (err) {
-        console.error('Error fetching missing verse texts', err);
-      }
-    }
 
     this.versesForModal = this.verses.map(v => {
       const [bookId, chapter, verse] = v.verseCode.split('-').map(Number);
