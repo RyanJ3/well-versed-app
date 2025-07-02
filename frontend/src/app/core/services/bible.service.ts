@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Observable, of, throwError, BehaviorSubject } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
-import { BibleData, UserVerseDetail } from '../models/bible';
+import { BibleData, UserVerseDetail, BibleBook } from '../models/bible';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -30,6 +30,10 @@ export class BibleService {
 
   getBibleData(): BibleData {
     return this.bibleData;
+  }
+
+  getBooks(): Observable<BibleBook[]> {
+    return this.http.get<BibleBook[]>(`${this.apiUrl}/books`);
   }
 
   updateUserPreferences(includeApocrypha: boolean): void {

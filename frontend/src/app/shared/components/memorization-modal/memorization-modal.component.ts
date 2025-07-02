@@ -14,6 +14,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { BibleService } from '../../../core/services/bible.service';
 import { UserService } from '../../../core/services/user.service';
+import { BibleBook } from '../../../core/models/bible';
 import { Subject, takeUntil } from 'rxjs';
 import { trigger, state, style, transition, animate, keyframes } from '@angular/animations';
 
@@ -365,19 +366,18 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
 
   async detectSingleChapterBook() {
     try {
-      // Get book info to determine total chapters
       const books = await this.bibleService.getBooks().toPromise();
-      const currentBookInfo = books?.find(book =>
+
+      const currentBookInfo = books?.find((book: BibleBook) =>
         book.name === this.currentBook ||
         book.name === this.chapterName
       );
 
       if (currentBookInfo) {
-        this.bookChapters = currentBookInfo.chapters || 1;
+        this.bookChapters = currentBookInfo.chapters?.length || 1;
         this.isSingleChapterBook = this.bookChapters === 1;
       }
     } catch (error) {
-      // Fallback: detect based on verse count or other heuristics
       this.isSingleChapterBook = this.verses.every(v => v.chapter === 1);
     }
   }
@@ -909,6 +909,16 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     this.completed.emit({ memorized: false });
   }
 
+  stopTimer() {
+    // Stop any running timers or intervals
+    // If you have timer references, clear them here
+    // Example:
+    // if (this.timerInterval) {
+    //   clearInterval(this.timerInterval);
+    //   this.timerInterval = null;
+    // }
+  }
+
   goToTracker() {
     this.stopTimer();
     this.visible = false;
@@ -919,20 +929,26 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   }
 
   goToFlow() {
-    this.stopTimer();
+    if (this.stopTimer) {
+      this.stopTimer();
+    }
     this.visible = false;
     this.completed.emit({ memorized: true });
+
     let queryParams: any = {};
     if (this.nextChapterName) {
       const match = this.nextChapterName.match(/^(.+?)\s+(\d+)$/);
       if (match) {
         const bookName = match[1];
         const chapterNum = parseInt(match[2], 10);
-        const nextBook = this.bibleService
-          .getBibleData()
-          .books.find((b: BibleBook) => b.name === bookName);
-        if (nextBook) {
-          queryParams = { bookId: nextBook.id, chapter: chapterNum };
+
+        const bibleData = this.bibleService.getBibleData();
+        if (bibleData && bibleData.books) {
+          const nextBook = bibleData.books.find((b: BibleBook) => b.name === bookName);
+
+          if (nextBook) {
+            queryParams = { bookId: nextBook.id, chapter: chapterNum };
+          }
         }
       }
     }
