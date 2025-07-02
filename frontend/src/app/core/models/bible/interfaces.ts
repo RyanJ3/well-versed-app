@@ -40,15 +40,3 @@ export interface MemorizationProgress {
   progress: number;
   lastPracticed?: Date;
 }
-
-// Basic structures for books and chapters
-export interface Chapter {
-  chapterNumber: number;
-  verses: BibleVerse[];
-}
-
-export interface BibleBook {
-  id: number;
-  name: string;
-  chapters: Chapter[];
-}
