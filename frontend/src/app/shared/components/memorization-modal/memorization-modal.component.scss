@@ -1105,6 +1105,8 @@
   color: #1f2937;
   line-height: 1.8;
   font-size: 1.25rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
   
   &.memory-mode {
     font-size: 1.75rem;
