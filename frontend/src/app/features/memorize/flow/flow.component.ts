@@ -51,6 +51,7 @@ interface ModalVerse {
 })
 export class FlowComponent implements OnInit, OnDestroy {
   private readonly LOCAL_KEY = 'flowState';
+  private readonly isBrowser = typeof window !== 'undefined';
   // View state
   layoutMode: 'grid' | 'single' = 'grid';
   isTextMode = false;
@@ -756,6 +757,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   }
 
   saveState() {
+    if (!this.isBrowser) return;
     const state = {
       bookId: this.currentSelection?.startVerse?.bookId,
       chapter: this.currentSelection?.startVerse?.chapter,
@@ -769,6 +771,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   }
 
   private loadSavedState() {
+    if (!this.isBrowser) return;
     const raw = localStorage.getItem(this.LOCAL_KEY);
     if (!raw) return;
     try {

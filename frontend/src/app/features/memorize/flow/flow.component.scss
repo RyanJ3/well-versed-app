@@ -4,7 +4,7 @@
 }
 
 .flow-container {
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - 150px);
   background: #f8fafc;
   display: flex;
   flex-direction: column;
@@ -763,7 +763,7 @@
 // Responsive Design
 @media (max-width: 1024px) {
   .flow-container {
-    height: 100vh;
+    min-height: calc(100vh - 120px);
   }
 
   .main-layout {
