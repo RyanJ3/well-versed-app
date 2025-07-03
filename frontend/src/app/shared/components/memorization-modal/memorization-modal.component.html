@@ -9,22 +9,94 @@
         <div class="progress-info">
           <span class="progress-text">{{ progressPercentage }}% Complete</span>
         </div>
+        <div class="settings-container header-settings">
+          <button
+            class="step-circle settings-btn"
+            (click)="toggleSettingsDropdown()"
+            title="Settings"
+          >
+            ⚙️
+          </button>
+          <div class="settings-menu" [class.active]="showSettingsDropdown">
+            <div class="panel-section settings-section">
+              <h3 class="panel-title">Settings</h3>
+
+              <!-- Font Size -->
+              <div class="setting-group">
+                <label>Font Size</label>
+                <div class="font-controls">
+                  <button class="font-btn" (click)="decreaseFontSize()">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </button>
+                  <span class="font-value"
+                    >{{ practiceSettings.fontSize }}px</span
+                  >
+                  <button class="font-btn" (click)="increaseFontSize()">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Layout Mode -->
+              <div class="setting-group">
+                <label>Layout</label>
+                <div class="layout-toggle">
+                  <button
+                    class="layout-option"
+                    [class.active]="practiceSettings.layoutMode === 'column'"
+                    (click)="setLayoutMode('column')"
+                  >
+                    Column
+                  </button>
+                  <button
+                    class="layout-option"
+                    [class.active]="practiceSettings.layoutMode === 'paragraph'"
+                    (click)="setLayoutMode('paragraph')"
+                  >
+                    Paragraph
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="verse-bubbles-wrapper">
         <div class="verse-bubbles-container" #verseBubblesContainer>
           <div class="verse-bubbles">
-            <div 
-              class="active-border-container" 
-              *ngIf="hasActiveBorder" 
-              [style.left.px]="borderLeft" 
+            <div
+              class="active-border-container"
+              *ngIf="hasActiveBorder"
+              [style.left.px]="borderLeft"
               [style.width.px]="borderWidth"
               @borderPulse
             >
               <div class="active-border-bg"></div>
               <div class="active-border-glow"></div>
             </div>
-            <ng-container *ngFor="let group of getOriginalGroups(); let i = index">
+            <ng-container
+              *ngFor="let group of getOriginalGroups(); let i = index"
+            >
               <div
                 class="group-bubble"
                 [class.completed]="isGroupCompleted(i)"
@@ -38,7 +110,14 @@
                     {{ verse.verse }}
                   </div>
                 </div>
-                <div class="stage-dots" *ngIf="isGroupActive(i) && currentStage?.stageType === 'individual' && !setup">
+                <div
+                  class="stage-dots"
+                  *ngIf="
+                    isGroupActive(i) &&
+                    currentStage?.stageType === 'individual' &&
+                    !setup
+                  "
+                >
                   <div
                     class="stage-dot"
                     [class.completed]="currentStepIndex > 0"
@@ -54,7 +133,14 @@
                   ></div>
                 </div>
                 <!-- Only show checkmark for completed groups in individual stage -->
-                <span class="check-icon" *ngIf="isGroupCompleted(i) && currentStage?.stageType === 'individual'">✓</span>
+                <span
+                  class="check-icon"
+                  *ngIf="
+                    isGroupCompleted(i) &&
+                    currentStage?.stageType === 'individual'
+                  "
+                  >✓</span
+                >
               </div>
             </ng-container>
           </div>
@@ -64,25 +150,28 @@
       <div class="progress-journey">
         <div class="journey-path">
           <svg class="path-svg" viewBox="0 0 100 20" preserveAspectRatio="none">
-            <path 
-              class="path-bg" 
-              d="M 0 10 Q 25 5, 50 10 T 100 10" 
-              stroke="#e5e7eb" 
-              stroke-width="4" 
+            <path
+              class="path-bg"
+              d="M 0 10 Q 25 5, 50 10 T 100 10"
+              stroke="#e5e7eb"
+              stroke-width="4"
               fill="none"
             />
-            <path 
-              class="path-progress" 
-              d="M 0 10 Q 25 5, 50 10 T 100 10" 
+            <path
+              class="path-progress"
+              d="M 0 10 Q 25 5, 50 10 T 100 10"
               [attr.stroke]="getProgressColor()"
-              stroke-width="4" 
+              stroke-width="4"
               fill="none"
               [style.stroke-dasharray]="'100'"
               [style.stroke-dashoffset]="100 - progressPercentage"
               @progressPath
             />
           </svg>
-          <div class="progress-shimmer" [style.width.%]="progressPercentage"></div>
+          <div
+            class="progress-shimmer"
+            [style.width.%]="progressPercentage"
+          ></div>
         </div>
         <div class="progress-markers">
           <div
@@ -96,34 +185,38 @@
           >
             <!-- Star Marker -->
             <div *ngIf="marker.type === 'star'" class="star-container">
-              <svg 
-                class="star-outline" 
-                width="24" 
-                height="24" 
-                viewBox="0 0 24 24" 
+              <svg
+                class="star-outline"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
                 fill="none"
               >
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" 
-                      stroke="#9ca3af" 
-                      stroke-width="2" 
-                      stroke-linejoin="round"/>
+                <path
+                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                  stroke="#9ca3af"
+                  stroke-width="2"
+                  stroke-linejoin="round"
+                />
               </svg>
-              <svg 
+              <svg
                 *ngIf="marker.completed"
-                class="star-filled" 
-                width="24" 
-                height="24" 
-                viewBox="0 0 24 24" 
+                class="star-filled"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
                 fill="#fbbf24"
                 @starFill
               >
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                <path
+                  d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                />
               </svg>
             </div>
 
             <!-- Flag Marker -->
             <div *ngIf="marker.type === 'flag'" class="flag-container">
-              <div 
+              <div
                 class="flag"
                 [class.completed]="marker.completed"
                 *ngIf="marker.completed"
@@ -154,12 +247,14 @@
         <div class="setup" @slideUp>
           <div class="setup-header">
             <h2>Let's Start Memorizing!</h2>
-            <p class="setup-subtitle">Choose how many verses you'd like to practice at once</p>
+            <p class="setup-subtitle">
+              Choose how many verses you'd like to practice at once
+            </p>
           </div>
-          
+
           <div class="group-selector">
-            <div 
-              class="group-option" 
+            <div
+              class="group-option"
               *ngFor="let s of [1, 2, 3]"
               (click)="setGroupSize(s)"
               [class.active]="groupSize === s"
@@ -169,134 +264,103 @@
                 <span class="verse-count">{{ s }}</span>
               </div>
               <div class="option-label">
-                {{ s === 1 ? 'One at a time' : s === 2 ? 'Pairs' : 'Triplets' }}
+                {{ s === 1 ? "One at a time" : s === 2 ? "Pairs" : "Triplets" }}
               </div>
               <div class="option-description">
-                {{ s === 1 ? 'Best for beginners' : s === 2 ? 'Recommended' : 'Challenge mode' }}
+                {{
+                  s === 1
+                    ? "Best for beginners"
+                    : s === 2
+                      ? "Recommended"
+                      : "Challenge mode"
+                }}
               </div>
             </div>
           </div>
 
           <div class="setup-preview">
             <p>You'll practice {{ getGroupCount() }} groups of verses</p>
-            <p class="time-estimate">Estimated time: {{ estimatedTime }} minutes</p>
+            <p class="time-estimate">
+              Estimated time: {{ estimatedTime }} minutes
+            </p>
           </div>
 
           <button class="start-btn" (click)="start()">
             <span>Begin Memorization</span>
             <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>
+              <path
+                d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+              />
             </svg>
           </button>
         </div>
       </ng-container>
 
-      <!-- Practice Stage with Left Panel -->
+      <!-- Practice Stage -->
       <ng-container *ngIf="!setup && !promptSave && currentStage">
         <div class="practice-layout">
-          <!-- Left Panel -->
-          <div class="left-panel">
-            <!-- Settings Section -->
-            <div class="panel-section settings-section">
-              <h3 class="panel-title">Settings</h3>
-              
-              <!-- Font Size -->
-              <div class="setting-group">
-                <label>Font Size</label>
-                <div class="font-controls">
-                  <button class="font-btn" (click)="decreaseFontSize()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                  </button>
-                  <span class="font-value">{{ practiceSettings.fontSize }}px</span>
-                  <button class="font-btn" (click)="increaseFontSize()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Layout Mode -->
-              <div class="setting-group">
-                <label>Layout</label>
-                <div class="layout-toggle">
-                  <button 
-                    class="layout-option" 
-                    [class.active]="practiceSettings.layoutMode === 'column'"
-                    (click)="setLayoutMode('column')"
-                  >
-                    Column
-                  </button>
-                  <button 
-                    class="layout-option" 
-                    [class.active]="practiceSettings.layoutMode === 'paragraph'"
-                    (click)="setLayoutMode('paragraph')"
-                  >
-                    Paragraph
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Steps Section -->
-            <div class="panel-section steps-section">
-              <h3 class="panel-title">Steps</h3>
-              <div class="step-indicators">
-                <button
-                  class="step-button"
-                  *ngFor="let step of stageNames; let i = index"
-                  [class.active]="currentStepIndex === i"
-                  [class.completed]="currentStepIndex > i"
-                  [disabled]="i > currentStepIndex"
-                  (click)="jumpToStep(i)"
-                >
-                  <span class="step-icon">{{ getStageIcon(step) }}</span>
-                  <span class="step-name">{{ step }}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
           <!-- Main Practice Content -->
           <div class="practice-wrapper">
-            <div class="practice-header">
-              <p class="group-progress">{{ progressDetail }}</p>
-              <p class="instructions">{{ currentInstruction }}</p>
-            </div>
-
-            <div class="verse-display" [style.font-size.px]="practiceSettings.fontSize">
-              <div *ngIf="practiceSettings.layoutMode === 'column'" class="column-layout">
+            <div
+              class="verse-display"
+              [style.font-size.px]="practiceSettings.fontSize"
+            >
+              <div
+                *ngIf="practiceSettings.layoutMode === 'column'"
+                class="column-layout"
+              >
                 <div
                   class="verse-block"
                   *ngFor="let v of currentVerses; let idx = index"
                   [@verseTransition]="currentStepIndex"
                 >
-                  <p class="verse-ref">{{ v.reference }}</p>
-                  <p class="verse-text" [class.memory-mode]="currentStepIndex === 2">{{ getVerseDisplay(v) }}</p>
+                  <p class="verse-ref">{{ v.verse }}</p>
+                  <p
+                    class="verse-text"
+                    [class.memory-mode]="currentStepIndex === 2"
+                  >
+                    {{ getVerseDisplay(v) }}
+                  </p>
                 </div>
               </div>
 
-              <div *ngIf="practiceSettings.layoutMode === 'paragraph'" class="paragraph-layout">
+              <div
+                *ngIf="practiceSettings.layoutMode === 'paragraph'"
+                class="paragraph-layout"
+              >
                 <p class="verse-paragraph">
                   <span *ngFor="let v of currentVerses; let idx = index">
-                    <sup class="verse-ref-inline">{{ v.reference }}</sup>
-                    <span class="verse-text" [class.memory-mode]="currentStepIndex === 2">{{ getVerseDisplay(v) }}</span>
+                    <sup class="verse-ref-inline">{{ v.verse }}</sup>
+                    <span
+                      class="verse-text"
+                      [class.memory-mode]="currentStepIndex === 2"
+                      >{{ getVerseDisplay(v) }}</span
+                    >
                     <span *ngIf="idx < currentVerses.length - 1"> </span>
                   </span>
                 </p>
               </div>
             </div>
-
-            <div class="nav-buttons">
-              <button class="prev-btn" (click)="prev()" [disabled]="!canGoBack">
-                Previous
-              </button>
-              <button class="next-btn" (click)="next()" [disabled]="isSaving">Next</button>
-            </div>
           </div>
+        </div>
+        <div class="nav-buttons">
+          <button class="prev-btn" (click)="prev()" [disabled]="!canGoBack">
+            Previous
+          </button>
+          <div class="bottom-controls">
+            <button
+              *ngFor="let step of stageNames; let i = index"
+              class="step-circle"
+              [class.active]="currentStepIndex === i"
+              (click)="jumpToStep(i)"
+              [title]="step"
+            >
+              {{ getStageIcon(step) }}
+            </button>
+          </div>
+          <button class="next-btn" (click)="next()" [disabled]="isSaving">
+            Next
+          </button>
         </div>
       </ng-container>
 
@@ -305,21 +369,29 @@
         <div class="completion-wrapper">
           <!-- Confetti Animation (auto-stops) -->
           <div class="confetti-container" *ngIf="showConfetti">
-            <div *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]" class="confetti" [style.--index]="i"></div>
+            <div
+              *ngFor="
+                let i of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+              "
+              class="confetti"
+              [style.--index]="i"
+            ></div>
           </div>
-          
+
           <div class="completion-message" @celebration>
             <div class="celebration-icon">
               <span class="trophy-icon" @trophyBounce>🏆</span>
             </div>
-            
-            <p class="completion-text">You've successfully memorized {{ displayChapterName }}!</p>
-            
+
+            <p class="completion-text">
+              You've successfully memorized {{ displayChapterName }}!
+            </p>
+
             <!-- Special message for completing the Bible -->
             <p class="bible-complete-message" *ngIf="isLastChapterOfBible">
               🎊 Congratulations! You've completed the entire Bible! 🎊
             </p>
-            
+
             <div class="completion-stats">
               <div class="stat" @statReveal>
                 <span class="stat-value">{{ verses.length }}</span>
@@ -330,22 +402,32 @@
                 <span class="stat-label">Time</span>
               </div>
             </div>
-            
+
             <!-- Mark Complete Section -->
             <div class="complete-section" *ngIf="!hasMarkedComplete">
-              <p class="save-prompt">Would you like to mark this chapter as memorized?</p>
+              <p class="save-prompt">
+                Would you like to mark this chapter as memorized?
+              </p>
               <div class="completion-buttons">
-                <button class="secondary-btn" (click)="exitWithoutSaving()" [disabled]="isSaving">
+                <button
+                  class="secondary-btn"
+                  (click)="exitWithoutSaving()"
+                  [disabled]="isSaving"
+                >
                   Exit without Saving
                 </button>
-                <button class="primary-btn mark-complete-btn" (click)="markAsComplete()" [disabled]="isSaving">
+                <button
+                  class="primary-btn mark-complete-btn"
+                  (click)="markAsComplete()"
+                  [disabled]="isSaving"
+                >
                   <span *ngIf="!isSaving">Save</span>
                   <span *ngIf="isSaving" class="spinner-container">
                     <span class="spinner"></span>
                   </span>
                 </button>
               </div>
-              
+
               <!-- Error Message -->
               <div class="error-message" *ngIf="saveError" @fadeInOut>
                 <span class="error-icon">⚠️</span>
@@ -354,31 +436,69 @@
             </div>
 
             <!-- Success Check Animation -->
-            <div class="success-check-container" *ngIf="showSuccessCheck" @checkmark>
-              <svg class="checkmark-svg" width="64" height="64" viewBox="0 0 64 64">
-                <circle cx="32" cy="32" r="30" fill="none" stroke="#10b981" stroke-width="4"/>
-                <path d="M20 32 L28 40 L44 24" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            <div
+              class="success-check-container"
+              *ngIf="showSuccessCheck"
+              @checkmark
+            >
+              <svg
+                class="checkmark-svg"
+                width="64"
+                height="64"
+                viewBox="0 0 64 64"
+              >
+                <circle
+                  cx="32"
+                  cy="32"
+                  r="30"
+                  fill="none"
+                  stroke="#10b981"
+                  stroke-width="4"
+                />
+                <path
+                  d="M20 32 L28 40 L44 24"
+                  fill="none"
+                  stroke="#10b981"
+                  stroke-width="4"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
               </svg>
             </div>
 
             <!-- Navigation Options -->
-            <div class="navigation-options" *ngIf="showNavigationOptions" @slideUp>
+            <div
+              class="navigation-options"
+              *ngIf="showNavigationOptions"
+              @slideUp
+            >
               <p class="nav-prompt">What would you like to do next?</p>
-              
+
               <div class="nav-buttons-group">
-                <button class="nav-option-btn tracker-btn" (click)="goToTracker()">
+                <button
+                  class="nav-option-btn tracker-btn"
+                  (click)="goToTracker()"
+                >
                   <span class="nav-icon">📊</span>
                   <div class="nav-text">
                     <span class="nav-title">View Progress</span>
-                    <span class="nav-subtitle">See your achievement in the tracker</span>
+                    <span class="nav-subtitle"
+                      >See your achievement in the tracker</span
+                    >
                   </div>
                 </button>
 
-                <button class="nav-option-btn flow-btn" (click)="goToFlow()" *ngIf="!isLastChapterOfBible">
+                <button
+                  class="nav-option-btn flow-btn"
+                  (click)="goToFlow()"
+                  *ngIf="!isLastChapterOfBible"
+                >
                   <span class="nav-icon">📖</span>
                   <div class="nav-text">
                     <span class="nav-title">Learn Next Chapter</span>
-                    <span class="nav-subtitle">Continue with {{ nextChapterName }}</span>
+                    <span class="nav-subtitle"
+                      >Continue with {{ nextChapterName }}</span
+                    >
                   </div>
                 </button>
 
@@ -397,23 +517,28 @@
     </div>
 
     <!-- Floating Notifications -->
-    <div class="floating-notification" *ngIf="floatingMessage" @floatingNotification>
+    <div
+      class="floating-notification"
+      *ngIf="floatingMessage"
+      @floatingNotification
+    >
       {{ floatingMessage }}
     </div>
 
     <!-- Star Popup (positioned fixed) -->
-    <div 
-      *ngIf="starPopup && starPopup.show" 
+    <div
+      *ngIf="starPopup && starPopup.show"
       class="star-popup"
       [@popupSlide]="starPopup.show ? 'show' : 'hide'"
+      [style.visibility]="starPopup.visible ? 'visible' : 'hidden'"
     >
       <span class="popup-icon">⭐</span>
       <span class="popup-text">{{ starPopup.message }}</span>
     </div>
 
     <!-- Animated Star for completion -->
-    <div 
-      *ngIf="animatedStar.show" 
+    <div
+      *ngIf="animatedStar.show"
       class="animated-star"
       [style.left.px]="animatedStar.startX"
       [style.top.px]="animatedStar.startY"
@@ -424,25 +549,42 @@
     </div>
 
     <!-- Exit Confirmation Modal -->
-    <div class="confirm-modal-overlay" *ngIf="showExitConfirm" (click)="cancelExit()">
+    <div
+      class="confirm-modal-overlay"
+      *ngIf="showExitConfirm"
+      (click)="cancelExit()"
+    >
       <div class="confirm-modal" (click)="$event.stopPropagation()" @slideUp>
         <h3>Exit Practice?</h3>
         <p>Your progress will be lost if you exit now.</p>
         <div class="confirm-buttons">
-          <button class="secondary-btn" (click)="cancelExit()">Keep Practicing</button>
+          <button class="secondary-btn" (click)="cancelExit()">
+            Keep Practicing
+          </button>
           <button class="danger-btn" (click)="confirmExitAction()">Exit</button>
         </div>
       </div>
     </div>
 
     <!-- Exit Without Saving Confirmation Modal -->
-    <div class="confirm-modal-overlay" *ngIf="showExitWithoutSaveConfirm" (click)="cancelExitWithoutSave()">
+    <div
+      class="confirm-modal-overlay"
+      *ngIf="showExitWithoutSaveConfirm"
+      (click)="cancelExitWithoutSave()"
+    >
       <div class="confirm-modal" (click)="$event.stopPropagation()" @slideUp>
         <h3>Exit Without Saving?</h3>
-        <p>Your memorization progress won't be saved to your tracker. Are you sure?</p>
+        <p>
+          Your memorization progress won't be saved to your tracker. Are you
+          sure?
+        </p>
         <div class="confirm-buttons">
-          <button class="secondary-btn" (click)="cancelExitWithoutSave()">Cancel</button>
-          <button class="danger-btn" (click)="confirmExitWithoutSave()">Exit Without Saving</button>
+          <button class="secondary-btn" (click)="cancelExitWithoutSave()">
+            Cancel
+          </button>
+          <button class="danger-btn" (click)="confirmExitWithoutSave()">
+            Exit Without Saving
+          </button>
         </div>
       </div>
     </div>
