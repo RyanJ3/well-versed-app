@@ -297,6 +297,11 @@ async def get_verse_texts(
     logger.info(
         f"Getting texts for {len(verse_codes)} verses for user {user_id}"
     )
+    unique_count = len(set(verse_codes))
+    if unique_count != len(verse_codes):
+        logger.info(
+            f"Request has {len(verse_codes) - unique_count} duplicate verse codes"
+        )
 
     # Determine provider from user settings
     user_pref = db.fetch_one(
@@ -308,7 +313,9 @@ async def get_verse_texts(
 
     try:
         if use_esv and esv_token:
-            logger.info("Using ESV API for verse texts")
+            logger.info(
+                f"Using ESV API for verse texts (unique refs: {unique_count})"
+            )
             # Get verse references
             refs_query = """
                 SELECT bv.verse_code, bb.book_name, bv.chapter_number, bv.verse_number
@@ -321,9 +328,15 @@ async def get_verse_texts(
                 r["verse_code"]: f"{r['book_name']} {r['chapter_number']}:{r['verse_number']}"
                 for r in refs
             }
+            logger.debug(
+                "Resolved %d references for ESV request", len(ref_map)
+            )
 
             esv = ESVService(esv_token)
             verse_texts = esv.get_verses_batch(ref_map)
+            logger.info(
+                f"ESV API returned texts for {sum(1 for t in verse_texts.values() if t)} verses"
+            )
         else:
             logger.info("Using API.Bible for verse texts")
             api_bible = APIBibleService(Config.API_BIBLE_KEY, bible_id)
