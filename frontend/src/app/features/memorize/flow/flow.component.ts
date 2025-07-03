@@ -746,14 +746,63 @@ export class FlowComponent implements OnInit, OnDestroy {
     this.openMenu = this.openMenu === menu ? null : menu;
   }
 
-  selectAllVerses() {
-    this.verses.forEach((v) => (v.isMemorized = true));
-    this.updateProgress();
-  }
+  // Removed selectAllVerses as the UI no longer exposes this action
 
-  deselectAllVerses() {
-    this.verses.forEach((v) => (v.isMemorized = false));
-    this.updateProgress();
+  async deselectAllVerses() {
+    if (!this.verses.length || !this.selectedBook) return;
+
+    this.isSaving = true;
+
+    try {
+      const bookId = this.selectedBook.id;
+      const chapterGroups = new Map<number, number[]>();
+
+      // Group verses by chapter for efficient API calls
+      this.verses.forEach((verse) => {
+        const [, chapter, verseNum] = verse.verseCode.split('-').map(Number);
+        if (!chapterGroups.has(chapter)) {
+          chapterGroups.set(chapter, []);
+        }
+        chapterGroups.get(chapter)!.push(verseNum);
+      });
+
+      const clearPromises = Array.from(chapterGroups.entries()).map(
+        ([chapter, verses]) => {
+          const chapterData = this.selectedBook!.chapters[chapter - 1];
+
+          // Use bulk clear for full chapters
+          if (verses.length === chapterData.verses.length) {
+            return this.bibleService
+              .clearChapter(this.userId, bookId, chapter)
+              .toPromise();
+          }
+
+          // Remove individual verses
+          return Promise.all(
+            verses.map((verse) =>
+              this.bibleService
+                .deleteVerse(this.userId, bookId, chapter, verse)
+                .toPromise(),
+            ),
+          );
+        },
+      );
+
+      await Promise.all(clearPromises);
+
+      // Update local state
+      this.verses.forEach((verse) => {
+        verse.isMemorized = false;
+      });
+
+      this.updateProgress();
+      this.showSaveNotification();
+    } catch (error) {
+      console.error('Error deselecting verses:', error);
+      alert('Failed to deselect all verses');
+    } finally {
+      this.isSaving = false;
+    }
   }
 
   saveState() {
