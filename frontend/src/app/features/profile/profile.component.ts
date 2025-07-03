@@ -31,7 +31,9 @@ export class ProfileComponent implements OnInit {
     lastName: '',
     denomination: '',
     preferredBible: '',
-    includeApocrypha: false
+    includeApocrypha: false,
+    useEsvApi: false,
+    esvApiToken: ''
   };
   
   // Dropdown options
@@ -101,13 +103,15 @@ export class ProfileComponent implements OnInit {
   // Initialize form with user data
   initializeForm(user: User): void {
     const nameParts = user.name.split(' ');
-    
+
     this.profileForm = {
       firstName: nameParts[0] || '',
       lastName: nameParts.slice(1).join(' ') || '',
       denomination: user.denomination || '',
       preferredBible: user.preferredBible || '',
-      includeApocrypha: user.includeApocrypha !== undefined ? user.includeApocrypha : false
+      includeApocrypha: user.includeApocrypha !== undefined ? user.includeApocrypha : false,
+      useEsvApi: user.useEsvApi || false,
+      esvApiToken: user.esvApiToken || ''
     };
     
     console.log('Profile form initialized with:', this.profileForm);
@@ -125,7 +129,9 @@ export class ProfileComponent implements OnInit {
       lastName: this.profileForm.lastName,
       denomination: this.profileForm.denomination,
       preferredBible: this.profileForm.preferredBible,
-      includeApocrypha: this.profileForm.includeApocrypha
+      includeApocrypha: this.profileForm.includeApocrypha,
+      useEsvApi: this.profileForm.useEsvApi,
+      esvApiToken: this.profileForm.esvApiToken
     };
     
     console.log('Profile update payload:', profileUpdate);

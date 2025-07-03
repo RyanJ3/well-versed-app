@@ -15,6 +15,8 @@ export interface User {
   denomination?: string;
   preferredBible?: string;
   includeApocrypha?: boolean;
+  useEsvApi?: boolean;
+  esvApiToken?: string;
   
   // Statistics
   versesMemorized?: number;
@@ -35,6 +37,8 @@ export interface UserApiResponse {
   denomination?: string;
   preferred_bible?: string;
   include_apocrypha?: boolean;
+  use_esv_api?: boolean;
+  esv_api_token?: string;
   
   verses_memorized?: number;
   streak_days?: number;
@@ -48,4 +52,6 @@ export interface UserProfileUpdate {
   denomination?: string;
   preferred_bible?: string;
   include_apocrypha?: boolean;
+  use_esv_api?: boolean;
+  esv_api_token?: string;
 }

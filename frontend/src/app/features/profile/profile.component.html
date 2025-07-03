@@ -128,11 +128,11 @@
               
         <div class="form-group">
           <div class="toggle-container">
-            <input 
-              type="checkbox" 
-              id="includeApocrypha" 
+            <input
+              type="checkbox"
+              id="includeApocrypha"
               class="toggle-input"
-              [(ngModel)]="profileForm.includeApocrypha" 
+              [(ngModel)]="profileForm.includeApocrypha"
               name="includeApocrypha">
             <label for="includeApocrypha" class="toggle-label">
               <span class="toggle-switch"></span>
@@ -142,6 +142,35 @@
               </span>
             </label>
           </div>
+        </div>
+
+        <div class="form-group">
+          <div class="toggle-container">
+            <input
+              type="checkbox"
+              id="useEsvApi"
+              class="toggle-input"
+              [(ngModel)]="profileForm.useEsvApi"
+              name="useEsvApi">
+            <label for="useEsvApi" class="toggle-label">
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">
+                <strong>Use ESV API</strong>
+                <small>Retrieve verses from the ESV API</small>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="profileForm.useEsvApi">
+          <label for="esvApiToken">ESV API Token</label>
+          <input
+            type="text"
+            id="esvApiToken"
+            class="form-control"
+            [(ngModel)]="profileForm.esvApiToken"
+            name="esvApiToken"
+            placeholder="Enter your ESV API token">
         </div>
               
         <div class="form-actions">

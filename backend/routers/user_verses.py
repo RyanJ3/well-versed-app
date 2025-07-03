@@ -286,28 +286,55 @@ async def get_verse_texts(
     request: VerseTextsRequest,
     db: DatabaseConnection = Depends(get_db)
 ) -> Dict[str, str]:
-    """Get verse texts from API.Bible"""
+    """Get verse texts using the user's preferred provider"""
     from services.api_bible import APIBibleService
+    from services.esv_api import ESVService
     from config import Config
-    
+
     verse_codes = request.verse_codes
     bible_id = request.bible_id or Config.DEFAULT_BIBLE_ID
-    
-    logger.info(f"Getting texts for {len(verse_codes)} verses for user {user_id}")
-    
+
+    logger.info(
+        f"Getting texts for {len(verse_codes)} verses for user {user_id}"
+    )
+
+    # Determine provider from user settings
+    user_pref = db.fetch_one(
+        "SELECT use_esv_api, esv_api_token FROM users WHERE user_id = %s",
+        (user_id,),
+    )
+    use_esv = user_pref.get("use_esv_api") if user_pref else False
+    esv_token = user_pref.get("esv_api_token") if user_pref else None
+
     try:
-        # Initialize API.Bible service
-        api_bible = APIBibleService(Config.API_BIBLE_KEY, bible_id)
-        
-        # Get verse texts
-        verse_texts = api_bible.get_verses_batch(verse_codes, bible_id)
-        
+        if use_esv and esv_token:
+            logger.info("Using ESV API for verse texts")
+            # Get verse references
+            refs_query = """
+                SELECT bv.verse_code, bb.book_name, bv.chapter_number, bv.verse_number
+                FROM bible_verses bv
+                JOIN bible_books bb ON bv.book_id = bb.book_id
+                WHERE bv.verse_code = ANY(%s)
+            """
+            refs = db.fetch_all(refs_query, (verse_codes,))
+            ref_map = {
+                r["verse_code"]: f"{r['book_name']} {r['chapter_number']}:{r['verse_number']}"
+                for r in refs
+            }
+
+            esv = ESVService(esv_token)
+            verse_texts = esv.get_verses_batch(ref_map)
+        else:
+            logger.info("Using API.Bible for verse texts")
+            api_bible = APIBibleService(Config.API_BIBLE_KEY, bible_id)
+            verse_texts = api_bible.get_verses_batch(verse_codes, bible_id)
+
         logger.info(f"Successfully retrieved {len(verse_texts)} verse texts")
-        return verse_texts
-        
+        # Ensure all requested codes are present
+        return {code: verse_texts.get(code, "") for code in verse_codes}
+
     except Exception as e:
         logger.error(f"Error getting verse texts: {e}")
-        # Return empty texts for all requested verses
         return {code: "" for code in verse_codes}
 
 class ConfidenceUpdate(BaseModel):
