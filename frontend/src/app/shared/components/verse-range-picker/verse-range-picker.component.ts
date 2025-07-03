@@ -6,6 +6,8 @@ import {
   EventEmitter,
   Input,
   HostListener,
+  OnChanges,
+  SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -36,7 +38,7 @@ export interface VerseSelection {
   templateUrl: './verse-picker.component.html',
   styleUrls: ['./verse-picker.component.scss'],
 })
-export class VersePickerComponent implements OnInit {
+export class VersePickerComponent implements OnInit, OnChanges {
   @Input() theme: 'enhanced' | 'minimal' | 'cyberpunk' = 'enhanced';
   @Input() showFilters = false;
   @Input() minimumVerses = 0;
@@ -90,6 +92,15 @@ export class VersePickerComponent implements OnInit {
     private bibleService: BibleService,
     private userService: UserService,
   ) {}
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['initialSelection'] && !changes['initialSelection'].firstChange) {
+      this.appliedInitial = false;
+      if (this.books.length > 0) {
+        this.applyInitialSelection();
+      }
+    }
+  }
 
   ngOnInit() {
     this.loadBooks();

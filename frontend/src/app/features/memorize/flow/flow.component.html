@@ -237,15 +237,9 @@
       </div>
 
       <!-- Text View -->
-      <div *ngIf="!isLoading && verses.length > 0 && isTextMode" 
-           class="text-view" 
+      <div *ngIf="!isLoading && verses.length > 0 && isTextMode"
+           class="text-view"
            [style.font-size.px]="fontSize">
-        
-        <!-- Progress Summary -->
-        <div class="text-progress" *ngIf="progressPercent < 100">
-          <span>{{ memorizedCount }} of {{ verses.length }} verses memorized</span>
-        </div>
-        
         <div class="passage-content">
           <div class="plain-text" [innerHTML]="getPlainTextContent()"></div>
         </div>
