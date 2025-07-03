@@ -575,6 +575,12 @@
       text-align: justify;
       color: #1f2937;
       white-space: pre-line;
+
+      .verse-num {
+        font-size: 0.75em;
+        color: #6b7280;
+        margin-right: 0.25em;
+      }
     }
     
     .verse-text {

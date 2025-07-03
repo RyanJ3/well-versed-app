@@ -144,6 +144,10 @@
             <h3 class="section-title">Display Options</h3>
             <div class="checkbox-group">
               <label class="checkbox-option">
+                <input type="checkbox" [(ngModel)]="showVerseNumbers" />
+                <span>Show verse numbers</span>
+              </label>
+              <label class="checkbox-option" *ngIf="!isTextMode">
                 <input type="checkbox" [(ngModel)]="highlightFifthVerse" />
                 <span>Highlight 5th verses</span>
               </label>
@@ -200,7 +204,7 @@
                  [class]="getVerseClass(verse)"
                  [attr.data-verse]="verse?.verseCode">
               <ng-container *ngIf="verse">
-                <div class="verse-ref" (click)="toggleVerse(verse)">
+                <div class="verse-ref" *ngIf="showVerseNumbers" (click)="toggleVerse(verse)">
                   {{ getVerseReference(verse) }}
                   <div class="memorized-indicator" *ngIf="verse.isMemorized">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
@@ -220,7 +224,7 @@
         <div *ngFor="let verse of verses" 
              [class]="getVerseClass(verse)"
              [attr.data-verse]="verse.verseCode">
-          <div class="verse-ref" (click)="toggleVerse(verse)">
+          <div class="verse-ref" *ngIf="showVerseNumbers" (click)="toggleVerse(verse)">
             {{ getVerseReference(verse) }}
             <div class="memorized-indicator" *ngIf="verse.isMemorized">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">

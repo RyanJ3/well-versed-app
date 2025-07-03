@@ -54,6 +54,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   layoutMode: 'grid' | 'single' = 'grid';
   isTextMode = false;
   highlightFifthVerse = true;
+  showVerseNumbers = true;
   showSavedMessage = false;
   warningMessage: string | null = null;
   fontSize = 16;
@@ -279,11 +280,17 @@ export class FlowComponent implements OnInit, OnDestroy {
   getPlainTextContent(): SafeHtml {
     if (!this.verses.length) return '';
 
-    let combined = this.verses.map(v => v.text).join(' ');
-    if (combined.includes('**¶')) {
-      combined = combined.replace(/\*\*¶/g, '<br><br>');
-    }
+    const parts = this.verses.map(v => {
+      let text = v.text;
+      if (text.includes('**¶')) {
+        text = text.replace(/\*\*¶/g, '<br><br>');
+      }
 
+      const verseNum = `<sup class="verse-num">${v.verse}</sup> `;
+      return (this.showVerseNumbers ? verseNum : '') + text;
+    });
+
+    const combined = parts.join(' ');
     return this.sanitizer.sanitize(1, combined) || '';
   }
 
@@ -349,7 +356,7 @@ export class FlowComponent implements OnInit, OnDestroy {
     if (!verse) return 'empty-cell';
     
     const classes = ['verse-cell'];
-    if (verse.isFifth && this.highlightFifthVerse) {
+    if (verse.isFifth && this.highlightFifthVerse && !this.isTextMode) {
       classes.push('fifth-verse');
     }
     if (verse.isMemorized) {
