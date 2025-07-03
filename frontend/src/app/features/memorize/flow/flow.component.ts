@@ -755,7 +755,7 @@ export class FlowComponent implements OnInit, OnDestroy {
     this.updateProgress();
   }
 
-  private saveState() {
+  saveState() {
     const state = {
       bookId: this.currentSelection?.startVerse?.bookId,
       chapter: this.currentSelection?.startVerse?.chapter,
