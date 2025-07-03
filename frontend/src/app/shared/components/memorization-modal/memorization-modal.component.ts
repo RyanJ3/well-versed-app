@@ -525,8 +525,8 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   }
 
   jumpToStep(stepIndex: number) {
-    if (stepIndex > this.currentStepIndex || this.setup || this.promptSave) return;
-    
+    if (this.setup || this.promptSave) return;
+
     this.currentStepIndex = stepIndex;
   }
 

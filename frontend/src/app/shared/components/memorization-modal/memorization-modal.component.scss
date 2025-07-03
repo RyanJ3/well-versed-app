@@ -723,19 +723,6 @@
     border-radius: 2px;
   }
 
-  .settings-dropdown {
-    position: relative;
-
-    .settings-toggle {
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      margin-bottom: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-  }
 }
 
 .panel-section {
@@ -1005,6 +992,59 @@
   border-top: 1px solid rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
   width: 100%;
+}
+
+.bottom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.step-circle {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.active {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: #ffffff;
+    border-color: #3b82f6;
+  }
+}
+
+.settings-container {
+  position: relative;
+}
+
+.settings-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 1rem;
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(5px) scale(0.95);
+  transition: all 0.2s ease;
+
+  &.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .prev-btn,
@@ -1471,10 +1511,6 @@
       flex-direction: row !important;
     }
 
-    .settings-toggle {
-      margin-bottom: 0;
-    }
-    
     .step-button {
       padding: 0.5rem 0.75rem;
       
@@ -1497,11 +1533,26 @@
     padding: 1rem;
     flex-direction: column;
     width: 100%;
-    
+
     .prev-btn,
     .next-btn {
       width: 100%;
     }
+
+    .bottom-controls {
+      margin: 0.75rem 0;
+      justify-content: center;
+    }
+  }
+
+  .step-circle {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .settings-menu {
+    right: 50%;
+    transform: translateX(50%) translateY(5px) scale(0.95);
   }
 
   .group-selector {
