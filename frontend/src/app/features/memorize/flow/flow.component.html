@@ -150,20 +150,6 @@
             </div>
           </div>
 
-          <div class="sidebar-section keyboard-shortcuts">
-            <h3 class="section-title">Keyboard Shortcuts</h3>
-            <div class="shortcut-list">
-              <div class="shortcut">
-                <kbd>←</kbd> Previous chapter
-              </div>
-              <div class="shortcut">
-                <kbd>→</kbd> Next chapter
-              </div>
-              <div class="shortcut">
-                <kbd>T</kbd> Toggle view mode
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -257,17 +243,7 @@
         </div>
         
         <div class="passage-content">
-          <p class="verse-text">
-            <span *ngFor="let verse of verses; let i = index"
-                  [class.highlight-fifth]="verse.isFifth && highlightFifthVerse"
-                  [class.memorized-verse]="verse.isMemorized">
-              <sup class="verse-num" 
-                   [class.memorized]="verse.isMemorized"
-                   (click)="toggleVerse(verse)"><strong>{{ verse.verse }}</strong></sup>
-              <span [innerHTML]="formatFirstLetters(verse)"></span>
-              <span *ngIf="i < verses.length - 1"> </span>
-            </span>
-          </p>
+          <div class="plain-text" [innerHTML]="getPlainTextContent()"></div>
         </div>
       </div>
     </main>
