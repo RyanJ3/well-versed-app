@@ -89,7 +89,8 @@ ESV responses are cached in memory with an eviction policy that follows
 Crossway's public guidelines:
 
 - No more than **500 verses** are stored at once.
-- The cache also ensures no more than half of any single book is kept.
+- The cache stores at most half the chapters of any single book.
+  Single chapter books are never cached.
 - Entries expire after 24 hours so the cache is periodically cleared.
 
 ### Database migration
