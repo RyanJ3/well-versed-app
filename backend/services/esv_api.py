@@ -135,64 +135,47 @@ class ESVService:
         return ""
 
     def get_verses_batch(self, references: Dict[str, str]) -> Dict[str, str]:
-        """Fetch multiple verses, minimizing API calls by batching."""
+        """Fetch multiple verses, using the cache to minimize API calls."""
         results: Dict[str, str] = {}
 
-        # Separate cached and uncached references
-        uncached: Dict[str, str] = {}
         for code, ref in references.items():
             cached = self._cache.get(ref)
             if cached is not None:
                 logger.debug("Cache hit for %s", ref)
                 results[code] = cached
-            else:
-                uncached[code] = ref
+                continue
 
-        if not uncached:
-            return results
+            logger.debug("Cache miss for %s", ref)
 
-        logger.info("Fetching %d verses from ESV API", len(uncached))
+            params = {
+                "q": ref,
+                "include-headings": False,
+                "include-footnotes": False,
+                "include-verse-numbers": False,
+                "include-short-copyright": False,
+                "include-passage-references": False,
+            }
 
-        # Build params with repeated q values
-        params = [
-            ("q", r) for r in uncached.values()
-        ] + [
-            ("include-headings", "false"),
-            ("include-footnotes", "false"),
-            ("include-verse-numbers", "false"),
-            ("include-short-copyright", "false"),
-            ("include-passage-references", "false"),
-        ]
-
-        try:
-            response = requests.get(self.BASE_URL, params=params, headers=self.headers)
-            if response.status_code == 200:
-                data = response.json()
-                passages = data.get("passages", [])
-
-                if len(passages) != len(uncached):
-                    logger.warning(
-                        "ESV API returned %d passages for %d requests",
-                        len(passages),
-                        len(uncached),
-                    )
-
-                for (code, ref), text in zip(uncached.items(), passages):
-                    clean = re.sub(r"<[^>]+>", "", text).strip()
-                    results[code] = clean
-                    self._cache.set(ref, clean)
-            else:
-                if response.status_code == 429:
-                    logger.error("ESV API rate limit hit when fetching batch")
+            try:
+                response = requests.get(self.BASE_URL, params=params, headers=self.headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    passages = data.get("passages", [])
+                    if passages:
+                        clean = re.sub(r"<[^>]+>", "", passages[0].strip()).strip()
+                        results[code] = clean
+                        self._cache.set(ref, clean)
+                    else:
+                        logger.error("No passages returned for %s", ref)
+                        results[code] = ""
                 else:
-                    logger.error(
-                        "ESV API batch error %s: %s", response.status_code, response.text
-                    )
-                for code in uncached:
+                    if response.status_code == 429:
+                        logger.error("ESV API error 429 (rate limited) while fetching %s", ref)
+                    else:
+                        logger.error("ESV API error %s: %s", response.status_code, response.text)
                     results[code] = ""
-        except Exception as e:
-            logger.error("Failed to fetch verses from ESV API: %s", e)
-            for code in uncached:
+            except Exception as e:
+                logger.error("Failed to fetch verse from ESV API: %s", e)
                 results[code] = ""
 
         return {code: results.get(code, "") for code in references}
