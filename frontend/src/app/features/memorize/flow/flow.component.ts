@@ -209,11 +209,19 @@ export class FlowComponent implements OnInit, OnDestroy {
     // Clear warning for valid selections
     this.warningMessage = null;
     this.loadVersesCancel$.next();
+    if (this.retryCountdown !== null) {
+      this.isLoading = false;
+      this.verses = [];
+      this.gridRows = [];
+      return;
+    }
+
     this.loadVerses();
   }
 
   async loadVerses() {
     if (!this.currentSelection) return;
+    if (this.retryCountdown !== null) return;
 
     this.isLoading = true;
     this.verses = [];
