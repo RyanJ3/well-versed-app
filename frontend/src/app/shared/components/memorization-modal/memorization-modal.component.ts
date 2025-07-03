@@ -47,9 +47,17 @@ interface StarPopup {
   show: boolean;
 }
 
-interface Particle {
-  x: string;
-  y: string;
+interface AnimatedStar {
+  show: boolean;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+}
+
+interface PracticeSettings {
+  fontSize: number;
+  layoutMode: 'column' | 'paragraph';
 }
 
 @Component({
@@ -101,6 +109,27 @@ interface Particle {
       })),
       transition('hide => show', animate('300ms ease-out')),
       transition('show => hide', animate('200ms ease-in'))
+    ]),
+    trigger('starMove', [
+      transition(':enter', [
+        animate('800ms cubic-bezier(0.4, 0, 0.2, 1)', keyframes([
+          style({ 
+            transform: 'translate(0, 0) scale(1)', 
+            opacity: 1,
+            offset: 0 
+          }),
+          style({ 
+            transform: 'translate(var(--endX), var(--endY)) scale(0.8)', 
+            opacity: 1,
+            offset: 0.9 
+          }),
+          style({ 
+            transform: 'translate(var(--endX), var(--endY)) scale(0)', 
+            opacity: 0,
+            offset: 1 
+          })
+        ]))
+      ])
     ]),
     trigger('trophyBounce', [
       transition(':enter', [
@@ -216,6 +245,12 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   showExitConfirm = false;
   showExitWithoutSaveConfirm = false;
 
+  // Practice settings
+  practiceSettings: PracticeSettings = {
+    fontSize: 16,
+    layoutMode: 'column'
+  };
+
   // Time tracking
   startTime = 0;
   timeSpent = 0;
@@ -228,8 +263,13 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   progressMarkers: ProgressMarker[] = [];
   starPopup: StarPopup | null = null;
   floatingMessage = '';
-  showParticles = false;
-  particles: Particle[] = [];
+  animatedStar: AnimatedStar = {
+    show: false,
+    startX: 0,
+    startY: 0,
+    endX: 0,
+    endY: 0
+  };
   showConfetti = false;
   hasMarkedComplete = false;
   showNavigationOptions = false;
@@ -447,11 +487,6 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     return stage.charAt(0);
   }
 
-  getPopupIcon(): string {
-    const icons = ['🌟', '⭐', '✨', '💫'];
-    return icons[Math.floor(Math.random() * icons.length)];
-  }
-
   formatTime(milliseconds: number): string {
     const totalSeconds = Math.floor(milliseconds / 1000);
     const hours = Math.floor(totalSeconds / 3600);
@@ -465,6 +500,28 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     } else {
       return `${seconds}s`;
     }
+  }
+
+  increaseFontSize() {
+    if (this.practiceSettings.fontSize < 24) {
+      this.practiceSettings.fontSize += 2;
+    }
+  }
+
+  decreaseFontSize() {
+    if (this.practiceSettings.fontSize > 12) {
+      this.practiceSettings.fontSize -= 2;
+    }
+  }
+
+  setLayoutMode(mode: 'column' | 'paragraph') {
+    this.practiceSettings.layoutMode = mode;
+  }
+
+  jumpToStep(stepIndex: number) {
+    if (stepIndex > this.currentStepIndex || this.setup || this.promptSave) return;
+    
+    this.currentStepIndex = stepIndex;
   }
 
   updateActiveBorder() {
@@ -683,12 +740,12 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
         if (marker && !marker.completed && this.completedSteps >= stepCount) {
           const message = this.getStarMessage(stage, groupIdx, marker.type === 'finish');
           this.showStarPopup(marker.id, message);
-          this.createParticleEffect(marker);
+          this.animateStarToMarker(marker);
 
           setTimeout(() => {
             marker.completed = true;
             this.hideStarPopup();
-          }, 1500);
+          }, 800);
         }
       }
 
@@ -748,29 +805,35 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     }
   }
 
-  createParticleEffect(marker: ProgressMarker) {
+  animateStarToMarker(marker: ProgressMarker) {
+    const popup = document.querySelector('.star-popup') as HTMLElement;
     const markerElement = document.querySelector(`[id="${marker.id}"]`) as HTMLElement;
-    if (!markerElement) return;
+    
+    if (!popup || !markerElement) return;
 
-    const rect = markerElement.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
+    const popupRect = popup.getBoundingClientRect();
+    const markerRect = markerElement.getBoundingClientRect();
 
-    const newParticles: Particle[] = [];
-    for (let i = 0; i < 8; i++) {
-      newParticles.push({
-        x: centerX + 'px',
-        y: centerY + 'px'
-      });
-    }
+    this.animatedStar = {
+      show: true,
+      startX: popupRect.left + popupRect.width / 2,
+      startY: popupRect.top + popupRect.height / 2,
+      endX: markerRect.left + markerRect.width / 2,
+      endY: markerRect.top + markerRect.height / 2
+    };
 
-    this.particles = newParticles;
-    this.showParticles = true;
-
+    // Set CSS variables for animation
     setTimeout(() => {
-      this.showParticles = false;
-      this.particles = [];
-    }, 1000);
+      const starEl = document.querySelector('.animated-star') as HTMLElement;
+      if (starEl) {
+        starEl.style.setProperty('--endX', `${this.animatedStar.endX - this.animatedStar.startX}px`);
+        starEl.style.setProperty('--endY', `${this.animatedStar.endY - this.animatedStar.startY}px`);
+      }
+    }, 10);
+  }
+
+  onStarAnimationDone() {
+    this.animatedStar.show = false;
   }
 
   showFloatingMessage(message: string) {
@@ -912,11 +975,6 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   stopTimer() {
     // Stop any running timers or intervals
     // If you have timer references, clear them here
-    // Example:
-    // if (this.timerInterval) {
-    //   clearInterval(this.timerInterval);
-    //   this.timerInterval = null;
-    // }
   }
 
   goToTracker() {
@@ -955,7 +1013,6 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     this.router.navigate(['/flow'], { queryParams });
   }
 
-
   closeModal() {
     this.visible = false;
     this.completed.emit({ memorized: this.hasMarkedComplete });
@@ -977,9 +1034,17 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   getInitials(text: string): string {
     return text
       .split(' ')
-      .map((word) => word[0] || '')
+      .map(word => {
+        const match = word.match(/[a-zA-Z]/);
+        if (match) {
+          const index = word.indexOf(match[0]);
+          return word.substring(0, index + 1);
+        }
+        return word;
+      })
       .join(' ');
   }
+
   getVerseDisplay(v: Verse): string {
     if (this.currentStepIndex === 0) {
       return v.text;
@@ -998,8 +1063,8 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
 
   isGroupCompleted(originalGroupIndex: number): boolean {
     if (this.promptSave) return true;
-    if (!this.currentStage || this.currentStage.stageType !== 'individual') return true;
-    if (this.currentStageIndex > 0) return true;
+    if (!this.currentStage || this.currentStage.stageType !== 'individual') return false;
+    if (this.currentStageIndex > 0) return false;
     return originalGroupIndex < this.currentSubStageIndex;
   }
 }
