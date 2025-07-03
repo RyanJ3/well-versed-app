@@ -1,5 +1,5 @@
 // frontend/src/app/features/memorize/flow/flow.component.ts
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -54,6 +54,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   layoutMode: 'grid' | 'single' = 'grid';
   isTextMode = false;
   highlightFifthVerse = true;
+  showVerseNumbers = true;
   showSavedMessage = false;
   warningMessage: string | null = null;
   fontSize = 16;
@@ -99,36 +100,7 @@ export class FlowComponent implements OnInit, OnDestroy {
     private sanitizer: DomSanitizer
   ) {}
 
-  // Keyboard shortcuts
-  @HostListener('window:keydown', ['$event'])
-  handleKeyboardEvent(event: KeyboardEvent) {
-    // Ignore if user is typing in an input field
-    if (event.target instanceof HTMLInputElement || 
-        event.target instanceof HTMLTextAreaElement) {
-      return;
-    }
 
-    switch (event.key.toLowerCase()) {
-      case 'arrowleft':
-        if (this.hasPreviousChapter()) {
-          event.preventDefault();
-          this.navigateToPreviousChapter();
-        }
-        break;
-      case 'arrowright':
-        if (this.hasNextChapter()) {
-          event.preventDefault();
-          this.navigateToNextChapter();
-        }
-        break;
-      case 't':
-        if (!event.ctrlKey && !event.metaKey && !event.altKey) {
-          event.preventDefault();
-          this.toggleViewMode();
-        }
-        break;
-    }
-  }
 
   ngOnInit() {
     // Get current user
@@ -305,6 +277,23 @@ export class FlowComponent implements OnInit, OnDestroy {
     return this.sanitizer.sanitize(1, formatted) || '';
   }
 
+  getPlainTextContent(): SafeHtml {
+    if (!this.verses.length) return '';
+
+    const parts = this.verses.map(v => {
+      let text = v.text;
+      if (text.includes('**¶')) {
+        text = text.replace(/\*\*¶/g, '<br><br>');
+      }
+
+      const verseNum = `<sup class="verse-num">${v.verse}</sup> `;
+      return (this.showVerseNumbers ? verseNum : '') + text;
+    });
+
+    const combined = parts.join(' ');
+    return this.sanitizer.sanitize(1, combined) || '';
+  }
+
   setViewMode(mode: 'flow' | 'text') {
     this.isTextMode = mode === 'text';
     if (mode === 'flow') {
@@ -367,7 +356,7 @@ export class FlowComponent implements OnInit, OnDestroy {
     if (!verse) return 'empty-cell';
     
     const classes = ['verse-cell'];
-    if (verse.isFifth && this.highlightFifthVerse) {
+    if (verse.isFifth && this.highlightFifthVerse && !this.isTextMode) {
       classes.push('fifth-verse');
     }
     if (verse.isMemorized) {
