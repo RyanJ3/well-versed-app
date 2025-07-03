@@ -71,3 +71,26 @@ Use with main docker-compose.yml in project root.
 ## Files
 - `backend/services/api_bible.py` - API Bible service
 - `backend/routers/user_verses.py` - Includes `/verses/texts` endpoint
+
+# ESV API Integration
+
+## Setup
+The ESV API is optional and can be enabled per user. Each user supplies their
+own API token which is stored in the `esv_api_token` column.
+
+1. Obtain a token from <https://api.esv.org/>
+2. In the profile page, enable **Use ESV API** and enter the token.
+
+When enabled, verse text requests will be served from the ESV API instead of
+API.Bible.
+
+### Database migration
+If you already have an existing database you will need to add the new columns:
+
+```sql
+ALTER TABLE users ADD COLUMN IF NOT EXISTS use_esv_api BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS esv_api_token VARCHAR(200);
+```
+
+Alternatively, re-run the setup script in `sql_setup` to recreate the schema.
+

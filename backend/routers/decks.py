@@ -412,22 +412,41 @@ async def get_deck_verses(
                 }
             )
 
-    # Fetch actual verse texts from API.Bible
+    # Fetch actual verse texts from preferred provider
     verse_texts = {}
     if all_verse_codes:
         try:
-            # Initialize API Bible service
-            api_bible = APIBibleService(
-                Config.API_BIBLE_KEY, bible_id or Config.DEFAULT_BIBLE_ID
+            user_pref = db.fetch_one(
+                "SELECT use_esv_api, esv_api_token FROM users WHERE user_id = %s",
+                (user_id,),
             )
+            use_esv = user_pref.get("use_esv_api") if user_pref else False
+            esv_token = user_pref.get("esv_api_token") if user_pref else None
 
-            # Get verse texts in batch
-            verse_texts = api_bible.get_verses_batch(
-                all_verse_codes, bible_id or Config.DEFAULT_BIBLE_ID
+            if use_esv and esv_token:
+                from services.esv_api import ESVService
+
+                logger.info("Using ESV API for deck verses")
+                ref_map = {}
+                for card_data in cards_dict.values():
+                    for verse in card_data["verses"]:
+                        ref_map[verse["verse_code"]] = verse["reference"]
+
+                esv = ESVService(esv_token)
+                verse_texts = esv.get_verses_batch(ref_map)
+            else:
+                logger.info("Using API.Bible for deck verses")
+                api_bible = APIBibleService(
+                    Config.API_BIBLE_KEY, bible_id or Config.DEFAULT_BIBLE_ID
+                )
+                verse_texts = api_bible.get_verses_batch(
+                    all_verse_codes, bible_id or Config.DEFAULT_BIBLE_ID
+                )
+            logger.info(
+                f"Fetched texts for {len(verse_texts)} verses from preferred provider"
             )
-            logger.info(f"Fetched texts for {len(verse_texts)} verses from API.Bible")
         except Exception as e:
-            logger.error(f"Error fetching verse texts from API.Bible: {e}")
+            logger.error(f"Error fetching verse texts: {e}")
             # Continue without verse texts rather than failing completely
 
     # Update verse texts in the cards

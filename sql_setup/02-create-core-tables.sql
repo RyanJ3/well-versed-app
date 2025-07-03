@@ -14,6 +14,8 @@ CREATE TABLE users (
     last_name VARCHAR(100),
     denomination VARCHAR(100),
     preferred_bible VARCHAR(50),
+    use_esv_api BOOLEAN DEFAULT FALSE,
+    esv_api_token VARCHAR(200),
     include_apocrypha BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
