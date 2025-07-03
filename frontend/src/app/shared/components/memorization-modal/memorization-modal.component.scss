@@ -698,7 +698,7 @@
 /* Practice Content with Left Panel Layout */
 .practice-layout {
   display: flex;
-  height: 100%;
+  flex: 1;
   gap: 0;
 }
 
@@ -721,6 +721,20 @@
   &::-webkit-scrollbar-thumb {
     background: #d1d5db;
     border-radius: 2px;
+  }
+
+  .settings-dropdown {
+    position: relative;
+
+    .settings-toggle {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   }
 }
 
@@ -990,6 +1004,7 @@
   backdrop-filter: blur(20px);
   border-top: 1px solid rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
+  width: 100%;
 }
 
 .prev-btn,
@@ -1455,6 +1470,10 @@
     .step-indicators {
       flex-direction: row !important;
     }
+
+    .settings-toggle {
+      margin-bottom: 0;
+    }
     
     .step-button {
       padding: 0.5rem 0.75rem;
@@ -1477,6 +1496,7 @@
   .nav-buttons {
     padding: 1rem;
     flex-direction: column;
+    width: 100%;
     
     .prev-btn,
     .next-btn {

@@ -45,6 +45,7 @@ interface StarPopup {
   starId: string;
   message: string;
   show: boolean;
+  visible: boolean;
 }
 
 interface AnimatedStar {
@@ -263,6 +264,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   progressMarkers: ProgressMarker[] = [];
   starPopup: StarPopup | null = null;
   floatingMessage = '';
+  showSettingsDropdown = false;
   animatedStar: AnimatedStar = {
     show: false,
     startX: 0,
@@ -516,6 +518,10 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
 
   setLayoutMode(mode: 'column' | 'paragraph') {
     this.practiceSettings.layoutMode = mode;
+  }
+
+  toggleSettingsDropdown() {
+    this.showSettingsDropdown = !this.showSettingsDropdown;
   }
 
   jumpToStep(stepIndex: number) {
@@ -776,7 +782,8 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     this.starPopup = {
       starId,
       message,
-      show: true
+      show: true,
+      visible: false
     };
 
     setTimeout(() => {
@@ -792,6 +799,9 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
 
         popup.style.left = `${Math.max(10, Math.min(left, window.innerWidth - popupRect.width - 10))}px`;
         popup.style.top = `${Math.max(10, top)}px`;
+        if (this.starPopup) {
+          this.starPopup.visible = true;
+        }
       }
     }, 50);
   }
@@ -799,6 +809,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   hideStarPopup() {
     if (this.starPopup) {
       this.starPopup.show = false;
+      this.starPopup.visible = false;
       setTimeout(() => {
         this.starPopup = null;
       }, 200);
