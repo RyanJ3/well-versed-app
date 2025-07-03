@@ -1,4 +1,3 @@
-<!-- frontend/src/app/shared/components/memorization-modal/memorization-modal.component.html -->
 <div class="memorization-modal-overlay" *ngIf="visible">
   <div class="memorization-modal-container" @fadeIn>
     <!-- Exit Button -->
@@ -54,7 +53,8 @@
                     [class.active]="currentStepIndex === 2"
                   ></div>
                 </div>
-                <span class="check-icon" *ngIf="isGroupCompleted(i) && currentStageIndex > 0">✓</span>
+                <!-- Only show checkmark for completed groups in individual stage -->
+                <span class="check-icon" *ngIf="isGroupCompleted(i) && currentStage?.stageType === 'individual'">✓</span>
               </div>
             </ng-container>
           </div>
@@ -191,47 +191,111 @@
         </div>
       </ng-container>
 
-      <!-- Practice Stage -->
+      <!-- Practice Stage with Left Panel -->
       <ng-container *ngIf="!setup && !promptSave && currentStage">
-        <div class="practice-wrapper">
-          <div class="practice-header">
-            <div class="stage-indicators-compact" @slideUp>
-              <div
-                class="stage-compact"
-                *ngFor="let s of stageNames; let i = index"
-                [attr.data-tooltip]="s"
-              >
-                <div
-                  class="stage-circle-compact"
-                  [class.active]="currentStepIndex === i"
-                  [class.completed]="currentStepIndex > i"
-                  [style.background]="getStageColor(i)"
-                >
-                  <span class="stage-icon" [innerHTML]="getStageIcon(s)"></span>
+        <div class="practice-layout">
+          <!-- Left Panel -->
+          <div class="left-panel">
+            <!-- Settings Section -->
+            <div class="panel-section settings-section">
+              <h3 class="panel-title">Settings</h3>
+              
+              <!-- Font Size -->
+              <div class="setting-group">
+                <label>Font Size</label>
+                <div class="font-controls">
+                  <button class="font-btn" (click)="decreaseFontSize()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </button>
+                  <span class="font-value">{{ practiceSettings.fontSize }}px</span>
+                  <button class="font-btn" (click)="increaseFontSize()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Layout Mode -->
+              <div class="setting-group">
+                <label>Layout</label>
+                <div class="layout-toggle">
+                  <button 
+                    class="layout-option" 
+                    [class.active]="practiceSettings.layoutMode === 'column'"
+                    (click)="setLayoutMode('column')"
+                  >
+                    Column
+                  </button>
+                  <button 
+                    class="layout-option" 
+                    [class.active]="practiceSettings.layoutMode === 'paragraph'"
+                    (click)="setLayoutMode('paragraph')"
+                  >
+                    Paragraph
+                  </button>
                 </div>
               </div>
             </div>
 
-            <p class="group-progress">{{ progressDetail }}</p>
-            <p class="instructions">{{ currentInstruction }}</p>
-          </div>
-
-          <div class="verse-display">
-            <div
-              class="verse-block"
-              *ngFor="let v of currentVerses; let idx = index"
-              [@verseTransition]="currentStepIndex"
-            >
-              <p class="verse-ref">{{ v.reference }}</p>
-              <p class="verse-text" [class.memory-mode]="currentStepIndex === 2">{{ getVerseDisplay(v) }}</p>
+            <!-- Steps Section -->
+            <div class="panel-section steps-section">
+              <h3 class="panel-title">Steps</h3>
+              <div class="step-indicators">
+                <button
+                  class="step-button"
+                  *ngFor="let step of stageNames; let i = index"
+                  [class.active]="currentStepIndex === i"
+                  [class.completed]="currentStepIndex > i"
+                  [disabled]="i > currentStepIndex"
+                  (click)="jumpToStep(i)"
+                >
+                  <span class="step-icon">{{ getStageIcon(step) }}</span>
+                  <span class="step-name">{{ step }}</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          <div class="nav-buttons">
-            <button class="prev-btn" (click)="prev()" [disabled]="!canGoBack">
-              Previous
-            </button>
-            <button class="next-btn" (click)="next()" [disabled]="isSaving">Next</button>
+          <!-- Main Practice Content -->
+          <div class="practice-wrapper">
+            <div class="practice-header">
+              <p class="group-progress">{{ progressDetail }}</p>
+              <p class="instructions">{{ currentInstruction }}</p>
+            </div>
+
+            <div class="verse-display" [style.font-size.px]="practiceSettings.fontSize">
+              <div *ngIf="practiceSettings.layoutMode === 'column'" class="column-layout">
+                <div
+                  class="verse-block"
+                  *ngFor="let v of currentVerses; let idx = index"
+                  [@verseTransition]="currentStepIndex"
+                >
+                  <p class="verse-ref">{{ v.reference }}</p>
+                  <p class="verse-text" [class.memory-mode]="currentStepIndex === 2">{{ getVerseDisplay(v) }}</p>
+                </div>
+              </div>
+
+              <div *ngIf="practiceSettings.layoutMode === 'paragraph'" class="paragraph-layout">
+                <p class="verse-paragraph">
+                  <span *ngFor="let v of currentVerses; let idx = index">
+                    <sup class="verse-ref-inline">{{ v.reference }}</sup>
+                    <span class="verse-text" [class.memory-mode]="currentStepIndex === 2">{{ getVerseDisplay(v) }}</span>
+                    <span *ngIf="idx < currentVerses.length - 1"> </span>
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div class="nav-buttons">
+              <button class="prev-btn" (click)="prev()" [disabled]="!canGoBack">
+                Previous
+              </button>
+              <button class="next-btn" (click)="next()" [disabled]="isSaving">Next</button>
+            </div>
           </div>
         </div>
       </ng-container>
@@ -343,13 +407,20 @@
       class="star-popup"
       [@popupSlide]="starPopup.show ? 'show' : 'hide'"
     >
-      <span class="popup-icon">{{ getPopupIcon() }}</span>
+      <span class="popup-icon">⭐</span>
       <span class="popup-text">{{ starPopup.message }}</span>
     </div>
 
-    <!-- Particle Effect Container -->
-    <div class="particle-container" *ngIf="showParticles">
-      <div *ngFor="let p of particles" class="particle" [style.--x]="p.x" [style.--y]="p.y"></div>
+    <!-- Animated Star for completion -->
+    <div 
+      *ngIf="animatedStar.show" 
+      class="animated-star"
+      [style.left.px]="animatedStar.startX"
+      [style.top.px]="animatedStar.startY"
+      @starMove
+      (@starMove.done)="onStarAnimationDone()"
+    >
+      ⭐
     </div>
 
     <!-- Exit Confirmation Modal -->
