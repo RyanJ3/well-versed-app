@@ -182,9 +182,11 @@ export class BibleService {
       tap(texts => console.log(`Received texts for ${Object.keys(texts).length} verses`)),
       catchError((error: HttpErrorResponse) => {
         console.error('Error getting verse texts:', error);
-        if (error.status === 429 && error.error?.wait_seconds) {
-          const wait = error.error.wait_seconds;
-          this.notifications.warning(`ESV API limit reached. Try again in ${wait} seconds.`);
+        if (error.status === 429) {
+          const wait = error.error?.wait_seconds ?? error.error?.detail?.wait_seconds;
+          if (wait) {
+            this.notifications.warning(`ESV API limit reached. Try again in ${wait} seconds.`);
+          }
         }
         const emptyTexts: Record<string, string> = {};
         verseCodes.forEach(code => (emptyTexts[code] = ''));
