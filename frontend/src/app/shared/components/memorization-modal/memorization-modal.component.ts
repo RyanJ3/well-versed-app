@@ -265,6 +265,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   starPopup: StarPopup | null = null;
   floatingMessage = '';
   showSettingsDropdown = false;
+  isGearSpinning = false;
   animatedStar: AnimatedStar = {
     show: false,
     startX: 0,
@@ -284,8 +285,8 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
 
   // Book chapter data
   private bookChapters = 0;
-  private currentBook = '';
-  private currentChapterNum = 0;
+  currentBook = '';
+  currentChapterNum = 0;
 
   // Utilities
   Math = Math;
@@ -522,12 +523,19 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
 
   toggleSettingsDropdown() {
     this.showSettingsDropdown = !this.showSettingsDropdown;
+    this.isGearSpinning = true;
+    setTimeout(() => (this.isGearSpinning = false), 600);
   }
 
   jumpToStep(stepIndex: number) {
     if (this.setup || this.promptSave) return;
-
+    const diff = stepIndex - this.currentStepIndex;
     this.currentStepIndex = stepIndex;
+    this.completedSteps = Math.min(
+      Math.max(this.completedSteps + diff, 0),
+      this.totalSteps
+    );
+    this.updateProgressMarkers();
   }
 
   updateActiveBorder() {

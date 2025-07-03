@@ -5,13 +5,14 @@
 
     <div class="modal-header">
       <div class="header-row">
-        <h2>{{ displayChapterName }}</h2>
+        <h2>{{ currentBook }} {{ currentChapterNum }}</h2>
         <div class="progress-info">
           <span class="progress-text">{{ progressPercentage }}% Complete</span>
         </div>
         <div class="settings-container header-settings">
           <button
             class="step-circle settings-btn"
+            [class.spinning]="isGearSpinning"
             (click)="toggleSettingsDropdown()"
             title="Settings"
           >
@@ -121,6 +122,7 @@
                   <div
                     class="stage-dot"
                     [class.completed]="currentStepIndex > 0"
+                    [class.active]="currentStepIndex === 0"
                   ></div>
                   <div
                     class="stage-dot"
@@ -304,6 +306,7 @@
             <div
               class="verse-display"
               [style.font-size.px]="practiceSettings.fontSize"
+              *ngIf="currentStepIndex !== 2"
             >
               <div
                 *ngIf="practiceSettings.layoutMode === 'column'"
@@ -341,6 +344,9 @@
                 </p>
               </div>
             </div>
+          </div>
+          <div class="memory-message" *ngIf="currentStepIndex === 2">
+            You're doing great! Recite it from memory!
           </div>
         </div>
         <div class="nav-buttons">
@@ -384,7 +390,7 @@
             </div>
 
             <p class="completion-text">
-              You've successfully memorized {{ displayChapterName }}!
+              You've successfully memorized Book {{ currentChapterNum }}!
             </p>
 
             <!-- Special message for completing the Bible -->
@@ -466,50 +472,44 @@
               </svg>
             </div>
 
-            <!-- Navigation Options -->
-            <div
-              class="navigation-options"
-              *ngIf="showNavigationOptions"
-              @slideUp
-            >
-              <p class="nav-prompt">What would you like to do next?</p>
+            <!-- Navigation Options moved to bottom -->
+          </div>
+          <div class="nav-buttons" *ngIf="showNavigationOptions">
+            <div class="bottom-nav-options">
+              <button
+                class="nav-option-btn tracker-btn"
+                (click)="goToTracker()"
+              >
+                <span class="nav-icon">📊</span>
+                <div class="nav-text">
+                  <span class="nav-title">View Progress</span>
+                  <span class="nav-subtitle"
+                    >See your achievement in the tracker</span
+                  >
+                </div>
+              </button>
 
-              <div class="nav-buttons-group">
-                <button
-                  class="nav-option-btn tracker-btn"
-                  (click)="goToTracker()"
-                >
-                  <span class="nav-icon">📊</span>
-                  <div class="nav-text">
-                    <span class="nav-title">View Progress</span>
-                    <span class="nav-subtitle"
-                      >See your achievement in the tracker</span
-                    >
-                  </div>
-                </button>
+              <button
+                class="nav-option-btn flow-btn"
+                (click)="goToFlow()"
+                *ngIf="!isLastChapterOfBible"
+              >
+                <span class="nav-icon">📖</span>
+                <div class="nav-text">
+                  <span class="nav-title">Learn Next Chapter</span>
+                  <span class="nav-subtitle"
+                    >Continue with {{ nextChapterName }}</span
+                  >
+                </div>
+              </button>
 
-                <button
-                  class="nav-option-btn flow-btn"
-                  (click)="goToFlow()"
-                  *ngIf="!isLastChapterOfBible"
-                >
-                  <span class="nav-icon">📖</span>
-                  <div class="nav-text">
-                    <span class="nav-title">Learn Next Chapter</span>
-                    <span class="nav-subtitle"
-                      >Continue with {{ nextChapterName }}</span
-                    >
-                  </div>
-                </button>
-
-                <button class="nav-option-btn close-btn" (click)="closeModal()">
-                  <span class="nav-icon">✕</span>
-                  <div class="nav-text">
-                    <span class="nav-title">Close</span>
-                    <span class="nav-subtitle">Return to where you were</span>
-                  </div>
-                </button>
-              </div>
+              <button class="nav-option-btn close-btn" (click)="closeModal()">
+                <span class="nav-icon">✕</span>
+                <div class="nav-text">
+                  <span class="nav-title">Close</span>
+                  <span class="nav-subtitle">Return to where you were</span>
+                </div>
+              </button>
             </div>
           </div>
         </div>
