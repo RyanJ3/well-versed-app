@@ -984,6 +984,10 @@
   border-top: 1px solid rgba(0, 0, 0, 0.05);
   flex-shrink: 0;
   width: 100%;
+
+  &.final-options {
+    justify-content: center;
+  }
 }
 
 .bottom-controls {
@@ -1007,6 +1011,10 @@
 
   &.settings-btn {
     z-index: 60;
+  }
+
+  &.spin {
+    animation: gearSpin 0.6s ease-in-out;
   }
 
   &.active {
@@ -1326,6 +1334,15 @@
   }
 }
 
+@keyframes gearSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 // Error message
 .error-message {
   display: flex;
@@ -1395,6 +1412,10 @@
     border-color: #10b981;
   }
 
+  .final-options & {
+    width: auto;
+  }
+
   &.close-btn:hover {
     background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
     border-color: #ef4444;
@@ -1423,6 +1444,16 @@
   font-size: 1rem;
   color: #6b7280;
   line-height: 1.4;
+}
+
+.memory-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 1.5rem;
+  color: #6b7280;
+  text-align: center;
 }
 
 /* Exit Confirmation Modal */

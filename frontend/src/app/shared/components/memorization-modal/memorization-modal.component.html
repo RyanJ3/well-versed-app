@@ -14,6 +14,7 @@
             class="step-circle settings-btn"
             (click)="toggleSettingsDropdown()"
             title="Settings"
+            [class.spin]="isGearSpinning"
           >
             ⚙️
           </button>
@@ -120,6 +121,7 @@
                 >
                   <div
                     class="stage-dot"
+                    [class.active]="currentStepIndex === 0"
                     [class.completed]="currentStepIndex > 0"
                   ></div>
                   <div
@@ -141,6 +143,43 @@
                   "
                   >✓</span
                 >
+              </div>
+              <div
+                class="nav-buttons final-options"
+                *ngIf="showNavigationOptions"
+              >
+                <button
+                  class="nav-option-btn tracker-btn"
+                  (click)="goToTracker()"
+                >
+                  <span class="nav-icon">📊</span>
+                  <div class="nav-text">
+                    <span class="nav-title">View Progress</span>
+                    <span class="nav-subtitle"
+                      >See your achievement in the tracker</span
+                    >
+                  </div>
+                </button>
+                <button
+                  class="nav-option-btn flow-btn"
+                  (click)="goToFlow()"
+                  *ngIf="!isLastChapterOfBible"
+                >
+                  <span class="nav-icon">📖</span>
+                  <div class="nav-text">
+                    <span class="nav-title">Learn Next Chapter</span>
+                    <span class="nav-subtitle"
+                      >Continue with {{ nextChapterName }}</span
+                    >
+                  </div>
+                </button>
+                <button class="nav-option-btn close-btn" (click)="closeModal()">
+                  <span class="nav-icon">✕</span>
+                  <div class="nav-text">
+                    <span class="nav-title">Close</span>
+                    <span class="nav-subtitle">Return to where you were</span>
+                  </div>
+                </button>
               </div>
             </ng-container>
           </div>
@@ -316,11 +355,15 @@
                 >
                   <p class="verse-ref">{{ v.verse }}</p>
                   <p
+                    *ngIf="currentStepIndex !== 2"
                     class="verse-text"
                     [class.memory-mode]="currentStepIndex === 2"
                   >
                     {{ getVerseDisplay(v) }}
                   </p>
+                </div>
+                <div class="memory-message" *ngIf="currentStepIndex === 2">
+                  🌟 Keep going! Recite the verses from memory! 🌟
                 </div>
               </div>
 
@@ -332,6 +375,7 @@
                   <span *ngFor="let v of currentVerses; let idx = index">
                     <sup class="verse-ref-inline">{{ v.verse }}</sup>
                     <span
+                      *ngIf="currentStepIndex !== 2"
                       class="verse-text"
                       [class.memory-mode]="currentStepIndex === 2"
                       >{{ getVerseDisplay(v) }}</span
@@ -339,6 +383,9 @@
                     <span *ngIf="idx < currentVerses.length - 1"> </span>
                   </span>
                 </p>
+                <div class="memory-message" *ngIf="currentStepIndex === 2">
+                  🌟 Keep going! Recite the verses from memory! 🌟
+                </div>
               </div>
             </div>
           </div>
@@ -384,7 +431,7 @@
             </div>
 
             <p class="completion-text">
-              You've successfully memorized {{ displayChapterName }}!
+              You've successfully memorized Book {{ currentChapterNum }}!
             </p>
 
             <!-- Special message for completing the Bible -->
@@ -464,52 +511,6 @@
                   stroke-linejoin="round"
                 />
               </svg>
-            </div>
-
-            <!-- Navigation Options -->
-            <div
-              class="navigation-options"
-              *ngIf="showNavigationOptions"
-              @slideUp
-            >
-              <p class="nav-prompt">What would you like to do next?</p>
-
-              <div class="nav-buttons-group">
-                <button
-                  class="nav-option-btn tracker-btn"
-                  (click)="goToTracker()"
-                >
-                  <span class="nav-icon">📊</span>
-                  <div class="nav-text">
-                    <span class="nav-title">View Progress</span>
-                    <span class="nav-subtitle"
-                      >See your achievement in the tracker</span
-                    >
-                  </div>
-                </button>
-
-                <button
-                  class="nav-option-btn flow-btn"
-                  (click)="goToFlow()"
-                  *ngIf="!isLastChapterOfBible"
-                >
-                  <span class="nav-icon">📖</span>
-                  <div class="nav-text">
-                    <span class="nav-title">Learn Next Chapter</span>
-                    <span class="nav-subtitle"
-                      >Continue with {{ nextChapterName }}</span
-                    >
-                  </div>
-                </button>
-
-                <button class="nav-option-btn close-btn" (click)="closeModal()">
-                  <span class="nav-icon">✕</span>
-                  <div class="nav-text">
-                    <span class="nav-title">Close</span>
-                    <span class="nav-subtitle">Return to where you were</span>
-                  </div>
-                </button>
-              </div>
             </div>
           </div>
         </div>

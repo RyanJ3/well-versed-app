@@ -16,7 +16,14 @@ import { BibleService } from '../../../core/services/bible.service';
 import { UserService } from '../../../core/services/user.service';
 import { BibleBook } from '../../../core/models/bible';
 import { Subject, takeUntil } from 'rxjs';
-import { trigger, state, style, transition, animate, keyframes } from '@angular/animations';
+import {
+  trigger,
+  state,
+  style,
+  transition,
+  animate,
+  keyframes,
+} from '@angular/animations';
 
 interface Verse {
   code: string;
@@ -69,142 +76,200 @@ interface PracticeSettings {
     trigger('fadeIn', [
       transition(':enter', [
         style({ opacity: 0, transform: 'scale(0.9)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'scale(1)' }))
-      ])
+        animate('300ms ease-out', style({ opacity: 1, transform: 'scale(1)' })),
+      ]),
     ]),
     trigger('slideUp', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
-      ])
+        animate(
+          '300ms ease-out',
+          style({ opacity: 1, transform: 'translateY(0)' }),
+        ),
+      ]),
     ]),
     trigger('celebration', [
       transition(':enter', [
         style({ opacity: 0, transform: 'scale(0)' }),
-        animate('500ms cubic-bezier(0.68, -0.55, 0.265, 1.55)',
-          style({ opacity: 1, transform: 'scale(1)' }))
-      ])
+        animate(
+          '500ms cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+          style({ opacity: 1, transform: 'scale(1)' }),
+        ),
+      ]),
     ]),
     trigger('starFill', [
       transition(':enter', [
         style({ opacity: 0, transform: 'scale(0) rotate(180deg)' }),
-        animate('400ms cubic-bezier(0.68, -0.55, 0.265, 1.55)',
-          style({ opacity: 1, transform: 'scale(1) rotate(0deg)' }))
-      ])
+        animate(
+          '400ms cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+          style({ opacity: 1, transform: 'scale(1) rotate(0deg)' }),
+        ),
+      ]),
     ]),
     trigger('flagRaise', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(10px)' }),
-        animate('500ms cubic-bezier(0.68, -0.55, 0.265, 1.55)',
-          style({ opacity: 1, transform: 'translateY(0)' }))
-      ])
+        animate(
+          '500ms cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+          style({ opacity: 1, transform: 'translateY(0)' }),
+        ),
+      ]),
     ]),
     trigger('popupSlide', [
-      state('show', style({
-        opacity: 1,
-        transform: 'translateY(0)'
-      })),
-      state('hide', style({
-        opacity: 0,
-        transform: 'translateY(10px)'
-      })),
+      state(
+        'show',
+        style({
+          opacity: 1,
+          transform: 'translateY(0)',
+        }),
+      ),
+      state(
+        'hide',
+        style({
+          opacity: 0,
+          transform: 'translateY(10px)',
+        }),
+      ),
       transition('hide => show', animate('300ms ease-out')),
-      transition('show => hide', animate('200ms ease-in'))
+      transition('show => hide', animate('200ms ease-in')),
     ]),
     trigger('starMove', [
       transition(':enter', [
-        animate('800ms cubic-bezier(0.4, 0, 0.2, 1)', keyframes([
-          style({ 
-            transform: 'translate(0, 0) scale(1)', 
-            opacity: 1,
-            offset: 0 
-          }),
-          style({ 
-            transform: 'translate(var(--endX), var(--endY)) scale(0.8)', 
-            opacity: 1,
-            offset: 0.9 
-          }),
-          style({ 
-            transform: 'translate(var(--endX), var(--endY)) scale(0)', 
-            opacity: 0,
-            offset: 1 
-          })
-        ]))
-      ])
+        animate(
+          '800ms cubic-bezier(0.4, 0, 0.2, 1)',
+          keyframes([
+            style({
+              transform: 'translate(0, 0) scale(1)',
+              opacity: 1,
+              offset: 0,
+            }),
+            style({
+              transform: 'translate(var(--endX), var(--endY)) scale(0.8)',
+              opacity: 1,
+              offset: 0.9,
+            }),
+            style({
+              transform: 'translate(var(--endX), var(--endY)) scale(0)',
+              opacity: 0,
+              offset: 1,
+            }),
+          ]),
+        ),
+      ]),
     ]),
     trigger('trophyBounce', [
       transition(':enter', [
-        animate('1s', keyframes([
-          style({ transform: 'scale(0) rotate(0deg)', offset: 0 }),
-          style({ transform: 'scale(1.2) rotate(360deg)', offset: 0.5 }),
-          style({ transform: 'scale(0.9) rotate(340deg)', offset: 0.7 }),
-          style({ transform: 'scale(1) rotate(360deg)', offset: 1 })
-        ]))
-      ])
+        animate(
+          '1s',
+          keyframes([
+            style({ transform: 'scale(0) rotate(0deg)', offset: 0 }),
+            style({ transform: 'scale(1.2) rotate(360deg)', offset: 0.5 }),
+            style({ transform: 'scale(0.9) rotate(340deg)', offset: 0.7 }),
+            style({ transform: 'scale(1) rotate(360deg)', offset: 1 }),
+          ]),
+        ),
+      ]),
     ]),
     trigger('borderPulse', [
       transition(':enter', [
         style({ opacity: 0, transform: 'scale(0.95)' }),
-        animate('400ms ease-out', style({ opacity: 1, transform: 'scale(1)' }))
-      ])
+        animate('400ms ease-out', style({ opacity: 1, transform: 'scale(1)' })),
+      ]),
     ]),
     trigger('verseTransition', [
       transition('* => *', [
         style({ opacity: 0, transform: 'translateX(-20px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
-      ])
+        animate(
+          '300ms ease-out',
+          style({ opacity: 1, transform: 'translateX(0)' }),
+        ),
+      ]),
     ]),
     trigger('fadeInOut', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateY(-10px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+        animate(
+          '300ms ease-out',
+          style({ opacity: 1, transform: 'translateY(0)' }),
+        ),
       ]),
       transition(':leave', [
-        animate('200ms ease-in', style({ opacity: 0, transform: 'translateY(-10px)' }))
-      ])
+        animate(
+          '200ms ease-in',
+          style({ opacity: 0, transform: 'translateY(-10px)' }),
+        ),
+      ]),
     ]),
     trigger('optionHover', [
       transition(':enter', [
         style({ opacity: 0, transform: 'scale(0.95)' }),
-        animate('200ms ease-out', style({ opacity: 1, transform: 'scale(1)' }))
-      ])
+        animate('200ms ease-out', style({ opacity: 1, transform: 'scale(1)' })),
+      ]),
     ]),
     trigger('progressPath', [
       transition(':enter', [
         style({ strokeDashoffset: 100 }),
-        animate('1000ms ease-out', style({ strokeDashoffset: '*' }))
-      ])
+        animate('1000ms ease-out', style({ strokeDashoffset: '*' })),
+      ]),
     ]),
     trigger('statReveal', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(20px)' }),
-        animate('400ms {{ delay }}ms ease-out',
-          style({ opacity: 1, transform: 'translateY(0)' })),
-      ], { params: { delay: 0 } })
+      transition(
+        ':enter',
+        [
+          style({ opacity: 0, transform: 'translateY(20px)' }),
+          animate(
+            '400ms {{ delay }}ms ease-out',
+            style({ opacity: 1, transform: 'translateY(0)' }),
+          ),
+        ],
+        { params: { delay: 0 } },
+      ),
     ]),
     trigger('floatingNotification', [
       transition(':enter', [
         style({ opacity: 0, transform: 'translateX(-50%) translateY(-20px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateX(-50%) translateY(0)' }))
+        animate(
+          '300ms ease-out',
+          style({ opacity: 1, transform: 'translateX(-50%) translateY(0)' }),
+        ),
       ]),
       transition(':leave', [
-        animate('300ms ease-in', style({ opacity: 0, transform: 'translateX(-50%) translateY(-20px)' }))
-      ])
+        animate(
+          '300ms ease-in',
+          style({
+            opacity: 0,
+            transform: 'translateX(-50%) translateY(-20px)',
+          }),
+        ),
+      ]),
     ]),
     trigger('checkmark', [
       transition(':enter', [
-        animate('400ms ease-out', keyframes([
-          style({ transform: 'scale(0) rotate(-180deg)', opacity: 0, offset: 0 }),
-          style({ transform: 'scale(1.2) rotate(25deg)', opacity: 1, offset: 0.5 }),
-          style({ transform: 'scale(1) rotate(0)', opacity: 1, offset: 1 })
-        ]))
-      ])
-    ])
+        animate(
+          '400ms ease-out',
+          keyframes([
+            style({
+              transform: 'scale(0) rotate(-180deg)',
+              opacity: 0,
+              offset: 0,
+            }),
+            style({
+              transform: 'scale(1.2) rotate(25deg)',
+              opacity: 1,
+              offset: 0.5,
+            }),
+            style({ transform: 'scale(1) rotate(0)', opacity: 1, offset: 1 }),
+          ]),
+        ),
+      ]),
+    ]),
   ],
   templateUrl: './memorization-modal.component.html',
   styleUrls: ['./memorization-modal.component.scss'],
 })
-export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class MemorizationModalComponent
+  implements OnInit, OnDestroy, AfterViewChecked
+{
   @Input() verses: Verse[] = [];
   @Input() chapterId = 0;
   @Input() chapterName = '';
@@ -212,24 +277,77 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
 
   @Output() completed = new EventEmitter<{ memorized: boolean }>();
 
-  @ViewChild('verseBubblesContainer') verseBubblesContainer!: ElementRef<HTMLDivElement>;
+  @ViewChild('verseBubblesContainer')
+  verseBubblesContainer!: ElementRef<HTMLDivElement>;
 
   // Canonical book order (66 books)
   private readonly bookOrder = [
-    'Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy',
-    'Joshua', 'Judges', 'Ruth', '1 Samuel', '2 Samuel',
-    '1 Kings', '2 Kings', '1 Chronicles', '2 Chronicles', 'Ezra',
-    'Nehemiah', 'Esther', 'Job', 'Psalms', 'Proverbs',
-    'Ecclesiastes', 'Song of Solomon', 'Isaiah', 'Jeremiah', 'Lamentations',
-    'Ezekiel', 'Daniel', 'Hosea', 'Joel', 'Amos',
-    'Obadiah', 'Jonah', 'Micah', 'Nahum', 'Habakkuk',
-    'Zephaniah', 'Haggai', 'Zechariah', 'Malachi',
-    'Matthew', 'Mark', 'Luke', 'John', 'Acts',
-    'Romans', '1 Corinthians', '2 Corinthians', 'Galatians', 'Ephesians',
-    'Philippians', 'Colossians', '1 Thessalonians', '2 Thessalonians', '1 Timothy',
-    '2 Timothy', 'Titus', 'Philemon', 'Hebrews', 'James',
-    '1 Peter', '2 Peter', '1 John', '2 John', '3 John',
-    'Jude', 'Revelation'
+    'Genesis',
+    'Exodus',
+    'Leviticus',
+    'Numbers',
+    'Deuteronomy',
+    'Joshua',
+    'Judges',
+    'Ruth',
+    '1 Samuel',
+    '2 Samuel',
+    '1 Kings',
+    '2 Kings',
+    '1 Chronicles',
+    '2 Chronicles',
+    'Ezra',
+    'Nehemiah',
+    'Esther',
+    'Job',
+    'Psalms',
+    'Proverbs',
+    'Ecclesiastes',
+    'Song of Solomon',
+    'Isaiah',
+    'Jeremiah',
+    'Lamentations',
+    'Ezekiel',
+    'Daniel',
+    'Hosea',
+    'Joel',
+    'Amos',
+    'Obadiah',
+    'Jonah',
+    'Micah',
+    'Nahum',
+    'Habakkuk',
+    'Zephaniah',
+    'Haggai',
+    'Zechariah',
+    'Malachi',
+    'Matthew',
+    'Mark',
+    'Luke',
+    'John',
+    'Acts',
+    'Romans',
+    '1 Corinthians',
+    '2 Corinthians',
+    'Galatians',
+    'Ephesians',
+    'Philippians',
+    'Colossians',
+    '1 Thessalonians',
+    '2 Thessalonians',
+    '1 Timothy',
+    '2 Timothy',
+    'Titus',
+    'Philemon',
+    'Hebrews',
+    'James',
+    '1 Peter',
+    '2 Peter',
+    '1 John',
+    '2 John',
+    '3 John',
+    'Jude',
+    'Revelation',
   ];
 
   // Core state
@@ -249,7 +367,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   // Practice settings
   practiceSettings: PracticeSettings = {
     fontSize: 16,
-    layoutMode: 'column'
+    layoutMode: 'column',
   };
 
   // Time tracking
@@ -265,12 +383,13 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   starPopup: StarPopup | null = null;
   floatingMessage = '';
   showSettingsDropdown = false;
+  isGearSpinning = false;
   animatedStar: AnimatedStar = {
     show: false,
     startX: 0,
     startY: 0,
     endX: 0,
-    endY: 0
+    endY: 0,
   };
   showConfetti = false;
   hasMarkedComplete = false;
@@ -350,7 +469,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   }
 
   get displayChapterName(): string {
-    return this.isSingleChapterBook ? this.currentBook : this.chapterName;
+    return `${this.currentBook} ${this.currentChapterNum}`;
   }
 
   @HostListener('window:keydown', ['$event'])
@@ -366,7 +485,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     private bibleService: BibleService,
     private userService: UserService,
     private router: Router,
-  ) { }
+  ) {}
 
   ngOnInit() {
     this.userService.currentUser$
@@ -410,9 +529,9 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     try {
       const books = await this.bibleService.getBooks().toPromise();
 
-      const currentBookInfo = books?.find((book: BibleBook) =>
-        book.name === this.currentBook ||
-        book.name === this.chapterName
+      const currentBookInfo = books?.find(
+        (book: BibleBook) =>
+          book.name === this.currentBook || book.name === this.chapterName,
       );
 
       if (currentBookInfo) {
@@ -420,7 +539,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
         this.isSingleChapterBook = this.bookChapters === 1;
       }
     } catch (error) {
-      this.isSingleChapterBook = this.verses.every(v => v.chapter === 1);
+      this.isSingleChapterBook = this.verses.every((v) => v.chapter === 1);
     }
   }
 
@@ -435,11 +554,14 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     // Check if we're at the last chapter of the current book
     if (this.bookChapters > 0 && this.currentChapterNum >= this.bookChapters) {
       // Get next book
-      const currentBookIndex = this.bookOrder.findIndex(book =>
-        book.toLowerCase() === this.currentBook.toLowerCase()
+      const currentBookIndex = this.bookOrder.findIndex(
+        (book) => book.toLowerCase() === this.currentBook.toLowerCase(),
       );
 
-      if (currentBookIndex >= 0 && currentBookIndex < this.bookOrder.length - 1) {
+      if (
+        currentBookIndex >= 0 &&
+        currentBookIndex < this.bookOrder.length - 1
+      ) {
         const nextBook = this.bookOrder[currentBookIndex + 1];
         this.nextChapterName = `${nextBook} 1`;
       }
@@ -460,7 +582,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     const colors = [
       'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
       'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-      'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+      'linear-gradient(135deg, #10b981 0%, #059669 100%)',
     ];
 
     if (this.currentStepIndex > index) {
@@ -522,12 +644,19 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
 
   toggleSettingsDropdown() {
     this.showSettingsDropdown = !this.showSettingsDropdown;
+    this.isGearSpinning = true;
+    setTimeout(() => (this.isGearSpinning = false), 600);
   }
 
   jumpToStep(stepIndex: number) {
     if (this.setup || this.promptSave) return;
-
+    const diff = stepIndex - this.currentStepIndex;
+    this.completedSteps = Math.max(
+      0,
+      Math.min(this.totalSteps, this.completedSteps + diff),
+    );
     this.currentStepIndex = stepIndex;
+    this.updateProgressMarkers();
   }
 
   updateActiveBorder() {
@@ -553,14 +682,16 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
       const lastBubble = bubbles[lastIndex] as HTMLElement;
 
       if (firstBubble && lastBubble) {
-        const container = document.querySelector('.verse-bubbles') as HTMLElement;
+        const container = document.querySelector(
+          '.verse-bubbles',
+        ) as HTMLElement;
         if (container) {
           const containerRect = container.getBoundingClientRect();
           const firstRect = firstBubble.getBoundingClientRect();
           const lastRect = lastBubble.getBoundingClientRect();
 
           this.borderLeft = firstRect.left - containerRect.left - 12;
-          this.borderWidth = (lastRect.right - firstRect.left) + 24;
+          this.borderWidth = lastRect.right - firstRect.left + 24;
           this.hasActiveBorder = true;
         }
       }
@@ -584,8 +715,12 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
         const bubbleWidth = firstBubble.offsetWidth;
         const containerWidth = container.offsetWidth;
 
-        const scrollPosition = bubbleLeft - (containerWidth / 2) + (bubbleWidth / 2);
-        container.scrollTo({ left: Math.max(0, scrollPosition), behavior: 'smooth' });
+        const scrollPosition =
+          bubbleLeft - containerWidth / 2 + bubbleWidth / 2;
+        container.scrollTo({
+          left: Math.max(0, scrollPosition),
+          behavior: 'smooth',
+        });
       }
     }, 100);
   }
@@ -594,14 +729,14 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     if (!this.currentStage) return [];
 
     const currentVerses = this.currentVerses;
-    const verseCodes = new Set(currentVerses.map(v => v.code));
+    const verseCodes = new Set(currentVerses.map((v) => v.code));
 
     const indices: number[] = [];
     let groupIndex = 0;
 
     for (let i = 0; i < this.verses.length; i += this.groupSize) {
       const group = this.verses.slice(i, i + this.groupSize);
-      if (group.some(v => verseCodes.has(v.code))) {
+      if (group.some((v) => verseCodes.has(v.code))) {
         indices.push(groupIndex);
       }
       groupIndex++;
@@ -642,7 +777,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     this.allStages.push({
       groups: originalGroups,
       stageType: 'individual',
-      stageLevel: 0
+      stageLevel: 0,
     });
 
     let currentGroups = [...originalGroups];
@@ -667,7 +802,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
       this.allStages.push({
         groups: nextGroups,
         stageType: 'review',
-        stageLevel: reviewLevel
+        stageLevel: reviewLevel,
       });
 
       currentGroups = nextGroups;
@@ -692,7 +827,8 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
         stepCount += 3;
         const position = (stepCount / this.totalSteps) * 100;
 
-        const isFinalMarker = isLastStage && groupIdx === stage.groups.length - 1;
+        const isFinalMarker =
+          isLastStage && groupIdx === stage.groups.length - 1;
 
         if (isFinalMarker) {
           this.progressMarkers.push({
@@ -700,7 +836,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
             type: 'finish',
             completed: false,
             id: 'finish-goal',
-            label: 'Finish!'
+            label: 'Finish!',
           });
         } else if (groupIdx < stage.groups.length - 1 || isLastStage) {
           this.progressMarkers.push({
@@ -708,21 +844,22 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
             type: 'star',
             completed: false,
             id: `star-${stageIdx}-${groupIdx}`,
-            label: `Group ${groupIdx + 1}`
+            label: `Group ${groupIdx + 1}`,
           });
         }
       }
 
       if (!isLastStage) {
         const position = (stepCount / this.totalSteps) * 100;
-        const phaseNumber = stage.stageType === 'individual' ? 1 : stage.stageLevel + 1;
+        const phaseNumber =
+          stage.stageType === 'individual' ? 1 : stage.stageLevel + 1;
 
         this.progressMarkers.push({
           position,
           type: 'flag',
           completed: false,
           id: `flag-${stageIdx}`,
-          label: `Phase ${phaseNumber}`
+          label: `Phase ${phaseNumber}`,
         });
       }
     }
@@ -738,13 +875,18 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
       for (let groupIdx = 0; groupIdx < stage.groups.length; groupIdx++) {
         stepCount += 3;
 
-        const markerId = isLastStage && groupIdx === stage.groups.length - 1
-          ? 'finish-goal'
-          : `star-${stageIdx}-${groupIdx}`;
+        const markerId =
+          isLastStage && groupIdx === stage.groups.length - 1
+            ? 'finish-goal'
+            : `star-${stageIdx}-${groupIdx}`;
 
-        const marker = this.progressMarkers.find(m => m.id === markerId);
+        const marker = this.progressMarkers.find((m) => m.id === markerId);
         if (marker && !marker.completed && this.completedSteps >= stepCount) {
-          const message = this.getStarMessage(stage, groupIdx, marker.type === 'finish');
+          const message = this.getStarMessage(
+            stage,
+            groupIdx,
+            marker.type === 'finish',
+          );
           this.showStarPopup(marker.id, message);
           this.animateStarToMarker(marker);
 
@@ -756,7 +898,9 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
       }
 
       if (!isLastStage) {
-        const flagMarker = this.progressMarkers.find(m => m.id === `flag-${stageIdx}`);
+        const flagMarker = this.progressMarkers.find(
+          (m) => m.id === `flag-${stageIdx}`,
+        );
         if (flagMarker) {
           flagMarker.completed = this.completedSteps >= stepCount;
         }
@@ -764,7 +908,11 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     }
   }
 
-  getStarMessage(stage: ReviewStage, groupIdx: number, isFinal: boolean): string {
+  getStarMessage(
+    stage: ReviewStage,
+    groupIdx: number,
+    isFinal: boolean,
+  ): string {
     if (isFinal) {
       return 'Chapter Complete!';
     }
@@ -783,18 +931,20 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
       starId,
       message,
       show: true,
-      visible: false
+      visible: false,
     };
 
     setTimeout(() => {
-      const starElement = document.querySelector(`[id="${starId}"]`)?.closest('.marker') as HTMLElement;
+      const starElement = document
+        .querySelector(`[id="${starId}"]`)
+        ?.closest('.marker') as HTMLElement;
       const popup = document.querySelector('.star-popup') as HTMLElement;
 
       if (starElement && popup) {
         const starRect = starElement.getBoundingClientRect();
         const popupRect = popup.getBoundingClientRect();
 
-        const left = starRect.left + (starRect.width / 2) - (popupRect.width / 2);
+        const left = starRect.left + starRect.width / 2 - popupRect.width / 2;
         const top = starRect.top - popupRect.height - 20;
 
         popup.style.left = `${Math.max(10, Math.min(left, window.innerWidth - popupRect.width - 10))}px`;
@@ -818,8 +968,10 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
 
   animateStarToMarker(marker: ProgressMarker) {
     const popup = document.querySelector('.star-popup') as HTMLElement;
-    const markerElement = document.querySelector(`[id="${marker.id}"]`) as HTMLElement;
-    
+    const markerElement = document.querySelector(
+      `[id="${marker.id}"]`,
+    ) as HTMLElement;
+
     if (!popup || !markerElement) return;
 
     const popupRect = popup.getBoundingClientRect();
@@ -830,15 +982,21 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
       startX: popupRect.left + popupRect.width / 2,
       startY: popupRect.top + popupRect.height / 2,
       endX: markerRect.left + markerRect.width / 2,
-      endY: markerRect.top + markerRect.height / 2
+      endY: markerRect.top + markerRect.height / 2,
     };
 
     // Set CSS variables for animation
     setTimeout(() => {
       const starEl = document.querySelector('.animated-star') as HTMLElement;
       if (starEl) {
-        starEl.style.setProperty('--endX', `${this.animatedStar.endX - this.animatedStar.startX}px`);
-        starEl.style.setProperty('--endY', `${this.animatedStar.endY - this.animatedStar.startY}px`);
+        starEl.style.setProperty(
+          '--endX',
+          `${this.animatedStar.endX - this.animatedStar.startX}px`,
+        );
+        starEl.style.setProperty(
+          '--endY',
+          `${this.animatedStar.endY - this.animatedStar.startY}px`,
+        );
       }
     }, 10);
   }
@@ -882,12 +1040,17 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
             "Let's combine what you've learned!",
             'Ready for the next level?',
             'Time to review together!',
-            'Almost there, keep going!'
+            'Almost there, keep going!',
           ];
-          this.showFloatingMessage(messages[this.currentStageIndex % messages.length]);
+          this.showFloatingMessage(
+            messages[this.currentStageIndex % messages.length],
+          );
 
           if (this.verseBubblesContainer) {
-            this.verseBubblesContainer.nativeElement.scrollTo({ left: 0, behavior: 'smooth' });
+            this.verseBubblesContainer.nativeElement.scrollTo({
+              left: 0,
+              behavior: 'smooth',
+            });
           }
           this.scrollToActiveVerses();
         }
@@ -911,8 +1074,12 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
         this.currentSubStageIndex--;
       } else {
         this.currentStageIndex--;
-        if (this.currentStageIndex >= 0 && this.allStages[this.currentStageIndex]) {
-          this.currentSubStageIndex = this.allStages[this.currentStageIndex].groups.length - 1;
+        if (
+          this.currentStageIndex >= 0 &&
+          this.allStages[this.currentStageIndex]
+        ) {
+          this.currentSubStageIndex =
+            this.allStages[this.currentStageIndex].groups.length - 1;
         }
       }
     }
@@ -1013,7 +1180,9 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
 
         const bibleData = this.bibleService.getBibleData();
         if (bibleData && bibleData.books) {
-          const nextBook = bibleData.books.find((b: BibleBook) => b.name === bookName);
+          const nextBook = bibleData.books.find(
+            (b: BibleBook) => b.name === bookName,
+          );
 
           if (nextBook) {
             queryParams = { bookId: nextBook.id, chapter: chapterNum };
@@ -1045,7 +1214,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
   getInitials(text: string): string {
     return text
       .split(' ')
-      .map(word => {
+      .map((word) => {
         const match = word.match(/[a-zA-Z]/);
         if (match) {
           const index = word.indexOf(match[0]);
@@ -1063,8 +1232,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     if (this.currentStepIndex === 1) {
       return this.getInitials(v.text);
     }
-    const wordCount = v.text.split(' ').length;
-    return Array(Math.min(wordCount, 10)).fill('•').join(' ') + (wordCount > 10 ? '...' : '');
+    return '';
   }
 
   isGroupActive(originalGroupIndex: number): boolean {
@@ -1074,7 +1242,8 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
 
   isGroupCompleted(originalGroupIndex: number): boolean {
     if (this.promptSave) return true;
-    if (!this.currentStage || this.currentStage.stageType !== 'individual') return false;
+    if (!this.currentStage || this.currentStage.stageType !== 'individual')
+      return false;
     if (this.currentStageIndex > 0) return false;
     return originalGroupIndex < this.currentSubStageIndex;
   }
