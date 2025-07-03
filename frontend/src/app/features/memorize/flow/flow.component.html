@@ -320,6 +320,10 @@
         </button>
       </div>
 
+      <div *ngIf="retryCountdown !== null" class="countdown-timer">
+        ESV API limit reached. Retrying in {{ retryCountdown }}s...
+      </div>
+
       <!-- Grid View -->
       <div
         *ngIf="

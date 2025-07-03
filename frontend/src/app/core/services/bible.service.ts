@@ -1,6 +1,6 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { Observable, of, throwError, BehaviorSubject } from 'rxjs';
+import { Observable, of, throwError, BehaviorSubject, Subject } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { BibleData, UserVerseDetail, BibleBook } from '../models/bible';
@@ -18,6 +18,10 @@ export class BibleService {
   private preferencesSubject = new BehaviorSubject<{ includeApocrypha: boolean }>({
     includeApocrypha: false
   });
+
+  // Emits wait time in seconds when ESV API limits are hit
+  private esvRetrySubject = new Subject<number>();
+  public esvRetry$ = this.esvRetrySubject.asObservable();
 
   public preferences$ = this.preferencesSubject.asObservable();
 
@@ -186,6 +190,7 @@ export class BibleService {
           const wait = error.error?.wait_seconds ?? error.error?.detail?.wait_seconds;
           if (wait) {
             this.notifications.warning(`ESV API limit reached. Try again in ${wait} seconds.`);
+            this.esvRetrySubject.next(wait);
           }
         }
         const emptyTexts: Record<string, string> = {};
