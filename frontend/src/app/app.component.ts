@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { NavigationComponent } from './shared/components/navigation/navigation.component';
 import { ModalComponent } from './shared/components/modal/modal.component';
+import { NotificationComponent } from './shared/components/notification/notification.component';
 
 @Component({
   selector: 'app-root',
@@ -12,7 +13,8 @@ import { ModalComponent } from './shared/components/modal/modal.component';
     CommonModule, 
     RouterOutlet, 
     NavigationComponent,
-    ModalComponent
+    ModalComponent,
+    NotificationComponent
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']

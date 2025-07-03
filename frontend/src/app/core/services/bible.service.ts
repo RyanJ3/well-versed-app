@@ -4,6 +4,7 @@ import { Observable, of, throwError, BehaviorSubject } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { BibleData, UserVerseDetail, BibleBook } from '../models/bible';
+import { NotificationService } from './notification.service';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -22,7 +23,8 @@ export class BibleService {
 
   constructor(
     private http: HttpClient,
-    @Inject(PLATFORM_ID) platformId: Object
+    @Inject(PLATFORM_ID) platformId: Object,
+    private notifications: NotificationService
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
     this.bibleData = new BibleData();
@@ -180,9 +182,12 @@ export class BibleService {
       tap(texts => console.log(`Received texts for ${Object.keys(texts).length} verses`)),
       catchError((error: HttpErrorResponse) => {
         console.error('Error getting verse texts:', error);
-        // Return empty texts on error
+        if (error.status === 429 && error.error?.wait_seconds) {
+          const wait = error.error.wait_seconds;
+          this.notifications.warning(`ESV API limit reached. Try again in ${wait} seconds.`);
+        }
         const emptyTexts: Record<string, string> = {};
-        verseCodes.forEach(code => emptyTexts[code] = '');
+        verseCodes.forEach(code => (emptyTexts[code] = ''));
         return of(emptyTexts);
       })
     );
