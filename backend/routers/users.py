@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import Optional
 import logging
 from database import DatabaseConnection
+from psycopg2 import errors
 import db_pool
 
 logger = logging.getLogger(__name__)
@@ -63,7 +64,29 @@ async def get_user(user_id: int, db: DatabaseConnection = Depends(get_db)):
         WHERE user_id = %s
     """
     
-    user = db.fetch_one(query, (user_id,))
+    try:
+        user = db.fetch_one(query, (user_id,))
+    except errors.UndefinedColumn:
+        # Older database without new columns
+        logger.warning("Database missing ESV columns, falling back")
+        legacy_query = """
+            SELECT
+                user_id as id,
+                email,
+                name,
+                first_name,
+                last_name,
+                denomination,
+                preferred_bible,
+                include_apocrypha,
+                created_at::text
+            FROM users
+            WHERE user_id = %s
+        """
+        user = db.fetch_one(legacy_query, (user_id,)) or {}
+        user["use_esv_api"] = False
+        user["esv_api_token"] = None
+
     if not user:
         logger.warning(f"User {user_id} not found")
         raise HTTPException(status_code=404, detail="User not found")
@@ -150,10 +173,30 @@ async def update_user(
     
     try:
         db.execute(query, tuple(params))
-        logger.info(f"User {user_id} updated successfully")
-        return await get_user(user_id, db)
+    except errors.UndefinedColumn:
+        # Column doesn't exist in older schema; retry without new fields
+        logger.warning("Database missing ESV columns on update, retrying")
+        filtered_fields = []
+        filtered_params = []
+        for field, value in zip(update_fields, params[:-1]):
+            if field.startswith("use_esv_api") or field.startswith("esv_api_token"):
+                continue
+            filtered_fields.append(field)
+            filtered_params.append(value)
+        if not filtered_fields:
+            raise HTTPException(status_code=400, detail="No fields to update")
+        filtered_params.append(user_id)
+        fallback_query = f"""
+            UPDATE users
+            SET {', '.join(filtered_fields)}, updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = %s
+        """
+        db.execute(fallback_query, tuple(filtered_params))
     except Exception as e:
         logger.error(f"Failed to update user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to update user")
+
+    logger.info(f"User {user_id} updated successfully")
+    return await get_user(user_id, db)
 
 

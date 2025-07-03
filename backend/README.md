@@ -83,3 +83,14 @@ own API token which is stored in the `esv_api_token` column.
 
 When enabled, verse text requests will be served from the ESV API instead of
 API.Bible.
+
+### Database migration
+If you already have an existing database you will need to add the new columns:
+
+```sql
+ALTER TABLE users ADD COLUMN IF NOT EXISTS use_esv_api BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS esv_api_token VARCHAR(200);
+```
+
+Alternatively, re-run the setup script in `sql_setup` to recreate the schema.
+
