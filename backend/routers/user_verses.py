@@ -288,7 +288,7 @@ async def get_verse_texts(
 ) -> Dict[str, str]:
     """Get verse texts using the user's preferred provider"""
     from services.api_bible import APIBibleService
-    from services.esv_api import ESVService
+    from services.esv_api import ESVService, ESVRateLimitError
     from config import Config
 
     verse_codes = request.verse_codes
@@ -333,6 +333,9 @@ async def get_verse_texts(
         # Ensure all requested codes are present
         return {code: verse_texts.get(code, "") for code in verse_codes}
 
+    except ESVRateLimitError as e:
+        logger.warning(f"ESV API rate limited for {e.wait_seconds} seconds")
+        raise HTTPException(status_code=429, detail={"wait_seconds": e.wait_seconds})
     except Exception as e:
         logger.error(f"Error getting verse texts: {e}")
         return {code: "" for code in verse_codes}
