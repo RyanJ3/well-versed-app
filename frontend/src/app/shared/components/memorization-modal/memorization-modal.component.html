@@ -338,15 +338,14 @@
                       class="verse-text"
                       [class.memory-mode]="currentStepIndex === 2"
                       >{{ getVerseDisplay(v) }}</span
-                    >
-                    <span *ngIf="idx < currentVerses.length - 1"> </span>
+                    >&nbsp;
                   </span>
                 </p>
               </div>
             </div>
           </div>
           <div class="memory-message" *ngIf="currentStepIndex === 2">
-            You're doing great! Recite it from memory!
+            Now recite verse {{ currentVerseRange }} out loud!
           </div>
         </div>
         <div class="nav-buttons">

@@ -308,6 +308,14 @@ export class MemorizationModalComponent implements OnInit, OnDestroy, AfterViewC
     return this.currentStage.groups[this.currentSubStageIndex] || [];
   }
 
+  get currentVerseRange(): string {
+    const verses = this.currentVerses;
+    if (!verses.length) return '';
+    const start = verses[0].verse;
+    const end = verses[verses.length - 1].verse;
+    return start === end ? `${start}` : `${start} to ${end}`;
+  }
+
   get progressDetail(): string {
     if (this.setup || this.promptSave || !this.currentStage) {
       return '';
