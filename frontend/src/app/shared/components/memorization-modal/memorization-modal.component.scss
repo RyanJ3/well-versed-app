@@ -63,7 +63,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
-  padding-right: 3rem;
+  padding-right: 4.5rem;
 
   h2 {
     font-size: 1.75rem;
@@ -103,20 +103,20 @@
   overflow-x: auto;
   overflow-y: hidden;
   scroll-behavior: smooth;
-  
+
   &::-webkit-scrollbar {
     height: 6px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: #f3f4f6;
     border-radius: 3px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: #d1d5db;
     border-radius: 3px;
-    
+
     &:hover {
       background: #9ca3af;
     }
@@ -163,7 +163,8 @@
 }
 
 @keyframes borderPulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -172,7 +173,8 @@
 }
 
 @keyframes glowPulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.7;
   }
   50% {
@@ -191,11 +193,11 @@
   cursor: pointer;
   position: relative;
   z-index: 2;
-  
+
   &.hovered {
     transform: translateY(-2px) scale(1.05);
   }
-  
+
   &.completed .verse-number {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: #ffffff;
@@ -207,7 +209,9 @@
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
     color: #ffffff;
     transform: scale(1.15);
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2), 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+    box-shadow:
+      0 0 0 4px rgba(59, 130, 246, 0.2),
+      0 4px 6px -1px rgba(59, 130, 246, 0.3);
   }
 }
 
@@ -229,13 +233,17 @@
   font-weight: 700;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  
+
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.4), transparent);
+    background: radial-gradient(
+      circle at 30% 30%,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
   }
 }
 
@@ -335,12 +343,12 @@
   top: 50%;
   transform: translateY(-50%) translateX(-50%);
   z-index: 5;
-  
+
   &.flag-marker {
     top: -0.5rem;
     transform: translateX(-50%);
   }
-  
+
   &.finish-marker {
     transform: translateY(-50%) translateX(-50%) scale(1.2);
   }
@@ -351,7 +359,7 @@
   width: 24px;
   height: 24px;
   cursor: pointer;
-  
+
   &:hover {
     transform: scale(1.1);
   }
@@ -381,14 +389,16 @@
   border: 2px solid #fbbf24;
   border-radius: 1rem;
   padding: 0.75rem 1.5rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.15),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   display: flex;
   align-items: center;
   gap: 0.75rem;
   white-space: nowrap;
-  
+
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     top: 100%;
     left: 50%;
@@ -446,14 +456,15 @@
   font-size: 1.75rem;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
   transform-origin: bottom center;
-  
+
   &.completed {
     animation: flagWave 2s ease-in-out infinite;
   }
 }
 
 @keyframes flagWave {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(-5deg);
   }
   50% {
@@ -466,7 +477,7 @@
   height: 2rem;
   background: #9ca3af;
   transition: background 0.3s ease;
-  
+
   &.completed {
     background: #4b5563;
   }
@@ -491,7 +502,7 @@
 .finish-icon {
   font-size: 2rem;
   transition: all 0.3s;
-  
+
   &.completed {
     filter: drop-shadow(0 4px 6px rgba(251, 191, 36, 0.4));
   }
@@ -561,18 +572,24 @@
   overflow: hidden;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0) 0%, rgba(59, 130, 246, 0.1) 100%);
+    background: linear-gradient(
+      135deg,
+      rgba(59, 130, 246, 0) 0%,
+      rgba(59, 130, 246, 0.1) 100%
+    );
     opacity: 0;
     transition: opacity 0.3s;
   }
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
     &::before {
       opacity: 1;
     }
@@ -609,11 +626,15 @@
   position: relative;
 
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.6), transparent);
+    background: radial-gradient(
+      circle at 30% 30%,
+      rgba(255, 255, 255, 0.6),
+      transparent
+    );
   }
 
   .verse-count {
@@ -638,7 +659,7 @@
 
 .setup-preview {
   margin: 2rem 0;
-  
+
   p {
     margin: 0.5rem 0;
     color: #6b7280;
@@ -664,12 +685,14 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   position: relative;
   overflow: hidden;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
@@ -679,8 +702,10 @@
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.3), 0 10px 10px -5px rgba(59, 130, 246, 0.2);
-    
+    box-shadow:
+      0 20px 25px -5px rgba(59, 130, 246, 0.3),
+      0 10px 10px -5px rgba(59, 130, 246, 0.2);
+
     &::before {
       opacity: 1;
     }
@@ -695,34 +720,9 @@
   }
 }
 
-/* Practice Content with Left Panel Layout */
+/* Practice Content */
 .practice-layout {
-  display: flex;
   flex: 1;
-  gap: 0;
-}
-
-// Left Panel
-.left-panel {
-  width: 220px;
-  background: linear-gradient(135deg, #f8faff 0%, #f3f4f6 100%);
-  border-right: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 1.5rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  flex-shrink: 0;
-  overflow-y: auto;
-
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 2px;
-  }
-
 }
 
 .panel-section {
@@ -740,11 +740,11 @@
 .settings-section {
   .setting-group {
     margin-bottom: 1.25rem;
-    
+
     &:last-child {
       margin-bottom: 0;
     }
-    
+
     label {
       display: block;
       font-size: 0.813rem;
@@ -753,12 +753,12 @@
       margin-bottom: 0.5rem;
     }
   }
-  
+
   .font-controls {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    
+
     .font-btn {
       width: 28px;
       height: 28px;
@@ -770,17 +770,17 @@
       justify-content: center;
       cursor: pointer;
       transition: all 0.15s;
-      
+
       &:hover {
         background: #f9fafb;
         border-color: #d1d5db;
       }
-      
+
       &:active {
         transform: scale(0.95);
       }
     }
-    
+
     .font-value {
       font-size: 0.813rem;
       color: #374151;
@@ -789,11 +789,11 @@
       font-weight: 600;
     }
   }
-  
+
   .layout-toggle {
     display: flex;
     gap: 0.5rem;
-    
+
     .layout-option {
       flex: 1;
       padding: 0.5rem 0.75rem;
@@ -805,11 +805,11 @@
       color: #6b7280;
       cursor: pointer;
       transition: all 0.15s;
-      
+
       &:hover {
         background: #f9fafb;
       }
-      
+
       &.active {
         background: #3b82f6;
         color: white;
@@ -826,7 +826,7 @@
     flex-direction: column;
     gap: 0.625rem;
   }
-  
+
   .step-button {
     display: flex;
     align-items: center;
@@ -837,44 +837,45 @@
     border-radius: 0.5rem;
     cursor: pointer;
     transition: all 0.2s;
-    
+
     &:hover:not(:disabled) {
       background: #f9fafb;
       border-color: #d1d5db;
       transform: translateX(2px);
     }
-    
+
     &.active {
       background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
       border-color: #3b82f6;
       color: white;
       box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
-      
-      .step-icon, .step-name {
+
+      .step-icon,
+      .step-name {
         color: white;
       }
     }
-    
+
     &.completed {
       background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
       border-color: #10b981;
-      
+
       .step-icon {
         color: #10b981;
       }
     }
-    
+
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
-    
+
     .step-icon {
       font-size: 1.25rem;
       width: 1.5rem;
       text-align: center;
     }
-    
+
     .step-name {
       font-size: 0.875rem;
       font-weight: 600;
@@ -891,42 +892,28 @@
   overflow: hidden;
 }
 
-.practice-header {
-  padding: 1.5rem 2rem 1rem;
-  flex-shrink: 0;
-}
-
-.group-progress {
-  text-align: center;
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.instructions {
-  text-align: center;
-  font-size: 1.125rem;
-  color: #4b5563;
-  margin-bottom: 1rem;
-}
-
 .verse-display {
   flex: 1;
   background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
   margin: 0 2rem 1rem;
   border-radius: 1.25rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
   padding: 2.5rem;
   overflow-y: auto;
   min-height: 0;
   position: relative;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.05), transparent);
+    background: radial-gradient(
+      circle at top right,
+      rgba(139, 92, 246, 0.05),
+      transparent
+    );
     pointer-events: none;
   }
 }
@@ -946,7 +933,7 @@
 .paragraph-layout {
   .verse-paragraph {
     line-height: 1.8;
-    
+
     .verse-ref-inline {
       font-weight: 700;
       color: #374151;
@@ -973,7 +960,7 @@
   color: #1f2937;
   line-height: 1.8;
   font-size: 1.25rem;
-  
+
   &.memory-mode {
     font-size: 1.75rem;
     letter-spacing: 0.75em;
@@ -1032,7 +1019,9 @@
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.06);
   padding: 1rem;
   border: 1px solid rgba(229, 231, 235, 0.5);
   opacity: 0;
@@ -1044,6 +1033,13 @@
     opacity: 1;
     visibility: visible;
     transform: translateY(0) scale(1);
+  }
+}
+
+.header-settings {
+  .settings-menu {
+    bottom: auto;
+    top: calc(100% + 8px);
   }
 }
 
@@ -1088,7 +1084,7 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
@@ -1099,7 +1095,7 @@
   &:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
-    
+
     &::before {
       opacity: 1;
     }
@@ -1148,20 +1144,20 @@
   animation-delay: calc(var(--index) * 0.1s);
   left: calc(var(--index) * 6.6%);
   top: -10px;
-  
+
   &:nth-child(even) {
     background: linear-gradient(135deg, #3b82f6, #2563eb);
   }
-  
+
   &:nth-child(3n) {
     background: linear-gradient(135deg, #10b981, #059669);
   }
-  
+
   &:nth-child(4n) {
     width: 8px;
     height: 8px;
   }
-  
+
   &:nth-child(5n) {
     width: 12px;
     height: 12px;
@@ -1193,7 +1189,9 @@
   backdrop-filter: blur(10px);
   border-radius: 1.5rem;
   padding: 2.5rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .celebration-icon {
@@ -1458,7 +1456,8 @@
 
 /* Animations */
 @keyframes bounce {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -1481,47 +1480,7 @@
   }
 
   .header-row {
-    padding-right: 3.5rem;
-  }
-
-  .practice-layout {
-    flex-direction: column;
-  }
-
-  .left-panel {
-    width: 100%;
-    height: auto;
-    border-right: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    padding: 1rem;
-    flex-direction: row;
-    overflow-x: auto;
-    overflow-y: hidden;
-    gap: 1rem;
-    
-    .panel-section {
-      flex-shrink: 0;
-    }
-    
-    .settings-section {
-      display: none; // Hide settings on mobile for simplicity
-    }
-    
-    .step-indicators {
-      flex-direction: row !important;
-    }
-
-    .step-button {
-      padding: 0.5rem 0.75rem;
-      
-      .step-name {
-        display: none;
-      }
-    }
-  }
-
-  .practice-header {
-    padding: 1rem 1rem 0.75rem;
+    padding-right: 5rem;
   }
 
   .verse-display {
