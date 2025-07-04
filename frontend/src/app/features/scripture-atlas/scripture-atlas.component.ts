@@ -7,12 +7,8 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  trigger,
-  style,
-  transition,
-  animate,
-} from '@angular/animations';
+import { AtlasSidebarComponent } from './sidebar/sidebar.component';
+import { trigger, style, transition, animate } from '@angular/animations';
 import { interval, Subscription } from 'rxjs';
 import { AtlasService, Journey, City } from '../../core/services/atlas.service';
 
@@ -28,7 +24,7 @@ interface Particle {
 @Component({
   selector: 'app-scripture-atlas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AtlasSidebarComponent],
   templateUrl: './scripture-atlas.component.html',
   styleUrls: ['./scripture-atlas.component.scss'],
   animations: [
