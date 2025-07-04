@@ -1,0 +1,97 @@
+@import '../../shared/variables';
+
+.timeline-bar {
+  height: 32px;
+  padding: 0 1.5rem;
+  background: $gray-50;
+  display: flex;
+  align-items: center;
+}
+
+.timeline-track {
+  position: relative;
+  width: 100%;
+  height: 20px;
+}
+
+.timeline-progress {
+  position: absolute;
+  top: 9px;
+  left: 0;
+  height: 2px;
+  background: $primary;
+  transition: width 0.5s ease;
+}
+
+.timeline-markers {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.timeline-marker {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  cursor: pointer;
+  transition: all 0.2s;
+
+  .marker-dot {
+    width: 8px;
+    height: 8px;
+    margin: 6px auto 0;
+    background: white;
+    border: 2px solid $gray-300;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+
+  .marker-label {
+    display: none;
+    font-size: 0.625rem;
+    color: $gray-600;
+    text-align: center;
+    margin-top: 2px;
+  }
+
+  &:hover .marker-dot {
+    transform: scale(1.5);
+    border-color: $primary;
+  }
+
+  &.visited .marker-dot {
+    background: $primary;
+    border-color: $primary;
+  }
+
+  &.active {
+    .marker-dot {
+      transform: scale(1.75);
+      background: $danger;
+      border-color: $danger;
+      box-shadow: 0 0 0 4px rgba($danger, 0.2);
+    }
+
+    .marker-label {
+      display: block;
+      color: $danger;
+      font-weight: 600;
+    }
+  }
+
+  &.memorized .marker-dot {
+    background: $success;
+    border-color: $success;
+  }
+}
+
+.timeline-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 10;
+}

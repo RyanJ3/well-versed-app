@@ -1,0 +1,173 @@
+@import '../../shared/variables';
+
+.atlas-header {
+  position: relative;
+  width: 100%;
+  height: $header-height;
+  background: linear-gradient(to bottom, white, $gray-50);
+  border-bottom: 1px solid $gray-200;
+  box-shadow: 0 2px 6px 0 rgb(0 0 0 / 0.1);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.header-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1.5rem;
+  gap: 2rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex: 1;
+}
+
+.main-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: $gray-900;
+  margin: 0;
+
+  .title-icon {
+    width: 24px;
+    height: 24px;
+    color: $primary;
+  }
+
+  .journey-select {
+    font-size: inherit;
+    font-weight: inherit;
+    border: 1px solid $gray-300;
+    border-radius: 4px;
+    padding: 0.125rem 0.25rem;
+    background: white;
+    color: inherit;
+  }
+}
+
+.journey-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.info-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  background: $gray-100;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: $gray-600;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &.highlight {
+    background: rgba($primary, 0.1);
+    color: $primary;
+    font-weight: 500;
+
+    strong {
+      font-weight: 700;
+    }
+  }
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.header-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.stat-item {
+  text-align: center;
+
+  .stat-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: $primary;
+    margin-right: 0.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: $gray-500;
+  }
+}
+
+.header-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.control-btn {
+  @include button-base;
+
+  .btn-label {
+    @media (max-width: 1024px) {
+      display: none;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 1024px) {
+  .journey-info {
+    display: none;
+  }
+
+  .header-stats {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .atlas-header {
+    height: 80px;
+  }
+
+  .header-content {
+    padding: 0 1rem;
+  }
+
+  .main-title {
+    font-size: 1rem;
+
+    .title-icon {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .header-stats {
+    .stat-item {
+      .stat-value {
+        font-size: 0.875rem;
+      }
+
+      .stat-label {
+        font-size: 0.625rem;
+      }
+    }
+  }
+}

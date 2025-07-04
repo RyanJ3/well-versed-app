@@ -1,0 +1,51 @@
+<div class="atlas-container">
+  <app-scripture-atlas-header
+    [journeys]="journeys"
+    [selectedJourneyId]="selectedJourneyId"
+    [selectedJourney]="selectedJourney"
+    [currentDistance]="currentDistance"
+    [currentCityIndex]="currentCityIndex"
+    [totalCities]="cities.length"
+    [memorizedCount]="memorized.size"
+    [progressPercentage]="getProgressPercentage()"
+    [isPlaying]="isPlaying"
+    [terrainView]="terrainView"
+    [splitView]="splitView"
+    [sidebarOpen]="sidebarOpen"
+    [cities]="cities"
+    [memorizedCities]="memorized"
+    [selectedCityId]="selectedCity?.id"
+    (journeyChange)="loadJourney($event)"
+    (togglePlayback)="toggleJourneyPlayback()"
+    (toggleTerrain)="terrainView = !terrainView"
+    (toggleSplit)="splitView = !splitView"
+    (toggleSidebar)="toggleSidebar()"
+    (citySelected)="selectCity($event)"
+    (timelineChange)="onTimelineChange($event)">
+  </app-scripture-atlas-header>
+
+  <div class="atlas-main">
+    <app-scripture-atlas-sidebar
+      [isOpen]="sidebarOpen"
+      [selectedCity]="selectedCity"
+      [memorizedCities]="memorized"
+      [readVerses]="versesRead"
+      (closeSidebar)="sidebarOpen = false"
+      (toggleMemorized)="toggleMemorized($event)"
+      (markAsRead)="markVersesAsRead($event)">
+    </app-scripture-atlas-sidebar>
+
+    <app-scripture-atlas-map
+      [cities]="cities"
+      [selectedCity]="selectedCity"
+      [currentCityIndex]="currentCityIndex"
+      [memorizedCities]="memorized"
+      [terrainView]="terrainView"
+      [splitView]="splitView"
+      [isPlaying]="isPlaying"
+      (citySelected)="selectCity($event)"
+      (previousCity)="previousCity()"
+      (nextCity)="nextCity()">
+    </app-scripture-atlas-map>
+  </div>
+</div>

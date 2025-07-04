@@ -1,48 +1,16 @@
 import { Component, Input, Output, EventEmitter, AfterViewInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { City } from '../../../../core/services/atlas.service';
-import { ScriptureAtlasNavComponent } from '../scripture-atlas-nav/scripture-atlas-nav.component';
-import { ScriptureAtlasPlaybackProgressComponent } from '../scripture-atlas-playback-progress/scripture-atlas-playback-progress.component';
+import { ScriptureAtlasNavComponent } from '../nav/scripture-atlas-nav.component';
+import { ScriptureAtlasPlaybackProgressComponent } from '../playback-progress/scripture-atlas-playback-progress.component';
 
 declare const L: any;
 
 @Component({
   selector: 'app-scripture-atlas-map',
   standalone: true,
-  imports: [
-    CommonModule,
-    ScriptureAtlasNavComponent,
-    ScriptureAtlasPlaybackProgressComponent
-  ],
-  template: `
-    <div class="map-area">
-      <div class="maps-container" [class.split]="splitView">
-        <div class="map-wrapper" [class.half]="splitView">
-          <div id="modern-map" class="map-instance"></div>
-          <div class="map-label" *ngIf="splitView">Modern View</div>
-        </div>
-
-        <div class="map-wrapper" [class.half]="splitView" *ngIf="splitView">
-          <div id="ancient-map" class="map-instance"></div>
-          <div class="map-label">Ancient View</div>
-        </div>
-      </div>
-
-      <app-scripture-atlas-nav
-        [currentCityIndex]="currentCityIndex"
-        [totalCities]="cities.length"
-        (previous)="previousCity.emit()"
-        (next)="nextCity.emit()">
-      </app-scripture-atlas-nav>
-
-      <app-scripture-atlas-playback-progress
-        *ngIf="isPlaying"
-        [currentIndex]="currentCityIndex"
-        [total]="cities.length"
-        [progress]="playbackProgress">
-      </app-scripture-atlas-playback-progress>
-    </div>
-  `,
+  imports: [CommonModule, ScriptureAtlasNavComponent, ScriptureAtlasPlaybackProgressComponent],
+  templateUrl: './scripture-atlas-map.component.html',
   styleUrls: ['./scripture-atlas-map.component.scss']
 })
 export class ScriptureAtlasMapComponent implements AfterViewInit, OnDestroy, OnChanges {
@@ -319,8 +287,7 @@ export class ScriptureAtlasMapComponent implements AfterViewInit, OnDestroy, OnC
       ).addTo(this.modernMap);
     } else {
       this.modernMap.eachLayer((layer: any) => {
-        if (layer._url && (layer._url.includes('terrain') || layer._url.includes('World_Physical_Map')))
-          {
+        if (layer._url && (layer._url.includes('terrain') || layer._url.includes('World_Physical_Map'))) {
           this.modernMap.removeLayer(layer);
         }
       });

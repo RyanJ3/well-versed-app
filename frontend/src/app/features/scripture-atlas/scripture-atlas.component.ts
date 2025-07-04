@@ -4,9 +4,9 @@ import { interval, Subscription } from 'rxjs';
 import { AtlasService, Journey, City } from '../../core/services/atlas.service';
 
 // Import sub-components
-import { ScriptureAtlasHeaderComponent } from './components/scripture-atlas-header/scripture-atlas-header.component';
-import { ScriptureAtlasSidebarComponent } from './components/scripture-atlas-sidebar/scripture-atlas-sidebar.component';
-import { ScriptureAtlasMapComponent } from './components/scripture-atlas-map/scripture-atlas-map.component';
+import { ScriptureAtlasHeaderComponent } from './components/header/scripture-atlas-header.component';
+import { ScriptureAtlasSidebarComponent } from './components/sidebar/scripture-atlas-sidebar.component';
+import { ScriptureAtlasMapComponent } from './components/map/scripture-atlas-map.component';
 
 @Component({
   selector: 'app-scripture-atlas',
@@ -17,59 +17,7 @@ import { ScriptureAtlasMapComponent } from './components/scripture-atlas-map/scr
     ScriptureAtlasSidebarComponent,
     ScriptureAtlasMapComponent
   ],
-  template: `
-    <div class="atlas-container">
-      <app-scripture-atlas-header
-        [journeys]="journeys"
-        [selectedJourneyId]="selectedJourneyId"
-        [selectedJourney]="selectedJourney"
-        [currentDistance]="currentDistance"
-        [currentCityIndex]="currentCityIndex"
-        [totalCities]="cities.length"
-        [memorizedCount]="memorized.size"
-        [progressPercentage]="getProgressPercentage()"
-        [isPlaying]="isPlaying"
-        [terrainView]="terrainView"
-        [splitView]="splitView"
-        [sidebarOpen]="sidebarOpen"
-        [cities]="cities"
-        [memorizedCities]="memorized"
-        [selectedCityId]="selectedCity?.id"
-        (journeyChange)="loadJourney($event)"
-        (togglePlayback)="toggleJourneyPlayback()"
-        (toggleTerrain)="terrainView = !terrainView"
-        (toggleSplit)="splitView = !splitView"
-        (toggleSidebar)="toggleSidebar()"
-        (citySelected)="selectCity($event)"
-        (timelineChange)="onTimelineChange($event)">
-      </app-scripture-atlas-header>
-
-      <div class="atlas-main">
-        <app-scripture-atlas-sidebar
-          [isOpen]="sidebarOpen"
-          [selectedCity]="selectedCity"
-          [memorizedCities]="memorized"
-          [readVerses]="versesRead"
-          (closeSidebar)="sidebarOpen = false"
-          (toggleMemorized)="toggleMemorized($event)"
-          (markAsRead)="markVersesAsRead($event)">
-        </app-scripture-atlas-sidebar>
-
-        <app-scripture-atlas-map
-          [cities]="cities"
-          [selectedCity]="selectedCity"
-          [currentCityIndex]="currentCityIndex"
-          [memorizedCities]="memorized"
-          [terrainView]="terrainView"
-          [splitView]="splitView"
-          [isPlaying]="isPlaying"
-          (citySelected)="selectCity($event)"
-          (previousCity)="previousCity()"
-          (nextCity)="nextCity()">
-        </app-scripture-atlas-map>
-      </div>
-    </div>
-  `,
+  templateUrl: './scripture-atlas.component.html',
   styleUrls: ['./scripture-atlas.component.scss']
 })
 export class ScriptureAtlasComponent implements OnInit, OnDestroy {
@@ -139,11 +87,11 @@ export class ScriptureAtlasComponent implements OnInit, OnDestroy {
 
   loadJourney(id: number) {
     if (id == null) return;
-    
+
     this.atlasService.getJourney(id).subscribe(detail => {
       this.cities = detail.cities;
       this.distances = this.cities.map(c => c.distance);
-      
+
       if (this.cities.length) {
         this.selectCity(this.cities[0]);
       }
@@ -234,5 +182,4 @@ export class ScriptureAtlasComponent implements OnInit, OnDestroy {
   getProgressPercentage(): number {
     return Math.round((this.memorized.size / this.cities.length) * 100);
   }
-
 }
