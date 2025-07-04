@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { City } from '../../core/services/atlas.service';
+import { City } from '../../../core/services/atlas.service';
 
 @Component({
   selector: 'app-atlas-sidebar',
