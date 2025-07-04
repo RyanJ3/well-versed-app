@@ -3,11 +3,11 @@
 }
 
 .flow-container {
-  min-height: calc(100vh - 150px);
+  height: calc(100vh - 150px);
   background: #f8fafc;
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow: hidden;
   position: relative;
 }
 
