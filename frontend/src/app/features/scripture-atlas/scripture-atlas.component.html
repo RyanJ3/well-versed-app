@@ -264,7 +264,7 @@
         <div class="sidebar-content" *ngIf="sidebarView === 'scripture'">
           <div class="content-header">
             <h2>{{ selectedCity.name }}</h2>
-            <p class="verse-reference">{{ selectedCity.verses.join(", ") }}</p>
+            <p class="verse-reference">{{ selectedCity.verses?.join(', ') }}</p>
           </div>
 
           <div class="verse-text" [innerHTML]="currentScriptureText"></div>
@@ -312,7 +312,7 @@
 
           <div class="city-description">{{ selectedCity.description }}</div>
 
-          <div class="city-events" *ngIf="selectedCity.events.length">
+          <div class="city-events" *ngIf="selectedCity.events?.length">
             <h4>Key Events</h4>
             <ul>
               <li *ngFor="let event of selectedCity.events">{{ event }}</li>

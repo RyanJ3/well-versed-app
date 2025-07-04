@@ -6,29 +6,17 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   trigger,
-  state,
   style,
   transition,
   animate,
 } from '@angular/animations';
 import { interval, Subscription } from 'rxjs';
-import { AtlasService, Journey } from '../../core/services/atlas.service';
+import { AtlasService, Journey, City } from '../../core/services/atlas.service';
 
 declare const L: any;
-
-interface City {
-  id: string;
-  name: string;
-  modern: string;
-  position: [number, number];
-  description: string;
-  verses: string[];
-  events: string[];
-  keyFact: string;
-  scriptureText?: string;
-}
 
 interface Particle {
   x: number;
@@ -40,7 +28,7 @@ interface Particle {
 @Component({
   selector: 'app-scripture-atlas',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './scripture-atlas.component.html',
   styleUrls: ['./scripture-atlas.component.scss'],
   animations: [
@@ -95,7 +83,10 @@ export class ScriptureAtlasComponent
   // Scripture text
   currentScriptureText = '';
   get selectedJourney(): Journey | undefined {
-    return this.journeys.find((j) => j.id === this.selectedJourneyId!);
+    if (this.selectedJourneyId == null) {
+      return undefined;
+    }
+    return this.journeys.find((j) => j.id === this.selectedJourneyId);
   }
 
   constructor(private atlasService: AtlasService) {}
@@ -187,10 +178,13 @@ export class ScriptureAtlasComponent
     this.ancientMarkers = {};
   }
 
-  loadJourney(id: number) {
+  loadJourney(id: number | null) {
+    if (id === null) {
+      return;
+    }
     this.atlasService.getJourney(id).subscribe((detail) => {
       this.cities = detail.cities;
-      this.distances = this.cities.map((c) => c.distance || 0);
+      this.distances = this.cities.map((c) => c.distance);
       this.resetMaps();
       this.initializeMaps();
       if (this.cities.length) {
