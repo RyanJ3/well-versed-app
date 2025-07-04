@@ -123,6 +123,7 @@
   transform: translateY(-10px) scale(0.95);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(229, 231, 235, 0.5);
+  z-index: 150;
 
   &.active {
     opacity: 1;

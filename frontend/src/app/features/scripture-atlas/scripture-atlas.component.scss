@@ -3,7 +3,6 @@
   display: block;
   width: 100%;
   height: 100%;
-  // allow nav dropdowns to appear over the page
   overflow: visible;
 }
 
@@ -15,8 +14,7 @@
 // Variables
 $nav-height: 56px; // Well Versed navigation height
 $header-height: 100px; // Scripture Atlas header height
-$total-header-height: calc(#{$nav-height} + #{$header-height});
-$sidebar-width: 320px; // Scripture panel width
+$sidebar-width: 360px; // Combined sidebar width
 $primary: #6366f1;
 $primary-dark: #4f46e5;
 $success: #10b981;
@@ -46,9 +44,10 @@ $gray-900: #111827;
   top: $nav-height;
 }
 
-// Fixed Header
+// Fixed Header - Full Width
 .atlas-header {
   position: relative;
+  width: 100%;
   height: $header-height;
   background: linear-gradient(to bottom, white, $gray-50);
   border-bottom: 1px solid $gray-200;
@@ -299,76 +298,111 @@ $gray-900: #111827;
   height: calc(100vh - #{$nav-height} - #{$header-height});
 }
 
-// Left Sidebar (Scripture) - Overlay style
-.sidebar-left {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
+// Sidebar (Combined Scripture & City Info)
+.sidebar {
   width: $sidebar-width;
-  background: white;
-  border-right: 1px solid $gray-200;
-  box-shadow: 4px 0 6px 0 rgb(0 0 0 / 0.1);
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
+  height: 100%;
+  background: transparent;
   overflow: hidden;
-  // ensure scripture panel overlays the map
-  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.3s ease;
+  padding: 1rem 0 1rem 1rem;
   
-  &.open {
-    transform: translateX(0);
+  &.collapsed {
+    margin-left: -$sidebar-width;
   }
 }
 
-.sidebar-header {
-  position: sticky;
-  top: 0;
+.sidebar-wrapper {
   background: white;
-  border-bottom: 1px solid $gray-200;
-  padding: 1rem;
+  border: 1px solid $gray-200;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.06);
+  height: 100%;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-tabs {
+  display: flex;
+  background: $gray-50;
+  border-bottom: 1px solid $gray-200;
+  position: relative;
+}
+
+.tab-btn {
+  flex: 1;
+  display: flex;
   align-items: center;
-  z-index: 10;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.75rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: $gray-600;
+  cursor: pointer;
+  transition: all 0.2s;
   
-  h2 {
-    font-size: 1rem;
-    font-weight: 700;
-    color: $gray-900;
-    margin: 0;
+  svg {
+    width: 16px;
+    height: 16px;
   }
   
-  .close-btn {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: $gray-100;
-    border: none;
-    border-radius: 0.375rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    
-    svg {
-      width: 16px;
-      height: 16px;
-      color: $gray-500;
-    }
-    
-    &:hover {
-      background: $gray-200;
-    }
+  &:hover {
+    color: $gray-800;
+    background: rgba($gray-100, 0.5);
+  }
+  
+  &.active {
+    color: $primary;
+    border-bottom-color: $primary;
+    background: white;
+  }
+}
+
+.close-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $gray-100;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  svg {
+    width: 16px;
+    height: 16px;
+    color: $gray-500;
+  }
+  
+  &:hover {
+    background: $gray-200;
   }
 }
 
 .sidebar-content {
+  flex: 1;
   padding: 1rem;
-  overflow-y: auto;
-  height: calc(100% - 60px);
+  display: flex;
+  flex-direction: column;
+}
+
+.content-header {
+  margin-bottom: 1rem;
   
-  h3 {
-    font-size: 1.125rem;
+  h2 {
+    font-size: 1.25rem;
     font-weight: 700;
     color: $gray-900;
     margin: 0 0 0.25rem;
@@ -377,30 +411,143 @@ $gray-900: #111827;
   .verse-reference {
     font-size: 0.875rem;
     color: $primary;
-    margin: 0 0 1rem;
+    margin: 0;
   }
   
-  .verse-text {
+  .city-modern {
     font-size: 0.875rem;
-    line-height: 1.6;
-    color: $gray-700;
+    color: $gray-600;
+    margin: 0;
+  }
+}
+
+.verse-text {
+  flex: 1;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: $gray-700;
+  overflow-y: auto;
+  
+  .verse-number {
+    font-weight: 700;
+    color: $primary;
+    margin-right: 0.25rem;
+  }
+  
+  .verse {
+    margin-bottom: 0.5rem;
+  }
+}
+
+.city-description {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: $gray-700;
+  margin-bottom: 1rem;
+}
+
+.city-events {
+  margin-bottom: 1rem;
+  
+  h4 {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $gray-500;
+    margin: 0 0 0.5rem;
+  }
+  
+  ul {
+    margin: 0;
+    padding-left: 1.25rem;
     
-    .verse-number {
-      font-weight: 700;
-      color: $primary;
-      margin-right: 0.25rem;
-    }
-    
-    .verse {
-      margin-bottom: 0.5rem;
+    li {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      color: $gray-600;
+      margin-bottom: 0.25rem;
     }
   }
 }
 
-.sidebar-actions {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
+.city-fact {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: rgba($warning, 0.05);
+  border: 1px solid rgba($warning, 0.2);
+  border-radius: 0.5rem;
+  margin-top: auto;
+  
+  svg {
+    width: 20px;
+    height: 20px;
+    color: $warning;
+    flex-shrink: 0;
+  }
+  
+  p {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    color: $gray-700;
+    margin: 0;
+  }
+}
+
+.content-footer {
+  margin-top: auto;
+  padding-top: 1rem;
   border-top: 1px solid $gray-200;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.625rem;
+  background: white;
+  border: 1px solid $gray-300;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: $gray-700;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  &:hover {
+    background: $gray-50;
+    border-color: $gray-400;
+  }
+  
+  &.primary {
+    background: $primary;
+    border-color: $primary;
+    color: white;
+    
+    &:hover {
+      background: $primary-dark;
+      border-color: $primary-dark;
+    }
+    
+    &.completed {
+      background: $success;
+      border-color: $success;
+    }
+  }
+  
+  &.completed {
+    opacity: 0.8;
+  }
 }
 
 // Map Area
@@ -461,135 +608,46 @@ $gray-900: #111827;
   box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.1);
 }
 
-// City Info Overlay
-.city-info-overlay {
+// Navigation Buttons
+.nav-buttons {
   position: absolute;
   bottom: 1.5rem;
   right: 1.5rem;
-  width: 320px;
-  max-width: calc(100% - 3rem);
-  max-height: calc(100% - 3rem);
-  background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  overflow: hidden;
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-}
-
-.city-header {
-  padding: 1rem;
-  background: $gray-50;
-  border-bottom: 1px solid $gray-200;
-  
-  h2 {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: $gray-900;
-    margin: 0;
-  }
-  
-  .city-modern {
-    font-size: 0.75rem;
-    color: $gray-600;
-    margin: 0.125rem 0 0;
-  }
-}
-
-.city-content {
-  flex: 1;
-  padding: 1rem;
-  overflow-y: auto;
-  
-  .city-description {
-    font-size: 0.875rem;
-    line-height: 1.5;
-    color: $gray-700;
-    margin: 0 0 1rem;
-  }
-  
-  .city-events {
-    margin-bottom: 1rem;
-    
-    h4 {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: $gray-500;
-      margin: 0 0 0.5rem;
-    }
-    
-    ul {
-      margin: 0;
-      padding-left: 1.25rem;
-      
-      li {
-        font-size: 0.8125rem;
-        line-height: 1.5;
-        color: $gray-600;
-        margin-bottom: 0.25rem;
-      }
-    }
-  }
-  
-  .city-fact {
-    display: flex;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    background: rgba($warning, 0.05);
-    border: 1px solid rgba($warning, 0.2);
-    border-radius: 0.5rem;
-    
-    svg {
-      width: 20px;
-      height: 20px;
-      color: $warning;
-      flex-shrink: 0;
-    }
-    
-    p {
-      font-size: 0.75rem;
-      line-height: 1.4;
-      color: $gray-700;
-      margin: 0;
-    }
-  }
-}
-
-.city-footer {
-  padding: 1rem;
-  background: $gray-50;
-  border-top: 1px solid $gray-200;
   display: flex;
   gap: 0.5rem;
+  z-index: 1000;
 }
 
-.action-btn {
-  flex: 1;
+.nav-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.375rem;
-  padding: 0.625rem;
+  padding: 0.625rem 1rem;
   background: white;
   border: 1px solid $gray-300;
   border-radius: 0.5rem;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: $gray-700;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.1);
   
   svg {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
   }
   
-  &:hover {
+  &:hover:not(:disabled) {
     background: $gray-50;
     border-color: $gray-400;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px 0 rgb(0 0 0 / 0.1);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
   
   &.primary {
@@ -597,14 +655,9 @@ $gray-900: #111827;
     border-color: $primary;
     color: white;
     
-    &:hover {
+    &:hover:not(:disabled) {
       background: $primary-dark;
       border-color: $primary-dark;
-    }
-    
-    &.completed {
-      background: $success;
-      border-color: $success;
     }
   }
 }
@@ -642,11 +695,11 @@ $gray-900: #111827;
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateX(-20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
 }
 
@@ -660,8 +713,23 @@ $gray-900: #111827;
     gap: 1rem;
   }
   
-  .city-info-overlay {
-    width: 280px;
+  .sidebar {
+    position: absolute;
+    z-index: 60;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    background: white;
+    padding: 0;
+    border-right: 1px solid $gray-200;
+    
+    &.collapsed {
+      transform: translateX(-100%);
+      margin-left: 0;
+    }
+  }
+  
+  .nav-buttons {
+    bottom: 1rem;
+    right: 1rem;
   }
 }
 
@@ -699,17 +767,23 @@ $gray-900: #111827;
     }
   }
   
-  .city-info-overlay {
-    bottom: 0;
-    left: 0;
-    right: 0;
+  .sidebar {
     width: 100%;
-    max-width: 100%;
-    border-radius: 0.75rem 0.75rem 0 0;
+    max-width: 320px;
   }
   
   .map-area {
     padding: 0.5rem;
+  }
+  
+  .nav-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    
+    svg {
+      width: 16px;
+      height: 16px;
+    }
   }
 }
 
@@ -737,7 +811,7 @@ $gray-900: #111827;
   }
 }
 
-// Leaflet overrides
+// Custom marker styles for the map
 :host ::ng-deep {
   .leaflet-container {
     background: $gray-100;
@@ -765,5 +839,47 @@ $gray-900: #111827;
   .leaflet-control-attribution {
     background: rgba(white, 0.8) !important;
     font-size: 0.625rem;
+  }
+  
+  .city-marker-wrapper {
+    z-index: 600 !important;
+  }
+  
+  .custom-city-marker {
+    border: 3px solid;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s;
+    position: relative;
+    
+    &.selected {
+      animation: pulse 2s infinite;
+    }
+    
+    .marker-content {
+      font-size: 1rem;
+    }
+  }
+  
+  .route-arrow {
+    font-size: 20px;
+    font-weight: bold;
+    opacity: 0.7;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
   }
 }

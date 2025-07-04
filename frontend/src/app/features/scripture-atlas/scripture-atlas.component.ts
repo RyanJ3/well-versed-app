@@ -194,8 +194,8 @@ export class ScriptureAtlasComponent implements OnInit, AfterViewInit, OnDestroy
   isPlaying = false;
   terrainView = false;
   splitView = false;
-  openScripturePanel = false;
-  showScripture = false;
+  sidebarOpen = true;
+  sidebarView: 'scripture' | 'city' = 'scripture';
   
   // Map instances
   modernMap!: any;
@@ -594,8 +594,25 @@ export class ScriptureAtlasComponent implements OnInit, AfterViewInit, OnDestroy
     alert('Syncing with Scripture Tracker... This would update your reading progress in Acts 13-14!');
   }
 
-  toggleScripture() {
-    this.showScripture = !this.showScripture;
+
+  toggleSidebar() {
+    this.sidebarOpen = !this.sidebarOpen;
+
+    // Resize map after animation completes
+    setTimeout(() => {
+      if (this.modernMap) {
+        this.modernMap.invalidateSize();
+      }
+      if (this.ancientMap) {
+        this.ancientMap.invalidateSize();
+      }
+    }, 300);
+  }
+
+  previousCity() {
+    if (this.currentCityIndex > 0) {
+      this.selectCity(this.cities[this.currentCityIndex - 1]);
+    }
   }
 
   nextCity() {
@@ -607,14 +624,6 @@ export class ScriptureAtlasComponent implements OnInit, AfterViewInit, OnDestroy
     }
   }
 
-  showNextCity() {
-    if (this.currentCityIndex < this.cities.length - 1) {
-      this.selectCity(this.cities[this.currentCityIndex + 1]);
-    } else {
-      // Loop back to first city
-      this.selectCity(this.cities[0]);
-    }
-  }
 
   onTimelineChange(event: Event) {
     const target = event.target as HTMLInputElement;
