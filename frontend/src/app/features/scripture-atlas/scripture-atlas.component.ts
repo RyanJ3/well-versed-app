@@ -1,5 +1,6 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 declare const L: any;
 
 interface City {
@@ -46,6 +47,23 @@ export class ScriptureAtlasComponent implements OnInit, AfterViewInit {
   ngOnInit() {}
 
   ngAfterViewInit() {
+    this.loadLeaflet().then(() => this.initializeMap());
+  }
+
+  private loadLeaflet(): Promise<void> {
+    return new Promise((resolve) => {
+      if (typeof (window as any).L !== 'undefined') {
+        resolve();
+      } else {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.onload = () => resolve();
+        document.body.appendChild(script);
+      }
+    });
+  }
+
+  private initializeMap() {
     this.map = L.map('atlas-map').setView([36.5, 33], 7);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors'
