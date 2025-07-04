@@ -366,6 +366,15 @@ export class VersePickerComponent implements OnInit, OnChanges {
     if (!this.initialSelection || this.appliedInitial) return;
 
     const sel = this.initialSelection;
+    // Update the selected book and testament filter when initial selection changes
+    const newBook = this.allBooks.find(b => b.id === sel.startVerse.bookId);
+    if (newBook) {
+      this.testamentFilter = newBook.testament.isOld ? 'old' : 'new';
+      this.applyTestamentFilter();
+      this.selectedBook = this.books.find(b => b.id === newBook.id) || this.books[0];
+      this.loadChapters();
+    }
+
     this.mode = sel.mode;
     this.selectedChapter = sel.startVerse.chapter;
     this.selectedVerse = sel.startVerse.verse;

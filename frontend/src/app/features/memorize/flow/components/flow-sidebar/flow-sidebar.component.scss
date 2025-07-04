@@ -66,6 +66,7 @@
       overflow-y: auto;
       overflow-x: hidden;
       padding-right: 0.5rem;
+      scrollbar-gutter: stable;
 
       &::-webkit-scrollbar {
         width: 4px;
