@@ -218,13 +218,15 @@ export class ScriptureAtlasComponent
       this.initializeAncientMap();
     }
 
-    // Add route and markers
-    this.drawJourneyRoute(this.modernMap, this.markers);
-    this.addCityMarkers(this.modernMap, this.markers);
+    if (this.cities.length) {
+      // Add route and markers
+      this.drawJourneyRoute(this.modernMap, this.markers);
+      this.addCityMarkers(this.modernMap, this.markers);
 
-    // Fit bounds
-    const bounds = L.latLngBounds(this.cities.map((c) => c.position));
-    this.modernMap.fitBounds(bounds.pad(0.1));
+      // Fit bounds
+      const bounds = L.latLngBounds(this.cities.map((c) => c.position));
+      this.modernMap.fitBounds(bounds.pad(0.1));
+    }
   }
 
   private initializeAncientMap() {
@@ -247,9 +249,11 @@ export class ScriptureAtlasComponent
       },
     ).addTo(this.ancientMap);
 
-    // Add route and markers
-    this.drawJourneyRoute(this.ancientMap, this.ancientMarkers, true);
-    this.addCityMarkers(this.ancientMap, this.ancientMarkers, true);
+    if (this.cities.length) {
+      // Add route and markers
+      this.drawJourneyRoute(this.ancientMap, this.ancientMarkers, true);
+      this.addCityMarkers(this.ancientMap, this.ancientMarkers, true);
+    }
 
     // Sync map movements
     this.modernMap.on('move', () => {
@@ -262,8 +266,10 @@ export class ScriptureAtlasComponent
       }
     });
 
-    const bounds = L.latLngBounds(this.cities.map((c) => c.position));
-    this.ancientMap.fitBounds(bounds.pad(0.1));
+    if (this.cities.length) {
+      const bounds = L.latLngBounds(this.cities.map((c) => c.position));
+      this.ancientMap.fitBounds(bounds.pad(0.1));
+    }
   }
 
   private drawJourneyRoute(map: any, markers: any, isAncient = false) {
