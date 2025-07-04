@@ -1,13 +1,13 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import Map from 'ol/Map';
-import View from 'ol/View';
-import TileLayer from 'ol/layer/Tile';
-import VectorLayer from 'ol/layer/Vector';
-import OSM from 'ol/source/OSM';
-import VectorSource from 'ol/source/Vector';
-import Feature from 'ol/Feature';
-import Point from 'ol/geom/Point';
+import Map from 'ol/Map.js';
+import View from 'ol/View.js';
+import TileLayer from 'ol/layer/Tile.js';
+import VectorLayer from 'ol/layer/Vector.js';
+import OSM from 'ol/source/OSM.js';
+import VectorSource from 'ol/source/Vector.js';
+import Feature from 'ol/Feature.js';
+import Point from 'ol/geom/Point.js';
 import { fromLonLat } from 'ol/proj';
 import { Icon, Style, Text, Fill, Stroke } from 'ol/style';
 
@@ -88,8 +88,8 @@ export class MissionaryJourneysMapComponent implements OnInit, AfterViewInit {
     });
 
     // Add click handler to show info
-    this.map.on('click', (evt) => {
-      const feature = this.map.forEachFeatureAtPixel(evt.pixel, (f) => f);
+    this.map.on('click', (evt: any) => {
+      const feature = this.map.forEachFeatureAtPixel(evt.pixel, (f: any) => f);
       if (feature) {
         const properties = feature.getProperties();
         alert(`\n          ${properties.name}\n          Modern: ${properties.modernName}\n          ${properties.description}\n          Scripture: ${properties.verses}\n        `);
