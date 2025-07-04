@@ -1,0 +1,27 @@
+.nav-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.nav-btn.primary {
+  background: #6366f1;
+  color: #fff;
+}
+
+.nav-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

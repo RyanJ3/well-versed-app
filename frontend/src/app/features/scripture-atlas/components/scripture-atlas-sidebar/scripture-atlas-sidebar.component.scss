@@ -1,0 +1,68 @@
+.sidebar {
+  width: 360px;
+  height: 100%;
+  overflow-y: auto;
+  background: #f9fafb;
+}
+
+.sidebar.collapsed {
+  display: none;
+}
+
+.sidebar-tabs {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  background: #e5e7eb;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  font-weight: bold;
+}
+
+.close-btn {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.content-header {
+  padding: 8px;
+}
+
+.content-footer {
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.action-btn.primary {
+  background: #6366f1;
+  color: #fff;
+}
+
+.action-btn.completed {
+  opacity: 0.7;
+}
