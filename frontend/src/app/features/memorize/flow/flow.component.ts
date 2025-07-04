@@ -210,9 +210,6 @@ export class FlowComponent implements OnInit, OnDestroy {
     this.warningMessage = null;
     this.loadVersesCancel$.next();
     if (this.retryCountdown !== null) {
-      this.isLoading = false;
-      this.verses = [];
-      this.gridRows = [];
       return;
     }
 
@@ -222,6 +219,14 @@ export class FlowComponent implements OnInit, OnDestroy {
   async loadVerses() {
     if (!this.currentSelection) return;
     if (this.retryCountdown !== null) return;
+
+    const cached = this.bibleService.getCachedVerseTexts(
+      this.currentSelection.verseCodes
+    );
+    if (cached) {
+      this.applyVerseTexts(cached);
+      return;
+    }
 
     this.isLoading = true;
     this.verses = [];
@@ -235,39 +240,7 @@ export class FlowComponent implements OnInit, OnDestroy {
 
       // Check if this is still the current request
       if (currentRequestId !== this.requestCounter) return;
-
-      const hasContent = verseTexts && Object.values(verseTexts).some(t => t.trim() !== '');
-      if (hasContent && this.hideNumbersDueToLimit) {
-        this.showVerseNumbers = this.originalShowVerseNumbers;
-        this.hideNumbersDueToLimit = false;
-      }
-
-      if (!hasContent) {
-        this.showVerseNumbers = false;
-      }
-
-      // Process verses
-      this.verses = this.currentSelection.verseCodes.map((verseCode, index) => {
-        const [bookId, chapter, verse] = verseCode.split('-').map(Number);
-        const verseText = verseTexts?.[verseCode] || '';
-
-        return {
-          verseCode,
-          reference: this.formatVerseReference(bookId, chapter, verse),
-          text: verseText,
-          firstLetters: this.extractFirstLetters(verseText),
-          isMemorized: false,
-          isFifth: (index + 1) % 5 === 0,
-          bookName: this.getBookName(bookId),
-          chapter,
-          verse,
-          isSaving: false,
-        };
-      });
-
-      this.updateMemorizationStatus();
-      this.prepareGridRows();
-      this.updateProgress();
+      this.applyVerseTexts(verseTexts || {});
     } catch (error: any) {
       if (error?.name === 'EmptyError') return; // Cancelled
 
@@ -281,6 +254,40 @@ export class FlowComponent implements OnInit, OnDestroy {
         this.isLoading = false;
       }
     }
+  }
+
+  private applyVerseTexts(verseTexts: Record<string, string>) {
+    const hasContent = verseTexts && Object.values(verseTexts).some((t) => t.trim() !== '');
+    if (hasContent && this.hideNumbersDueToLimit) {
+      this.showVerseNumbers = this.originalShowVerseNumbers;
+      this.hideNumbersDueToLimit = false;
+    }
+
+    if (!hasContent) {
+      this.showVerseNumbers = false;
+    }
+
+    this.verses = this.currentSelection!.verseCodes.map((verseCode, index) => {
+      const [bookId, chapter, verse] = verseCode.split('-').map(Number);
+      const verseText = verseTexts?.[verseCode] || '';
+
+      return {
+        verseCode,
+        reference: this.formatVerseReference(bookId, chapter, verse),
+        text: verseText,
+        firstLetters: this.extractFirstLetters(verseText),
+        isMemorized: false,
+        isFifth: (index + 1) % 5 === 0,
+        bookName: this.getBookName(bookId),
+        chapter,
+        verse,
+        isSaving: false,
+      } as FlowVerse;
+    });
+
+    this.updateMemorizationStatus();
+    this.prepareGridRows();
+    this.updateProgress();
   }
 
   private extractFirstLetters(text: string): string {

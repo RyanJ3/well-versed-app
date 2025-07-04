@@ -31,7 +31,7 @@
         <button
           class="action-btn primary"
           (click)="startMemorization()"
-          [disabled]="retryCountdown !== null"
+          [disabled]="retryCountdown !== null || isLoading"
         >
           <svg
             width="20"
@@ -284,7 +284,7 @@
       </div>
 
       <!-- Title with navigation for all views -->
-      <div class="passage-header" *ngIf="!isLoading && verses.length > 0">
+      <div class="passage-header" *ngIf="!isLoading && (verses.length > 0 || retryCountdown !== null)">
         <button
           class="nav-btn"
           (click)="navigateToPreviousChapter()"
