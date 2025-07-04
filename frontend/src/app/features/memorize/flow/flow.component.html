@@ -19,23 +19,11 @@
       (deselectAllVerses)="deselectAllVerses()"
     ></app-flow-sidebar>
 
-    <main class="content-area">
-      <!-- Loading State -->
-      <div *ngIf="isLoading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Loading verses...</p>
-      </div>
-
-      <!-- Empty State -->
-      <div *ngIf="!isLoading && verses.length === 0" class="empty-state">
-        <div class="empty-icon">📖</div>
-        <p>
-          Select verses and click <strong>Apply Selection</strong> to begin.
-        </p>
-      </div>
-
-      <!-- Title with navigation -->
-      <div class="passage-header" *ngIf="!isLoading && (verses.length > 0 || retryCountdown !== null)">
+    <div class="content-wrapper">
+      <div
+        class="passage-header"
+        *ngIf="!isLoading && (verses.length > 0 || retryCountdown !== null)"
+      >
         <button
           class="nav-btn"
           (click)="navigateToPreviousChapter()"
@@ -75,6 +63,21 @@
         </button>
       </div>
 
+      <main class="content-area">
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading verses...</p>
+        </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && verses.length === 0" class="empty-state">
+        <div class="empty-icon">📖</div>
+        <p>
+          Select verses and click <strong>Apply Selection</strong> to begin.
+        </p>
+      </div>
+
       <div *ngIf="retryCountdown !== null" class="countdown-overlay">
         <div class="countdown-timer">
           ESV API limit reached. Retrying in {{ retryCountdown }}s...
@@ -98,8 +101,9 @@
         [showVerseNumbers]="viewSettings.showVerseNumbers"
         [fontSize]="viewSettings.fontSize"
       ></app-flow-text-view>
-    </main>
-  </div>
+      </main>
+    </div>
+    </div>
 
   <!-- Success Notification -->
   <div class="notification" [class.show]="showSavedMessage">
