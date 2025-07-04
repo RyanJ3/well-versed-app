@@ -17,7 +17,59 @@ import { ScriptureAtlasMapComponent } from './components/map/scripture-atlas-map
     ScriptureAtlasSidebarComponent,
     ScriptureAtlasMapComponent
   ],
-  templateUrl: './scripture-atlas.component.html',
+  template: `
+    <div class="atlas-container">
+      <app-scripture-atlas-header
+        [journeys]="journeys"
+        [selectedJourneyId]="selectedJourneyId"
+        [selectedJourney]="selectedJourney"
+        [currentDistance]="currentDistance"
+        [currentCityIndex]="currentCityIndex"
+        [totalCities]="cities.length"
+        [memorizedCount]="memorized.size"
+        [progressPercentage]="getProgressPercentage()"
+        [isPlaying]="isPlaying"
+        [terrainView]="terrainView"
+        [splitView]="splitView"
+        [sidebarOpen]="sidebarOpen"
+        [cities]="cities"
+        [memorizedCities]="memorized"
+        [selectedCityId]="selectedCity?.id"
+        (journeyChange)="loadJourney($event)"
+        (togglePlayback)="toggleJourneyPlayback()"
+        (toggleTerrain)="terrainView = !terrainView"
+        (toggleSplit)="splitView = !splitView"
+        (toggleSidebar)="toggleSidebar()"
+        (citySelected)="selectCity($event)"
+        (timelineChange)="onTimelineChange($event)">
+      </app-scripture-atlas-header>
+
+      <div class="atlas-main">
+        <app-scripture-atlas-sidebar
+          [isOpen]="sidebarOpen"
+          [selectedCity]="selectedCity"
+          [memorizedCities]="memorized"
+          [readVerses]="versesRead"
+          (closeSidebar)="sidebarOpen = false"
+          (toggleMemorized)="toggleMemorized($event)"
+          (markAsRead)="markVersesAsRead($event)">
+        </app-scripture-atlas-sidebar>
+
+        <app-scripture-atlas-map
+          [cities]="cities"
+          [selectedCity]="selectedCity"
+          [currentCityIndex]="currentCityIndex"
+          [memorizedCities]="memorized"
+          [terrainView]="terrainView"
+          [splitView]="splitView"
+          [isPlaying]="isPlaying"
+          (citySelected)="selectCity($event)"
+          (previousCity)="previousCity()"
+          (nextCity)="nextCity()">
+        </app-scripture-atlas-map>
+      </div>
+    </div>
+  `,
   styleUrls: ['./scripture-atlas.component.scss']
 })
 export class ScriptureAtlasComponent implements OnInit, OnDestroy {
@@ -54,7 +106,6 @@ export class ScriptureAtlasComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadSavedProgress();
-    console.debug('Initializing ScriptureAtlasComponent');
     this.loadJourneys();
   }
 
@@ -77,9 +128,7 @@ export class ScriptureAtlasComponent implements OnInit, OnDestroy {
   }
 
   private loadJourneys() {
-    console.debug('Requesting list of journeys');
     this.atlasService.getJourneys().subscribe(js => {
-      console.debug('Received journeys', js.length);
       this.journeys = js;
       if (js.length) {
         this.selectedJourneyId = js[0].id;
@@ -90,12 +139,10 @@ export class ScriptureAtlasComponent implements OnInit, OnDestroy {
 
   loadJourney(id: number) {
     if (id == null) return;
-    console.debug('Loading journey', id);
 
     this.atlasService.getJourney(id).subscribe(detail => {
       this.cities = detail.cities;
       this.distances = this.cities.map(c => c.distance);
-      console.debug('Loaded journey details, cities count', this.cities.length);
 
       if (this.cities.length) {
         this.selectCity(this.cities[0]);

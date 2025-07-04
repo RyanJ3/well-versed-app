@@ -6,8 +6,7 @@
   overflow: visible;
 }
 
-// Variables
-$nav-height: 56px; // Well Versed navigation height
+@import './shared/variables';
 
 // Root container
 .atlas-container {
@@ -28,5 +27,5 @@ $nav-height: 56px; // Well Versed navigation height
   flex: 1;
   display: flex;
   overflow: hidden;
-  height: calc(100% - 100px); // Subtract header height
+  height: calc(100% - #{$header-height});
 }

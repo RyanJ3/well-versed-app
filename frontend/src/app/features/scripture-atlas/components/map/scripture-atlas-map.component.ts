@@ -10,7 +10,35 @@ declare const L: any;
   selector: 'app-scripture-atlas-map',
   standalone: true,
   imports: [CommonModule, ScriptureAtlasNavComponent, ScriptureAtlasPlaybackProgressComponent],
-  templateUrl: './scripture-atlas-map.component.html',
+  template: `
+    <div class="map-area">
+      <div class="maps-container" [class.split]="splitView">
+        <div class="map-wrapper" [class.half]="splitView">
+          <div id="modern-map" class="map-instance"></div>
+          <div class="map-label" *ngIf="splitView">Modern View</div>
+        </div>
+
+        <div class="map-wrapper" [class.half]="splitView" *ngIf="splitView">
+          <div id="ancient-map" class="map-instance"></div>
+          <div class="map-label">Ancient View</div>
+        </div>
+      </div>
+
+      <app-scripture-atlas-nav
+        [currentCityIndex]="currentCityIndex"
+        [totalCities]="cities.length"
+        (previous)="previousCity.emit()"
+        (next)="nextCity.emit()">
+      </app-scripture-atlas-nav>
+
+      <app-scripture-atlas-playback-progress
+        *ngIf="isPlaying"
+        [currentIndex]="currentCityIndex"
+        [total]="cities.length"
+        [progress]="playbackProgress">
+      </app-scripture-atlas-playback-progress>
+    </div>
+  `,
   styleUrls: ['./scripture-atlas-map.component.scss']
 })
 export class ScriptureAtlasMapComponent implements AfterViewInit, OnDestroy, OnChanges {
@@ -38,7 +66,6 @@ export class ScriptureAtlasMapComponent implements AfterViewInit, OnDestroy, OnC
 
   ngAfterViewInit() {
     this.loadLeaflet().then(() => {
-      console.debug('Leaflet loaded, initializing maps with cities', this.cities.length);
       this.initializeMaps();
     });
   }
@@ -91,7 +118,6 @@ export class ScriptureAtlasMapComponent implements AfterViewInit, OnDestroy, OnC
 
   private initializeMaps() {
     if (!this.cities.length) {
-      console.warn('initializeMaps called with no cities');
       return;
     }
 
@@ -114,7 +140,6 @@ export class ScriptureAtlasMapComponent implements AfterViewInit, OnDestroy, OnC
 
     const bounds = L.latLngBounds(this.cities.map(c => c.position));
     this.modernMap.fitBounds(bounds.pad(0.1));
-    console.debug('Modern map initialized');
   }
 
   private initializeAncientMap() {
@@ -146,7 +171,6 @@ export class ScriptureAtlasMapComponent implements AfterViewInit, OnDestroy, OnC
 
       const bounds = L.latLngBounds(this.cities.map(c => c.position));
       this.ancientMap.fitBounds(bounds.pad(0.1));
-      console.debug('Ancient map initialized');
     }, 100);
   }
 

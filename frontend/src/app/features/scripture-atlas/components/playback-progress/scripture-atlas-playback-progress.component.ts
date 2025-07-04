@@ -5,7 +5,25 @@ import { CommonModule } from '@angular/common';
   selector: 'app-scripture-atlas-playback-progress',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './scripture-atlas-playback-progress.component.html',
+  template: `
+    <div class="playback-progress">
+      <svg viewBox="0 0 36 36">
+        <path
+          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+          fill="none"
+          stroke="#e5e7eb"
+          stroke-width="3" />
+        <path
+          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+          fill="none"
+          stroke="#6366f1"
+          stroke-width="3"
+          [attr.stroke-dasharray]="'100 100'"
+          [attr.stroke-dashoffset]="100 - progress" />
+      </svg>
+      <span class="progress-text">{{ currentIndex + 1 }}/{{ total }}</span>
+    </div>
+  `,
   styleUrls: ['./scripture-atlas-playback-progress.component.scss']
 })
 export class ScriptureAtlasPlaybackProgressComponent {

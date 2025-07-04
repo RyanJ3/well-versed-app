@@ -6,7 +6,34 @@ import { City } from '../../../../core/services/atlas.service';
   selector: 'app-scripture-atlas-timeline',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './scripture-atlas-timeline.component.html',
+  template: `
+    <div class="timeline-bar">
+      <div class="timeline-track">
+        <div class="timeline-progress" [style.width.%]="timelineProgress"></div>
+        <div class="timeline-markers">
+          <div
+            *ngFor="let city of cities; index as i"
+            class="timeline-marker"
+            [class.visited]="i <= currentCityIndex"
+            [class.active]="selectedCityId === city.id"
+            [class.memorized]="memorizedCities.has(city.id)"
+            [style.left.%]="(i / (cities.length - 1)) * 100"
+            (click)="selectCity(city)"
+            [title]="city.name">
+            <div class="marker-dot"></div>
+            <div class="marker-label">{{ i + 1 }}</div>
+          </div>
+        </div>
+        <input
+          type="range"
+          class="timeline-slider"
+          min="0"
+          [max]="cities.length - 1"
+          [value]="currentCityIndex"
+          (input)="onSliderChange($event)" />
+      </div>
+    </div>
+  `,
   styleUrls: ['./scripture-atlas-timeline.component.scss']
 })
 export class ScriptureAtlasTimelineComponent {
