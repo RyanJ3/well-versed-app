@@ -17,7 +17,12 @@ import { ModalService } from '../core/services/modal.service';
   selector: 'app-bible-tracker',
   templateUrl: './bible-tracker.component.html',
   standalone: true,
-  imports: [CommonModule, RouterModule, DialogsModule, ButtonsModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    DialogsModule,
+    ButtonsModule
+  ],
   styleUrls: ['./bible-tracker.component.scss'],
 })
 export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {

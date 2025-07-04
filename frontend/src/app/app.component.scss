@@ -3,10 +3,11 @@
 // App Container
 .app-container {
   font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: #f9fafb;
+  overflow: hidden;
 }
 
 // Main Content Area
@@ -16,6 +17,7 @@
   width: 100%;
   margin: 0 auto;
   padding: 20px;
+  overflow-y: auto;
   
   // Smooth page transitions
   animation: fadeIn 0.4s ease;

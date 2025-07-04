@@ -21,7 +21,7 @@ interface Tab {
   standalone: true,
   imports: [
     CommonModule, 
-    FormsModule, 
+    FormsModule,
     RouterModule,
     DeckCardComponent,
     CreateDeckModalComponent,
@@ -29,8 +29,7 @@ interface Tab {
   ],
   templateUrl: './deck-list.component.html',
   styleUrls: [
-    './deck-list.component.scss',
-    './deck-list-hero.component.scss'
+    './deck-list.component.scss'
   ]
 })
 export class DeckListComponent implements OnInit {
