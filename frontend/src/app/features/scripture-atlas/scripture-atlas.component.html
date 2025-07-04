@@ -1,29 +1,26 @@
 <div class="h-screen flex flex-col bg-gray-50">
-  <div class="bg-white shadow-md p-4">
-    <div class="max-w-7xl mx-auto">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-800">
-            Paul's First Missionary Journey
-          </h1>
-          <p class="text-gray-600 text-sm">46-48 AD • Acts 13-14 • ~1,400 miles</p>
-        </div>
-        <div class="flex gap-6 text-center">
-          <div>
-            <div class="text-2xl font-bold text-blue-600">{{ cities.length }}</div>
-            <div class="text-xs text-gray-600">Cities</div>
-          </div>
-          <div>
-            <div class="text-2xl font-bold text-green-600">{{ memorized.size }}</div>
-            <div class="text-xs text-gray-600">Memorized</div>
-          </div>
-        </div>
+  <div class="bg-white shadow-md p-4 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">
+        Paul's First Missionary Journey
+      </h1>
+      <p class="text-gray-600 text-sm">46-48 AD • Acts 13-14 • ~1,400 miles</p>
+    </div>
+    <div class="flex gap-6 text-center">
+      <div>
+        <div class="text-2xl font-bold text-blue-600">{{ cities.length }}</div>
+        <div class="text-xs text-gray-600">Cities</div>
+      </div>
+      <div>
+        <div class="text-2xl font-bold text-green-600">{{ memorized.size }}</div>
+        <div class="text-xs text-gray-600">Memorized</div>
       </div>
     </div>
   </div>
 
-  <div class="flex-1 flex">
-    <div class="w-64 bg-white shadow-lg overflow-y-auto">
+  <div class="flex-1 relative">
+    <div id="atlas-map" class="absolute inset-0"></div>
+    <div class="absolute top-0 bottom-0 left-0 w-64 bg-white shadow-lg overflow-y-auto">
       <div class="p-4">
         <h2 class="font-semibold text-lg mb-4 flex items-center gap-2">
           Journey Stops
@@ -71,17 +68,13 @@
         </div>
       </div>
     </div>
-
-    <div class="flex-1 relative">
-      <div id="atlas-map" class="h-full"></div>
-      <div class="absolute bottom-4 right-4 bg-white p-3 rounded-lg shadow-lg text-xs">
-        <h3 class="font-semibold mb-2">Legend</h3>
-        <div class="space-y-1">
-          <div class="flex items-center gap-2"><div class="w-4 h-4 bg-blue-500 rounded-full"></div><span>Unvisited City</span></div>
-          <div class="flex items-center gap-2"><div class="w-4 h-4 bg-blue-500 rounded-full ring-2 ring-green-500"></div><span>Memorized City</span></div>
-          <div class="flex items-center gap-2"><div class="w-4 h-4 bg-red-500 rounded-full"></div><span>Selected City</span></div>
-          <div class="flex items-center gap-2"><div class="w-8 h-0.5 bg-red-500" style="border-top: 2px dashed #dc2626"></div><span>Journey Route</span></div>
-        </div>
+    <div class="absolute bottom-4 right-4 bg-white p-3 rounded-lg shadow-lg text-xs">
+      <h3 class="font-semibold mb-2">Legend</h3>
+      <div class="space-y-1">
+        <div class="flex items-center gap-2"><div class="w-4 h-4 bg-blue-500 rounded-full"></div><span>Unvisited City</span></div>
+        <div class="flex items-center gap-2"><div class="w-4 h-4 bg-blue-500 rounded-full ring-2 ring-green-500"></div><span>Memorized City</span></div>
+        <div class="flex items-center gap-2"><div class="w-4 h-4 bg-red-500 rounded-full"></div><span>Selected City</span></div>
+        <div class="flex items-center gap-2"><div class="w-8 h-0.5 bg-red-500" style="border-top: 2px dashed #dc2626"></div><span>Journey Route</span></div>
       </div>
     </div>
   </div>
