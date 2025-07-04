@@ -216,6 +216,9 @@
       border-radius: 0.5rem;
       max-height: 200px;
       overflow-y: auto;
+      width: 100%;
+      box-sizing: border-box;
+      scrollbar-gutter: stable;
 
       &::-webkit-scrollbar {
         width: 4px;
