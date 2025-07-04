@@ -16,6 +16,9 @@ import {
 import { interval, Subscription } from 'rxjs';
 import { AtlasService, Journey, City } from '../../core/services/atlas.service';
 
+import { AtlasHeaderComponent } from "./atlas-header.component";
+import { AtlasSidebarComponent } from "./atlas-sidebar.component";
+import { AtlasMapComponent } from "./atlas-map.component";
 declare const L: any;
 
 interface Particle {
@@ -28,7 +31,7 @@ interface Particle {
 @Component({
   selector: 'app-scripture-atlas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AtlasHeaderComponent, AtlasSidebarComponent, AtlasMapComponent],
   templateUrl: './scripture-atlas.component.html',
   styleUrls: ['./scripture-atlas.component.scss'],
   animations: [

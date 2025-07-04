@@ -1,0 +1,68 @@
+<div class="map-area">
+      <div class="maps-container" [class.split]="splitView">
+        <!-- Modern Map -->
+        <div class="map-wrapper" [class.half]="splitView">
+          <div id="modern-map" class="map-instance"></div>
+          <div class="map-label" *ngIf="splitView">Modern View</div>
+        </div>
+
+        <!-- Ancient Map -->
+        <div class="map-wrapper" [class.half]="splitView" *ngIf="splitView">
+          <div id="ancient-map" class="map-instance"></div>
+          <div class="map-label">Ancient View</div>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons (Bottom Right) -->
+      <div class="nav-buttons">
+        <button
+          class="nav-btn"
+          (click)="previous.emit()"
+          [disabled]="currentCityIndex === 0"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+          Previous
+        </button>
+        <button class="nav-btn primary" (click)="next.emit()">
+          Next
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Playback Progress -->
+      <div class="playback-progress" *ngIf="isPlaying">
+        <svg viewBox="0 0 36 36">
+          <path
+            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            fill="none"
+            stroke="#e5e7eb"
+            stroke-width="3"
+          />
+          <path
+            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+            fill="none"
+            stroke="#6366f1"
+            stroke-width="3"
+            [attr.stroke-dasharray]="'100 100'"
+            [attr.stroke-dashoffset]="100 - timelineProgress"
+          />
+        </svg>
+        <span class="progress-text"
+          >{{ currentCityIndex + 1 }}/{{ citiesLength }}</span
+        >
+      </div>
+</div>
