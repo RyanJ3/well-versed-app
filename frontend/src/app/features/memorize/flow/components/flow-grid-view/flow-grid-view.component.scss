@@ -1,9 +1,7 @@
 // Grid View
 .grid-view {
   flex: 1;
-  overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-gutter: stable;
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -48,9 +46,7 @@
   gap: 0.75rem;
   padding-bottom: 1rem;
   flex: 1;
-  overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-gutter: stable;
 
   &::-webkit-scrollbar {
     width: 8px;

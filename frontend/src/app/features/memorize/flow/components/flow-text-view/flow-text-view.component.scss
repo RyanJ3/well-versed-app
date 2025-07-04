@@ -1,9 +1,7 @@
 .text-view {
   line-height: 1.8;
   flex: 1;
-  overflow-y: auto;
   overflow-x: hidden;
-  scrollbar-gutter: stable;
 
   &::-webkit-scrollbar {
     width: 8px;

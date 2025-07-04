@@ -66,6 +66,8 @@
       overflow-y: auto;
       overflow-x: hidden;
       padding-right: 0.5rem;
+      width: 100%;
+      box-sizing: border-box;
       scrollbar-gutter: stable;
 
       &::-webkit-scrollbar {
@@ -290,15 +292,15 @@
 // Responsive
 @media (max-width: 1024px) {
   .sidebar {
-    flex: 0 0 auto;
+    flex: 0 0 320px;
     max-height: 50vh;
-    width: 100%;
   }
 }
 
 @media (max-width: 768px) {
   .sidebar {
-    flex: 0 0 320px;
+    flex: 0 0 auto;
+    width: 100%;
     padding: 1rem;
 
     .action-btn {
