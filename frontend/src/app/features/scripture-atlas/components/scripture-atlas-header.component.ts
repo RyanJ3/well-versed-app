@@ -8,6 +8,7 @@ import { Journey } from '../../../core/services/atlas.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './scripture-atlas-header.component.html',
+  styleUrls: ['../scripture-atlas.component.scss'],
 })
 export class ScriptureAtlasHeaderComponent {
   @Input() journeys: Journey[] = [];

@@ -7,6 +7,7 @@ import { City } from '../../../core/services/atlas.service';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './scripture-atlas-sidebar.component.html',
+  styleUrls: ['../scripture-atlas.component.scss'],
 })
 export class ScriptureAtlasSidebarComponent {
   @Input() sidebarOpen = true;
