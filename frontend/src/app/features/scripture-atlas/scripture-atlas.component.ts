@@ -83,6 +83,9 @@ export class ScriptureAtlasComponent
   // Distance data (cumulative miles)
   distances: number[] = [];
 
+  // Whether the Leaflet library has finished loading
+  private leafletLoaded = false;
+
   // Scripture text
   currentScriptureText = '';
   get selectedJourney(): Journey | undefined {
@@ -124,10 +127,8 @@ export class ScriptureAtlasComponent
 
   ngAfterViewInit() {
     this.loadLeaflet().then(() => {
-      if (this.cities.length > 0) {
-        this.initializeMaps();
-        this.selectCity(this.cities[0]);
-      }
+      this.leafletLoaded = true;
+      this.tryInitializeMaps();
     });
   }
 
@@ -180,6 +181,19 @@ export class ScriptureAtlasComponent
     this.ancientMarkers = {};
   }
 
+  /**
+   * Initialize maps once both the city data and Leaflet library are loaded.
+   */
+  private tryInitializeMaps() {
+    if (this.modernMap || !this.leafletLoaded || !this.cities.length) {
+      return;
+    }
+    this.initializeMaps();
+    if (!this.selectedCity && this.cities.length) {
+      this.selectCity(this.cities[0]);
+    }
+  }
+
   loadJourney(id: number) {
     if (id == null) {
       return;
@@ -188,7 +202,7 @@ export class ScriptureAtlasComponent
       this.cities = detail.cities;
       this.distances = this.cities.map((c) => c.distance);
       this.resetMaps();
-      this.initializeMaps();
+      this.tryInitializeMaps();
       if (this.cities.length) {
         this.selectCity(this.cities[0]);
       }
@@ -197,6 +211,11 @@ export class ScriptureAtlasComponent
 
   private initializeMaps() {
     if (!this.cities.length || typeof L === 'undefined') {
+      return;
+    }
+
+    if (!document.getElementById('modern-map')) {
+      setTimeout(() => this.initializeMaps(), 100);
       return;
     }
 
