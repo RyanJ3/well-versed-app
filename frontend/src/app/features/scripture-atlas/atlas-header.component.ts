@@ -17,6 +17,7 @@ export class AtlasHeaderComponent {
   @Input() currentDistance = 0;
   @Input() currentCityIndex = 0;
   @Input() cities: City[] = [];
+  @Input() selectedCity: City | null = null;
   @Input() memorized: Set<string> = new Set();
   @Input() timelineProgress = 0;
   @Input() isPlaying = false;
