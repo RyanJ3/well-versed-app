@@ -124,9 +124,8 @@ export class ScriptureAtlasComponent
 
   ngAfterViewInit() {
     this.loadLeaflet().then(() => {
-      this.initializeMaps();
-      // Set initial city after maps are loaded
       if (this.cities.length > 0) {
+        this.initializeMaps();
         this.selectCity(this.cities[0]);
       }
     });
@@ -197,6 +196,10 @@ export class ScriptureAtlasComponent
   }
 
   private initializeMaps() {
+    if (!this.cities.length || typeof L === 'undefined') {
+      return;
+    }
+
     // Initialize modern map
     this.modernMap = L.map('modern-map', {
       zoomControl: true,
