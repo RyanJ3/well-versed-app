@@ -89,7 +89,14 @@
       <div class="timeline-markers">
         <ng-content select="[timeline-markers]"></ng-content>
       </div>
-      <input type="range" class="timeline-slider" min="0" [max]="citiesLength - 1" [value]="currentCityIndex" (input)="timelineChange.emit(($event.target as HTMLInputElement).valueAsNumber)" />
+      <input
+        type="range"
+        class="timeline-slider"
+        min="0"
+        [max]="citiesLength - 1"
+        [value]="currentCityIndex"
+        (input)="timelineChange.emit($any($event.target).valueAsNumber)"
+      />
     </div>
   </div>
 </header>
