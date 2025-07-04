@@ -28,7 +28,10 @@ CREATE INDEX idx_mj_cities_journey ON missionary_journey_cities(journey_id);
 INSERT INTO missionary_journeys (name, start_year, end_year, scripture_refs) VALUES
     ('Paul''s First Missionary Journey', 46, 48, 'Acts 13-14'),
     ('Paul''s Second Missionary Journey', 49, 52, 'Acts 15:36-18:22'),
-    ('Paul''s Third Missionary Journey', 53, 57, 'Acts 18:23-21:17');
+    ('Paul''s Third Missionary Journey', 53, 57, 'Acts 18:23-21:17'),
+    ('Wilderness Wanderings', -1446, -1406, 'Exodus–Deuteronomy'),
+    ('Timeline of Kingdoms', -1500, 70, 'Various'),
+    ('Ministry of Jesus', 27, 30, 'Gospels');
 
 -- First journey cities
 INSERT INTO missionary_journey_cities (journey_id, position, data) VALUES
@@ -71,3 +74,28 @@ INSERT INTO missionary_journey_cities (journey_id, position, data) VALUES
 (3,9,$${"id":"tyre","name":"Tyre","modern":"Tyre, Lebanon","position":[33.27,35.2],"distance":2000}$$),
 (3,10,$${"id":"caesarea","name":"Caesarea","modern":"Caesarea Maritima, Israel","position":[32.5,34.75],"distance":2050}$$),
 (3,11,$${"id":"jerusalem","name":"Jerusalem","modern":"Jerusalem, Israel","position":[31.78,35.22],"distance":2100}$$);
+
+-- Wilderness wanderings
+INSERT INTO missionary_journey_cities (journey_id, position, data) VALUES
+(4,1,$${"id":"rameses","name":"Rameses","modern":"Egypt","position":[30.8,31.9],"distance":0}$$),
+(4,2,$${"id":"red-sea","name":"Red Sea Crossing","modern":"Near Gulf of Suez","position":[29.8,32.5],"distance":120}$$),
+(4,3,$${"id":"sinai","name":"Mount Sinai","modern":"Jabal Musa","position":[28.54,33.97],"distance":350}$$),
+(4,4,$${"id":"kadesh","name":"Kadesh Barnea","modern":"Ain Qudeirat","position":[30.33,34.93],"distance":600}$$),
+(4,5,$${"id":"plains-moab","name":"Plains of Moab","modern":"Near Jericho","position":[31.83,35.47],"distance":800}$$);
+
+-- Timeline of kingdoms
+INSERT INTO missionary_journey_cities (journey_id, position, data) VALUES
+(5,1,$${"id":"egypt","name":"Egyptian Empire","modern":"Memphis","position":[29.86,31.25],"distance":0}$$),
+(5,2,$${"id":"assyria","name":"Assyrian Empire","modern":"Nineveh","position":[36.36,43.15],"distance":600}$$),
+(5,3,$${"id":"babylon","name":"Babylonian Empire","modern":"Hillah, Iraq","position":[32.54,44.42],"distance":900}$$),
+(5,4,$${"id":"persia","name":"Persian Empire","modern":"Persepolis","position":[29.94,52.89],"distance":1400}$$),
+(5,5,$${"id":"greece","name":"Greek Empire","modern":"Athens, Greece","position":[37.98,23.72],"distance":2200}$$),
+(5,6,$${"id":"rome","name":"Roman Empire","modern":"Rome, Italy","position":[41.89,12.49],"distance":3000}$$);
+
+-- Ministry of Jesus
+INSERT INTO missionary_journey_cities (journey_id, position, data) VALUES
+(6,1,$${"id":"bethlehem","name":"Bethlehem","modern":"Bethlehem, Israel","position":[31.7,35.2],"distance":0}$$),
+(6,2,$${"id":"nazareth","name":"Nazareth","modern":"Nazareth, Israel","position":[32.7,35.3],"distance":70}$$),
+(6,3,$${"id":"capernaum","name":"Capernaum","modern":"Kfar Nahum, Israel","position":[32.88,35.57],"distance":120}$$),
+(6,4,$${"id":"caesarea-philippi","name":"Caesarea Philippi","modern":"Banias, Israel","position":[33.24,35.69],"distance":160}$$),
+(6,5,$${"id":"jerusalem","name":"Jerusalem","modern":"Jerusalem, Israel","position":[31.78,35.22],"distance":220}$$);
