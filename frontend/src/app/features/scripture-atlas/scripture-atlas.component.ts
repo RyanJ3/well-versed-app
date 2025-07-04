@@ -582,9 +582,7 @@ export class ScriptureAtlasComponent
     }
   }
 
-  onTimelineChange(event: Event) {
-    const target = event.target as HTMLInputElement;
-    const index = parseInt(target.value);
+  onTimelineChange(index: number) {
     if (index >= 0 && index < this.cities.length) {
       this.selectCity(this.cities[index]);
     }
