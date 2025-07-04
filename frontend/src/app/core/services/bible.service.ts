@@ -1,6 +1,6 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
-import { Observable, of, throwError, BehaviorSubject } from 'rxjs';
+import { Observable, of, throwError, BehaviorSubject, Subject } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { BibleData, UserVerseDetail, BibleBook } from '../models/bible';
@@ -14,10 +14,15 @@ export class BibleService {
   private apiUrl = environment.apiUrl;
   private bibleData: BibleData;
   private isBrowser: boolean;
+  private verseTextCache = new Map<string, string>();
 
   private preferencesSubject = new BehaviorSubject<{ includeApocrypha: boolean }>({
     includeApocrypha: false
   });
+
+  // Emits wait time in seconds when ESV API limits are hit
+  private esvRetrySubject = new Subject<number>();
+  public esvRetry$ = this.esvRetrySubject.asObservable();
 
   public preferences$ = this.preferencesSubject.asObservable();
 
@@ -41,6 +46,20 @@ export class BibleService {
   updateUserPreferences(includeApocrypha: boolean): void {
     this.bibleData.includeApocrypha = includeApocrypha;
     this.preferencesSubject.next({ includeApocrypha });
+  }
+
+  /**
+   * Return cached texts for the given verse codes if available
+   */
+  getCachedVerseTexts(verseCodes: string[]): Record<string, string> | null {
+    if (verseCodes.every((c) => this.verseTextCache.has(c))) {
+      const result: Record<string, string> = {};
+      verseCodes.forEach((c) => {
+        result[c] = this.verseTextCache.get(c) || '';
+      });
+      return result;
+    }
+    return null;
   }
 
   getUserVerses(userId: number, includeApocrypha?: boolean): Observable<UserVerseDetail[]> {
@@ -172,24 +191,35 @@ export class BibleService {
    */
   getVerseTexts(userId: number, verseCodes: string[], bibleId?: string): Observable<Record<string, string>> {
     console.log(`Getting texts for ${verseCodes.length} verses`);
-    
+
+    const cached = this.getCachedVerseTexts(verseCodes);
+    if (cached) {
+      return of(cached);
+    }
+
     const payload = {
       verse_codes: verseCodes,
-      bible_id: bibleId
+      bible_id: bibleId,
     };
 
     return this.http.post<Record<string, string>>(`${this.apiUrl}/user-verses/${userId}/verses/texts`, payload).pipe(
-      tap(texts => console.log(`Received texts for ${Object.keys(texts).length} verses`)),
+      tap((texts) => {
+        console.log(`Received texts for ${Object.keys(texts).length} verses`);
+        Object.entries(texts).forEach(([code, text]) => {
+          this.verseTextCache.set(code, text);
+        });
+      }),
       catchError((error: HttpErrorResponse) => {
         console.error('Error getting verse texts:', error);
         if (error.status === 429) {
           const wait = error.error?.wait_seconds ?? error.error?.detail?.wait_seconds;
           if (wait) {
             this.notifications.warning(`ESV API limit reached. Try again in ${wait} seconds.`);
+            this.esvRetrySubject.next(wait);
           }
         }
         const emptyTexts: Record<string, string> = {};
-        verseCodes.forEach(code => (emptyTexts[code] = ''));
+        verseCodes.forEach((code) => (emptyTexts[code] = ''));
         return of(emptyTexts);
       })
     );

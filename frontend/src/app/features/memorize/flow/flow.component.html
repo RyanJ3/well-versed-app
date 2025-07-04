@@ -28,7 +28,11 @@
 
       <!-- Start Button -->
       <div class="sidebar-section actions" *ngIf="verses.length > 0">
-        <button class="action-btn primary" (click)="startMemorization()">
+        <button
+          class="action-btn primary"
+          (click)="startMemorization()"
+          [disabled]="retryCountdown !== null || isLoading"
+        >
           <svg
             width="20"
             height="20"
@@ -280,7 +284,7 @@
       </div>
 
       <!-- Title with navigation for all views -->
-      <div class="passage-header" *ngIf="!isLoading && verses.length > 0">
+      <div class="passage-header" *ngIf="!isLoading && (verses.length > 0 || retryCountdown !== null)">
         <button
           class="nav-btn"
           (click)="navigateToPreviousChapter()"
@@ -318,6 +322,12 @@
             <polyline points="9 18 15 12 9 6"></polyline>
           </svg>
         </button>
+      </div>
+
+      <div *ngIf="retryCountdown !== null" class="countdown-overlay">
+        <div class="countdown-timer">
+          ESV API limit reached. Retrying in {{ retryCountdown }}s...
+        </div>
       </div>
 
       <!-- Grid View -->
