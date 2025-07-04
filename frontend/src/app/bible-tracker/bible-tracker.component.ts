@@ -12,7 +12,6 @@ import { BibleService } from '../core/services/bible.service';
 import { UserService } from '../core/services/user.service';
 import { BibleVerse } from '../core/models/bible/bible-verse.model';
 import { ModalService } from '../core/services/modal.service';
-import { BreadcrumbComponent } from '../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-bible-tracker',
@@ -22,8 +21,7 @@ import { BreadcrumbComponent } from '../shared/components/breadcrumb/breadcrumb.
     CommonModule,
     RouterModule,
     DialogsModule,
-    ButtonsModule,
-    BreadcrumbComponent
+    ButtonsModule
   ],
   styleUrls: ['./bible-tracker.component.scss'],
 })
