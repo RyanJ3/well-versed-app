@@ -9,6 +9,7 @@ import { DeckFilterComponent } from '../components/deck-filter/deck-filter.compo
 import { UserService } from '../../../../core/services/user.service';
 import { ModalService } from '../../../../core/services/modal.service';
 import { DeckCreate, DeckService } from '../../../../core/services/deck.service';
+import { BreadcrumbComponent } from '../../../shared/components/breadcrumb/breadcrumb.component';
 
 interface Tab {
   id: 'my-decks' | 'public' | 'saved';
@@ -25,7 +26,8 @@ interface Tab {
     RouterModule,
     DeckCardComponent,
     CreateDeckModalComponent,
-    DeckFilterComponent
+    DeckFilterComponent,
+    BreadcrumbComponent
   ],
   templateUrl: './deck-list.component.html',
   styleUrls: [

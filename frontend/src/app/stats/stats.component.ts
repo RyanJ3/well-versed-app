@@ -1,6 +1,7 @@
 // src/app/stats/stats.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { BreadcrumbComponent } from '../shared/components/breadcrumb/breadcrumb.component';
 import { UserService } from '../core/services/user.service';
 import { BibleService } from '../core/services/bible.service';
 import { BibleBook, BibleData, BibleTestament, UserVerseDetail } from '../core/models/bible';
@@ -55,7 +56,7 @@ interface HeatmapDay {
 @Component({
   selector: 'app-stats',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, BreadcrumbComponent],
   templateUrl: './stats.component.html',
   styleUrls: ['./stats.component.scss']
 })

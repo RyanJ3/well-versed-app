@@ -12,12 +12,19 @@ import { BibleService } from '../core/services/bible.service';
 import { UserService } from '../core/services/user.service';
 import { BibleVerse } from '../core/models/bible/bible-verse.model';
 import { ModalService } from '../core/services/modal.service';
+import { BreadcrumbComponent } from '../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-bible-tracker',
   templateUrl: './bible-tracker.component.html',
   standalone: true,
-  imports: [CommonModule, RouterModule, DialogsModule, ButtonsModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    DialogsModule,
+    ButtonsModule,
+    BreadcrumbComponent
+  ],
   styleUrls: ['./bible-tracker.component.scss'],
 })
 export class BibleTrackerComponent implements OnInit, OnDestroy, AfterViewInit {

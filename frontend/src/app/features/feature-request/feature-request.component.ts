@@ -8,6 +8,7 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { FeatureRequestService } from '../../core/services/feature-request.service';
 import { UserService } from '../../core/services/user.service';
 import { ModalService } from '../../core/services/modal.service';
+import { BreadcrumbComponent } from '../shared/components/breadcrumb/breadcrumb.component';
 import { 
   FeatureRequest, 
   CreateFeatureRequest, 
@@ -24,7 +25,8 @@ import { User } from '../../core/models/user';
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule
+    RouterModule,
+    BreadcrumbComponent
   ]
 })
 export class FeatureRequestComponent implements OnInit, OnDestroy {
