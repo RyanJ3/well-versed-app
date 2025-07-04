@@ -178,8 +178,8 @@ export class ScriptureAtlasComponent
     this.ancientMarkers = {};
   }
 
-  loadJourney(id: number | null) {
-    if (id === null) {
+  loadJourney(id: number) {
+    if (id == null) {
       return;
     }
     this.atlasService.getJourney(id).subscribe((detail) => {

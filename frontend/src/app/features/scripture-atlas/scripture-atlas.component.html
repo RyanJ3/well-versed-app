@@ -20,8 +20,10 @@
           </svg>
           <select
             class="journey-select"
+            name="journey"
             [(ngModel)]="selectedJourneyId"
-            (change)="loadJourney(selectedJourneyId)"
+            [ngModelOptions]="{standalone: true}"
+            (change)="loadJourney(selectedJourneyId!)"
           >
             <option *ngFor="let j of journeys" [ngValue]="j.id">
               {{ j.name }}
