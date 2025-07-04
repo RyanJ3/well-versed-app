@@ -1,0 +1,71 @@
+<div class="settings-container" [class.header-settings]="position === 'header'">
+  <button
+    class="step-circle settings-btn"
+    [class.spinning]="isGearSpinning"
+    (click)="toggleSettings()"
+    title="Settings"
+  >
+    ⚙️
+  </button>
+  <div class="settings-menu" [class.active]="showSettings">
+    <div class="panel-section settings-section">
+      <h3 class="panel-title">Settings</h3>
+
+      <!-- Font Size -->
+      <div class="setting-group">
+        <label>Font Size</label>
+        <div class="font-controls">
+          <button class="font-btn" (click)="decreaseFontSize()">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+          <span class="font-value"
+            >{{ practiceSettings.fontSize }}px</span
+          >
+          <button class="font-btn" (click)="increaseFontSize()">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Layout Mode -->
+      <div class="setting-group">
+        <label>Layout</label>
+        <div class="layout-toggle">
+          <button
+            class="layout-option"
+            [class.active]="practiceSettings.layoutMode === 'column'"
+            (click)="setLayoutMode('column')"
+          >
+            Column
+          </button>
+          <button
+            class="layout-option"
+            [class.active]="practiceSettings.layoutMode === 'paragraph'"
+            (click)="setLayoutMode('paragraph')"
+          >
+            Paragraph
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

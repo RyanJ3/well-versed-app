@@ -1,0 +1,169 @@
+.progress-journey {
+  position: relative;
+  width: 100%;
+  height: 3rem;
+  margin-top: 0.5rem;
+}
+
+.journey-path {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  background: rgba(229, 231, 235, 0.3);
+}
+
+.path-svg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.path-bg,
+.path-progress {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: shimmer 2s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.progress-markers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.marker {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%) translateX(-50%);
+  z-index: 5;
+}
+
+.marker.flag-marker {
+  top: -0.5rem;
+  transform: translateX(-50%);
+}
+
+.marker.finish-marker {
+  transform: translateY(-50%) translateX(-50%) scale(1.2);
+}
+
+.star-container {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+
+.star-container:hover {
+  transform: scale(1.1);
+}
+
+.star-outline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  transition: all 0.3s;
+}
+
+.star-filled {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  filter: drop-shadow(0 4px 6px rgba(251, 191, 36, 0.4));
+}
+
+.flag-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.flag {
+  font-size: 1.75rem;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+  transform-origin: bottom center;
+}
+
+.flag.completed {
+  animation: flagWave 2s ease-in-out infinite;
+}
+
+@keyframes flagWave {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+
+.flag-pole {
+  width: 2px;
+  height: 2rem;
+  background: #9ca3af;
+  transition: background 0.3s ease;
+}
+
+.flag-pole.completed {
+  background: #4b5563;
+}
+
+.flag-label {
+  font-size: 0.625rem;
+  color: #6b7280;
+  font-weight: 600;
+  margin-top: 0.25rem;
+  white-space: nowrap;
+}
+
+.finish-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.finish-icon {
+  font-size: 2rem;
+  transition: all 0.3s;
+}
+
+.finish-icon.completed {
+  filter: drop-shadow(0 4px 6px rgba(251, 191, 36, 0.4));
+}
+
+.finish-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1f2937;
+}

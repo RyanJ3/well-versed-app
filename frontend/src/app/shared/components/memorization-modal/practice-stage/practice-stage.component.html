@@ -1,0 +1,48 @@
+<div class="practice-layout">
+  <div class="practice-wrapper">
+    <div
+      class="verse-display"
+      [style.font-size.px]="practiceSettings.fontSize"
+      *ngIf="currentStepIndex !== 2"
+    >
+      <div
+        *ngIf="practiceSettings.layoutMode === 'column'"
+        class="column-layout"
+      >
+        <div
+          class="verse-block"
+          *ngFor="let v of currentVerses; let idx = index"
+          [@verseTransition]="currentStepIndex"
+        >
+          <p class="verse-ref">{{ v.verse }}</p>
+          <p
+            class="verse-text"
+            [class.memory-mode]="currentStepIndex === 2"
+          >
+            {{ getVerseDisplay(v) }}
+          </p>
+        </div>
+      </div>
+
+      <div
+        *ngIf="practiceSettings.layoutMode === 'paragraph'"
+        class="paragraph-layout"
+      >
+        <p class="verse-paragraph">
+          <span *ngFor="let v of currentVerses; let idx = index">
+            <sup class="verse-ref-inline">{{ v.verse }}</sup>
+            <span
+              class="verse-text"
+              [class.memory-mode]="currentStepIndex === 2"
+              >{{ getVerseDisplay(v) }}</span
+            >
+            <span *ngIf="idx < currentVerses.length - 1"> </span>
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="memory-message" *ngIf="currentStepIndex === 2">
+    You're doing great! Recite it from memory!
+  </div>
+</div>

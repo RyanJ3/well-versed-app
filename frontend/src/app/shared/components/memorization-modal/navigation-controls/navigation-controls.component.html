@@ -1,0 +1,19 @@
+<div class="nav-buttons">
+  <button class="prev-btn" (click)="prev.emit()" [disabled]="!canGoBack">
+    Previous
+  </button>
+  <div class="bottom-controls">
+    <button
+      *ngFor="let stage of stageNames; let i = index"
+      class="step-circle"
+      [class.active]="currentStepIndex === i"
+      (click)="jumpToStep.emit(i)"
+      [title]="stage"
+    >
+      {{ getStageIcon(stage) }}
+    </button>
+  </div>
+  <button class="next-btn" (click)="next.emit()" [disabled]="nextDisabled">
+    Next
+  </button>
+</div>

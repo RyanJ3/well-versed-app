@@ -1,0 +1,58 @@
+<div class="verse-bubbles-wrapper">
+  <div class="verse-bubbles-container" #verseBubblesContainer>
+    <div class="verse-bubbles">
+      <div
+        class="active-border-container"
+        *ngIf="hasActiveBorder"
+        [style.left.px]="borderLeft"
+        [style.width.px]="borderWidth"
+        @borderPulse
+      >
+        <div class="active-border-bg"></div>
+        <div class="active-border-glow"></div>
+      </div>
+      <ng-container
+        *ngFor="let group of groups; let i = index"
+      >
+        <div
+          class="group-bubble"
+          [class.completed]="isGroupCompleted(i)"
+          [class.current]="isGroupActive(i)"
+          (mouseenter)="hoveredGroup = i"
+          (mouseleave)="hoveredGroup = -1"
+          [class.hovered]="hoveredGroup === i"
+        >
+          <div class="verse-numbers">
+            <div *ngFor="let verse of group" class="verse-number">
+              {{ verse.verse }}
+            </div>
+          </div>
+          <div
+            class="stage-dots"
+            *ngIf="isGroupActive(i) && showStageDots && currentStepIndex >= 0"
+          >
+            <div
+              class="stage-dot"
+              [class.completed]="currentStepIndex > 0"
+              [class.active]="currentStepIndex === 0"
+            ></div>
+            <div
+              class="stage-dot"
+              [class.completed]="currentStepIndex > 1"
+              [class.active]="currentStepIndex === 1"
+            ></div>
+            <div
+              class="stage-dot"
+              [class.active]="currentStepIndex === 2"
+            ></div>
+          </div>
+          <span
+            class="check-icon"
+            *ngIf="isGroupCompleted(i) && showCheckmarks"
+            >✓</span
+          >
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>
