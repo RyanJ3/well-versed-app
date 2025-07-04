@@ -587,6 +587,22 @@ export class ScriptureAtlasComponent
     return Math.round((this.memorized.size / this.cities.length) * 100);
   }
 
+  formatYear(year: number | undefined): string {
+    if (year == null) {
+      return '';
+    }
+    return year < 0 ? `${Math.abs(year)} BC` : `${year} AD`;
+  }
+
+  formatYearRange(start?: number, end?: number): string {
+    if (start == null || end == null) {
+      return '';
+    }
+    const startStr = this.formatYear(start);
+    const endStr = this.formatYear(end);
+    return startStr === endStr ? startStr : `${startStr} - ${endStr}`;
+  }
+
   getCityIllustration(cityId: string): string {
     // Return custom illustrations for each city
     const illustrations: { [key: string]: string } = {
