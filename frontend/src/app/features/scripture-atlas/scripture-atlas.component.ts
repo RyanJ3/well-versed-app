@@ -317,7 +317,7 @@ export class ScriptureAtlasComponent
           <br>
           <span style="color: #666; font-size: 0.9em">${city.modern}</span>
           <br>
-          <span style="color: #999; font-size: 0.8em">${city.verses.join(', ')}</span>
+          <span style="color: #999; font-size: 0.8em">${city.verses?.join(', ') ?? ''}</span>
         </div>
       `;
 
