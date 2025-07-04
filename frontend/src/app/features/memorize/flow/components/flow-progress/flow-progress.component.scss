@@ -1,0 +1,45 @@
+.progress-section {
+  .progress-container {
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+  }
+
+  .progress-bar {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+
+    &.complete {
+      background: #10b981;
+    }
+  }
+
+  .progress-text {
+    font-size: 0.875rem;
+    color: #6b7280;
+    text-align: center;
+
+    .complete-text {
+      color: #10b981;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.375rem;
+
+      svg {
+        flex-shrink: 0;
+      }
+    }
+  }
+}
