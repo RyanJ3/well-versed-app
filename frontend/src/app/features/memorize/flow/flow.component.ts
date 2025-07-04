@@ -27,7 +27,7 @@ import { FlowVerse, ModalVerse, FlowViewSettings } from './models/flow.models';
     FlowHeaderComponent,
     FlowSidebarComponent,
     FlowGridViewComponent,
-    FlowTextViewComponent
+    FlowTextViewComponent,
   ],
   providers: [FlowStateService, FlowMemorizationService],
   templateUrl: './flow.component.html',
@@ -40,14 +40,14 @@ export class FlowComponent implements OnInit, OnDestroy {
   initialSelection: VerseSelection | null = null;
   selectedBook: any = null;
   warningMessage: string | null = null;
-  
+
   // View settings from service
   viewSettings: FlowViewSettings = {
     layoutMode: 'grid',
     isTextMode: false,
     highlightFifthVerse: true,
     showVerseNumbers: true,
-    fontSize: 16
+    fontSize: 16,
   };
 
   // Progress tracking
@@ -83,7 +83,7 @@ export class FlowComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private stateService: FlowStateService,
-    private memorizationService: FlowMemorizationService
+    private memorizationService: FlowMemorizationService,
   ) {}
 
   ngOnInit() {
@@ -95,7 +95,7 @@ export class FlowComponent implements OnInit, OnDestroy {
     // Subscribe to view settings changes
     this.stateService.viewSettings$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(settings => {
+      .subscribe((settings) => {
         this.viewSettings = settings;
         this.cdr.detectChanges();
       });
@@ -113,7 +113,8 @@ export class FlowComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((user: User | null) => {
         if (user) {
-          this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+          this.userId =
+            typeof user.id === 'string' ? parseInt(user.id) : user.id;
         }
       });
 
@@ -177,21 +178,22 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   onVerseSelectionChanged(selection: VerseSelection) {
     this.currentSelection = selection;
-    
+
     if (selection.startVerse) {
       this.selectedBook = this.bibleService
         .getBibleData()
         .getBookById(selection.startVerse.bookId);
-      
+
       this.stateService.updateState({
         bookId: selection.startVerse.bookId,
-        chapter: selection.startVerse.chapter
+        chapter: selection.startVerse.chapter,
       });
     }
 
     // Validation
     if (selection.mode !== 'chapter' && selection.verseCount < 10) {
-      this.warningMessage = 'Please select at least 10 verses or an entire chapter.';
+      this.warningMessage =
+        'Please select at least 10 verses or an entire chapter.';
       this.verses = [];
       return;
     }
@@ -206,7 +208,9 @@ export class FlowComponent implements OnInit, OnDestroy {
   async loadVerses() {
     if (!this.currentSelection || this.retryCountdown !== null) return;
 
-    const cached = this.bibleService.getCachedVerseTexts(this.currentSelection.verseCodes);
+    const cached = this.bibleService.getCachedVerseTexts(
+      this.currentSelection.verseCodes,
+    );
     if (cached) {
       this.applyVerseTexts(cached);
       return;
@@ -228,7 +232,9 @@ export class FlowComponent implements OnInit, OnDestroy {
       if (error?.name === 'EmptyError') return;
       console.error('Error loading verses:', error);
       this.verses = [];
-      alert('Failed to load verses. Please check your connection and try again.');
+      alert(
+        'Failed to load verses. Please check your connection and try again.',
+      );
     } finally {
       if (currentRequestId === this.requestCounter) {
         this.isLoading = false;
@@ -237,12 +243,17 @@ export class FlowComponent implements OnInit, OnDestroy {
   }
 
   private applyVerseTexts(verseTexts: Record<string, string>) {
-    const hasContent = verseTexts && Object.values(verseTexts).some((t) => t.trim() !== '');
-    
+    const hasContent =
+      verseTexts && Object.values(verseTexts).some((t) => t.trim() !== '');
+
     if (!hasContent) {
       this.stateService.updateViewSettings({ showVerseNumbers: false });
-    } else if (this.viewSettings.showVerseNumbers !== this.originalShowVerseNumbers) {
-      this.stateService.updateViewSettings({ showVerseNumbers: this.originalShowVerseNumbers });
+    } else if (
+      this.viewSettings.showVerseNumbers !== this.originalShowVerseNumbers
+    ) {
+      this.stateService.updateViewSettings({
+        showVerseNumbers: this.originalShowVerseNumbers,
+      });
     }
 
     this.verses = this.currentSelection!.verseCodes.map((verseCode, index) => {
@@ -290,7 +301,8 @@ export class FlowComponent implements OnInit, OnDestroy {
       .subscribe((userVerses: UserVerseDetail[]) => {
         const memorizedSet = new Set(
           userVerses.map(
-            (v) => `${v.verse.book_id}-${v.verse.chapter_number}-${v.verse.verse_number}`,
+            (v) =>
+              `${v.verse.book_id}-${v.verse.chapter_number}-${v.verse.verse_number}`,
           ),
         );
 
@@ -316,7 +328,9 @@ export class FlowComponent implements OnInit, OnDestroy {
     verse.isMemorized = !verse.isMemorized;
     verse.isSaving = true;
 
-    const verseElement = document.querySelector(`[data-verse="${verse.verseCode}"]`);
+    const verseElement = document.querySelector(
+      `[data-verse="${verse.verseCode}"]`,
+    );
     if (verseElement) {
       verseElement.classList.add('fade-in');
       setTimeout(() => verseElement.classList.remove('fade-in'), 300);
@@ -356,7 +370,10 @@ export class FlowComponent implements OnInit, OnDestroy {
   hasNextChapter(): boolean {
     if (!this.selectedBook || !this.currentSelection) return false;
     const currentChapter = this.currentSelection.startVerse?.chapter || 1;
-    return currentChapter < this.selectedBook.chapters.length || this.selectedBook.id < 66;
+    return (
+      currentChapter < this.selectedBook.chapters.length ||
+      this.selectedBook.id < 66
+    );
   }
 
   getPreviousChapterLabel(): string {
@@ -369,10 +386,14 @@ export class FlowComponent implements OnInit, OnDestroy {
     } else {
       const prevBookId = this.selectedBook.id - 1;
       if (prevBookId >= 1) {
-        const prevBook = this.bibleService.getBibleData().getBookById(prevBookId);
+        const prevBook = this.bibleService
+          .getBibleData()
+          .getBookById(prevBookId);
         if (prevBook) {
           const lastChapter = prevBook.chapters.length;
-          return lastChapter === 1 ? prevBook.name : `${prevBook.name} ${lastChapter}`;
+          return lastChapter === 1
+            ? prevBook.name
+            : `${prevBook.name} ${lastChapter}`;
         }
       }
     }
@@ -389,9 +410,13 @@ export class FlowComponent implements OnInit, OnDestroy {
     } else {
       const nextBookId = this.selectedBook.id + 1;
       if (nextBookId <= 66) {
-        const nextBook = this.bibleService.getBibleData().getBookById(nextBookId);
+        const nextBook = this.bibleService
+          .getBibleData()
+          .getBookById(nextBookId);
         if (nextBook) {
-          return nextBook.chapters.length === 1 ? nextBook.name : `${nextBook.name} 1`;
+          return nextBook.chapters.length === 1
+            ? nextBook.name
+            : `${nextBook.name} 1`;
         }
       }
     }
@@ -408,7 +433,9 @@ export class FlowComponent implements OnInit, OnDestroy {
     if (targetChapter < 1) {
       targetBookId--;
       if (targetBookId >= 1) {
-        const prevBook = this.bibleService.getBibleData().getBookById(targetBookId);
+        const prevBook = this.bibleService
+          .getBibleData()
+          .getBookById(targetBookId);
         if (prevBook) {
           targetChapter = prevBook.chapters.length;
         }
@@ -459,6 +486,8 @@ export class FlowComponent implements OnInit, OnDestroy {
 
     this.initialSelection = selection;
     this.onVerseSelectionChanged(selection);
+    // Ensure dropdown reflects the new chapter immediately
+    this.cdr.detectChanges();
   }
 
   startMemorization() {
@@ -494,9 +523,9 @@ export class FlowComponent implements OnInit, OnDestroy {
 
     try {
       await this.memorizationService.markAllMemorized(
-        this.verses, 
-        this.selectedBook.id, 
-        this.userId
+        this.verses,
+        this.selectedBook.id,
+        this.userId,
       );
       this.updateProgress();
     } catch (error) {
@@ -513,9 +542,9 @@ export class FlowComponent implements OnInit, OnDestroy {
 
     try {
       await this.memorizationService.deselectAllVerses(
-        this.verses, 
-        this.selectedBook.id, 
-        this.userId
+        this.verses,
+        this.selectedBook.id,
+        this.userId,
       );
       this.updateProgress();
     } catch (error) {
@@ -526,7 +555,11 @@ export class FlowComponent implements OnInit, OnDestroy {
     }
   }
 
-  private formatVerseReference(bookId: number, chapter: number, verse: number): string {
+  private formatVerseReference(
+    bookId: number,
+    chapter: number,
+    verse: number,
+  ): string {
     const book = this.bibleService.getBibleData().getBookById(bookId);
     const bookName = book ? book.name : `Book ${bookId}`;
     if (book && book.chapters.length === 1) {
