@@ -106,6 +106,10 @@ SQL_FILES = [
     {
         'file': '09-create-course-progress.sql',
         'description': 'Create course enrollment and progress tables'
+    },
+    {
+        'file': '10-create-missionary-journeys.sql',
+        'description': 'Create missionary journey tables'
     }
 ]
 
