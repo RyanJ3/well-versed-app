@@ -1,80 +1,62 @@
-// frontend/src/app/features/memorize/flow/flow.component.ts
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil, debounceTime } from 'rxjs';
-import {
-  VersePickerComponent,
-  VerseSelection,
-} from '../../../shared/components/verse-range-picker/verse-range-picker.component';
+import { Subject, takeUntil } from 'rxjs';
+import { VerseSelection } from '../../../shared/components/verse-range-picker/verse-range-picker.component';
 import { BibleService } from '../../../core/services/bible.service';
 import { UserService } from '../../../core/services/user.service';
 import { MemorizationModalComponent } from '../../../shared/components/memorization-modal/memorization-modal.component';
 import { User } from '../../../core/models/user';
 import { UserVerseDetail } from '../../../core/models/bible';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
-interface FlowVerse {
-  verseCode: string;
-  reference: string;
-  text: string;
-  firstLetters: string;
-  isMemorized: boolean;
-  isFifth: boolean;
-  bookName: string;
-  chapter: number;
-  verse: number;
-  isSaving?: boolean;
-}
-
-interface ModalVerse {
-  code: string;
-  text: string;
-  reference: string;
-  bookId: number;
-  chapter: number;
-  verse: number;
-}
+// New imports
+import { FlowHeaderComponent } from './components/flow-header/flow-header.component';
+import { FlowSidebarComponent } from './components/flow-sidebar/flow-sidebar.component';
+import { FlowGridViewComponent } from './components/flow-grid-view/flow-grid-view.component';
+import { FlowTextViewComponent } from './components/flow-text-view/flow-text-view.component';
+import { FlowStateService } from './services/flow-state.service';
+import { FlowMemorizationService } from './services/flow-memorization.service';
+import { FlowVerse, ModalVerse, FlowViewSettings } from './models/flow.models';
 
 @Component({
   selector: 'app-flow',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    VersePickerComponent,
     MemorizationModalComponent,
+    FlowHeaderComponent,
+    FlowSidebarComponent,
+    FlowGridViewComponent,
+    FlowTextViewComponent
   ],
+  providers: [FlowStateService, FlowMemorizationService],
   templateUrl: './flow.component.html',
   styleUrls: ['./flow.component.scss'],
 })
 export class FlowComponent implements OnInit, OnDestroy {
-  private readonly LOCAL_KEY = 'flowState';
-  private readonly isBrowser = typeof window !== 'undefined';
-  // View state
-  layoutMode: 'grid' | 'single' = 'grid';
-  isTextMode = false;
-  highlightFifthVerse = true;
-  showVerseNumbers = true;
-  showSavedMessage = false;
-  warningMessage: string | null = null;
-  fontSize = 16;
-
   // Data
   verses: FlowVerse[] = [];
-  gridRows: FlowVerse[][] = [];
   currentSelection: VerseSelection | null = null;
   initialSelection: VerseSelection | null = null;
   selectedBook: any = null;
+  warningMessage: string | null = null;
+  
+  // View settings from service
+  viewSettings: FlowViewSettings = {
+    layoutMode: 'grid',
+    isTextMode: false,
+    highlightFifthVerse: true,
+    showVerseNumbers: true,
+    fontSize: 16
+  };
 
   // Progress tracking
   memorizedCount = 0;
-  progressPercent = 0;
 
   // Loading states
   isLoading = false;
   isSaving = false;
+  showSavedMessage = false;
 
   // User
   userId = 1;
@@ -85,47 +67,54 @@ export class FlowComponent implements OnInit, OnDestroy {
   modalBookId = 0;
   modalChapterName = '';
 
+  // API rate limit handling
+  retryCountdown: number | null = null;
+  private retryTimer: any;
+  private originalShowVerseNumbers = true;
+
   // Observables
   private destroy$ = new Subject<void>();
   private loadVersesCancel$ = new Subject<void>();
   private requestCounter = 0;
-  private saveQueue$ = new Subject<FlowVerse>();
-
-  // sidebar menu state
-  openMenu: 'layout' | 'toggle' | null = null;
-
-  // API rate limit handling
-  retryCountdown: number | null = null;
-  private retryTimer: any;
-  private hideNumbersDueToLimit = false;
-  private originalShowVerseNumbers = true;
 
   constructor(
     private bibleService: BibleService,
     private userService: UserService,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
-    private sanitizer: DomSanitizer,
+    private stateService: FlowStateService,
+    private memorizationService: FlowMemorizationService
   ) {}
 
   ngOnInit() {
-    this.originalShowVerseNumbers = this.showVerseNumbers;
+    // Load saved state
+    const savedState = this.stateService.getState();
+    this.viewSettings = this.stateService.getViewSettings();
+    this.originalShowVerseNumbers = this.viewSettings.showVerseNumbers;
+
+    // Subscribe to view settings changes
+    this.stateService.viewSettings$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(settings => {
+        this.viewSettings = settings;
+        this.cdr.detectChanges();
+      });
+
+    // Subscribe to save notifications
+    this.memorizationService.savedNotification$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.showSaveNotification();
+        this.updateProgress();
+      });
 
     // Get current user
     this.userService.currentUser$
       .pipe(takeUntil(this.destroy$))
       .subscribe((user: User | null) => {
         if (user) {
-          this.userId =
-            typeof user.id === 'string' ? parseInt(user.id) : user.id;
+          this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
         }
-      });
-
-    // Setup save queue with debouncing
-    this.saveQueue$
-      .pipe(debounceTime(300), takeUntil(this.destroy$))
-      .subscribe((verse) => {
-        this.saveVerseToBackend(verse);
       });
 
     // Check for query params (deep linking)
@@ -137,8 +126,8 @@ export class FlowComponent implements OnInit, OnDestroy {
 
         if (!isNaN(bookId) && !isNaN(chapter)) {
           this.loadFromQueryParams(bookId, chapter);
-        } else {
-          this.loadSavedState();
+        } else if (savedState.bookId && savedState.chapter) {
+          this.navigateToChapter(savedState.bookId, savedState.chapter);
         }
       });
 
@@ -151,7 +140,6 @@ export class FlowComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.saveState();
     this.destroy$.next();
     this.destroy$.complete();
     this.loadVersesCancel$.complete();
@@ -189,40 +177,36 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   onVerseSelectionChanged(selection: VerseSelection) {
     this.currentSelection = selection;
-    this.saveState();
-
-    // Store selected book
+    
     if (selection.startVerse) {
       this.selectedBook = this.bibleService
         .getBibleData()
         .getBookById(selection.startVerse.bookId);
+      
+      this.stateService.updateState({
+        bookId: selection.startVerse.bookId,
+        chapter: selection.startVerse.chapter
+      });
     }
 
-    // Updated validation logic: only warn if it's NOT a full chapter AND less than 10 verses
+    // Validation
     if (selection.mode !== 'chapter' && selection.verseCount < 10) {
-      this.warningMessage =
-        'Please select at least 10 verses or an entire chapter.';
+      this.warningMessage = 'Please select at least 10 verses or an entire chapter.';
       this.verses = [];
       return;
     }
 
-    // Clear warning for valid selections
     this.warningMessage = null;
     this.loadVersesCancel$.next();
-    if (this.retryCountdown !== null) {
-      return;
-    }
+    if (this.retryCountdown !== null) return;
 
     this.loadVerses();
   }
 
   async loadVerses() {
-    if (!this.currentSelection) return;
-    if (this.retryCountdown !== null) return;
+    if (!this.currentSelection || this.retryCountdown !== null) return;
 
-    const cached = this.bibleService.getCachedVerseTexts(
-      this.currentSelection.verseCodes
-    );
+    const cached = this.bibleService.getCachedVerseTexts(this.currentSelection.verseCodes);
     if (cached) {
       this.applyVerseTexts(cached);
       return;
@@ -238,17 +222,13 @@ export class FlowComponent implements OnInit, OnDestroy {
         .pipe(takeUntil(this.loadVersesCancel$))
         .toPromise();
 
-      // Check if this is still the current request
       if (currentRequestId !== this.requestCounter) return;
       this.applyVerseTexts(verseTexts || {});
     } catch (error: any) {
-      if (error?.name === 'EmptyError') return; // Cancelled
-
+      if (error?.name === 'EmptyError') return;
       console.error('Error loading verses:', error);
       this.verses = [];
-      alert(
-        'Failed to load verses. Please check your connection and try again.',
-      );
+      alert('Failed to load verses. Please check your connection and try again.');
     } finally {
       if (currentRequestId === this.requestCounter) {
         this.isLoading = false;
@@ -258,13 +238,11 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   private applyVerseTexts(verseTexts: Record<string, string>) {
     const hasContent = verseTexts && Object.values(verseTexts).some((t) => t.trim() !== '');
-    if (hasContent && this.hideNumbersDueToLimit) {
-      this.showVerseNumbers = this.originalShowVerseNumbers;
-      this.hideNumbersDueToLimit = false;
-    }
-
+    
     if (!hasContent) {
-      this.showVerseNumbers = false;
+      this.stateService.updateViewSettings({ showVerseNumbers: false });
+    } else if (this.viewSettings.showVerseNumbers !== this.originalShowVerseNumbers) {
+      this.stateService.updateViewSettings({ showVerseNumbers: this.originalShowVerseNumbers });
     }
 
     this.verses = this.currentSelection!.verseCodes.map((verseCode, index) => {
@@ -286,7 +264,6 @@ export class FlowComponent implements OnInit, OnDestroy {
     });
 
     this.updateMemorizationStatus();
-    this.prepareGridRows();
     this.updateProgress();
   }
 
@@ -306,77 +283,6 @@ export class FlowComponent implements OnInit, OnDestroy {
       .join(' ');
   }
 
-  formatFirstLetters(verse: FlowVerse): SafeHtml {
-    if (!verse.firstLetters) return '';
-
-    let formatted = verse.firstLetters;
-
-    // Handle paragraph markers
-    if (formatted.includes('**¶')) {
-      if (this.isTextMode) {
-        // In text mode, remove paragraph markers (verse refs are already bold)
-        formatted = formatted.replace(/\*\*¶/g, '');
-      } else {
-        // In FLOW layouts, replace with line breaks
-        formatted = formatted.replace(/\*\*¶/g, '<br>');
-      }
-    }
-
-    return this.sanitizer.sanitize(1, formatted) || '';
-  }
-
-  getPlainTextContent(): SafeHtml {
-    if (!this.verses.length) return '';
-
-    const parts = this.verses.map((v) => {
-      let text = v.text;
-      if (text.includes('**¶')) {
-        text = text.replace(/\*\*¶/g, '<br><br>');
-      }
-
-      const verseNum = `<sup class="verse-num">${v.verse}</sup> `;
-      return (this.showVerseNumbers ? verseNum : '') + text;
-    });
-
-    const combined = parts.join(' ');
-    return this.sanitizer.sanitize(1, combined) || '';
-  }
-
-  setViewMode(mode: 'flow' | 'text') {
-    this.isTextMode = mode === 'text';
-    if (mode === 'flow') {
-      this.prepareGridRows();
-    }
-    this.saveState();
-  }
-
-  toggleViewMode() {
-    this.isTextMode = !this.isTextMode;
-    if (!this.isTextMode) {
-      this.prepareGridRows();
-    }
-    this.saveState();
-  }
-
-  setLayoutMode(mode: 'grid' | 'single') {
-    this.layoutMode = mode;
-    this.prepareGridRows();
-    this.saveState();
-  }
-
-  private prepareGridRows() {
-    this.gridRows = [];
-    if (this.layoutMode === 'grid' && this.verses.length > 0) {
-      for (let i = 0; i < this.verses.length; i += 5) {
-        const row = [];
-        for (let j = 0; j < 5; j++) {
-          row.push(this.verses[i + j] || null);
-        }
-        this.gridRows.push(row);
-      }
-    }
-  }
-
   private updateMemorizationStatus() {
     this.bibleService
       .getUserVerses(this.userId)
@@ -384,8 +290,7 @@ export class FlowComponent implements OnInit, OnDestroy {
       .subscribe((userVerses: UserVerseDetail[]) => {
         const memorizedSet = new Set(
           userVerses.map(
-            (v) =>
-              `${v.verse.book_id}-${v.verse.chapter_number}-${v.verse.verse_number}`,
+            (v) => `${v.verse.book_id}-${v.verse.chapter_number}-${v.verse.verse_number}`,
           ),
         );
 
@@ -399,118 +304,27 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   private updateProgress() {
     this.memorizedCount = this.verses.filter((v) => v.isMemorized).length;
-    this.progressPercent =
-      this.verses.length > 0
-        ? Math.round((this.memorizedCount / this.verses.length) * 100)
-        : 0;
   }
 
-  getVerseClass(verse: FlowVerse | null): string {
-    if (!verse) return 'empty-cell';
-
-    const classes = ['verse-cell'];
-    if (verse.isFifth && this.highlightFifthVerse && !this.isTextMode) {
-      classes.push('fifth-verse');
-    }
-    if (verse.isMemorized) {
-      classes.push('memorized');
-    }
-    if (verse.isSaving) {
-      classes.push('saving');
-    }
-    return classes.join(' ');
+  onViewSettingsChanged(settings: Partial<FlowViewSettings>) {
+    this.stateService.updateViewSettings(settings);
   }
 
-  getVerseReference(verse: FlowVerse): string {
-    // Handle single-chapter books
-    const book = this.bibleService
-      .getBibleData()
-      .getBookById(parseInt(verse.verseCode.split('-')[0]));
-    if (book && book.chapters.length === 1) {
-      return `${verse.bookName} ${verse.verse}`;
-    }
-    return verse.reference;
-  }
-
-  getPassageTitle(): string {
-    if (!this.currentSelection || !this.selectedBook) {
-      return this.currentSelection?.reference || '';
-    }
-
-    // Handle single-chapter books
-    if (this.selectedBook.chapters.length === 1) {
-      return this.selectedBook.name;
-    }
-
-    return this.currentSelection.reference;
-  }
-
-  toggleVerse(verse: FlowVerse) {
+  onToggleVerse(verse: FlowVerse) {
     if (verse.isSaving) return;
 
     verse.isMemorized = !verse.isMemorized;
     verse.isSaving = true;
 
-    // Add subtle animation
-    const verseElement = document.querySelector(
-      `[data-verse="${verse.verseCode}"]`,
-    );
+    const verseElement = document.querySelector(`[data-verse="${verse.verseCode}"]`);
     if (verseElement) {
       verseElement.classList.add('fade-in');
       setTimeout(() => verseElement.classList.remove('fade-in'), 300);
     }
 
     this.updateProgress();
-    this.saveQueue$.next(verse);
+    this.memorizationService.queueVerseSave(verse, this.userId);
     this.cdr.detectChanges();
-  }
-
-  private saveVerseToBackend(verse: FlowVerse) {
-    const [bookId, chapter, verseNum] = verse.verseCode.split('-').map(Number);
-
-    if (verse.isMemorized) {
-      this.bibleService
-        .saveVerse(
-          this.userId,
-          bookId,
-          chapter,
-          verseNum,
-          1, // Default practice count
-        )
-        .subscribe({
-          next: () => {
-            verse.isSaving = false;
-            this.showSaveNotification();
-            this.cdr.detectChanges();
-          },
-          error: (error) => {
-            console.error('Error saving verse:', error);
-            verse.isMemorized = !verse.isMemorized;
-            verse.isSaving = false;
-            this.updateProgress();
-            alert('Failed to save verse. Please try again.');
-            this.cdr.detectChanges();
-          },
-        });
-    } else {
-      this.bibleService
-        .deleteVerse(this.userId, bookId, chapter, verseNum)
-        .subscribe({
-          next: () => {
-            verse.isSaving = false;
-            this.showSaveNotification();
-            this.cdr.detectChanges();
-          },
-          error: (error) => {
-            console.error('Error removing verse:', error);
-            verse.isMemorized = !verse.isMemorized;
-            verse.isSaving = false;
-            this.updateProgress();
-            alert('Failed to remove verse. Please try again.');
-            this.cdr.detectChanges();
-          },
-        });
-    }
   }
 
   private showSaveNotification() {
@@ -521,44 +335,28 @@ export class FlowComponent implements OnInit, OnDestroy {
     }, 2000);
   }
 
-  increaseFontSize() {
-    if (this.fontSize < 24) {
-      this.fontSize += 2;
+  getPassageTitle(): string {
+    if (!this.currentSelection || !this.selectedBook) {
+      return this.currentSelection?.reference || '';
     }
-    this.saveState();
-  }
 
-  decreaseFontSize() {
-    if (this.fontSize > 12) {
-      this.fontSize -= 2;
+    if (this.selectedBook.chapters.length === 1) {
+      return this.selectedBook.name;
     }
-    this.saveState();
+
+    return this.currentSelection.reference;
   }
 
   hasPreviousChapter(): boolean {
     if (!this.selectedBook || !this.currentSelection) return false;
-
     const currentChapter = this.currentSelection.startVerse?.chapter || 1;
-
-    // Check if there's a previous chapter in current book
-    if (currentChapter > 1) return true;
-
-    // Check if there's a previous book
-    const currentBookId = this.selectedBook.id;
-    return currentBookId > 1;
+    return currentChapter > 1 || this.selectedBook.id > 1;
   }
 
   hasNextChapter(): boolean {
     if (!this.selectedBook || !this.currentSelection) return false;
-
     const currentChapter = this.currentSelection.startVerse?.chapter || 1;
-
-    // Check if there's a next chapter in current book
-    if (currentChapter < this.selectedBook.chapters.length) return true;
-
-    // Check if there's a next book
-    const currentBookId = this.selectedBook.id;
-    return currentBookId < 66; // 66 books in the Bible
+    return currentChapter < this.selectedBook.chapters.length || this.selectedBook.id < 66;
   }
 
   getPreviousChapterLabel(): string {
@@ -567,24 +365,17 @@ export class FlowComponent implements OnInit, OnDestroy {
     const currentChapter = this.currentSelection.startVerse?.chapter || 1;
 
     if (currentChapter > 1) {
-      // Previous chapter in same book
       return `${this.selectedBook.name} ${currentChapter - 1}`;
     } else {
-      // Last chapter of previous book
       const prevBookId = this.selectedBook.id - 1;
       if (prevBookId >= 1) {
-        const prevBook = this.bibleService
-          .getBibleData()
-          .getBookById(prevBookId);
+        const prevBook = this.bibleService.getBibleData().getBookById(prevBookId);
         if (prevBook) {
           const lastChapter = prevBook.chapters.length;
-          return lastChapter === 1
-            ? prevBook.name
-            : `${prevBook.name} ${lastChapter}`;
+          return lastChapter === 1 ? prevBook.name : `${prevBook.name} ${lastChapter}`;
         }
       }
     }
-
     return '';
   }
 
@@ -594,23 +385,16 @@ export class FlowComponent implements OnInit, OnDestroy {
     const currentChapter = this.currentSelection.startVerse?.chapter || 1;
 
     if (currentChapter < this.selectedBook.chapters.length) {
-      // Next chapter in same book
       return `${this.selectedBook.name} ${currentChapter + 1}`;
     } else {
-      // First chapter of next book
       const nextBookId = this.selectedBook.id + 1;
       if (nextBookId <= 66) {
-        const nextBook = this.bibleService
-          .getBibleData()
-          .getBookById(nextBookId);
+        const nextBook = this.bibleService.getBibleData().getBookById(nextBookId);
         if (nextBook) {
-          return nextBook.chapters.length === 1
-            ? nextBook.name
-            : `${nextBook.name} 1`;
+          return nextBook.chapters.length === 1 ? nextBook.name : `${nextBook.name} 1`;
         }
       }
     }
-
     return '';
   }
 
@@ -622,12 +406,9 @@ export class FlowComponent implements OnInit, OnDestroy {
     let targetChapter = currentChapter - 1;
 
     if (targetChapter < 1) {
-      // Go to previous book's last chapter
       targetBookId--;
       if (targetBookId >= 1) {
-        const prevBook = this.bibleService
-          .getBibleData()
-          .getBookById(targetBookId);
+        const prevBook = this.bibleService.getBibleData().getBookById(targetBookId);
         if (prevBook) {
           targetChapter = prevBook.chapters.length;
         }
@@ -645,7 +426,6 @@ export class FlowComponent implements OnInit, OnDestroy {
     let targetChapter = currentChapter + 1;
 
     if (targetChapter > this.selectedBook.chapters.length) {
-      // Go to next book's first chapter
       targetBookId++;
       targetChapter = 1;
     }
@@ -677,7 +457,6 @@ export class FlowComponent implements OnInit, OnDestroy {
       reference: `${book.name} ${chapter}`,
     };
 
-    // Update initialSelection to sync with verse picker
     this.initialSelection = selection;
     this.onVerseSelectionChanged(selection);
   }
@@ -711,54 +490,15 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   async markAllMemorized() {
     if (!this.verses.length || !this.selectedBook) return;
-
     this.isSaving = true;
 
     try {
-      const bookId = this.selectedBook.id;
-      const chapterGroups = new Map<number, number[]>();
-
-      // Group all verses by chapter
-      this.verses.forEach((verse) => {
-        const [_, chapter, verseNum] = verse.verseCode.split('-').map(Number);
-        if (!chapterGroups.has(chapter)) {
-          chapterGroups.set(chapter, []);
-        }
-        chapterGroups.get(chapter)!.push(verseNum);
-      });
-
-      // Save each chapter
-      const savePromises = Array.from(chapterGroups.entries()).map(
-        ([chapter, verses]) => {
-          const chapterData = this.selectedBook.chapters[chapter - 1];
-
-          // Use bulk save for full chapters
-          if (verses.length === chapterData.verses.length) {
-            return this.bibleService
-              .saveChapter(this.userId, bookId, chapter)
-              .toPromise();
-          }
-
-          // Save individual verses
-          return Promise.all(
-            verses.map((verse) =>
-              this.bibleService
-                .saveVerse(this.userId, bookId, chapter, verse, 1)
-                .toPromise(),
-            ),
-          );
-        },
+      await this.memorizationService.markAllMemorized(
+        this.verses, 
+        this.selectedBook.id, 
+        this.userId
       );
-
-      await Promise.all(savePromises);
-
-      // Update local state
-      this.verses.forEach((verse) => {
-        verse.isMemorized = true;
-      });
-
       this.updateProgress();
-      this.showSaveNotification();
     } catch (error) {
       console.error('Error marking all as memorized:', error);
       alert('Failed to mark all verses as memorized');
@@ -767,11 +507,26 @@ export class FlowComponent implements OnInit, OnDestroy {
     }
   }
 
-  private formatVerseReference(
-    bookId: number,
-    chapter: number,
-    verse: number,
-  ): string {
+  async deselectAllVerses() {
+    if (!this.verses.length || !this.selectedBook) return;
+    this.isSaving = true;
+
+    try {
+      await this.memorizationService.deselectAllVerses(
+        this.verses, 
+        this.selectedBook.id, 
+        this.userId
+      );
+      this.updateProgress();
+    } catch (error) {
+      console.error('Error deselecting verses:', error);
+      alert('Failed to deselect all verses');
+    } finally {
+      this.isSaving = false;
+    }
+  }
+
+  private formatVerseReference(bookId: number, chapter: number, verse: number): string {
     const book = this.bibleService.getBibleData().getBookById(bookId);
     const bookName = book ? book.name : `Book ${bookId}`;
     if (book && book.chapters.length === 1) {
@@ -785,73 +540,10 @@ export class FlowComponent implements OnInit, OnDestroy {
     return book ? book.name : `Book ${bookId}`;
   }
 
-  toggleMenu(menu: 'layout' | 'toggle') {
-    this.openMenu = this.openMenu === menu ? null : menu;
-  }
-
-  // Removed selectAllVerses as the UI no longer exposes this action
-
-  async deselectAllVerses() {
-    if (!this.verses.length || !this.selectedBook) return;
-
-    this.isSaving = true;
-
-    try {
-      const bookId = this.selectedBook.id;
-      const chapterGroups = new Map<number, number[]>();
-
-      // Group verses by chapter for efficient API calls
-      this.verses.forEach((verse) => {
-        const [, chapter, verseNum] = verse.verseCode.split('-').map(Number);
-        if (!chapterGroups.has(chapter)) {
-          chapterGroups.set(chapter, []);
-        }
-        chapterGroups.get(chapter)!.push(verseNum);
-      });
-
-      const clearPromises = Array.from(chapterGroups.entries()).map(
-        ([chapter, verses]) => {
-          const chapterData = this.selectedBook!.chapters[chapter - 1];
-
-          // Use bulk clear for full chapters
-          if (verses.length === chapterData.verses.length) {
-            return this.bibleService
-              .clearChapter(this.userId, bookId, chapter)
-              .toPromise();
-          }
-
-          // Remove individual verses
-          return Promise.all(
-            verses.map((verse) =>
-              this.bibleService
-                .deleteVerse(this.userId, bookId, chapter, verse)
-                .toPromise(),
-            ),
-          );
-        },
-      );
-
-      await Promise.all(clearPromises);
-
-      // Update local state
-      this.verses.forEach((verse) => {
-        verse.isMemorized = false;
-      });
-
-      this.updateProgress();
-      this.showSaveNotification();
-    } catch (error) {
-      console.error('Error deselecting verses:', error);
-      alert('Failed to deselect all verses');
-    } finally {
-      this.isSaving = false;
-    }
-  }
-
   private startRetryTimer(wait: number) {
     this.retryCountdown = wait;
-    this.hideNumbersDueToLimit = true;
-    this.showVerseNumbers = false;
+    this.originalShowVerseNumbers = this.viewSettings.showVerseNumbers;
+    this.stateService.updateViewSettings({ showVerseNumbers: false });
     this.cdr.detectChanges();
 
     if (this.retryTimer) {
@@ -869,41 +561,5 @@ export class FlowComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
     }, 1000);
-  }
-
-  saveState() {
-    if (!this.isBrowser) return;
-    const state = {
-      bookId: this.currentSelection?.startVerse?.bookId,
-      chapter: this.currentSelection?.startVerse?.chapter,
-      layoutMode: this.layoutMode,
-      isTextMode: this.isTextMode,
-      highlightFifthVerse: this.highlightFifthVerse,
-      showVerseNumbers: this.showVerseNumbers,
-      fontSize: this.fontSize,
-    };
-    localStorage.setItem(this.LOCAL_KEY, JSON.stringify(state));
-    this.originalShowVerseNumbers = this.showVerseNumbers;
-  }
-
-  private loadSavedState() {
-    if (!this.isBrowser) return;
-    const raw = localStorage.getItem(this.LOCAL_KEY);
-    if (!raw) return;
-    try {
-      const state = JSON.parse(raw);
-      if (state.layoutMode) this.layoutMode = state.layoutMode;
-      if (typeof state.isTextMode === 'boolean')
-        this.isTextMode = state.isTextMode;
-      if (typeof state.highlightFifthVerse === 'boolean')
-        this.highlightFifthVerse = state.highlightFifthVerse;
-      if (typeof state.showVerseNumbers === 'boolean')
-        this.showVerseNumbers = state.showVerseNumbers;
-      this.originalShowVerseNumbers = this.showVerseNumbers;
-      if (typeof state.fontSize === 'number') this.fontSize = state.fontSize;
-      if (state.bookId && state.chapter) {
-        this.navigateToChapter(state.bookId, state.chapter);
-      }
-    } catch {}
   }
 }

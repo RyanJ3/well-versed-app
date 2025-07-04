@@ -1,273 +1,24 @@
-<!-- frontend/src/app/flow/flow.component.html -->
 <div class="flow-container">
-  <div class="flow-header">
-    <h1>FLOW Memorization</h1>
-    <p class="subtitle">
-      First Letter Of Word technique for scripture memorization
-    </p>
-  </div>
+  <app-flow-header></app-flow-header>
 
   <div class="main-layout">
-    <!-- Left Sidebar -->
-    <aside class="sidebar">
-      <!-- Verse Picker -->
-      <div class="verse-picker-section">
-        <app-verse-picker
-          [theme]="'minimal'"
-          [disabledModes]="['single']"
-          [pageType]="'FLOW'"
-          [showFlowTip]="false"
-          [minimumVerses]="10"
-          [maximumVerses]="80"
-          [warningMessage]="warningMessage"
-          [initialSelection]="initialSelection"
-          (selectionApplied)="onVerseSelectionChanged($event)"
-        >
-        </app-verse-picker>
-      </div>
+    <app-flow-sidebar
+      [verses]="verses"
+      [initialSelection]="initialSelection"
+      [warningMessage]="warningMessage"
+      [retryCountdown]="retryCountdown"
+      [isLoading]="isLoading"
+      [isSaving]="isSaving"
+      [viewSettings]="viewSettings"
+      [memorizedCount]="memorizedCount"
+      (selectionApplied)="onVerseSelectionChanged($event)"
+      (startMemorization)="startMemorization()"
+      (viewSettingsChanged)="onViewSettingsChanged($event)"
+      (toggleVerse)="onToggleVerse($event)"
+      (markAllMemorized)="markAllMemorized()"
+      (deselectAllVerses)="deselectAllVerses()"
+    ></app-flow-sidebar>
 
-      <!-- Start Button -->
-      <div class="sidebar-section actions" *ngIf="verses.length > 0">
-        <button
-          class="action-btn primary"
-          (click)="startMemorization()"
-          [disabled]="retryCountdown !== null || isLoading"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-          </svg>
-          <span>Start Memorization</span>
-        </button>
-      </div>
-
-      <!-- Progress -->
-      <div class="sidebar-section progress-section" *ngIf="verses.length > 0">
-        <h3 class="section-title">Progress</h3>
-        <div class="progress-container">
-          <div class="progress-bar">
-            <div
-              class="progress-fill"
-              [style.width.%]="progressPercent"
-              [class.complete]="progressPercent === 100"
-            ></div>
-          </div>
-          <div class="progress-text">
-            <span *ngIf="progressPercent < 100"
-              >{{ memorizedCount }}/{{ verses.length }} verses</span
-            >
-            <span *ngIf="progressPercent === 100" class="complete-text">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="3"
-              >
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              Complete!
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Toggle Menu -->
-      <div class="sidebar-menu" *ngIf="verses.length > 0">
-        <button class="menu-header" (click)="toggleMenu('toggle')">
-          <span>Quick Toggle</span>
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-        <div class="menu-content scrollable-menu" *ngIf="openMenu === 'toggle'">
-          <div class="sidebar-section verse-preview">
-            <div class="verse-bubbles-preview">
-              <div
-                class="verse-bubble"
-                *ngFor="let verse of verses"
-                [class.memorized]="verse.isMemorized"
-                [class.not-memorized]="!verse.isMemorized"
-                [class.saving]="verse.isSaving"
-                [title]="
-                  'Verse ' +
-                  verse.verse +
-                  (verse.isMemorized ? ' (memorized)' : '')
-                "
-                (click)="toggleVerse(verse)"
-              >
-                {{ verse.verse }}
-              </div>
-            </div>
-          </div>
-          <div class="sidebar-section actions">
-            <button class="action-btn tertiary" (click)="deselectAllVerses()">
-              Deselect All
-            </button>
-            <button
-              class="action-btn secondary"
-              (click)="markAllMemorized()"
-              [disabled]="isSaving"
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <polyline points="9 11 12 14 22 4"></polyline>
-                <path
-                  d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"
-                ></path>
-              </svg>
-              <span>Mark All as Memorized</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Layout Menu -->
-      <div class="sidebar-menu" *ngIf="verses.length > 0">
-        <button class="menu-header" (click)="toggleMenu('layout')">
-          <span>Layout & Display</span>
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-        <div class="menu-content scrollable-menu" *ngIf="openMenu === 'layout'">
-          <div class="sidebar-section">
-            <h3 class="section-title">View Mode</h3>
-            <div class="radio-group">
-              <label class="radio-option">
-                <input
-                  type="radio"
-                  name="viewMode"
-                  [checked]="!isTextMode"
-                  (change)="setViewMode('flow')"
-                />
-                <span>FLOW Layout</span>
-              </label>
-              <label class="radio-option">
-                <input
-                  type="radio"
-                  name="viewMode"
-                  [checked]="isTextMode"
-                  (change)="setViewMode('text')"
-                />
-                <span>Plain Text</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="sidebar-section" *ngIf="!isTextMode">
-            <h3 class="section-title">FLOW Layout Options</h3>
-            <div class="radio-group">
-              <label class="radio-option">
-                <input
-                  type="radio"
-                  name="gridLayout"
-                  [checked]="layoutMode === 'grid'"
-                  (change)="setLayoutMode('grid')"
-                />
-                <span>5-Column Grid</span>
-              </label>
-              <label class="radio-option">
-                <input
-                  type="radio"
-                  name="gridLayout"
-                  [checked]="layoutMode === 'single'"
-                  (change)="setLayoutMode('single')"
-                />
-                <span>Single Column</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="sidebar-section">
-            <h3 class="section-title">Font Size</h3>
-            <div class="font-controls">
-              <button class="font-btn" (click)="decreaseFontSize()">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-              </button>
-              <span class="font-value">{{ fontSize }}px</span>
-              <button class="font-btn" (click)="increaseFontSize()">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <div class="sidebar-section">
-            <h3 class="section-title">Display Options</h3>
-            <div class="checkbox-group">
-              <label class="checkbox-option">
-                <input
-                  type="checkbox"
-                  [(ngModel)]="showVerseNumbers"
-                  (ngModelChange)="saveState()"
-                />
-                <span>Show verse numbers</span>
-              </label>
-              <label class="checkbox-option" *ngIf="!isTextMode">
-                <input
-                  type="checkbox"
-                  [(ngModel)]="highlightFifthVerse"
-                  (ngModelChange)="saveState()"
-                />
-                <span>Highlight 5th verses</span>
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Main Content Area -->
     <main class="content-area">
       <!-- Loading State -->
       <div *ngIf="isLoading" class="loading-state">
@@ -283,7 +34,7 @@
         </p>
       </div>
 
-      <!-- Title with navigation for all views -->
+      <!-- Title with navigation -->
       <div class="passage-header" *ngIf="!isLoading && (verses.length > 0 || retryCountdown !== null)">
         <button
           class="nav-btn"
@@ -330,105 +81,23 @@
         </div>
       </div>
 
-      <!-- Grid View -->
-      <div
-        *ngIf="
-          !isLoading &&
-          verses.length > 0 &&
-          layoutMode === 'grid' &&
-          !isTextMode
-        "
-        class="grid-view"
-      >
-        <div class="verse-grid" [style.font-size.px]="fontSize">
-          <div *ngFor="let row of gridRows" class="grid-row">
-            <div
-              *ngFor="let verse of row"
-              [class]="getVerseClass(verse)"
-              [attr.data-verse]="verse?.verseCode"
-            >
-              <ng-container *ngIf="verse">
-                <div
-                  class="verse-ref"
-                  *ngIf="showVerseNumbers"
-                  (click)="toggleVerse(verse)"
-                >
-                  {{ getVerseReference(verse) }}
-                  <div class="memorized-indicator" *ngIf="verse.isMemorized">
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="3"
-                    >
-                      <polyline points="20 6 9 17 4 12"></polyline>
-                    </svg>
-                  </div>
-                </div>
-                <div
-                  class="first-letters"
-                  [innerHTML]="formatFirstLetters(verse)"
-                ></div>
-              </ng-container>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Content Views -->
+      <app-flow-grid-view
+        *ngIf="!isLoading && verses.length > 0 && !viewSettings.isTextMode"
+        [verses]="verses"
+        [layoutMode]="viewSettings.layoutMode"
+        [showVerseNumbers]="viewSettings.showVerseNumbers"
+        [highlightFifthVerse]="viewSettings.highlightFifthVerse"
+        [fontSize]="viewSettings.fontSize"
+        (toggleVerse)="onToggleVerse($event)"
+      ></app-flow-grid-view>
 
-      <!-- Single Column View -->
-      <div
-        *ngIf="
-          !isLoading &&
-          verses.length > 0 &&
-          layoutMode === 'single' &&
-          !isTextMode
-        "
-        class="single-view"
-        [style.font-size.px]="fontSize"
-      >
-        <div
-          *ngFor="let verse of verses"
-          [class]="getVerseClass(verse)"
-          [attr.data-verse]="verse.verseCode"
-        >
-          <div
-            class="verse-ref"
-            *ngIf="showVerseNumbers"
-            (click)="toggleVerse(verse)"
-          >
-            {{ getVerseReference(verse) }}
-            <div class="memorized-indicator" *ngIf="verse.isMemorized">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="3"
-              >
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-          </div>
-          <div
-            class="first-letters"
-            [innerHTML]="formatFirstLetters(verse)"
-          ></div>
-        </div>
-      </div>
-
-      <!-- Text View -->
-      <div
-        *ngIf="!isLoading && verses.length > 0 && isTextMode"
-        class="text-view"
-        [style.font-size.px]="fontSize"
-      >
-        <div class="passage-content">
-          <div class="plain-text" [innerHTML]="getPlainTextContent()"></div>
-        </div>
-      </div>
+      <app-flow-text-view
+        *ngIf="!isLoading && verses.length > 0 && viewSettings.isTextMode"
+        [verses]="verses"
+        [showVerseNumbers]="viewSettings.showVerseNumbers"
+        [fontSize]="viewSettings.fontSize"
+      ></app-flow-text-view>
     </main>
   </div>
 
