@@ -1,0 +1,50 @@
+<div class="setup" @slideUp>
+  <div class="setup-header">
+    <h2>Let's Start Memorizing!</h2>
+    <p class="setup-subtitle">
+      Choose how many verses you'd like to practice at once
+    </p>
+  </div>
+
+  <div class="group-selector">
+    <div
+      class="group-option"
+      *ngFor="let s of [1, 2, 3]"
+      (click)="setGroupSize(s)"
+      [class.active]="groupSize === s"
+      @optionHover
+    >
+      <div class="option-icon">
+        <span class="verse-count">{{ s }}</span>
+      </div>
+      <div class="option-label">
+        {{ s === 1 ? "One at a time" : s === 2 ? "Pairs" : "Triplets" }}
+      </div>
+      <div class="option-description">
+        {{
+          s === 1
+            ? "Best for beginners"
+            : s === 2
+              ? "Recommended"
+              : "Challenge mode"
+        }}
+      </div>
+    </div>
+  </div>
+
+  <div class="setup-preview">
+    <p>You'll practice {{ groupCount }} groups of verses</p>
+    <p class="time-estimate">
+      Estimated time: {{ estimatedTime }} minutes
+    </p>
+  </div>
+
+  <button class="start-btn" (click)="start()">
+    <span>Begin Memorization</span>
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+      <path
+        d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+      />
+    </svg>
+  </button>
+</div>

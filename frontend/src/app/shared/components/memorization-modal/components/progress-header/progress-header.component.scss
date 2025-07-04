@@ -1,0 +1,11 @@
+@import '../../styles/variables';
+@import '../../styles/mixins';
+
+.modal-header {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1rem;
+}
+
+.group-bubble {
+  display: inline-flex;
+}
