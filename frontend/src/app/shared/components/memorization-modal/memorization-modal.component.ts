@@ -309,6 +309,13 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
     }
   }
 
+  showFloatingMessage(message: string) {
+    this.floatingMessage = message;
+    setTimeout(() => {
+      this.floatingMessage = '';
+    }, 2500);
+  }
+
   jumpToStep(stepIndex: number) {
     if (this.state.setup || this.state.promptSave) return;
     const diff = stepIndex - this.state.currentStepIndex;

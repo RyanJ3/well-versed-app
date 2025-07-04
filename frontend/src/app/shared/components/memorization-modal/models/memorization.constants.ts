@@ -17,10 +17,10 @@ export const BOOK_ORDER = [
 
 export const STAGE_NAMES = ['Read', 'Flow', 'Memory'];
 
-export const STAGE_ICONS = {
-  'Read': '📖',
-  'Flow': '〰️',
-  'Memory': '🧠'
+export const STAGE_ICONS: Record<string, string> = {
+  Read: '📖',
+  Flow: '〰️',
+  Memory: '🧠'
 };
 
 export const FONT_SIZE_LIMITS = {
