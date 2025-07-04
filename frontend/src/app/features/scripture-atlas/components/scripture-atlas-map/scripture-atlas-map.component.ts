@@ -1,13 +1,19 @@
 import { Component, Input, Output, EventEmitter, AfterViewInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { City } from '../../../core/services/atlas.service';
+import { City } from '../../../../core/services/atlas.service';
+import { ScriptureAtlasNavComponent } from '../scripture-atlas-nav/scripture-atlas-nav.component';
+import { ScriptureAtlasPlaybackProgressComponent } from '../scripture-atlas-playback-progress/scripture-atlas-playback-progress.component';
 
 declare const L: any;
 
 @Component({
   selector: 'app-scripture-atlas-map',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    ScriptureAtlasNavComponent,
+    ScriptureAtlasPlaybackProgressComponent
+  ],
   template: `
     <div class="map-area">
       <div class="maps-container" [class.split]="splitView">

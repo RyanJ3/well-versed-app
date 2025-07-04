@@ -1,12 +1,13 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Journey } from '../../../core/services/atlas.service';
+import { Journey } from '../../../../core/services/atlas.service';
+import { ScriptureAtlasTimelineComponent } from '../scripture-atlas-timeline/scripture-atlas-timeline.component';
 
 @Component({
   selector: 'app-scripture-atlas-header',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ScriptureAtlasTimelineComponent],
   template: `
     <header class="atlas-header">
       <div class="header-content">
