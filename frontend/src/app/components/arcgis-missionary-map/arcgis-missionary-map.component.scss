@@ -1,0 +1,62 @@
+.map-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-header {
+  background: #f8f9fa;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+  h2 {
+    margin: 0 0 0.5rem 0;
+    color: #333;
+  }
+
+  p {
+    margin: 0;
+    color: #666;
+  }
+}
+
+.map-view {
+  flex: 1;
+  width: 100%;
+}
+
+.journey-controls {
+  position: absolute;
+  top: 80px;
+  right: 20px;
+  background: white;
+  padding: 10px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+
+  .journey-btn {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    margin-bottom: 5px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+    border-radius: 4px;
+    
+    &:hover:not(:disabled) {
+      background: #f0f0f0;
+    }
+
+    &.active {
+      background: #007ac2;
+      color: white;
+      border-color: #007ac2;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
