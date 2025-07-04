@@ -38,6 +38,7 @@ export class ScriptureAtlasMapComponent implements AfterViewInit, OnDestroy, OnC
 
   ngAfterViewInit() {
     this.loadLeaflet().then(() => {
+      console.debug('Leaflet loaded, initializing maps with cities', this.cities.length);
       this.initializeMaps();
     });
   }
@@ -89,7 +90,10 @@ export class ScriptureAtlasMapComponent implements AfterViewInit, OnDestroy, OnC
   }
 
   private initializeMaps() {
-    if (!this.cities.length) return;
+    if (!this.cities.length) {
+      console.warn('initializeMaps called with no cities');
+      return;
+    }
 
     this.modernMap = L.map('modern-map', {
       zoomControl: true,
@@ -110,6 +114,7 @@ export class ScriptureAtlasMapComponent implements AfterViewInit, OnDestroy, OnC
 
     const bounds = L.latLngBounds(this.cities.map(c => c.position));
     this.modernMap.fitBounds(bounds.pad(0.1));
+    console.debug('Modern map initialized');
   }
 
   private initializeAncientMap() {
@@ -141,6 +146,7 @@ export class ScriptureAtlasMapComponent implements AfterViewInit, OnDestroy, OnC
 
       const bounds = L.latLngBounds(this.cities.map(c => c.position));
       this.ancientMap.fitBounds(bounds.pad(0.1));
+      console.debug('Ancient map initialized');
     }, 100);
   }
 

@@ -54,6 +54,7 @@ export class ScriptureAtlasComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadSavedProgress();
+    console.debug('Initializing ScriptureAtlasComponent');
     this.loadJourneys();
   }
 
@@ -76,7 +77,9 @@ export class ScriptureAtlasComponent implements OnInit, OnDestroy {
   }
 
   private loadJourneys() {
+    console.debug('Requesting list of journeys');
     this.atlasService.getJourneys().subscribe(js => {
+      console.debug('Received journeys', js.length);
       this.journeys = js;
       if (js.length) {
         this.selectedJourneyId = js[0].id;
@@ -87,10 +90,12 @@ export class ScriptureAtlasComponent implements OnInit, OnDestroy {
 
   loadJourney(id: number) {
     if (id == null) return;
+    console.debug('Loading journey', id);
 
     this.atlasService.getJourney(id).subscribe(detail => {
       this.cities = detail.cities;
       this.distances = this.cities.map(c => c.distance);
+      console.debug('Loaded journey details, cities count', this.cities.length);
 
       if (this.cities.length) {
         this.selectCity(this.cities[0]);

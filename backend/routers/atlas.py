@@ -4,6 +4,9 @@ from pydantic import BaseModel
 from typing import List, Dict, Any
 from database import DatabaseConnection
 import db_pool
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -25,15 +28,18 @@ def get_db():
 
 @router.get('/journeys', response_model=List[Journey])
 async def list_journeys(db: DatabaseConnection = Depends(get_db)):
+    logger.info("Fetching list of journeys")
     rows = db.fetch_all(
         "SELECT journey_id AS id, name, start_year, end_year, scripture_refs "
         "FROM missionary_journeys ORDER BY journey_id"
     )
+    logger.debug(f"Retrieved {len(rows)} journeys")
     return [Journey(**r) for r in rows]
 
 
 @router.get('/journeys/{journey_id}', response_model=JourneyResponse)
 async def get_journey(journey_id: int, db: DatabaseConnection = Depends(get_db)):
+    logger.info(f"Fetching journey details for id={journey_id}")
     j = db.fetch_one(
         "SELECT journey_id AS id, name, start_year, end_year, scripture_refs "
         "FROM missionary_journeys WHERE journey_id = %s",
@@ -48,4 +54,5 @@ async def get_journey(journey_id: int, db: DatabaseConnection = Depends(get_db))
         (journey_id,),
     )
     city_data = [c["data"] for c in cities]
+    logger.debug(f"Journey {journey_id} has {len(city_data)} cities")
     return JourneyResponse(journey=Journey(**j), cities=city_data)
