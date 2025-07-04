@@ -7,6 +7,8 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ScriptureAtlasHeaderComponent } from './components/scripture-atlas-header.component';
+import { ScriptureAtlasSidebarComponent } from './components/scripture-atlas-sidebar.component';
 import {
   trigger,
   style,
@@ -28,7 +30,12 @@ interface Particle {
 @Component({
   selector: 'app-scripture-atlas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ScriptureAtlasHeaderComponent,
+    ScriptureAtlasSidebarComponent,
+  ],
   templateUrl: './scripture-atlas.component.html',
   styleUrls: ['./scripture-atlas.component.scss'],
   animations: [
