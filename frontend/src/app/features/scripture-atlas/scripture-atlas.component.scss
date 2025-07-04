@@ -1,4 +1,769 @@
-#atlas-map {
-  height: 100%;
+// Global reset for this component
+:host {
+  display: block;
   width: 100%;
+  height: 100%;
+  // allow nav dropdowns to appear over the page
+  overflow: visible;
+}
+
+// Prevent body scroll when this component is active
+:host-context(body) {
+  overflow: hidden;
+}
+
+// Variables
+$nav-height: 56px; // Well Versed navigation height
+$header-height: 100px; // Scripture Atlas header height
+$total-header-height: calc(#{$nav-height} + #{$header-height});
+$sidebar-width: 320px; // Scripture panel width
+$primary: #6366f1;
+$primary-dark: #4f46e5;
+$success: #10b981;
+$warning: #f59e0b;
+$danger: #ef4444;
+$gray-50: #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$gray-500: #6b7280;
+$gray-600: #4b5563;
+$gray-700: #374151;
+$gray-800: #1f2937;
+$gray-900: #111827;
+
+// Root container
+.atlas-container {
+  width: 100%;
+  height: calc(100vh - #{$nav-height});
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: $gray-50;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  position: relative;
+  top: $nav-height;
+}
+
+// Fixed Header
+.atlas-header {
+  position: relative;
+  height: $header-height;
+  background: linear-gradient(to bottom, white, $gray-50);
+  border-bottom: 1px solid $gray-200;
+  box-shadow: 0 2px 6px 0 rgb(0 0 0 / 0.1);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.header-content {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1.5rem;
+  gap: 2rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex: 1;
+}
+
+.main-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: $gray-900;
+  margin: 0;
+  
+  .title-icon {
+    width: 24px;
+    height: 24px;
+    color: $primary;
+  }
+}
+
+.journey-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.info-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  background: $gray-100;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: $gray-600;
+  
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  &.highlight {
+    background: rgba($primary, 0.1);
+    color: $primary;
+    font-weight: 500;
+    
+    strong {
+      font-weight: 700;
+    }
+  }
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.header-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.stat-item {
+  text-align: center;
+  
+  .stat-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: $primary;
+    margin-right: 0.25rem;
+  }
+  
+  .stat-label {
+    font-size: 0.75rem;
+    color: $gray-500;
+  }
+}
+
+.header-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  background: white;
+  border: 1px solid $gray-300;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: $gray-700;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .btn-label {
+    @media (max-width: 1024px) {
+      display: none;
+    }
+  }
+  
+  &:hover {
+    background: $gray-50;
+    border-color: $gray-400;
+  }
+  
+  &.active {
+    background: $primary;
+    border-color: $primary;
+    color: white;
+  }
+}
+
+// Timeline Bar
+.timeline-bar {
+  height: 32px;
+  padding: 0 1.5rem;
+  background: $gray-50;
+  display: flex;
+  align-items: center;
+}
+
+.timeline-track {
+  position: relative;
+  width: 100%;
+  height: 20px;
+}
+
+.timeline-progress {
+  position: absolute;
+  top: 9px;
+  left: 0;
+  height: 2px;
+  background: $primary;
+  transition: width 0.5s ease;
+}
+
+.timeline-markers {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.timeline-marker {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  .marker-dot {
+    width: 8px;
+    height: 8px;
+    margin: 6px auto 0;
+    background: white;
+    border: 2px solid $gray-300;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+  
+  .marker-label {
+    display: none;
+    font-size: 0.625rem;
+    color: $gray-600;
+    text-align: center;
+    margin-top: 2px;
+  }
+  
+  &:hover .marker-dot {
+    transform: scale(1.5);
+    border-color: $primary;
+  }
+  
+  &.visited .marker-dot {
+    background: $primary;
+    border-color: $primary;
+  }
+  
+  &.active {
+    .marker-dot {
+      transform: scale(1.75);
+      background: $danger;
+      border-color: $danger;
+      box-shadow: 0 0 0 4px rgba($danger, 0.2);
+    }
+    
+    .marker-label {
+      display: block;
+      color: $danger;
+      font-weight: 600;
+    }
+  }
+  
+  &.memorized .marker-dot {
+    background: $success;
+    border-color: $success;
+  }
+}
+
+.timeline-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 10;
+}
+
+// Main Layout
+.atlas-main {
+  position: relative;
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  height: calc(100vh - #{$nav-height} - #{$header-height});
+}
+
+// Left Sidebar (Scripture) - Overlay style
+.sidebar-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: $sidebar-width;
+  background: white;
+  border-right: 1px solid $gray-200;
+  box-shadow: 4px 0 6px 0 rgb(0 0 0 / 0.1);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  overflow: hidden;
+  // ensure scripture panel overlays the map
+  z-index: 1200;
+  
+  &.open {
+    transform: translateX(0);
+  }
+}
+
+.sidebar-header {
+  position: sticky;
+  top: 0;
+  background: white;
+  border-bottom: 1px solid $gray-200;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+  
+  h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: $gray-900;
+    margin: 0;
+  }
+  
+  .close-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $gray-100;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    
+    svg {
+      width: 16px;
+      height: 16px;
+      color: $gray-500;
+    }
+    
+    &:hover {
+      background: $gray-200;
+    }
+  }
+}
+
+.sidebar-content {
+  padding: 1rem;
+  overflow-y: auto;
+  height: calc(100% - 60px);
+  
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: $gray-900;
+    margin: 0 0 0.25rem;
+  }
+  
+  .verse-reference {
+    font-size: 0.875rem;
+    color: $primary;
+    margin: 0 0 1rem;
+  }
+  
+  .verse-text {
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: $gray-700;
+    
+    .verse-number {
+      font-weight: 700;
+      color: $primary;
+      margin-right: 0.25rem;
+    }
+    
+    .verse {
+      margin-bottom: 0.5rem;
+    }
+  }
+}
+
+.sidebar-actions {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $gray-200;
+}
+
+// Map Area
+.map-area {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 1rem;
+  background: $gray-50;
+}
+
+.maps-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  background: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.06);
+  
+  &.split {
+    .map-wrapper {
+      &.half {
+        width: 50%;
+        
+        &:first-child {
+          border-right: 2px solid $gray-300;
+        }
+      }
+    }
+  }
+}
+
+.map-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.map-instance {
+  width: 100%;
+  height: 100%;
+}
+
+.map-label {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(white, 0.9);
+  backdrop-filter: blur(4px);
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: $gray-700;
+  box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.1);
+}
+
+// City Info Overlay
+.city-info-overlay {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 320px;
+  max-width: calc(100% - 3rem);
+  max-height: calc(100% - 3rem);
+  background: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  overflow: hidden;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+}
+
+.city-header {
+  padding: 1rem;
+  background: $gray-50;
+  border-bottom: 1px solid $gray-200;
+  
+  h2 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: $gray-900;
+    margin: 0;
+  }
+  
+  .city-modern {
+    font-size: 0.75rem;
+    color: $gray-600;
+    margin: 0.125rem 0 0;
+  }
+}
+
+.city-content {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  
+  .city-description {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: $gray-700;
+    margin: 0 0 1rem;
+  }
+  
+  .city-events {
+    margin-bottom: 1rem;
+    
+    h4 {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: $gray-500;
+      margin: 0 0 0.5rem;
+    }
+    
+    ul {
+      margin: 0;
+      padding-left: 1.25rem;
+      
+      li {
+        font-size: 0.8125rem;
+        line-height: 1.5;
+        color: $gray-600;
+        margin-bottom: 0.25rem;
+      }
+    }
+  }
+  
+  .city-fact {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: rgba($warning, 0.05);
+    border: 1px solid rgba($warning, 0.2);
+    border-radius: 0.5rem;
+    
+    svg {
+      width: 20px;
+      height: 20px;
+      color: $warning;
+      flex-shrink: 0;
+    }
+    
+    p {
+      font-size: 0.75rem;
+      line-height: 1.4;
+      color: $gray-700;
+      margin: 0;
+    }
+  }
+}
+
+.city-footer {
+  padding: 1rem;
+  background: $gray-50;
+  border-top: 1px solid $gray-200;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.625rem;
+  background: white;
+  border: 1px solid $gray-300;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: $gray-700;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  &:hover {
+    background: $gray-50;
+    border-color: $gray-400;
+  }
+  
+  &.primary {
+    background: $primary;
+    border-color: $primary;
+    color: white;
+    
+    &:hover {
+      background: $primary-dark;
+      border-color: $primary-dark;
+    }
+    
+    &.completed {
+      background: $success;
+      border-color: $success;
+    }
+  }
+}
+
+// Playback Progress
+.playback-progress {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  width: 60px;
+  height: 60px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  
+  svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+  
+  .progress-text {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: $primary;
+  }
+}
+
+// Animations
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive
+@media (max-width: 1024px) {
+  .journey-info {
+    display: none;
+  }
+  
+  .header-stats {
+    gap: 1rem;
+  }
+  
+  .city-info-overlay {
+    width: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .atlas-header {
+    height: 80px;
+  }
+  
+  .atlas-main {
+    height: calc(100vh - #{$nav-height} - 80px);
+  }
+  
+  .header-content {
+    padding: 0 1rem;
+  }
+  
+  .main-title {
+    font-size: 1rem;
+    
+    .title-icon {
+      width: 20px;
+      height: 20px;
+    }
+  }
+  
+  .header-stats {
+    .stat-item {
+      .stat-value {
+        font-size: 0.875rem;
+      }
+      
+      .stat-label {
+        font-size: 0.625rem;
+      }
+    }
+  }
+  
+  .city-info-overlay {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0.75rem 0.75rem 0 0;
+  }
+  
+  .map-area {
+    padding: 0.5rem;
+  }
+}
+
+// Utilities
+.completed {
+  opacity: 0.8;
+}
+
+// Custom scrollbar
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: $gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $gray-400;
+  border-radius: 3px;
+  
+  &:hover {
+    background: $gray-500;
+  }
+}
+
+// Leaflet overrides
+:host ::ng-deep {
+  .leaflet-container {
+    background: $gray-100;
+    font-family: inherit;
+  }
+  
+  .leaflet-control-zoom {
+    border: none;
+    
+    a {
+      background: white !important;
+      border: 1px solid $gray-300 !important;
+      color: $gray-700 !important;
+      width: 32px !important;
+      height: 32px !important;
+      line-height: 30px !important;
+      
+      &:hover {
+        background: $gray-50 !important;
+        color: $gray-900 !important;
+      }
+    }
+  }
+  
+  .leaflet-control-attribution {
+    background: rgba(white, 0.8) !important;
+    font-size: 0.625rem;
+  }
 }
