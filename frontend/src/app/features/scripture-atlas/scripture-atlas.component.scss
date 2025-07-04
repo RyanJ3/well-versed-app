@@ -39,7 +39,8 @@ $gray-900: #111827;
   flex-direction: column;
   overflow: hidden;
   background: $gray-50;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   position: relative;
   top: $nav-height;
 }
@@ -82,11 +83,21 @@ $gray-900: #111827;
   font-weight: 700;
   color: $gray-900;
   margin: 0;
-  
+
   .title-icon {
     width: 24px;
     height: 24px;
     color: $primary;
+  }
+
+  .journey-select {
+    font-size: inherit;
+    font-weight: inherit;
+    border: 1px solid $gray-300;
+    border-radius: 4px;
+    padding: 0.125rem 0.25rem;
+    background: white;
+    color: inherit;
   }
 }
 
@@ -105,17 +116,17 @@ $gray-900: #111827;
   border-radius: 9999px;
   font-size: 0.75rem;
   color: $gray-600;
-  
+
   svg {
     width: 14px;
     height: 14px;
   }
-  
+
   &.highlight {
     background: rgba($primary, 0.1);
     color: $primary;
     font-weight: 500;
-    
+
     strong {
       font-weight: 700;
     }
@@ -136,14 +147,14 @@ $gray-900: #111827;
 
 .stat-item {
   text-align: center;
-  
+
   .stat-value {
     font-size: 1.125rem;
     font-weight: 700;
     color: $primary;
     margin-right: 0.25rem;
   }
-  
+
   .stat-label {
     font-size: 0.75rem;
     color: $gray-500;
@@ -168,23 +179,23 @@ $gray-900: #111827;
   color: $gray-700;
   cursor: pointer;
   transition: all 0.2s;
-  
+
   svg {
     width: 16px;
     height: 16px;
   }
-  
+
   .btn-label {
     @media (max-width: 1024px) {
       display: none;
     }
   }
-  
+
   &:hover {
     background: $gray-50;
     border-color: $gray-400;
   }
-  
+
   &.active {
     background: $primary;
     border-color: $primary;
@@ -228,7 +239,7 @@ $gray-900: #111827;
   transform: translateX(-50%);
   cursor: pointer;
   transition: all 0.2s;
-  
+
   .marker-dot {
     width: 8px;
     height: 8px;
@@ -238,7 +249,7 @@ $gray-900: #111827;
     border-radius: 50%;
     transition: all 0.2s;
   }
-  
+
   .marker-label {
     display: none;
     font-size: 0.625rem;
@@ -246,17 +257,17 @@ $gray-900: #111827;
     text-align: center;
     margin-top: 2px;
   }
-  
+
   &:hover .marker-dot {
     transform: scale(1.5);
     border-color: $primary;
   }
-  
+
   &.visited .marker-dot {
     background: $primary;
     border-color: $primary;
   }
-  
+
   &.active {
     .marker-dot {
       transform: scale(1.75);
@@ -264,14 +275,14 @@ $gray-900: #111827;
       border-color: $danger;
       box-shadow: 0 0 0 4px rgba($danger, 0.2);
     }
-    
+
     .marker-label {
       display: block;
       color: $danger;
       font-weight: 600;
     }
   }
-  
+
   &.memorized .marker-dot {
     background: $success;
     border-color: $success;
@@ -308,7 +319,7 @@ $gray-900: #111827;
   flex-direction: column;
   transition: margin-left 0.3s ease;
   padding: 1rem 0 1rem 1rem;
-  
+
   &.collapsed {
     margin-left: -$sidebar-width;
   }
@@ -347,17 +358,17 @@ $gray-900: #111827;
   color: $gray-600;
   cursor: pointer;
   transition: all 0.2s;
-  
+
   svg {
     width: 16px;
     height: 16px;
   }
-  
+
   &:hover {
     color: $gray-800;
     background: rgba($gray-100, 0.5);
   }
-  
+
   &.active {
     color: $primary;
     border-bottom-color: $primary;
@@ -379,13 +390,13 @@ $gray-900: #111827;
   border-radius: 0.375rem;
   cursor: pointer;
   transition: all 0.2s;
-  
+
   svg {
     width: 16px;
     height: 16px;
     color: $gray-500;
   }
-  
+
   &:hover {
     background: $gray-200;
   }
@@ -400,20 +411,20 @@ $gray-900: #111827;
 
 .content-header {
   margin-bottom: 1rem;
-  
+
   h2 {
     font-size: 1.25rem;
     font-weight: 700;
     color: $gray-900;
     margin: 0 0 0.25rem;
   }
-  
+
   .verse-reference {
     font-size: 0.875rem;
     color: $primary;
     margin: 0;
   }
-  
+
   .city-modern {
     font-size: 0.875rem;
     color: $gray-600;
@@ -427,13 +438,13 @@ $gray-900: #111827;
   line-height: 1.6;
   color: $gray-700;
   overflow-y: auto;
-  
+
   .verse-number {
     font-weight: 700;
     color: $primary;
     margin-right: 0.25rem;
   }
-  
+
   .verse {
     margin-bottom: 0.5rem;
   }
@@ -448,7 +459,7 @@ $gray-900: #111827;
 
 .city-events {
   margin-bottom: 1rem;
-  
+
   h4 {
     font-size: 0.75rem;
     font-weight: 700;
@@ -457,11 +468,11 @@ $gray-900: #111827;
     color: $gray-500;
     margin: 0 0 0.5rem;
   }
-  
+
   ul {
     margin: 0;
     padding-left: 1.25rem;
-    
+
     li {
       font-size: 0.8125rem;
       line-height: 1.5;
@@ -479,14 +490,14 @@ $gray-900: #111827;
   border: 1px solid rgba($warning, 0.2);
   border-radius: 0.5rem;
   margin-top: auto;
-  
+
   svg {
     width: 20px;
     height: 20px;
     color: $warning;
     flex-shrink: 0;
   }
-  
+
   p {
     font-size: 0.75rem;
     line-height: 1.4;
@@ -518,33 +529,33 @@ $gray-900: #111827;
   color: $gray-700;
   cursor: pointer;
   transition: all 0.2s;
-  
+
   svg {
     width: 16px;
     height: 16px;
   }
-  
+
   &:hover {
     background: $gray-50;
     border-color: $gray-400;
   }
-  
+
   &.primary {
     background: $primary;
     border-color: $primary;
     color: white;
-    
+
     &:hover {
       background: $primary-dark;
       border-color: $primary-dark;
     }
-    
+
     &.completed {
       background: $success;
       border-color: $success;
     }
   }
-  
+
   &.completed {
     opacity: 0.8;
   }
@@ -569,12 +580,12 @@ $gray-900: #111827;
   border-radius: 0.75rem;
   overflow: hidden;
   box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.06);
-  
+
   &.split {
     .map-wrapper {
       &.half {
         width: 50%;
-        
+
         &:first-child {
           border-right: 2px solid $gray-300;
         }
@@ -632,29 +643,29 @@ $gray-900: #111827;
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.1);
-  
+
   svg {
     width: 18px;
     height: 18px;
   }
-  
+
   &:hover:not(:disabled) {
     background: $gray-50;
     border-color: $gray-400;
     transform: translateY(-1px);
     box-shadow: 0 4px 6px 0 rgb(0 0 0 / 0.1);
   }
-  
+
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
-  
+
   &.primary {
     background: $primary;
     border-color: $primary;
     color: white;
-    
+
     &:hover:not(:disabled) {
       background: $primary-dark;
       border-color: $primary-dark;
@@ -676,14 +687,14 @@ $gray-900: #111827;
   align-items: center;
   justify-content: center;
   z-index: 50;
-  
+
   svg {
     position: absolute;
     width: 100%;
     height: 100%;
     transform: rotate(-90deg);
   }
-  
+
   .progress-text {
     font-size: 0.75rem;
     font-weight: 700;
@@ -708,11 +719,11 @@ $gray-900: #111827;
   .journey-info {
     display: none;
   }
-  
+
   .header-stats {
     gap: 1rem;
   }
-  
+
   .sidebar {
     position: absolute;
     z-index: 60;
@@ -720,13 +731,13 @@ $gray-900: #111827;
     background: white;
     padding: 0;
     border-right: 1px solid $gray-200;
-    
+
     &.collapsed {
       transform: translateX(-100%);
       margin-left: 0;
     }
   }
-  
+
   .nav-buttons {
     bottom: 1rem;
     right: 1rem;
@@ -737,49 +748,49 @@ $gray-900: #111827;
   .atlas-header {
     height: 80px;
   }
-  
+
   .atlas-main {
     height: calc(100vh - #{$nav-height} - 80px);
   }
-  
+
   .header-content {
     padding: 0 1rem;
   }
-  
+
   .main-title {
     font-size: 1rem;
-    
+
     .title-icon {
       width: 20px;
       height: 20px;
     }
   }
-  
+
   .header-stats {
     .stat-item {
       .stat-value {
         font-size: 0.875rem;
       }
-      
+
       .stat-label {
         font-size: 0.625rem;
       }
     }
   }
-  
+
   .sidebar {
     width: 100%;
     max-width: 320px;
   }
-  
+
   .map-area {
     padding: 0.5rem;
   }
-  
+
   .nav-btn {
     padding: 0.5rem 0.75rem;
     font-size: 0.75rem;
-    
+
     svg {
       width: 16px;
       height: 16px;
@@ -805,7 +816,7 @@ $gray-900: #111827;
 ::-webkit-scrollbar-thumb {
   background: $gray-400;
   border-radius: 3px;
-  
+
   &:hover {
     background: $gray-500;
   }
@@ -817,10 +828,10 @@ $gray-900: #111827;
     background: $gray-100;
     font-family: inherit;
   }
-  
+
   .leaflet-control-zoom {
     border: none;
-    
+
     a {
       background: white !important;
       border: 1px solid $gray-300 !important;
@@ -828,23 +839,23 @@ $gray-900: #111827;
       width: 32px !important;
       height: 32px !important;
       line-height: 30px !important;
-      
+
       &:hover {
         background: $gray-50 !important;
         color: $gray-900 !important;
       }
     }
   }
-  
+
   .leaflet-control-attribution {
     background: rgba(white, 0.8) !important;
     font-size: 0.625rem;
   }
-  
+
   .city-marker-wrapper {
     z-index: 600 !important;
   }
-  
+
   .custom-city-marker {
     border: 3px solid;
     border-radius: 50%;
@@ -855,16 +866,16 @@ $gray-900: #111827;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     transition: all 0.2s;
     position: relative;
-    
+
     &.selected {
       animation: pulse 2s infinite;
     }
-    
+
     .marker-content {
       font-size: 1rem;
     }
   }
-  
+
   .route-arrow {
     font-size: 20px;
     font-weight: bold;
