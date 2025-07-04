@@ -155,46 +155,6 @@
         </div>
       </div>
 
-      <!-- City Info Overlay -->
-      <div class="city-info-overlay" *ngIf="selectedCity" [@slideIn]>
-        <div class="city-header">
-          <h2>{{ selectedCity.name }}</h2>
-          <p class="city-modern">{{ selectedCity.modern }}</p>
-        </div>
-        
-        <div class="city-content">
-          <p class="city-description">{{ selectedCity.description }}</p>
-          
-          <div class="city-events" *ngIf="selectedCity.events.length">
-            <h4>Key Events</h4>
-            <ul>
-              <li *ngFor="let event of selectedCity.events">{{ event }}</li>
-            </ul>
-          </div>
-
-          <div class="city-fact">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-            </svg>
-            <p>{{ selectedCity.keyFact }}</p>
-          </div>
-        </div>
-
-        <div class="city-footer">
-          <button class="action-btn primary" (click)="toggleMemorized(selectedCity.id)" [class.completed]="memorized.has(selectedCity.id)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-            {{ memorized.has(selectedCity.id) ? 'Memorized' : 'Memorize' }}
-          </button>
-          <button class="action-btn" (click)="nextCity()">
-            Next
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-      </div>
 
       <!-- Playback Progress -->
       <div class="playback-progress" *ngIf="isPlaying">
@@ -213,5 +173,48 @@
         <span class="progress-text">{{ currentCityIndex + 1 }}/{{ cities.length }}</span>
       </div>
     </div>
+    <!-- Close map area -->
   </div>
+
+  <!-- Right Sidebar (City Info) -->
+  <aside class="city-info-panel" *ngIf="selectedCity" [@slideIn]>
+    <div class="city-header">
+      <h2>{{ selectedCity.name }}</h2>
+      <p class="city-modern">{{ selectedCity.modern }}</p>
+    </div>
+
+    <div class="city-content">
+      <p class="city-description">{{ selectedCity.description }}</p>
+
+      <div class="city-events" *ngIf="selectedCity.events.length">
+        <h4>Key Events</h4>
+        <ul>
+          <li *ngFor="let event of selectedCity.events">{{ event }}</li>
+        </ul>
+      </div>
+
+      <div class="city-fact">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+        </svg>
+        <p>{{ selectedCity.keyFact }}</p>
+      </div>
+    </div>
+
+    <div class="city-footer">
+      <button class="action-btn primary" (click)="toggleMemorized(selectedCity.id)" [class.completed]="memorized.has(selectedCity.id)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        {{ memorized.has(selectedCity.id) ? 'Memorized' : 'Memorize' }}
+      </button>
+      <button class="action-btn" (click)="nextCity()">
+        Next
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  </aside>
+</div>
 </div>

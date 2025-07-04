@@ -301,22 +301,18 @@ $gray-900: #111827;
 
 // Left Sidebar (Scripture) - Overlay style
 .sidebar-left {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: relative;
   height: 100%;
-  width: $sidebar-width;
+  width: 0;
+  flex-shrink: 0;
   background: white;
   border-right: 1px solid $gray-200;
   box-shadow: 4px 0 6px 0 rgb(0 0 0 / 0.1);
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
   overflow: hidden;
-  // ensure scripture panel overlays the map
-  z-index: 1200;
-  
+  transition: width 0.3s ease;
+
   &.open {
-    transform: translateX(0);
+    width: $sidebar-width;
   }
 }
 
@@ -461,19 +457,16 @@ $gray-900: #111827;
   box-shadow: 0 2px 4px 0 rgb(0 0 0 / 0.1);
 }
 
-// City Info Overlay
-.city-info-overlay {
-  position: absolute;
-  bottom: 1.5rem;
-  right: 1.5rem;
+// Right Sidebar - City Info
+.city-info-panel {
+  position: relative;
+  height: 100%;
   width: 320px;
-  max-width: calc(100% - 3rem);
-  max-height: calc(100% - 3rem);
+  flex-shrink: 0;
   background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  border-left: 1px solid $gray-200;
+  box-shadow: -4px 0 6px 0 rgb(0 0 0 / 0.1);
   overflow: hidden;
-  z-index: 50;
   display: flex;
   flex-direction: column;
 }
@@ -660,7 +653,7 @@ $gray-900: #111827;
     gap: 1rem;
   }
   
-  .city-info-overlay {
+  .city-info-panel {
     width: 280px;
   }
 }
@@ -699,7 +692,8 @@ $gray-900: #111827;
     }
   }
   
-  .city-info-overlay {
+  .city-info-panel {
+    position: absolute;
     bottom: 0;
     left: 0;
     right: 0;

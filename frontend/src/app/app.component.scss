@@ -12,9 +12,9 @@
 // Main Content Area
 .app-content {
   flex: 1;
-  max-width: 1200px;
   width: 100%;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   padding: 20px;
   
   // Smooth page transitions
