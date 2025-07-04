@@ -394,7 +394,6 @@ $gray-900: #111827;
 .sidebar-content {
   flex: 1;
   padding: 1rem;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
 }
@@ -427,6 +426,7 @@ $gray-900: #111827;
   font-size: 0.875rem;
   line-height: 1.6;
   color: $gray-700;
+  overflow-y: auto;
   
   .verse-number {
     font-weight: 700;
@@ -496,7 +496,7 @@ $gray-900: #111827;
 }
 
 .content-footer {
-  margin-top: 1rem;
+  margin-top: auto;
   padding-top: 1rem;
   border-top: 1px solid $gray-200;
   display: flex;
@@ -615,7 +615,7 @@ $gray-900: #111827;
   right: 1.5rem;
   display: flex;
   gap: 0.5rem;
-  z-index: 50;
+  z-index: 1000;
 }
 
 .nav-btn {
