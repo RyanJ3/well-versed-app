@@ -1,0 +1,93 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="onClose($event)">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">{{ isEditing ? 'Edit Request' : 'Create New Request' }}</h2>
+      <button class="modal-close" (click)="onClose()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" class="request-form">
+      <div class="form-group">
+        <label for="title">Title *</label>
+        <input 
+          type="text" 
+          id="title" 
+          [(ngModel)]="request.title" 
+          name="title"
+          placeholder="Brief description of your request"
+          required
+          class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label for="type">Type *</label>
+        <select 
+          id="type" 
+          [(ngModel)]="request.type" 
+          name="type"
+          required
+          class="form-control">
+          <option value="">Select type...</option>
+          <option value="bug">Bug Report</option>
+          <option value="enhancement">Enhancement</option>
+          <option value="feature">Feature Request</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description *</label>
+        <textarea 
+          id="description" 
+          [(ngModel)]="request.description" 
+          name="description"
+          placeholder="Provide detailed information about your request..."
+          rows="6"
+          required
+          class="form-control">
+        </textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="tags">Tags (optional)</label>
+        <div class="tags-input-container">
+          <div class="selected-tags">
+            <span class="tag-chip" *ngFor="let tag of request.tags; let i = index">
+              {{ tag }}
+              <button type="button" (click)="removeTag(i)" class="tag-remove">×</button>
+            </span>
+            <input 
+              type="text" 
+              [(ngModel)]="tagInput"
+              (keydown.enter)="addTag($event)"
+              name="tagInput"
+              placeholder="Add tags..."
+              class="tag-input">
+          </div>
+        </div>
+        <div class="suggested-tags">
+          <span class="suggested-label">Suggested:</span>
+          <button 
+            type="button"
+            class="suggested-tag" 
+            *ngFor="let tag of getSuggestedTags()"
+            (click)="addSuggestedTag(tag)"
+            [disabled]="request.tags.includes(tag)">
+            {{ tag }}
+          </button>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="onClose()">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="!isFormValid()">
+          {{ isEditing ? 'Update Request' : 'Create Request' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

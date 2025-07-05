@@ -1,0 +1,78 @@
+<div class="request-card" [class.voted]="request.has_voted">
+  <!-- Vote Section -->
+  <div class="vote-section">
+    <button
+      class="vote-btn upvote"
+      [class.active]="request.user_vote === 'up'"
+      (click)="onVote()"
+      [disabled]="!currentUser">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+      </svg>
+    </button>
+    <button
+      class="vote-btn downvote"
+      title="Remove Vote"
+      (click)="onDownvote()"
+      [disabled]="!currentUser || request.user_vote !== 'up'">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+    <span class="vote-count">{{ request.upvotes }}</span>
+  </div>
+
+  <!-- Content Section -->
+  <div class="request-content">
+    <div class="request-header">
+      <h3 class="request-title">{{ request.title }}</h3>
+      <div class="request-badges">
+        <span class="badge" [class]="'badge-' + request.type">
+          {{ formatType(request.type) }}
+        </span>
+        <span class="badge" [class]="'badge-status-' + request.status">
+          {{ formatStatus(request.status) }}
+        </span>
+        <span *ngIf="request.priority" class="badge" [class]="'badge-priority-' + request.priority">
+          {{ request.priority }}
+        </span>
+      </div>
+    </div>
+
+    <p class="request-description">{{ request.description }}</p>
+
+    <div class="request-tags" *ngIf="request.tags && request.tags.length > 0">
+      <span class="tag" *ngFor="let tag of request.tags">#{{ tag }}</span>
+    </div>
+
+    <div class="request-footer">
+      <div class="request-meta">
+        <span class="meta-item">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          {{ request.user_name }}
+        </span>
+        <span class="meta-item">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          {{ formatDate(request.created_at) }}
+        </span>
+        <span class="meta-item" *ngIf="request.comments_count">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          {{ request.comments_count }} {{ request.comments_count === 1 ? 'comment' : 'comments' }}
+        </span>
+      </div>
+
+      <button class="btn-view-details" (click)="onViewDetails()">
+        View Details
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>

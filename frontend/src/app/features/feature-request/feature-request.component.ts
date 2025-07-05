@@ -16,6 +16,12 @@ import {
 } from '../../core/models/feature-request.model';
 import { User } from '../../core/models/user';
 
+// Import new components
+import { RequestStatsComponent } from './components/request-stats/request-stats.component';
+import { RequestFiltersComponent } from './components/request-filters/request-filters.component';
+import { RequestCardComponent } from './components/request-card/request-card.component';
+import { RequestModalComponent } from './components/request-modal/request-modal.component';
+
 @Component({
   selector: 'app-feature-request',
   templateUrl: './feature-request.component.html',
@@ -24,7 +30,11 @@ import { User } from '../../core/models/user';
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule
+    RouterModule,
+    RequestStatsComponent,
+    RequestFiltersComponent,
+    RequestCardComponent,
+    RequestModalComponent
   ]
 })
 export class FeatureRequestComponent implements OnInit, OnDestroy {
@@ -55,14 +65,13 @@ export class FeatureRequestComponent implements OnInit, OnDestroy {
     trending: 0
   };
 
-  // Form data with guaranteed tags array
+  // Form data for modal
   newRequest: CreateFeatureRequest & { tags: string[] } = {
     title: '',
     description: '',
     type: RequestType.FEATURE,
-    tags: [] // Always initialized
+    tags: []
   };
-  tagInput: string = '';
 
   // Search debounce
   private searchSubject = new Subject<string>();
@@ -137,8 +146,6 @@ export class FeatureRequestComponent implements OnInit, OnDestroy {
   }
 
   loadStats(): void {
-    // In a real app, this would be a separate API call
-    // For now, we'll calculate from loaded data
     this.featureRequestService.getFeatureRequests(1, 1000).subscribe({
       next: (response) => {
         const allRequests = response.requests;
@@ -149,13 +156,24 @@ export class FeatureRequestComponent implements OnInit, OnDestroy {
         this.stats.completed = allRequests.filter(r => 
           r.status === RequestStatus.COMPLETED
         ).length;
-        // Trending would be calculated server-side based on recent upvotes
         this.stats.trending = Math.min(5, allRequests.length);
       }
     });
   }
 
-  vote(request: FeatureRequest): void {
+  // Filter handlers
+  onSearchChange(query: string): void {
+    this.searchQuery = query;
+    this.searchSubject.next(query);
+  }
+
+  onFilterChange(): void {
+    this.currentPage = 1;
+    this.loadRequests();
+  }
+
+  // Vote handlers
+  onVote(request: FeatureRequest): void {
     if (!this.currentUser) {
       this.modalService.alert('Login Required', 'Please log in to vote on feature requests', 'info');
       return;
@@ -165,7 +183,6 @@ export class FeatureRequestComponent implements OnInit, OnDestroy {
       // Remove vote
       this.featureRequestService.removeVote(request.id, this.currentUser.id as number).subscribe({
         next: () => {
-          // Update local state
           request.upvotes--;
           request.user_vote = null;
           request.has_voted = false;
@@ -176,15 +193,10 @@ export class FeatureRequestComponent implements OnInit, OnDestroy {
         }
       });
     } else {
-      // Add or change vote
+      // Add vote
       this.featureRequestService.voteOnRequest(request.id, 'up', this.currentUser.id as number).subscribe({
         next: () => {
-          // Update local state
-          if (request.user_vote === 'up') {
-            request.upvotes--;
-          }
           request.upvotes++;
-
           request.user_vote = 'up';
           request.has_voted = true;
         },
@@ -196,7 +208,7 @@ export class FeatureRequestComponent implements OnInit, OnDestroy {
     }
   }
 
-  downvote(request: FeatureRequest): void {
+  onDownvote(request: FeatureRequest): void {
     if (!this.currentUser || request.user_vote !== 'up') return;
 
     this.featureRequestService.removeVote(request.id, this.currentUser.id as number).subscribe({
@@ -212,22 +224,7 @@ export class FeatureRequestComponent implements OnInit, OnDestroy {
     });
   }
 
-  onSearchChange(): void {
-    this.searchSubject.next(this.searchQuery);
-  }
-
-  onFilterChange(): void {
-    this.currentPage = 1;
-    this.loadRequests();
-  }
-
-  goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-      this.loadRequests();
-    }
-  }
-
+  // Modal handlers
   openCreateModal(): void {
     if (!this.currentUser) {
       this.modalService.alert('Login Required', 'Please log in to create feature requests', 'info');
@@ -239,11 +236,9 @@ export class FeatureRequestComponent implements OnInit, OnDestroy {
     this.resetForm();
   }
 
-  closeModal(event?: MouseEvent): void {
-    if (!event || event.target === event.currentTarget) {
-      this.showCreateModal = false;
-      this.resetForm();
-    }
+  closeModal(): void {
+    this.showCreateModal = false;
+    this.resetForm();
   }
 
   resetForm(): void {
@@ -251,16 +246,15 @@ export class FeatureRequestComponent implements OnInit, OnDestroy {
       title: '',
       description: '',
       type: RequestType.FEATURE,
-      tags: [] // Always initialize tags array
+      tags: []
     };
-    this.tagInput = '';
   }
 
-  submitRequest(): void {
-    if (!this.isFormValid() || !this.currentUser) return;
+  submitRequest(request: CreateFeatureRequest & { tags: string[] }): void {
+    if (!this.currentUser) return;
 
     this.featureRequestService.createFeatureRequest(
-      this.newRequest, 
+      request, 
       this.currentUser.id as number
     ).subscribe({
       next: (created) => {
@@ -275,83 +269,20 @@ export class FeatureRequestComponent implements OnInit, OnDestroy {
     });
   }
 
-  isFormValid(): boolean {
-    return !!(
-      this.newRequest.title?.trim() &&
-      this.newRequest.description?.trim() &&
-      this.newRequest.type
-    );
-  }
-
-  addTag(event: Event): void {
-    event.preventDefault();
-    const tag = this.tagInput.trim().toLowerCase();
-    
-    if (tag && !this.newRequest.tags.includes(tag) && this.newRequest.tags.length < 5) {
-      this.newRequest.tags.push(tag);
-      this.tagInput = '';
-    }
-  }
-
-  removeTag(index: number): void {
-    this.newRequest.tags.splice(index, 1);
-  }
-
-  addSuggestedTag(tag: string): void {
-    if (!this.newRequest.tags.includes(tag) && this.newRequest.tags.length < 5) {
-      this.newRequest.tags.push(tag);
-    }
-  }
-
-  getSuggestedTags(): string[] {
-    return this.featureRequestService.getSuggestedTags()
-      .filter(tag => !this.newRequest.tags.includes(tag))
-      .slice(0, 8);
-  }
-
-  viewDetails(request: FeatureRequest): void {
+  viewRequestDetails(request: FeatureRequest): void {
     // In a full implementation, this would navigate to a detail page
-    // For now, we'll just show an alert
     this.modalService.alert(
       request.title,
-      `${request.description}\n\nVotes: ${request.upvotes - request.downvotes}\nStatus: ${this.formatStatus(request.status)}`,
+      `${request.description}\n\nVotes: ${request.upvotes}\nStatus: ${request.status}`,
       'info'
     );
   }
 
-  // Formatting helpers
-  formatType(type: RequestType): string {
-    const typeMap = {
-      [RequestType.BUG]: 'Bug',
-      [RequestType.ENHANCEMENT]: 'Enhancement',
-      [RequestType.FEATURE]: 'Feature'
-    };
-    return typeMap[type] || type;
-  }
-
-  formatStatus(status: RequestStatus): string {
-    const statusMap = {
-      [RequestStatus.OPEN]: 'Open',
-      [RequestStatus.IN_PROGRESS]: 'In Progress',
-      [RequestStatus.COMPLETED]: 'Completed',
-      [RequestStatus.CLOSED]: 'Closed',
-      [RequestStatus.DUPLICATE]: 'Duplicate'
-    };
-    return statusMap[status] || status;
-  }
-
-  formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
-    
-    return date.toLocaleDateString();
+  // Pagination
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.loadRequests();
+    }
   }
 }
