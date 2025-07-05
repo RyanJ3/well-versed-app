@@ -202,7 +202,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleAndSaveVerse(verse: BibleVerse): void {
+  toggleAndSaveVerse(verse: any): void {
     // Toggle memorized state
     verse.memorized = !verse.memorized;
     this.saveVerse(verse);
