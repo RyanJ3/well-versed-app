@@ -103,3 +103,8 @@ async def root():
     """Root endpoint"""
     logger.debug("Root endpoint accessed")
     return {"message": "Well Versed API", "version": "1.0.0"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
