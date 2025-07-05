@@ -1,415 +1,84 @@
-<div class="atlas-container">
-  <!-- Fixed Header - Full Width -->
-  <header class="atlas-header">
-    <!-- Title and Meta Info -->
-    <div class="header-content">
-      <div class="header-left">
-        <h1 class="main-title">
-          <svg
-            class="title-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <select
-            class="journey-select"
-            name="journey"
-            [(ngModel)]="selectedJourneyId"
-            [ngModelOptions]="{standalone: true}"
-            (change)="loadJourney(selectedJourneyId!)"
-          >
-            <option *ngFor="let j of journeys" [ngValue]="j.id">
-              {{ j.name }}
-            </option>
-          </select>
-        </h1>
-        <div class="journey-info">
-          <span class="info-badge">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
-            {{
-              formatYearRange(
-                selectedJourney?.start_year,
-                selectedJourney?.end_year
-              )
-            }}
-          </span>
-          <span class="info-badge">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-              />
-            </svg>
-            {{ selectedJourney?.scripture_refs }}
-          </span>
-          <span class="info-badge highlight">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-              />
-            </svg>
-            <strong>{{ currentDistance }}</strong> miles
-          </span>
-        </div>
-      </div>
-
-      <div class="header-right">
-        <div class="header-stats">
-          <div class="stat-item">
-            <span class="stat-value">{{ currentCityIndex + 1 }}</span>
-            <span class="stat-label">of {{ cities.length }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-value">{{ memorized.size }}</span>
-            <span class="stat-label">memorized</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-value">{{ getProgressPercentage() }}%</span>
-            <span class="stat-label">complete</span>
-          </div>
-        </div>
-
-        <div class="header-controls">
-          <button
-            class="control-btn"
-            [class.active]="isPlaying"
-            (click)="toggleJourneyPlayback()"
-            title="Play Journey"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path
-                *ngIf="!isPlaying"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-              />
-              <path
-                *ngIf="!isPlaying"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-              <path
-                *ngIf="isPlaying"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <span class="btn-label">{{ isPlaying ? "Pause" : "Play" }}</span>
-          </button>
-
-          <button
-            class="control-btn"
-            [class.active]="terrainView"
-            (click)="toggleTerrainView()"
-            title="Toggle Terrain"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-            <span class="btn-label">Terrain</span>
-          </button>
-
-          <button
-            class="control-btn"
-            [class.active]="splitView"
-            (click)="toggleSplitView()"
-            title="Split View"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"
-              />
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"
-              />
-            </svg>
-            <span class="btn-label">Split</span>
-          </button>
-
-          <button
-            class="control-btn"
-            [class.active]="sidebarOpen"
-            (click)="toggleSidebar()"
-            title="Info Panel"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <span class="btn-label">Info</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Timeline -->
-    <div class="timeline-bar">
-      <div class="timeline-track">
-        <div class="timeline-progress" [style.width.%]="timelineProgress"></div>
-        <div class="timeline-markers">
-          <div
-            *ngFor="let city of cities; index as i"
-            class="timeline-marker"
-            [class.visited]="i <= currentCityIndex"
-            [class.active]="selectedCity?.id === city.id"
-            [class.memorized]="memorized.has(city.id)"
-            [style.left.%]="(i / (cities.length - 1)) * 100"
-            (click)="selectCity(city)"
-            [title]="city.name"
-          >
-            <div class="marker-dot"></div>
-            <div class="marker-label">{{ i + 1 }}</div>
-          </div>
-        </div>
-        <input
-          type="range"
-          class="timeline-slider"
-          min="0"
-          [max]="cities.length - 1"
-          [value]="currentCityIndex"
-          (input)="onTimelineChange($event)"
-        />
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Layout -->
-  <div class="atlas-main">
-    <!-- Left Sidebar (Combined Scripture & City Info) -->
-    <aside class="sidebar" [class.collapsed]="!sidebarOpen">
-      <div class="sidebar-wrapper" *ngIf="selectedCity">
-        <!-- Toggle Buttons -->
-        <div class="sidebar-tabs">
-          <button
-            class="tab-btn"
-            [class.active]="sidebarView === 'scripture'"
-            (click)="sidebarView = 'scripture'"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-              />
-            </svg>
-            Scripture
-          </button>
-          <button
-            class="tab-btn"
-            [class.active]="sidebarView === 'city'"
-            (click)="sidebarView = 'city'"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-              />
-            </svg>
-            City Info
-          </button>
-          <button class="close-btn" (click)="sidebarOpen = false">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
-        <!-- Scripture View -->
-        <div class="sidebar-content" *ngIf="sidebarView === 'scripture'">
-          <div class="content-header">
-            <h2>{{ selectedCity.name }}</h2>
-            <p class="verse-reference">{{ selectedCity.verses?.join(', ') }}</p>
-          </div>
-
-          <div class="verse-text" [innerHTML]="currentScriptureText"></div>
-
-          <div class="content-footer">
-            <button
-              class="action-btn primary"
-              (click)="toggleMemorized(selectedCity.id)"
-              [class.completed]="memorized.has(selectedCity.id)"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              {{ memorized.has(selectedCity.id) ? "Memorized" : "Memorize" }}
-            </button>
-            <button
-              class="action-btn"
-              (click)="markVersesAsRead()"
-              [class.completed]="versesRead.has(selectedCity.id)"
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              {{ versesRead.has(selectedCity.id) ? "Read ✓" : "Mark as Read" }}
-            </button>
-          </div>
-        </div>
-
-        <!-- City Info View -->
-        <div class="sidebar-content" *ngIf="sidebarView === 'city'">
-          <div class="content-header">
-            <h2>{{ selectedCity.name }}</h2>
-            <p class="city-modern">{{ selectedCity.modern }}</p>
-          </div>
-
-          <div class="city-description">{{ selectedCity.description }}</div>
-
-          <div class="city-events" *ngIf="selectedCity.events?.length">
-            <h4>Key Events</h4>
-            <ul>
-              <li *ngFor="let event of selectedCity.events">{{ event }}</li>
-            </ul>
-          </div>
-
-          <div class="city-fact">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-              />
-            </svg>
-            <p>{{ selectedCity.keyFact }}</p>
-          </div>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Map Area (Full Width) -->
-    <div class="map-area">
-      <!-- Split View Container -->
-      <div class="maps-container" [class.split]="splitView">
-        <!-- Modern Map -->
-        <div class="map-wrapper" [class.half]="splitView">
-          <div id="modern-map" class="map-instance"></div>
-          <div class="map-label" *ngIf="splitView">Modern View</div>
-        </div>
-
-        <!-- Ancient Map -->
-        <div class="map-wrapper" [class.half]="splitView" *ngIf="splitView">
-          <div id="ancient-map" class="map-instance"></div>
-          <div class="map-label">Ancient View</div>
-        </div>
-      </div>
-
-      <!-- Navigation Buttons (Bottom Right) -->
-      <div class="nav-buttons">
-        <button
-          class="nav-btn"
-          (click)="previousCity()"
-          [disabled]="currentCityIndex === 0"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          Previous
+<div class="journey-container">
+    <div class="controls-panel" [class.collapsed]="controlsCollapsed">
+        <button class="toggle-controls" (click)="controlsCollapsed = !controlsCollapsed">
+            {{ controlsCollapsed ? '☰' : '✕' }}
         </button>
-        <button class="nav-btn primary" (click)="nextCity()">
-          Next
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        </button>
-      </div>
 
-      <!-- Playback Progress -->
-      <div class="playback-progress" *ngIf="isPlaying">
-        <svg viewBox="0 0 36 36">
-          <path
-            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            fill="none"
-            stroke="#e5e7eb"
-            stroke-width="3"
-          />
-          <path
-            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-            fill="none"
-            stroke="#6366f1"
-            stroke-width="3"
-            [attr.stroke-dasharray]="'100 100'"
-            [attr.stroke-dashoffset]="100 - timelineProgress"
-          />
-        </svg>
-        <span class="progress-text"
-          >{{ currentCityIndex + 1 }}/{{ cities.length }}</span
-        >
-      </div>
+        <div class="controls-content" *ngIf="!controlsCollapsed">
+            <div class="view-controls">
+                <button (click)="setView('2d')" [class.active]="currentView === '2d'">2D Map</button>
+                <button (click)="setView('3d')" [class.active]="currentView === '3d'">3D View</button>
+                <button (click)="setView('historical')"
+                    [class.active]="currentView === 'historical'">Historical</button>
+                <button (click)="toggleFirstPerson()" [class.active]="isFirstPerson">
+                    {{ isFirstPerson ? 'Exit Walk Mode' : 'Walk Mode' }}
+                </button>
+            </div>
+
+            <div class="journey-selector">
+                <label>Select Journey:</label>
+                <select (change)="onJourneyChange($event)" [value]="currentJourney.id">
+                    <option *ngFor="let journey of journeys" [value]="journey.id">
+                        {{ journey.name }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="journey-info">
+                <h3>{{ currentJourney.name }}</h3>
+                <p>{{ currentJourney.description }}</p>
+            </div>
+
+            <div class="navigation-controls">
+                <button (click)="previousSegment()" [disabled]="currentSegmentIndex === 0">
+                    ← Previous
+                </button>
+                <span class="segment-counter">
+                    Stop {{ currentSegmentIndex + 1 }} of {{ currentJourney.segments.length }}
+                </span>
+                <button (click)="nextSegment()" [disabled]="currentSegmentIndex === currentJourney.segments.length - 1">
+                    Next →
+                </button>
+            </div>
+
+            <div class="animation-controls">
+                <button (click)="toggleAnimation()" [class.playing]="isAnimating">
+                    {{ isAnimating ? '⏸ Pause' : '▶ Play' }} Journey
+                </button>
+                <input type="range" min="1" max="10" [(ngModel)]="animationSpeed" (change)="updateAnimationSpeed()"
+                    [disabled]="!isAnimating">
+                <span>Speed: {{ animationSpeed }}x</span>
+            </div>
+
+            <div class="segment-details" *ngIf="currentSegment">
+                <h4>{{ currentSegment.from.name }} → {{ currentSegment.to.name }}</h4>
+                <p *ngIf="currentSegment.dayRange" class="day-range">{{ currentSegment.dayRange }}</p>
+                <div *ngFor="let event of currentSegment.events" class="event" (mouseenter)="highlightEvent(event)"
+                    (mouseleave)="unhighlightEvent()">
+                    <h5>{{ event.title }}</h5>
+                    <p>{{ event.description }}</p>
+                    <div class="scriptures">
+                        <strong>Scripture References:</strong>
+                        <ul>
+                            <li *ngFor="let scripture of event.scriptures">{{ scripture }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="time-controls">
+                <label>Time of Day:</label>
+                <input type="range" min="0" max="24" step="0.5" [(ngModel)]="timeOfDay" (input)="updateTimeOfDay()">
+                <span>{{ formatTime(timeOfDay) }}</span>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <div #mapContainer class="map-container"></div>
+
+    <div class="info-popup" *ngIf="hoveredLocation" [style.left.px]="popupPosition.x" [style.top.px]="popupPosition.y">
+        <h4>{{ hoveredLocation.name }}</h4>
+        <p *ngIf="hoveredLocation.ancientName">Ancient: {{ hoveredLocation.ancientName }}</p>
+        <p *ngIf="hoveredLocation.elevation">Elevation: {{ hoveredLocation.elevation }}m</p>
+    </div>
 </div>
