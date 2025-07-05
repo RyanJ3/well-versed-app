@@ -1,0 +1,47 @@
+<div class="card" *ngIf="selectedBook">
+  <h3 class="card-title">{{ selectedBook.name }} - Chapter Progress Heatmap</h3>
+  <div class="heatmap">
+    <ng-container *ngFor="let chapter of selectedBook.chapters">
+      <div *ngIf="isChapterVisible(chapter)"
+           [class]="getHeatmapClass(chapter)"
+           [title]="'Chapter ' + chapter.chapterNumber + ': ' + chapter.percentComplete + '%'"
+           (click)="selectChapter(chapter)">
+        {{ chapter.chapterNumber }}
+      </div>
+    </ng-container>
+  </div>
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-color heat-0"></div>
+      <span>0%</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color heat-2"></div>
+      <span>1-40%</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color heat-4"></div>
+      <span>41-80%</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color heat-complete"></div>
+      <span>81-100%</span>
+    </div>
+  </div>
+  <div class="action-container">
+    <div class="left-actions">
+      <button (click)="clearAllChapters.emit()"
+              class="action-btn secondary"
+              [disabled]="isLoading || isSavingBulk">
+        Clear All Chapters
+      </button>
+    </div>
+    <div class="right-actions">
+      <button (click)="selectAllChapters.emit()"
+              class="action-btn primary"
+              [disabled]="isLoading || isSavingBulk">
+        Memorize All Chapters
+      </button>
+    </div>
+  </div>
+</div>

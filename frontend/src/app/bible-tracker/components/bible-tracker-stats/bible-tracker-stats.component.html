@@ -1,0 +1,43 @@
+<div class="stats-grid">
+  <div class="card">
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-content">
+          <div class="stat-number">{{ memorizedVerses | number }}</div>
+          <div class="stat-label">Verses Memorized</div>
+          <div class="stat-progress text-green">{{ percentComplete }}% Complete</div>
+        </div>
+        <button class="view-toggle-btn" (click)="toggleProgressView.emit()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="toggle-icon">
+            <path d="M12 3v18m9-9H3"/>
+          </svg>
+          {{ progressViewMode === 'testament' ? 'Groups' : 'Testament' }}
+        </button>
+      </div>
+
+      <div class="segmented-progress">
+        <div class="segmented-bar">
+          <div class="segment" 
+               *ngFor="let segment of progressSegments"
+               [style.width.%]="segment.percent"
+               [style.background]="segment.color"
+               [title]="segment.name + ': ' + segment.verses + ' verses (' + segment.percent + '%)'">
+            <span class="segment-label" *ngIf="segment.percent > 5">
+              {{ segment.shortName }}
+            </span>
+          </div>
+        </div>
+
+        <div class="progress-legend">
+          <div class="legend-item" *ngFor="let segment of progressSegments">
+            <ng-container *ngIf="segment.name !== 'Remaining'">
+              <div class="legend-dot" [style.background]="segment.color"></div>
+              <span class="legend-name">{{ segment.name }}</span>
+              <span class="legend-value">{{ segment.percent }}%</span>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

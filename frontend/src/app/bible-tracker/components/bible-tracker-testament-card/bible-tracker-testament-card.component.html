@@ -1,0 +1,18 @@
+<div class="card testament-card" 
+     (click)="selectTestament()"
+     [class.active]="isActive"
+     [ngClass]="getTestamentClass()">
+  <div class="radial-container">
+    <canvas [id]="getChartId()"></canvas>
+    <div class="testament-percent-text">{{ testament.percentComplete }}%</div>
+  </div>
+  <h3 class="testament-title">{{ testament.name }}</h3>
+  <p class="testament-subtitle">{{ testament.memorizedVerses | number }} / {{ testament.totalVerses | number }} verses</p>
+  <div class="testament-legend">
+    <div class="legend-item" *ngFor="let group of getTestamentGroups()">
+      <span class="legend-dot" [style.background]="getGroupColor(group.name)"></span>
+      <span class="legend-label">{{ getGroupShortName(group.name) }}</span>
+      <span class="legend-percent">{{ getGroupPercent(group) }}%</span>
+    </div>
+  </div>
+</div>

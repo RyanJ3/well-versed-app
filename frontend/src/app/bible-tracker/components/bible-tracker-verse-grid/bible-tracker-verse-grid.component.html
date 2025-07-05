@@ -1,0 +1,48 @@
+<div class="card" *ngIf="selectedChapter">
+  <h3 class="card-title">{{ selectedBook?.name }} {{ selectedChapter.chapterNumber }} - Verse Progress</h3>
+  <div class="verse-header">
+    <div></div>
+    <div>
+      <span class="verse-count">{{ selectedChapter.memorizedVerses }}/{{ selectedChapter.totalVerses }}</span>
+      <span class="verse-label"> verses</span>
+    </div>
+  </div>
+  <div class="verse-grid" [class.disabled]="isLoading || isSavingBulk">
+    <div class="verse-bubble" 
+         *ngFor="let verse of selectedChapter.verses"
+         [class.memorized]="verse.memorized"
+         [class.not-memorized]="!verse.memorized"
+         [class.apocryphal]="verse.isApocryphal"
+         (click)="toggleVerse(verse)">
+      {{ verse.verseNumber }}
+    </div>
+  </div>
+
+  <div class="action-container">
+    <div class="left-actions">
+      <a class="action-btn secondary"
+         [routerLink]="'/flow'"
+         [queryParams]="{ bookId: selectedBook!.id, chapter: selectedChapter!.chapterNumber }">
+        Practice in FLOW
+      </a>
+      <button (click)="clearAllVerses.emit()"
+              class="action-btn secondary"
+              [disabled]="isLoading || isSavingBulk">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Clear All Verses
+      </button>
+    </div>
+    <div class="right-actions">
+      <button (click)="selectAllVerses.emit()"
+              class="action-btn primary"
+              [disabled]="isLoading || isSavingBulk">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="btn-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        Memorize All Verses
+      </button>
+    </div>
+  </div>
+</div>

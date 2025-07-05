@@ -1,0 +1,20 @@
+<div class="card" *ngIf="selectedGroup">
+  <h3 class="card-title">{{ selectedGroup.name }} Books</h3>
+  <div class="book-grid">
+    <div class="book-card" *ngFor="let book of selectedGroup.books"
+         [class.active]="book === selectedBook"
+         [class.apocryphal]="isApocryphalBook(book)"
+         (click)="selectBook(book)">
+      <div class="book-name">{{ book.name }}</div>
+      <div class="book-progress">
+        <div class="book-progress-bar"
+             [style.width.%]="book.percentComplete"
+             [style.background]="getBookProgressColor(book)"></div>
+      </div>
+      <div class="book-stats">
+        <span>{{ book.totalChapters }} chapters</span>
+        <span [style.color]="getBookProgressColor(book)" style="font-weight: 600;">{{ book.percentComplete }}%</span>
+      </div>
+    </div>
+  </div>
+</div>
