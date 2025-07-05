@@ -1,0 +1,59 @@
+<div class="map-controls">
+  <!-- View Controls -->
+  <div class="view-controls">
+    <button 
+      class="view-btn"
+      [class.active]="currentView === '2d'"
+      (click)="setView('2d')"
+      title="2D Map View">
+      <span class="icon">🗺️</span>
+      <span class="label">2D</span>
+    </button>
+    <button 
+      class="view-btn"
+      [class.active]="currentView === '3d'"
+      (click)="setView('3d')"
+      title="3D Terrain View">
+      <span class="icon">🏔️</span>
+      <span class="label">3D</span>
+    </button>
+    <button 
+      class="view-btn"
+      [class.active]="currentView === 'historical'"
+      (click)="setView('historical')"
+      title="Historical View">
+      <span class="icon">🏛️</span>
+      <span class="label">Historical</span>
+    </button>
+  </div>
+  
+  <!-- Navigation Controls -->
+  <div class="nav-controls">
+    <div class="segment-counter">
+      <span class="current">{{ currentSegmentIndex + 1 }}</span>
+      <span class="separator">/</span>
+      <span class="total">{{ totalSegments }}</span>
+    </div>
+    
+    <div class="nav-buttons">
+      <button 
+        class="nav-btn prev"
+        [disabled]="currentSegmentIndex === 0"
+        (click)="onPrevious()"
+        title="Previous segment">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <button 
+        class="nav-btn next"
+        [disabled]="currentSegmentIndex >= totalSegments - 1"
+        (click)="onNext()"
+        title="Next segment">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>

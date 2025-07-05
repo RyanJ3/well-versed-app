@@ -1,0 +1,66 @@
+<div class="segment-details" [class.collapsed]="collapsed" *ngIf="segment">
+  <button class="toggle-btn" (click)="toggleCollapse()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline [attr.points]="collapsed ? '6 9 12 15 18 9' : '18 15 12 9 6 15'"></polyline>
+    </svg>
+  </button>
+  
+  <div class="details-header">
+    <h3 class="segment-title">
+      {{ segment.from.location_name }} → {{ segment.to.location_name }}
+    </h3>
+    <span class="distance" *ngIf="segment.distance">
+      {{ segment.distance }} km
+    </span>
+  </div>
+  
+  <div class="details-content" *ngIf="!collapsed">
+    <!-- Segment Description -->
+    <p class="segment-description" *ngIf="segment.description">
+      {{ segment.description }}
+    </p>
+    
+    <!-- Key Events -->
+    <div class="events-section" *ngIf="segment.events && segment.events.length > 0">
+      <h4 class="events-title">Key Events</h4>
+      <div class="events-list">
+        <div 
+          class="event-item" 
+          *ngFor="let event of segment.events"
+          (mouseenter)="highlightEvent(event)"
+          (mouseleave)="unhighlightEvent()">
+          
+          <div class="event-header">
+            <span class="event-icon">{{ getEventIcon(event) }}</span>
+            <h5 class="event-title">{{ event.title }}</h5>
+          </div>
+          
+          <p class="event-description">{{ event.description }}</p>
+          
+          <div class="scripture-refs" *ngIf="event.scriptures && event.scriptures.length > 0">
+            <span class="scripture-icon">📖</span>
+            <span class="scripture-list">
+              <span 
+                *ngFor="let scripture of event.scriptures; let last = last"
+                class="scripture-ref">
+                {{ scripture }}<span *ngIf="!last">, </span>
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Travel Info -->
+    <div class="travel-info" *ngIf="segment.travelMode || segment.dayRange">
+      <div class="info-item" *ngIf="segment.travelMode">
+        <span class="info-icon">{{ getTravelIcon(segment.travelMode) }}</span>
+        <span class="info-text">{{ getTravelModeText(segment.travelMode) }}</span>
+      </div>
+      <div class="info-item" *ngIf="segment.dayRange">
+        <span class="info-icon">⏱️</span>
+        <span class="info-text">{{ segment.dayRange }}</span>
+      </div>
+    </div>
+  </div>
+</div>

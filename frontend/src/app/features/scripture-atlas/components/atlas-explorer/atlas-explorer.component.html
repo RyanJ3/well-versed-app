@@ -1,0 +1,42 @@
+<div class="atlas-explorer">
+  <app-journey-panel
+    [testament]="selectedTestament"
+    [journeys]="journeys$ | async"
+    [currentJourney]="currentJourney$ | async"
+    (testamentChange)="onTestamentChange($event)"
+    (journeyChange)="onJourneyChange($event)">
+  </app-journey-panel>
+  
+  <div class="map-section">
+    <app-map-view
+      [journey]="currentJourney$ | async"
+      [currentSegmentIndex]="(currentSegmentIndex$ | async) || 0"
+      [mapView]="currentView"
+      (locationHover)="onLocationHover($event)">
+    </app-map-view>
+    
+    <app-map-controls
+      [currentSegmentIndex]="(currentSegmentIndex$ | async) || 0"
+      [totalSegments]="(totalSegments$ | async) || 0"
+      [currentView]="currentView"
+      (previousSegment)="onPreviousSegment()"
+      (nextSegment)="onNextSegment()"
+      (viewChange)="onViewChange($event)">
+    </app-map-controls>
+    
+    <app-segment-details
+      [segment]="currentSegment$ | async"
+      [collapsed]="segmentDetailsCollapsed"
+      (toggle)="segmentDetailsCollapsed = !segmentDetailsCollapsed">
+    </app-segment-details>
+    
+    <div class="location-tooltip" 
+         *ngIf="hoveredLocation"
+         [style.left.px]="tooltipPosition.x" 
+         [style.top.px]="tooltipPosition.y">
+      <h4>{{ hoveredLocation.name }}</h4>
+      <p *ngIf="hoveredLocation.modernName">Modern: {{ hoveredLocation.modernName }}</p>
+      <p *ngIf="hoveredLocation.distanceFromStart">Distance: {{ hoveredLocation.distanceFromStart }}km</p>
+    </div>
+  </div>
+</div>

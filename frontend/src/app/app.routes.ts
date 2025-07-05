@@ -33,7 +33,10 @@ export const routes: Routes = [
   },
   { path: 'courses/create', component: CourseBuilderComponent },
   { path: 'courses', component: CourseListComponent },
-  { path: 'atlas', component: ScriptureAtlasComponent },
-  { path: 'flow', component: FlowComponent },
+{
+  path: 'atlas',
+  loadChildren: () => import('./features/scripture-atlas/scripture-atlas.routes')
+    .then(m => m.SCRIPTURE_ATLAS_ROUTES)
+},  { path: 'flow', component: FlowComponent },
   { path: '**', redirectTo: '' },
 ];

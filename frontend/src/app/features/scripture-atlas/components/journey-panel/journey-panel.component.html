@@ -1,0 +1,79 @@
+<div class="journey-panel" [class.collapsed]="collapsed">
+  <button class="toggle-btn" (click)="collapsed = !collapsed">
+    <span class="icon">{{ collapsed ? '☰' : '✕' }}</span>
+  </button>
+  
+  <div class="panel-content" *ngIf="!collapsed">
+    <h2 class="panel-title">Biblical Journeys</h2>
+    
+    <!-- Testament Filter -->
+    <div class="testament-selector">
+      <button 
+        class="testament-btn"
+        [class.active]="testament === 'Old Testament'"
+        (click)="selectTestament('Old Testament')">
+        <span class="icon">📜</span>
+        <span class="label">Old Testament</span>
+      </button>
+      <button 
+        class="testament-btn"
+        [class.active]="testament === 'New Testament'"
+        (click)="selectTestament('New Testament')">
+        <span class="icon">✝️</span>
+        <span class="label">New Testament</span>
+      </button>
+    </div>
+    
+    <!-- Journey Selector -->
+    <div class="journey-selector">
+      <label>Select Journey</label>
+      <select 
+        [value]="currentJourney?.journey_id || ''"
+        (change)="onJourneySelect($event)">
+        <option value="" disabled>Choose a journey...</option>
+        <option 
+          *ngFor="let journey of journeys" 
+          [value]="journey.journey_id">
+          {{ journey.name }}
+        </option>
+      </select>
+    </div>
+    
+    <!-- Journey Info -->
+    <div class="journey-info" *ngIf="currentJourney">
+      <h3>{{ currentJourney.name }}</h3>
+      <p class="description">{{ currentJourney.description }}</p>
+      
+      <div class="journey-details">
+        <div class="detail-item" *ngIf="currentJourney.scripture_refs">
+          <span class="icon">📖</span>
+          <span class="text">{{ currentJourney.scripture_refs }}</span>
+        </div>
+        <div class="detail-item" *ngIf="currentJourney.start_year">
+          <span class="icon">📅</span>
+          <span class="text">
+            {{ formatYearRange(currentJourney.start_year || null, currentJourney.end_year || null) }}
+          </span>
+        </div>
+        <div class="detail-item" *ngIf="currentJourney.waypoints">
+          <span class="icon">📍</span>
+          <span class="text">{{ currentJourney.waypoints.length }} locations</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Journey Stats -->
+    <div class="journey-stats" *ngIf="currentJourney">
+      <h4>Journey Progress</h4>
+      <div class="progress-bar">
+        <div 
+          class="progress-fill"
+          [style.width.%]="progressPercentage">
+        </div>
+      </div>
+      <p class="progress-text">
+        {{ currentSegmentIndex + 1 }} of {{ totalSegments }} segments
+      </p>
+    </div>
+  </div>
+</div>
