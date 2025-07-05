@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 setup_database.py - Database setup script for Well Versed
-Handles schema creation, Bible data population, and verification
+Updated to work with reorganized SQL file structure
 """
 import psycopg2
 from psycopg2.extras import execute_values
@@ -72,54 +72,55 @@ class ColoredLogger:
 
 logger = ColoredLogger()
 
-# SQL files in execution order
-SQL_FILES = [
+# SQL files in execution order (updated for new structure)
+SCHEMA_SQL_FILES = [
     {
         'file': '01-drop-schema.sql',
         'description': 'Drop existing schema',
         'require_flag': True  # Only run with --drop flag
     },
     {
-        'file': '02-create-core-tables.sql',
-        'description': 'Create core tables (users, bible_books, bible_verses, user_verses)'
+        'file': '02-create-schema.sql',
+        'description': 'Create schema and common functions'
     },
     {
-        'file': '03-create-decks.sql',
-        'description': 'Create deck system (decks, saved_decks, tags)'
+        'file': '03-create-users.sql',
+        'description': 'Create user management tables'
     },
     {
-        'file': '04-create-deck-cards.sql',
-        'description': 'Create flashcard system (deck_cards, card_verses)'
+        'file': '04-create-bible-structure.sql',
+        'description': 'Create Bible structure tables (books, verses, tracking)'
     },
     {
-        'file': '05-create-confidence-tracking.sql',
-        'description': 'Create confidence tracking system'
+        'file': '05-create-decks.sql',
+        'description': 'Create deck system (decks, cards, tags)'
     },
     {
-        'file': '07-create-feature-requests.sql',
-        'description': 'Create feature request tables'
+        'file': '06-create-feature-requests.sql',
+        'description': 'Create feature request system'
     },
     {
-        'file': '08-create-courses.sql',
+        'file': '07-create-courses.sql',
         'description': 'Create course and lesson tables'
     },
     {
-        'file': '09-create-course-progress.sql',
-        'description': 'Create course enrollment and progress tables'
-    },
-    {
-        'file': '10-create-missionary-journeys.sql',
-        'description': 'Create missionary journey tables'
+        'file': '08-create-biblical-journeys.sql',
+        'description': 'Create biblical journey tables'
     }
 ]
 
-# SQL file that relies on populated bible_verses. This is executed
-# after populate_bible_data() completes.
-POPULATE_TEST_SQL = {
-    'file': '06-populate-test-data.sql',
-    'description': 'Insert test data',
-    'skip_on_production': True
-}
+# Data population SQL files (executed after Bible data is populated)
+DATA_SQL_FILES = [
+    {
+        'file': '10-populate-test-data.sql',
+        'description': 'Insert test data',
+        'skip_if_no_test_data': True
+    },
+    {
+        'file': '11-populate-journeys.sql',
+        'description': 'Insert biblical journey data'
+    }
+]
 
 def get_db_connection():
     """Create a database connection with retry logic"""
@@ -184,7 +185,7 @@ def execute_sql_file(conn, filepath, description):
         cur.close()
 
 def populate_bible_data(conn):
-    """Populate Bible books and verses"""
+    """Populate Bible books and verses from JSON"""
     logger.info("\n" + "="*50)
     logger.info("Populating Bible Data", Colors.BOLD)
     logger.info("="*50)
@@ -203,7 +204,7 @@ def populate_bible_data(conn):
         # Set schema
         cur.execute("SET search_path TO wellversed01DEV")
         
-        # Book ID mappings (showing first few for brevity)
+        # Book ID mappings
         book_id_map = {
             # Old Testament
             'Genesis': 1, 'Exodus': 2, 'Leviticus': 3, 'Numbers': 4, 'Deuteronomy': 5,
@@ -226,7 +227,8 @@ def populate_bible_data(conn):
             # Apocryphal books
             'Tobit': 67, 'Judith': 68, '1 Maccabees': 69, '2 Maccabees': 70,
             'Wisdom of Solomon': 71, 'Sirach': 72, 'Baruch': 73,
-            '1 Esdras': 74, '3 Maccabees': 75, 'Prayer of Manasseh': 76
+            '1 Esdras': 74, '3 Maccabees': 75, 'Prayer of Manasseh': 76,
+            'Psalm 151': 77
         }
         
         # Book codes mapping
@@ -250,7 +252,8 @@ def populate_bible_data(conn):
             '2 John': '2JN', '3 John': '3JN', 'Jude': 'JDE', 'Revelation': 'REV',
             'Tobit': 'TOB', 'Judith': 'JDT', '1 Maccabees': '1MA', '2 Maccabees': '2MA',
             'Wisdom of Solomon': 'WIS', 'Sirach': 'SIR', 'Baruch': 'BAR',
-            '1 Esdras': '1ES', '3 Maccabees': '3MA', 'Prayer of Manasseh': 'MAN'
+            '1 Esdras': '1ES', '3 Maccabees': '3MA', 'Prayer of Manasseh': 'MAN',
+            'Psalm 151': 'PS2'
         }
         
         # Prepare data
@@ -365,21 +368,23 @@ def verify_setup(conn):
         ('bible_books', 'Bible Books'),
         ('bible_verses', 'Bible Verses'),
         ('user_verses', 'User Verses'),
+        ('user_verse_confidence', 'Confidence Tracking'),
         ('decks', 'Decks'),
         ('saved_decks', 'Saved Decks'),
         ('deck_cards', 'Deck Cards'),
         ('card_verses', 'Card Verses'),
-        ('user_verse_confidence', 'Confidence Tracking'),
         ('deck_tags', 'Deck Tags'),
         ('deck_tag_map', 'Deck Tag Mappings'),
         ('feature_requests', 'Feature Requests'),
-        ('course_tags', 'Course Tags'),
-        ('course_tag_map', 'Course Tag Map'),
+        ('feature_request_votes', 'Feature Request Votes'),
+        ('feature_request_comments', 'Feature Request Comments'),
         ('courses', 'Courses'),
         ('course_lessons', 'Course Lessons'),
         ('course_enrollments', 'Course Enrollments'),
         ('lesson_progress', 'Lesson Progress'),
-        ('lesson_flashcards', 'Lesson Flashcards')
+        ('lesson_flashcards', 'Lesson Flashcards'),
+        ('biblical_journeys', 'Biblical Journeys'),
+        ('journey_waypoints', 'Journey Waypoints')
     ]
     
     logger.info("\nTable Status:")
@@ -469,7 +474,7 @@ def main():
             verify_setup(conn)
             return
         
-        # Check for drop flag
+        # Check for flags
         drop_schema = '--drop' in args or '-d' in args
         skip_test_data = '--no-test-data' in args
         
@@ -485,21 +490,16 @@ def main():
         # Track success
         all_successful = True
         
-        # Execute SQL files
-        logger.info(f"{Colors.BOLD}Executing SQL files...{Colors.RESET}\n")
+        # Execute schema SQL files
+        logger.info(f"{Colors.BOLD}Creating Database Schema...{Colors.RESET}\n")
         
-        for sql_info in SQL_FILES:
+        for sql_info in SCHEMA_SQL_FILES:
             sql_file = sql_info['file']
             description = sql_info['description']
             
             # Skip drop schema if flag not provided
             if sql_info.get('require_flag') and not drop_schema:
                 logger.info(f"Skipping {sql_file} (use --drop flag to execute)")
-                continue
-            
-            # Skip test data if requested
-            if sql_info.get('skip_on_production') and skip_test_data:
-                logger.info(f"Skipping {sql_file} (--no-test-data flag provided)")
                 continue
             
             success = execute_sql_file(conn, sql_file, description)
@@ -516,13 +516,27 @@ def main():
             success = populate_bible_data(conn)
             if not success:
                 all_successful = False
-
-        # Insert test data that depends on bible_verses
-        if all_successful and not skip_test_data:
-            success = execute_sql_file(conn, POPULATE_TEST_SQL['file'],
-                                       POPULATE_TEST_SQL['description'])
-            if not success:
-                all_successful = False
+        
+        # Execute data population SQL files
+        if all_successful:
+            logger.info(f"\n{Colors.BOLD}Populating Data...{Colors.RESET}\n")
+            
+            for sql_info in DATA_SQL_FILES:
+                sql_file = sql_info['file']
+                description = sql_info['description']
+                
+                # Skip test data if requested
+                if sql_info.get('skip_if_no_test_data') and skip_test_data:
+                    logger.info(f"Skipping {sql_file} (--no-test-data flag provided)")
+                    continue
+                
+                success = execute_sql_file(conn, sql_file, description)
+                if not success:
+                    all_successful = False
+                    response = input(f"\n{Colors.YELLOW}Error occurred. Continue anyway? (y/n): {Colors.RESET}")
+                    if response.lower() != 'y':
+                        logger.error("Setup aborted due to error")
+                        return
         
         # Verify setup
         if all_successful:
