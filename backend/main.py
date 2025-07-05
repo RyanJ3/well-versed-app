@@ -8,6 +8,7 @@ from psycopg2.pool import SimpleConnectionPool
 from database import DatabaseConnection
 from config import Config
 import db_pool
+from journeys import router as journeys_router
 
 # Configure logging
 logging.basicConfig(
@@ -71,6 +72,7 @@ app.include_router(
 )
 app.include_router(courses.router, prefix="/api/courses", tags=["courses"])
 app.include_router(atlas.router, prefix="/api/atlas", tags=["atlas"])
+app.include_router(journeys_router, prefix="/api", tags=["journeys"])
 
 
 @app.get("/api/health")
