@@ -17,7 +17,9 @@
   width: 100%;
   margin: 0 auto;
   padding: 20px;
-  overflow-y: auto;
+  overflow: hidden; // Changed from overflow-y: auto
+  display: flex;
+  flex-direction: column;
   
   // Smooth page transitions
   animation: fadeIn 0.4s ease;

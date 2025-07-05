@@ -1,6 +1,6 @@
 .atlas-explorer {
   display: flex;
-  height: 100vh;
+  height: 100%;
   width: 100%;
   position: relative;
 }
@@ -9,6 +9,13 @@
   flex: 1;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  
+  app-map-view {
+    flex: 1;
+    display: flex;
+  }
 }
 
 .location-tooltip {
