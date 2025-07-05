@@ -8,6 +8,7 @@ from psycopg2.pool import SimpleConnectionPool
 from database import DatabaseConnection
 from config import Config
 import db_pool
+from journeys import router as journeys_router
 
 # Configure logging
 logging.basicConfig(
@@ -71,6 +72,7 @@ app.include_router(
 )
 app.include_router(courses.router, prefix="/api/courses", tags=["courses"])
 app.include_router(atlas.router, prefix="/api/atlas", tags=["atlas"])
+app.include_router(journeys_router, prefix="/api", tags=["journeys"])
 
 
 @app.get("/api/health")
@@ -101,3 +103,8 @@ async def root():
     """Root endpoint"""
     logger.debug("Root endpoint accessed")
     return {"message": "Well Versed API", "version": "1.0.0"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+

@@ -11,4 +11,4 @@ COPY . .
 EXPOSE 4200
 
 # Use the proxy configuration for Docker
-CMD ["npm", "run", "serve:docker"]
+CMD ["npm", "run", "start:docker"]
