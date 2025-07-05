@@ -528,6 +528,25 @@ VALUES (
     180
 );
 
+
+INSERT INTO journey_waypoints 
+(journey_id, position, location_name, modern_name, latitude, longitude, description, events, distance_from_start)
+VALUES (
+    (SELECT journey_id FROM biblical_journeys WHERE name = 'Ministry of Jesus'),
+    7, 'Temple Courts', 
+    'Temple Mount, Jerusalem',
+    31.7767, 35.2345, 
+    'Where Jesus taught in the Temple and cleansed it of money changers.',
+    '{"events": [{"title": "Cleansing the Temple", "description": "Jesus drove out the money changers and merchants from the Temple courts.", "scriptures": ["Matthew 21:12-13", "Mark 11:15-17"], "visualEffect": "teaching"}, {"title": "Teaching in the Temple", "description": "Jesus taught daily in the Temple courts during His final week.", "scriptures": ["Luke 19:47-48", "Matthew 21:23-27"], "visualEffect": "teaching"}]}'::jsonb,
+    275
+);
+
+-- Update Jerusalem to position 8
+UPDATE journey_waypoints 
+SET position = 8, distance_from_start = 280
+WHERE journey_id = (SELECT journey_id FROM biblical_journeys WHERE name = 'Ministry of Jesus')
+AND location_name = 'Jerusalem';
+
 INSERT INTO journey_waypoints 
 (journey_id, position, location_name, modern_name, latitude, longitude, description, events, distance_from_start)
 VALUES (

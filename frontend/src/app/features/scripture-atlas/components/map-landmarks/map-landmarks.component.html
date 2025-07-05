@@ -1,0 +1,21 @@
+<div class="landmarks-panel" [class.collapsed]="collapsed">
+  <button class="toggle-btn" (click)="collapsed = !collapsed">
+    <span class="icon">{{ collapsed ? '📍' : '✕' }}</span>
+  </button>
+  
+  <div class="panel-content" *ngIf="!collapsed">
+    <h3 class="panel-title">Biblical Landmarks</h3>
+    
+    <div class="landmark-list">
+      <button 
+        *ngFor="let landmark of landmarks" 
+        class="landmark-btn"
+        [class.active]="selectedLandmark === landmark.id"
+        (click)="selectLandmark(landmark)"
+        [title]="landmark.description">
+        <span class="landmark-icon">{{ landmark.icon }}</span>
+        <span class="landmark-name">{{ landmark.name }}</span>
+      </button>
+    </div>
+  </div>
+</div>

@@ -17,6 +17,7 @@ export class MapControlsComponent {
   @Output() previousSegment = new EventEmitter<void>();
   @Output() nextSegment = new EventEmitter<void>();
   @Output() viewChange = new EventEmitter<MapView>();
+  @Output() resetView = new EventEmitter<void>();
   
   setView(view: MapView) {
     this.viewChange.emit(view);
@@ -32,5 +33,10 @@ export class MapControlsComponent {
     if (this.currentSegmentIndex < this.totalSegments - 1) {
       this.nextSegment.emit();
     }
+  }
+
+  
+  onResetView() {
+    this.resetView.emit();
   }
 }

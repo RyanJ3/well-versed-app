@@ -126,6 +126,20 @@
     cursor: not-allowed;
   }
   
+  &.reset {
+    background: #6495ED;
+    color: white;
+    
+    &:hover {
+      background: #4169E1;
+      transform: scale(1.1);
+    }
+    
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
   svg {
     width: 20px;
     height: 20px;

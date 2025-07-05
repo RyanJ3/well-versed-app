@@ -81,3 +81,83 @@
     border-top-color: rgba(0, 0, 0, 0.85);
   }
 }
+
+// Temple 3D overlay styles
+::ng-deep app-temple-3d {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  
+  .temple-container {
+    mix-blend-mode: normal;
+    opacity: 0.9;
+  }
+}
+
+// Fade in animation for temple
+@keyframes templeAppear {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+::ng-deep app-temple-3d[ng-reflect-visible="true"] {
+  animation: templeAppear 1.5s ease-out;
+}
+
+
+// Temple information overlay
+.temple-info-overlay {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  max-width: 300px;
+  pointer-events: none;
+  animation: slideInRight 0.5s ease-out;
+  
+  h3 {
+    margin: 0 0 10px 0;
+    color: #8B4513;
+    font-size: 18px;
+  }
+  
+  p {
+    margin: 0 0 8px 0;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  .divider {
+    height: 1px;
+    background: #e0e0e0;
+    margin: 12px 0;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

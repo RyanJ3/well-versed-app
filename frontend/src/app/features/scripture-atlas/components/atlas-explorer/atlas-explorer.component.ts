@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { JourneyPanelComponent } from '../journey-panel/journey-panel.component';
@@ -24,6 +24,7 @@ import { BiblicalJourney, JourneySegment, MapView, Testament } from '../../model
 })
 export class AtlasExplorerComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  @ViewChild(MapViewComponent) mapViewComponent!: MapViewComponent;
   
   // Observables from services
   journeys$!: Observable<BiblicalJourney[]>;
@@ -111,6 +112,14 @@ export class AtlasExplorerComponent implements OnInit, OnDestroy {
       this.tooltipPosition = event.position;
     } else {
       this.hoveredLocation = null;
+    }
+  }
+
+  
+  onResetView() {
+    // Reset to show entire journey using the map component
+    if (this.mapViewComponent) {
+      this.mapViewComponent.fitMapToBounds();
     }
   }
 }

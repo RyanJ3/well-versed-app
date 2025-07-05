@@ -21,7 +21,8 @@
       [currentView]="currentView"
       (previousSegment)="onPreviousSegment()"
       (nextSegment)="onNextSegment()"
-      (viewChange)="onViewChange($event)">
+      (viewChange)="onViewChange($event)"
+      (resetView)="onResetView()">
     </app-map-controls>
     
     <app-segment-details
