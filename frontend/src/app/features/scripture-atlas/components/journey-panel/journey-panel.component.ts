@@ -29,7 +29,7 @@ export class JourneyPanelComponent implements OnInit {
   
   ngOnInit() {
     // Check if mobile and start collapsed
-    if (window.innerWidth <= 768) {
+    if (typeof window !== 'undefined' && window.innerWidth <= 768) {
       this.collapsed = true;
     }
   }
