@@ -23,16 +23,23 @@ export class FlowParsingService {
 
   /**
    * Extracts the first letter from a single word.
-   * Preserves leading punctuation and handles apostrophes/contractions.
+   * Preserves leading and trailing punctuation and handles apostrophes/contractions.
    * 
    * @param word The word to process
    * @returns The word with only its first letter preserved
    */
   private extractFirstLetterFromWord(word: string): string {
-    // Separate the word from trailing punctuation
-    const punctuationMatch = word.match(/^(.+?)([.,;:!?]*)$/);
-    const wordPart = punctuationMatch ? punctuationMatch[1] : word;
-    const trailingPunctuation = punctuationMatch ? punctuationMatch[2] : '';
+    // Separate leading punctuation, word content, and trailing punctuation
+    const fullMatch = word.match(/^([^a-zA-Z0-9]*)([a-zA-Z0-9']+)([^a-zA-Z0-9]*)$/);
+    
+    if (!fullMatch) {
+      // If no letters/numbers found, return as is
+      return word;
+    }
+    
+    const leadingPunctuation = fullMatch[1] || '';
+    const wordPart = fullMatch[2] || '';
+    const trailingPunctuation = fullMatch[3] || '';
     
     // Handle words with apostrophes (possessive and contractive)
     const processedWord = this.removeApostrophesFromWord(wordPart);
@@ -41,7 +48,7 @@ export class FlowParsingService {
     const match = processedWord.match(/[a-zA-Z]/);
     if (match) {
       const index = processedWord.indexOf(match[0]);
-      return processedWord.substring(0, index + 1) + trailingPunctuation;
+      return leadingPunctuation + processedWord.substring(0, index + 1) + trailingPunctuation;
     }
     
     return word; // Return original if no letters found
