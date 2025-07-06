@@ -3,9 +3,9 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 1.5rem 2rem;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  background: transparent;
+  backdrop-filter: none;
+  border-top: none;
   flex-shrink: 0;
   width: 100%;
 }
@@ -97,9 +97,16 @@
 
 @media (max-width: 768px) {
   .nav-buttons {
-    padding: 1rem;
-    flex-direction: column;
-  }
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  background: transparent;
+  backdrop-filter: none;
+  border-top: none;
+  flex-shrink: 0;
+  width: 100%;
+}
 
   .prev-btn,
   .next-btn {

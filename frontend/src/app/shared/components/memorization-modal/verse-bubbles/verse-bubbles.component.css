@@ -46,6 +46,9 @@
   pointer-events: none;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1;
+  pointer-events: none;
+  pointer-events: none;
+  pointer-events: none;
 }
 
 .active-border-bg {
@@ -156,6 +159,8 @@
   display: flex;
   gap: 0.25rem;
   margin-top: 0.5rem;
+  justify-content: center;
+  min-height: 0.5rem;
 }
 
 .stage-dot {
