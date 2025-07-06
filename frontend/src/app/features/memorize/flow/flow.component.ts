@@ -5,6 +5,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { VerseSelection } from '../../../shared/components/verse-range-picker/verse-range-picker.component';
 import { BibleService } from '../../../core/services/bible.service';
 import { UserService } from '../../../core/services/user.service';
+import { FlowParsingService } from '../../../core/services/flow-parsing.service';
 import { MemorizationModalComponent } from '../../../shared/components/memorization-modal/memorization-modal.component';
 import { User } from '../../../core/models/user';
 import { UserVerseDetail } from '../../../core/models/bible';
@@ -83,7 +84,8 @@ export class FlowComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private stateService: FlowStateService,
-    private memorizationService: FlowMemorizationService
+    private memorizationService: FlowMemorizationService,
+    private flowParsingService: FlowParsingService
   ) {}
 
   ngOnInit() {
@@ -253,7 +255,7 @@ export class FlowComponent implements OnInit, OnDestroy {
         verseCode,
         reference: this.formatVerseReference(bookId, chapter, verse),
         text: verseText,
-        firstLetters: this.extractFirstLetters(verseText),
+        firstLetters: this.flowParsingService.extractFirstLetters(verseText),
         isMemorized: false,
         isFifth: (index + 1) % 5 === 0,
         bookName: this.getBookName(bookId),
@@ -265,22 +267,6 @@ export class FlowComponent implements OnInit, OnDestroy {
 
     this.updateMemorizationStatus();
     this.updateProgress();
-  }
-
-  private extractFirstLetters(text: string): string {
-    if (!text) return '';
-
-    const words = text.split(/\s+/);
-    return words
-      .map((word) => {
-        const match = word.match(/[a-zA-Z]/);
-        if (match) {
-          const index = word.indexOf(match[0]);
-          return word.substring(0, index + 1);
-        }
-        return word;
-      })
-      .join(' ');
   }
 
   private updateMemorizationStatus() {
