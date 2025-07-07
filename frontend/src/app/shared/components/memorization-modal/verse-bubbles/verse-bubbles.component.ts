@@ -110,4 +110,8 @@ export class VerseBubblesComponent implements AfterViewChecked {
     if (!this.showCheckmarks || !this.isIndividualStage) return false;
     return index < this.currentSubStageIndex;
   }
+
+  hasActiveGroups(): boolean {
+    return this.activeGroupIndices.length > 0;
+  }
 }

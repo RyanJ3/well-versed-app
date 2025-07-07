@@ -27,25 +27,6 @@
               {{ verse.verse }}
             </div>
           </div>
-          <div
-            class="stage-dots"
-            *ngIf="isGroupActive(i) && showStageDots"
-          >
-            <div
-              class="stage-dot"
-              [class.completed]="currentStepIndex > 0"
-              [class.active]="currentStepIndex === 0"
-            ></div>
-            <div
-              class="stage-dot"
-              [class.completed]="currentStepIndex > 1"
-              [class.active]="currentStepIndex === 1"
-            ></div>
-            <div
-              class="stage-dot"
-              [class.active]="currentStepIndex === 2"
-            ></div>
-          </div>
           <span
             class="check-icon"
             *ngIf="isGroupCompleted(i) && showCheckmarks"
@@ -54,5 +35,25 @@
         </div>
       </ng-container>
     </div>
+  </div>
+  <!-- Stage dots shown once for all active groups -->
+  <div
+    class="stage-dots"
+    *ngIf="hasActiveGroups() && showStageDots"
+  >
+    <div
+      class="stage-dot"
+      [class.completed]="currentStepIndex > 0"
+      [class.active]="currentStepIndex === 0"
+    ></div>
+    <div
+      class="stage-dot"
+      [class.completed]="currentStepIndex > 1"
+      [class.active]="currentStepIndex === 1"
+    ></div>
+    <div
+      class="stage-dot"
+      [class.active]="currentStepIndex === 2"
+    ></div>
   </div>
 </div>

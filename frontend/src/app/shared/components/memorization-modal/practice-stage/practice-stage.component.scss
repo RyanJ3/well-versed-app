@@ -1,9 +1,15 @@
+:host {
+  margin-bottom: 2em;
+}
+
 .practice-layout {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
   height: 100%;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
 }
 
 .practice-wrapper {
@@ -12,20 +18,25 @@
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
+  height: 100%;
 }
 
 .verse-display {
   flex: 1;
   background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
-  margin: 0 0 1.25rem 0;
+  margin: 0;
   border-radius: 1.25rem;
   box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
   padding: 2.5rem;
+  padding-bottom: 3rem;
   overflow-y: auto;
+  overflow-x: hidden;
   min-height: 0;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .verse-display::before {
@@ -40,14 +51,47 @@
   pointer-events: none;
 }
 
+.verse-display::-webkit-scrollbar {
+  width: 8px;
+}
+
+.verse-display::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.verse-display::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.verse-display::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.column-layout {
+  position: relative;
+  z-index: 1;
+}
+
 .column-layout .verse-block + .verse-block {
   border-top: 2px solid #f3f4f6;
   margin-top: 2rem;
   padding-top: 2rem;
 }
 
+.column-layout .verse-block:last-child {
+  padding-bottom: 1rem;
+}
+
+.paragraph-layout {
+  position: relative;
+  z-index: 1;
+}
+
 .paragraph-layout .verse-paragraph {
   line-height: 1.8;
+  padding-bottom: 1rem;
 }
 
 .paragraph-layout .verse-ref-inline {
@@ -93,11 +137,17 @@
   color: #4b5563;
   text-align: center;
   padding: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 @media (max-width: 768px) {
+  .practice-layout {
+    margin-bottom: 1rem;
+  }
+
   .verse-display {
-    margin: 1rem;
+    margin: 0;
     padding: 1.5rem;
+    padding-bottom: 2rem;
   }
 }

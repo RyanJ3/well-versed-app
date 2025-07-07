@@ -30,7 +30,7 @@ export interface PracticeSettings {
     ])
   ],
   templateUrl: './practice-stage.component.html',
-  styleUrls: ['./practice-stage.component.css']
+  styleUrls: ['./practice-stage.component.scss']
 })
 export class PracticeStageComponent {
   @Input() currentVerses: Verse[] = [];

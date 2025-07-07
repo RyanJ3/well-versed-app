@@ -95,13 +95,11 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   padding: 2rem;
-  padding-bottom: 0;
+  padding-bottom: 6rem;
   position: relative;
   min-height: 0;
-  scrollbar-gutter: stable;
 }
 
 .floating-notification {
@@ -164,7 +162,6 @@
   pointer-events: none;
 }
 
-
 .fixed-bottom-nav {
   position: absolute;
   bottom: 0;
@@ -179,18 +176,18 @@
 
 @media (max-width: 768px) {
   .memorization-modal-container {
-  background: linear-gradient(135deg, #f8faff 0%, #ede9ff 100%);
-  display: flex;
-  flex-direction: column;
-  width: 90vw;
-  height: 90vh;
-  max-width: 1200px;
-  max-height: 900px;
-  border-radius: 1.5rem;
-  overflow: hidden;
-  position: relative;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
+    background: linear-gradient(135deg, #f8faff 0%, #ede9ff 100%);
+    display: flex;
+    flex-direction: column;
+    width: 90vw;
+    height: 90vh;
+    max-width: 1200px;
+    max-height: 900px;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
 
   .modal-header {
     padding: 1rem 1.5rem 0.75rem;
@@ -198,5 +195,10 @@
 
   .header-row {
     padding-right: 5rem;
+  }
+
+  .modal-content {
+    padding: 1rem;
+    padding-bottom: 6rem;
   }
 }

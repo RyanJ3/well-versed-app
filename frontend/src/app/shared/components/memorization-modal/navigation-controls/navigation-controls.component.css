@@ -97,16 +97,16 @@
 
 @media (max-width: 768px) {
   .nav-buttons {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1.5rem 2rem;
-  background: transparent;
-  backdrop-filter: none;
-  border-top: none;
-  flex-shrink: 0;
-  width: 100%;
-}
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem 2rem;
+    background: transparent;
+    backdrop-filter: none;
+    border-top: none;
+    flex-shrink: 0;
+    width: 100%;
+  }
 
   .prev-btn,
   .next-btn {
