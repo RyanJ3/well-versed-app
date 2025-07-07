@@ -75,6 +75,10 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   progressViewMode: 'testament' | 'groups' = 'testament';
   progressSegments: any[] = [];
 
+  // Success popup state
+  showSuccessMessage = false;
+  successMessage = '';
+
   constructor(
     private bibleService: BibleService,
     private userService: UserService,
@@ -267,6 +271,17 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     }
   }
 
+  private showSuccessPopup(message: string): void {
+    this.successMessage = message;
+    this.showSuccessMessage = true;
+    
+    // Hide the popup after 3 seconds
+    setTimeout(() => {
+      this.showSuccessMessage = false;
+      this.cdr.detectChanges();
+    }, 3000);
+  }
+
   setTestament(testament: BibleTestament): void {
     this.selectedTestament = testament;
     if (testament.groups.length > 0) {
@@ -311,8 +326,8 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
         });
         this.isSavingBulk = false;
         this.computeProgressSegments();
-        this.modalService.success(
-          'Chapter Saved',
+        // Show success popup instead of modal
+        this.showSuccessPopup(
           `All verses in ${this.selectedBook!.name} ${this.selectedChapter!.chapterNumber} have been marked as memorized.`
         );
         this.cdr.detectChanges();
@@ -354,8 +369,8 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
         });
         this.isSavingBulk = false;
         this.computeProgressSegments();
-        this.modalService.success(
-          'Chapter Cleared',
+        // Show success popup instead of modal
+        this.showSuccessPopup(
           `All verses in ${this.selectedBook!.name} ${this.selectedChapter!.chapterNumber} have been cleared.`
         );
         this.cdr.detectChanges();
@@ -371,36 +386,44 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     });
   }
 
-  selectAllChapters(): void {
-    if (!this.selectedBook) return;
+async selectAllChapters(): Promise<void> {
+  if (!this.selectedBook) return;
 
-    this.isSavingBulk = true;
+  // Using danger modal for confirmation since modalService.confirm requires 4 parameters
+  const confirmed = await this.modalService.danger(
+    'Memorize All Chapters?',
+    `Are you sure you want to mark all chapters in ${this.selectedBook.name} as memorized?`,
+    'Memorize All'
+  );
 
-    this.bibleService.saveBook(
-      this.userId,
-      this.selectedBook.id
-    ).subscribe({
-      next: () => {
-        this.selectedBook!.chapters.forEach(ch => ch.selectAllVerses());
-        this.isSavingBulk = false;
-        this.computeProgressSegments();
-        this.modalService.success(
-          'Book Saved',
-          `${this.selectedBook!.name} has been marked as memorized.`
-        );
-        this.cdr.detectChanges();
-      },
-      error: (error: any) => {
-        this.isSavingBulk = false;
-        this.modalService.alert(
-          'Error Saving Book',
-          'Unable to save all chapters in this book. Please try again.',
-          'danger'
-        );
-      }
-    });
-  }
+  if (!confirmed) return;
 
+  this.isSavingBulk = true;
+
+  this.bibleService.saveBook(
+    this.userId,
+    this.selectedBook.id
+  ).subscribe({
+    next: () => {
+      this.selectedBook!.chapters.forEach(ch => ch.selectAllVerses());
+      this.isSavingBulk = false;
+      this.computeProgressSegments();
+      // Show success popup instead of modal
+      this.showSuccessPopup(
+        `${this.selectedBook!.name} has been marked as memorized.`
+      );
+      this.cdr.detectChanges();
+    },
+    error: (error: any) => {
+      this.isSavingBulk = false;
+      this.modalService.alert(
+        'Error Saving Book',
+        'Unable to save all chapters in this book. Please try again.',
+        'danger'
+      );
+    }
+  });
+}
   async clearAllChapters(): Promise<void> {
     if (!this.selectedBook) return;
 
@@ -422,8 +445,8 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
         this.selectedBook!.chapters.forEach(ch => ch.clearAllVerses());
         this.isSavingBulk = false;
         this.computeProgressSegments();
-        this.modalService.success(
-          'Book Cleared',
+        // Show success popup instead of modal
+        this.showSuccessPopup(
           `${this.selectedBook!.name} has been cleared.`
         );
         this.cdr.detectChanges();
