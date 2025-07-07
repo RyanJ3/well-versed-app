@@ -1,11 +1,10 @@
 // frontend/src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { HomeComponent } from './features/home/home.component';
-import { BibleTrackerComponent } from './bible-tracker/bible-tracker.component';
 import { ProfileComponent } from './features/profile/profile.component';
 
 import { FlowComponent } from './features/memorize/flow/flow.component';
-import { StatsComponent } from './stats/stats.component';
+import { StatsComponent } from './features/stats/stats.component';
 import { DeckEditorComponent } from './features/memorize/decks/deck-editor/deck-editor.component';
 import { DeckStudyComponent } from './features/memorize/decks/deck-study/deck-study.component';
 import { DeckListComponent } from './features/memorize/decks/deck-list/deck-list.component';
@@ -14,6 +13,7 @@ import { CourseListComponent } from './features/memorize/courses/course-list.com
 import { CourseBuilderComponent } from './features/memorize/courses/course-builder.component';
 import { LessonPracticeComponent } from './features/memorize/courses/lesson-practice/lesson-practice.component';
 import { ScriptureAtlasComponent } from './features/scripture-atlas/scripture-atlas.component';
+import { BibleTrackerComponent } from './bible-tracker/bible-tracker.component';
 
 // Routing configuration
 export const routes: Routes = [
