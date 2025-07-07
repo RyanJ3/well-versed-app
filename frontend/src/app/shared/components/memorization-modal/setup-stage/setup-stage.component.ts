@@ -33,10 +33,6 @@ export class SetupStageComponent {
     return Math.ceil(this.verseCount / this.groupSize);
   }
 
-  get estimatedTime(): number {
-    return Math.round(this.groupCount * 3 * 1.5);
-  }
-
   setGroupSize(size: number) {
     this.groupSize = size;
     this.groupSizeChange.emit(size);

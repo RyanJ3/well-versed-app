@@ -606,6 +606,14 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
   }
 
   confirmExit() {
+    // If already saved, close directly without confirmation
+    if (this.hasMarkedComplete || this.showNavigationOptions) {
+      this.visible = false;
+      this.completed.emit({ memorized: true });
+      return;
+    }
+    
+    // Otherwise show confirmation dialog
     this.showExitConfirm = true;
   }
 
