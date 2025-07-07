@@ -51,7 +51,7 @@ import { trigger, transition, style, animate, keyframes, state } from '@angular/
     ])
   ],
   templateUrl: './completion-stage.component.html',
-  styleUrls: ['./completion-stage.component.css']
+  styleUrls: ['./completion-stage.component.scss']
 })
 export class CompletionStageComponent implements OnInit {
   @Input() chapterName = '';

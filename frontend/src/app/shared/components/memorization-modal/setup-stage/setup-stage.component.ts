@@ -21,7 +21,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
     ])
   ],
   templateUrl: './setup-stage.component.html',
-  styleUrls: ['./setup-stage.component.css']
+  styleUrls: ['./setup-stage.component.scss']
 })
 export class SetupStageComponent {
   @Input() groupSize = 2;
