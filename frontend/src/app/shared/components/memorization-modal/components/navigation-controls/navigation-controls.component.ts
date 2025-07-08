@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
-import { RecordingService, RecordingState } from '../../../../core/services/recording.service';
+import { RecordingService, RecordingState } from '../../../../../core/services/recording.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
