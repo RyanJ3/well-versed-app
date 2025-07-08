@@ -29,6 +29,7 @@
         [showCheckmarks]="true"
         [isIndividualStage]="currentStage?.stageType === 'individual'"
         (groupHovered)="hoveredGroup = $event"
+        (jumpToStep)="jumpToStep($event)"
       ></app-verse-bubbles>
 
       <!-- Progress Journey -->

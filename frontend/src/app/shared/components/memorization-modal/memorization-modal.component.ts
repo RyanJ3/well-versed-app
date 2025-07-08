@@ -11,6 +11,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { BibleService } from '../../../core/services/bible.service';
 import { UserService } from '../../../core/services/user.service';
+import { RecordingService } from '../../../core/services/recording.service';
 import { BibleBook } from '../../../core/models/bible';
 import { Subject, takeUntil } from 'rxjs';
 import { trigger, style, transition, animate, keyframes, state } from '@angular/animations';
@@ -189,6 +190,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
     private bibleService: BibleService,
     private userService: UserService,
     private router: Router,
+    private recordingService: RecordingService
   ) { }
 
   ngOnInit() {
@@ -498,6 +500,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
       } else {
         this.currentSubStageIndex = 0;
         this.currentStageIndex++;
+        this.recordingService.resetRecording();
         if (this.currentStageIndex >= this.allStages.length) {
           this.showSavePrompt();
         } else {
@@ -527,6 +530,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
         this.currentStageIndex--;
         if (this.currentStageIndex >= 0 && this.allStages[this.currentStageIndex]) {
           this.currentSubStageIndex = this.allStages[this.currentStageIndex].groups.length - 1;
+          this.recordingService.resetRecording();
         }
       }
     }

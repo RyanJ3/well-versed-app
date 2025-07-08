@@ -39,8 +39,10 @@ export class VerseBubblesComponent implements AfterViewChecked {
   @Input() showCheckmarks = true;
   @Input() isIndividualStage = false;
   @Output() groupHovered = new EventEmitter<number>();
+  @Output() jumpToStep = new EventEmitter<number>();
 
   hoveredGroup = -1;
+  stageNames = ['Read', 'Flow', 'Memory'];
   borderLeft = 0;
   borderWidth = 0;
   hasActiveBorder = false;
@@ -113,5 +115,18 @@ export class VerseBubblesComponent implements AfterViewChecked {
 
   hasActiveGroups(): boolean {
     return this.activeGroupIndices.length > 0;
+  }
+
+  getStageIcon(stage: string): string {
+    switch (stage) {
+      case 'Read':
+        return '📖';
+      case 'Flow':
+        return '〰️';
+      case 'Memory':
+        return '🧠';
+      default:
+        return stage.charAt(0);
+    }
   }
 }

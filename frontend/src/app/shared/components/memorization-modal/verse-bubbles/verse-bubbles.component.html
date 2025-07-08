@@ -36,24 +36,21 @@
       </ng-container>
     </div>
   </div>
-  <!-- Stage dots shown once for all active groups -->
+  <!-- Step buttons instead of dots -->
   <div
-    class="stage-dots"
+    class="step-buttons"
     *ngIf="hasActiveGroups() && showStageDots"
   >
-    <div
-      class="stage-dot"
-      [class.completed]="currentStepIndex > 0"
-      [class.active]="currentStepIndex === 0"
-    ></div>
-    <div
-      class="stage-dot"
-      [class.completed]="currentStepIndex > 1"
-      [class.active]="currentStepIndex === 1"
-    ></div>
-    <div
-      class="stage-dot"
-      [class.active]="currentStepIndex === 2"
-    ></div>
+    <button
+      *ngFor="let stage of stageNames; let i = index"
+      class="step-button"
+      [class.active]="currentStepIndex === i"
+      [class.completed]="currentStepIndex > i"
+      (click)="jumpToStep.emit(i)"
+      [title]="stage"
+    >
+      <span class="step-icon">{{ getStageIcon(stage) }}</span>
+      <span class="step-label">{{ stage }}</span>
+    </button>
   </div>
 </div>
