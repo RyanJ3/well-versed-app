@@ -37,6 +37,12 @@ describe('FlowParsingService', () => {
       expect(service.extractFirstLetters("he'd")).toBe('h');
     });
 
+    it('should preserve possessive apostrophes', () => {
+      expect(service.extractFirstLetters("God's")).toBe("G's");
+      expect(service.extractFirstLetters("cat's")).toBe("c's");
+      expect(service.extractFirstLetters("James'")).toBe("J'");
+    });
+
     it('should handle possessives', () => {
       expect(service.extractFirstLetters("John's")).toBe('J');
       expect(service.extractFirstLetters("Jesus'")).toBe('J');

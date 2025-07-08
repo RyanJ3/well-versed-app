@@ -41,8 +41,19 @@ export class FlowParsingService {
     const wordPart = fullMatch[2] || '';
     const trailingPunctuation = fullMatch[3] || '';
     
-    // Handle words with apostrophes (possessive and contractive)
-    const processedWord = this.removeApostrophesFromWord(wordPart);
+    // Check if this is a possessive (ends with 's or just ')
+    const possessiveMatch = wordPart.match(/^([a-zA-Z0-9]+)('s?|'')$/);
+    if (possessiveMatch) {
+      const baseWord = possessiveMatch[1];
+      const possessiveSuffix = possessiveMatch[2];
+      const firstLetter = baseWord.match(/[a-zA-Z]/);
+      if (firstLetter) {
+        return leadingPunctuation + firstLetter[0] + possessiveSuffix + trailingPunctuation;
+      }
+    }
+    
+    // Handle contractions by removing apostrophe parts
+    const processedWord = this.removeContractionSuffixes(wordPart);
     
     // Find the first letter
     const match = processedWord.match(/[a-zA-Z]/);
@@ -55,40 +66,32 @@ export class FlowParsingService {
   }
 
   /**
-   * Removes apostrophes from contractions and possessives.
+   * Removes contraction suffixes (but not possessive apostrophes).
    * 
    * @param word The word to process
-   * @returns The word with apostrophes removed appropriately
+   * @returns The word with contraction suffixes removed
    */
-  private removeApostrophesFromWord(word: string): string {
-    // Common contractions and possessive patterns
+  private removeContractionSuffixes(word: string): string {
+    // Common contraction patterns - remove the apostrophe and everything after
     const contractionPatterns = [
-      // Standard contractions
-      /(\w+)'re$/g,     // they're, we're, you're
-      /(\w+)'ve$/g,     // I've, we've, they've
-      /(\w+)'ll$/g,     // I'll, we'll, they'll
-      /(\w+)'d$/g,      // I'd, we'd, they'd
-      /(\w+)n't$/g,     // don't, can't, won't
-      /(\w+)'m$/g,      // I'm
-      /(\w+)'s$/g,      // Possessive or contractions like "it's", "he's"
+      /(\w+)'re$/,     // they're -> they
+      /(\w+)'ve$/,     // I've -> I  
+      /(\w+)'ll$/,     // I'll -> I
+      /(\w+)'d$/,      // I'd -> I
+      /(\w+)n't$/,     // don't -> do, can't -> can, won't -> wo
+      /(\w+)'m$/,      // I'm -> I
+      // Handle "it's", "he's" etc. as contractions (not possessives in this context)
+      /^(it|he|she|that|what|where|when|how)'s$/i, // it's -> it, he's -> he
     ];
 
-    let result = word;
-    
-    // Remove apostrophes from contractions and possessives
-    contractionPatterns.forEach(pattern => {
-      result = result.replace(pattern, (match, beforeApostrophe) => {
-        // Extract the part after the apostrophe
-        const afterApostrophe = match.substring(beforeApostrophe.length + 1);
-        return beforeApostrophe + afterApostrophe;
-      });
-    });
+    for (const pattern of contractionPatterns) {
+      const match = word.match(pattern);
+      if (match) {
+        return match[1];
+      }
+    }
 
-    // Handle any remaining apostrophes in possessive cases (like names ending in 's)
-    // Example: "Jesus'" becomes "Jesus"
-    result = result.replace(/(\w+)'(\w*)$/g, '$1$2');
-
-    return result;
+    return word;
   }
 
   /**
