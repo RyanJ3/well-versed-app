@@ -295,7 +295,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
     this.completedSteps = 0;
   }
 
-  buildAllStages() {
+buildAllStages() {
     this.allStages = [];
     const originalGroups = this.getOriginalGroups();
     this.allStages.push({
@@ -331,7 +331,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
 
     this.totalSteps = 0;
     for (const stage of this.allStages) {
-      this.totalSteps += stage.groups.length * 3;
+      this.totalSteps += stage.groups.length * 4; // Changed from 3 to 4
     }
   }
 

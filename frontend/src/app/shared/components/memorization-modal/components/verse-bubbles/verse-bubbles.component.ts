@@ -42,7 +42,7 @@ export class VerseBubblesComponent implements AfterViewChecked {
   @Output() jumpToStep = new EventEmitter<number>();
 
   hoveredGroup = -1;
-  stageNames = ['Read', 'Flow', 'Memory'];
+  stageNames = ['Read', 'Flow', 'Memory', 'Review'];
   borderLeft = 0;
   borderWidth = 0;
   hasActiveBorder = false;

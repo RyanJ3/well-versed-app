@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angu
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { RecordingService, RecordingState } from '../../../../../core/services/recording.service';
+import { NotificationService } from '../../../../../core/services/notification.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -40,10 +41,14 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
 
   isPlaying = false;
   showMicPermissionMessage = false;
+  micPermissionMessage = 'Please allow microphone access to record';
   private currentAudio: HTMLAudioElement | null = null;
   private destroy$ = new Subject<void>();
 
-  constructor(private recordingService: RecordingService) { }
+  constructor(
+    private recordingService: RecordingService,
+    private notificationService: NotificationService
+  ) { }
 
   ngOnInit() {
     this.recordingService.getRecordingState()
@@ -71,11 +76,47 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
         this.showMicPermissionMessage = false;
       } catch (error) {
         console.error('Failed to start recording:', error);
+        
+        // Determine the specific error message based on the error type
+        if (error instanceof DOMException) {
+          switch (error.name) {
+            case 'NotFoundError':
+            case 'DevicesNotFoundError':
+              this.micPermissionMessage = 'No microphone found. Please connect a microphone and try again.';
+              break;
+            case 'NotAllowedError':
+            case 'PermissionDeniedError':
+              this.micPermissionMessage = 'Please allow microphone access to record.';
+              break;
+            case 'NotReadableError':
+            case 'TrackStartError':
+              this.micPermissionMessage = 'Microphone is already in use or not responding.';
+              break;
+            case 'OverconstrainedError':
+              this.micPermissionMessage = 'Unable to access microphone with the required settings.';
+              break;
+            case 'SecurityError':
+              this.micPermissionMessage = 'Microphone access is blocked due to security settings.';
+              break;
+            default:
+              this.micPermissionMessage = `Microphone error: ${error.name}. Please check your audio settings.`;
+          }
+        } else if (error instanceof Error) {
+          this.micPermissionMessage = error.message || 'Unable to start recording. Please try again.';
+        } else {
+          this.micPermissionMessage = 'Unable to start recording. Please check your microphone.';
+        }
+        
+        // Show the error message
         this.showMicPermissionMessage = true;
-        // Auto-hide message after 3 seconds
+        
+        // Also show it in the notification service if available
+        this.notificationService.warning(this.micPermissionMessage);
+        
+        // Auto-hide message after 5 seconds
         setTimeout(() => {
           this.showMicPermissionMessage = false;
-        }, 3000);
+        }, 5000);
       }
     }
   }
@@ -84,8 +125,6 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
     if (this.isPlaying && this.currentAudio) {
       this.currentAudio.pause();
       this.isPlaying = false;
-      this.showMicPermissionMessage = false;
-      this.showMicPermissionMessage = false;
       this.currentAudio = null;
     } else if (this.recordingState.audioUrl) {
       this.currentAudio = this.recordingService.playRecording();
@@ -93,8 +132,6 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
         this.isPlaying = true;
         this.currentAudio.onended = () => {
           this.isPlaying = false;
-          this.showMicPermissionMessage = false;
-          this.showMicPermissionMessage = false;
           this.currentAudio = null;
         };
       }
