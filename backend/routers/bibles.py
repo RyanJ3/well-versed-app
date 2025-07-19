@@ -84,11 +84,18 @@ async def get_available_bibles(
         )
     
     # Fetch from API.Bible
+    languages = []
+    filtered_bibles = []
+    
     try:
         api_bible = APIBibleService(Config.API_BIBLE_KEY, Config.DEFAULT_BIBLE_ID)
         
+        # Log the API key status
+        logger.info(f"API_BIBLE_KEY configured: {bool(Config.API_BIBLE_KEY)}")
+        
         # Get all available Bibles (or filtered by language)
         all_bibles = api_bible.get_available_bibles(language)
+        logger.info(f"API.Bible returned {len(all_bibles)} bibles")
         
         # Extract unique languages if getting all Bibles
         languages_map = {}
@@ -110,7 +117,6 @@ async def get_available_bibles(
         languages.sort(key=lambda x: (x.name != 'English', x.name))
         
         # Process Bibles
-        filtered_bibles = []
         for bible in all_bibles:
             filtered_bibles.append(BibleVersion(
                 id=bible.get('id', ''),

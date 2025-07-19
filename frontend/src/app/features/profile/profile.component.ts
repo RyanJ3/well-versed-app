@@ -128,8 +128,13 @@ export class ProfileComponent implements OnInit {
     
     this.http.get<AvailableBiblesResponse>(url).subscribe({
       next: (response) => {
-        this.languages = response.languages;
-        this.availableBibles = response.bibles;
+        // Only update languages when fetching all (not filtered by language)
+        if (!language && response.languages) {
+          this.languages = response.languages;
+        }
+        this.availableBibles = response.bibles || [];
+        
+        console.log(`Loaded ${this.availableBibles.length} Bibles`);
         
         // If only one Bible available, auto-select it
         if (this.availableBibles.length === 1) {
@@ -141,10 +146,10 @@ export class ProfileComponent implements OnInit {
         }
         
         this.loadingBibles = false;
-        console.log(`Loaded ${response.languages.length} languages and ${response.bibles.length} Bibles`);
       },
       error: (error) => {
         console.error('Error loading available Bibles:', error);
+        this.availableBibles = [];
         this.loadingBibles = false;
       }
     });

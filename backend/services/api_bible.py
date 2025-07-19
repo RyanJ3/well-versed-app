@@ -250,7 +250,6 @@ class APIBibleService:
         results = self.get_verses_batch([verse_code], bible_id)
         return results.get(verse_code, None)
     
-    # backend/services/api_bible.py (updated get_available_bibles method)
     @lru_cache(maxsize=10)
     def get_available_bibles(self, language: Optional[str] = None) -> List[Dict]:
         """Get list of available Bible translations"""
@@ -260,13 +259,20 @@ class APIBibleService:
             if language:
                 params['language'] = language  # 3-letter ISO 639-3 code
             
+            logger.info(f"Fetching bibles from {url} with params: {params}")
+            
             response = requests.get(url, headers=self.headers, params=params)
+            
+            logger.info(f"API.Bible response status: {response.status_code}")
             
             if response.status_code == 200:
                 data = response.json()
-                return data.get("data", [])
+                bibles = data.get("data", [])
+                logger.info(f"API.Bible returned {len(bibles)} bibles")
+                return bibles
             else:
                 logger.error(f"Failed to get bibles: {response.status_code}")
+                logger.error(f"Response: {response.text[:500]}")
                 return []
         except Exception as e:
             logger.error(f"Error getting available bibles: {e}")
