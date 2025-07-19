@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { environment } from '../../../../environments/environment';
 import { HistoricalBuildingsService } from './historical-buildings.service';
+import { ConfigService } from '../../../core/services/config.service';
 
 @Injectable({
   providedIn: 'root'
@@ -8,14 +8,17 @@ import { HistoricalBuildingsService } from './historical-buildings.service';
 export class MapService {
   private mapboxgl: any;
   
-  constructor(private historicalBuildingsService: HistoricalBuildingsService) {}
-  
+  constructor(
+    private historicalBuildingsService: HistoricalBuildingsService,
+    private configService: ConfigService
+  ) {}
+
   async initializeMap(container: HTMLElement): Promise<any> {
     // Dynamically import mapbox-gl
     const mapboxModule = await import('mapbox-gl');
     this.mapboxgl = mapboxModule.default;
     
-    (this.mapboxgl as any).accessToken = environment.mapboxToken;
+    (this.mapboxgl as any).accessToken = this.configService.mapboxToken;
     
     const map = new this.mapboxgl.Map({
       container,

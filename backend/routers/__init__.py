@@ -8,3 +8,4 @@ from . import decks
 from . import feature_requests
 from . import courses
 from . import atlas
+from . import config

@@ -19,13 +19,18 @@ import { IntlModule } from '@progress/kendo-angular-intl';
 import { BibleTrackerModule } from './bible-tracker/bible-tracker.module';
 import { AppComponent } from './app.component';
 
+import { ConfigService } from './core/services/config.service';
+
+// Factory function to load config
+export function initializeApp(configService: ConfigService) {
+  return () => configService.loadConfig();
+}
 // For charts
 import 'hammerjs';
 
 @NgModule({
   declarations: [],
   imports: [
-    AppComponent,
     BrowserModule,
     BrowserAnimationsModule,
     FormsModule,
@@ -45,8 +50,6 @@ import 'hammerjs';
   ],
   providers: [
     provideHttpClient(withInterceptorsFromDi())
-  ],
-  bootstrap: [],
-  exports: [],
+  ]
 })
 export class AppModule { }
