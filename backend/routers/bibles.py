@@ -97,6 +97,14 @@ async def get_available_bibles(
         all_bibles = api_bible.get_available_bibles(language)
         logger.info(f"API.Bible returned {len(all_bibles)} bibles")
         
+        # If no Bibles returned, this is likely an API key issue
+        if len(all_bibles) == 0:
+            logger.error("API.Bible returned 0 bibles - check API key validity")
+            raise HTTPException(
+                status_code=500, 
+                detail="API.Bible returned no Bibles. Please check your API_BIBLE_KEY configuration."
+            )
+        
         # Extract unique languages if getting all Bibles
         languages_map = {}
         if not language:  # Only extract languages when not filtering
@@ -158,9 +166,12 @@ async def get_available_bibles(
             cacheExpiry=(datetime.now() + timedelta(days=29)).isoformat()
         )
         
+    except HTTPException:
+        # Re-raise HTTPExceptions as-is
+        raise
     except Exception as e:
         logger.error(f"Error fetching available Bibles: {e}")
-        raise HTTPException(status_code=500, detail="Failed to fetch available Bibles")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch available Bibles: {str(e)}")
 
 @router.delete("/cache")
 async def clear_bible_cache(db: DatabaseConnection = Depends(get_db)):

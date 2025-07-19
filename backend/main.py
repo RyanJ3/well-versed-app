@@ -38,6 +38,23 @@ async def lifespan(app: FastAPI):
         logger.error(f"Failed to create database pool: {e}")
         raise
 
+    # Test API.Bible on startup
+    try:
+        from services.api_bible import APIBibleService
+        logger.info("Testing API.Bible connection...")
+        service = APIBibleService(Config.API_BIBLE_KEY, Config.DEFAULT_BIBLE_ID)
+        bibles = service.get_available_bibles()
+        
+        if not bibles:
+            raise Exception("API.Bible returned no Bibles. Check your API key.")
+        
+        logger.info(f"✓ API.Bible connection successful: {len(bibles)} Bibles available")
+    except Exception as e:
+        logger.error(f"✗ API.Bible connection FAILED: {e}")
+        logger.error("Please check your API_BIBLE_KEY in .env file")
+        logger.error("Get a key from: https://scripture.api.bible/")
+        raise Exception(f"API.Bible startup check failed: {e}")
+
     yield
 
     # Shutdown
@@ -91,10 +108,40 @@ async def health_check():
         logger.error(f"Database health check failed: {e}")
         db_status = "unhealthy"
 
-    return {
-        "status": "healthy" if db_status == "healthy" else "degraded",
+    # Test API.Bible connection
+    api_bible_status = "healthy"
+    api_bible_error = None
+    try:
+        from services.api_bible import APIBibleService
+        service = APIBibleService(Config.API_BIBLE_KEY, Config.DEFAULT_BIBLE_ID)
+        bibles = service.get_available_bibles()
+        
+        if not bibles:
+            api_bible_status = "unhealthy"
+            api_bible_error = "No Bibles returned from API.Bible"
+            logger.error("API.Bible health check failed: No Bibles returned")
+        else:
+            logger.info(f"API.Bible health check passed: {len(bibles)} Bibles available")
+    except Exception as e:
+        api_bible_status = "unhealthy"
+        api_bible_error = str(e)
+        logger.error(f"API.Bible health check failed: {e}")
+
+    # Overall status
+    overall_status = "healthy"
+    if db_status == "unhealthy" or api_bible_status == "unhealthy":
+        overall_status = "unhealthy"
+
+    response = {
+        "status": overall_status,
         "database": db_status,
+        "api_bible": api_bible_status,
     }
+    
+    if api_bible_error:
+        response["api_bible_error"] = api_bible_error
+
+    return response
 
 
 @app.get("/")

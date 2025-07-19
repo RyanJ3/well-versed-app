@@ -56,7 +56,7 @@ export class ProfileComponent implements OnInit {
     lastName: '',
     denomination: '',
     preferredBible: '',
-    preferredLanguage: 'eng', // Default to English
+    preferredLanguage: '', // Don't default to eng - let user data populate it
     includeApocrypha: false,
     useEsvApi: false,
     esvApiToken: ''
@@ -91,8 +91,8 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    // Load user profile first, then load Bibles
     this.loadUserProfile();
-    this.loadAvailableBibles();
   }
   
   loadUserProfile(): void {
@@ -105,6 +105,8 @@ export class ProfileComponent implements OnInit {
         if (user) {
           // Initialize the form fields with user data
           this.initializeForm(user);
+          // After user is loaded and form initialized, load available Bibles
+          this.loadAvailableBibles();
         }
         
         this.isLoading = false;
@@ -126,23 +128,44 @@ export class ProfileComponent implements OnInit {
       ? `${environment.apiUrl}/bibles/available?language=${language}`
       : `${environment.apiUrl}/bibles/available`;
     
+    console.log(`Loading Bibles from: ${url}`);
+    
     this.http.get<AvailableBiblesResponse>(url).subscribe({
       next: (response) => {
+        console.log('API Response:', response);
+        
         // Only update languages when fetching all (not filtered by language)
-        if (!language && response.languages) {
-          this.languages = response.languages;
+        if (!language) {
+          if (response.languages && Array.isArray(response.languages)) {
+            this.languages = response.languages;
+            console.log(`Loaded ${this.languages.length} languages:`, this.languages);
+          } else {
+            console.warn('No languages array in response:', response);
+          }
+          
+          // After loading languages, load Bibles for user's preferred language if set
+          if (this.profileForm.preferredLanguage && this.profileForm.preferredLanguage !== '') {
+            console.log(`Loading Bibles for preferred language: ${this.profileForm.preferredLanguage}`);
+            this.loadAvailableBibles(this.profileForm.preferredLanguage);
+            return; // Exit early to avoid setting loadingBibles to false
+          }
         }
-        this.availableBibles = response.bibles || [];
         
-        console.log(`Loaded ${this.availableBibles.length} Bibles`);
-        
-        // If only one Bible available, auto-select it
-        if (this.availableBibles.length === 1) {
-          this.profileForm.preferredBible = this.availableBibles[0].abbreviation;
-          this.selectedBibleId = this.availableBibles[0].id;
+        if (response.bibles && Array.isArray(response.bibles)) {
+          this.availableBibles = response.bibles;
+          console.log(`Loaded ${this.availableBibles.length} Bibles${language ? ` for language ${language}` : ''}`);
+          
+          // If only one Bible available, auto-select it
+          if (this.availableBibles.length === 1) {
+            this.profileForm.preferredBible = this.availableBibles[0].abbreviation;
+            this.selectedBibleId = this.availableBibles[0].id;
+          } else {
+            // Try to match current preferred Bible
+            this.matchCurrentBible();
+          }
         } else {
-          // Try to match current preferred Bible
-          this.matchCurrentBible();
+          console.warn('No bibles array in response:', response);
+          this.availableBibles = [];
         }
         
         this.loadingBibles = false;
@@ -150,6 +173,9 @@ export class ProfileComponent implements OnInit {
       error: (error) => {
         console.error('Error loading available Bibles:', error);
         this.availableBibles = [];
+        if (!language) {
+          this.languages = [];
+        }
         this.loadingBibles = false;
       }
     });
@@ -215,10 +241,8 @@ export class ProfileComponent implements OnInit {
     
     console.log('Profile form initialized with:', this.profileForm);
     
-    // Load Bibles for the user's language
-    if (this.profileForm.preferredLanguage) {
-      this.loadAvailableBibles(this.profileForm.preferredLanguage);
-    }
+    // Don't load language-specific Bibles here - let ngOnInit handle the initial load
+    // to ensure languages dropdown is populated
   }
   
   saveProfile(): void {

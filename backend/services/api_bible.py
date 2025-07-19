@@ -1,6 +1,4 @@
-# backend/services/api_bible_hybrid.py
-# A hybrid approach that balances efficiency with reliability
-
+# backend/services/api_bible.py
 import requests
 import logging
 from typing import Dict, List, Optional, Tuple
@@ -260,20 +258,39 @@ class APIBibleService:
                 params['language'] = language  # 3-letter ISO 639-3 code
             
             logger.info(f"Fetching bibles from {url} with params: {params}")
+            logger.info(f"Using API key: {self.api_key[:10]}..." if self.api_key else "NO API KEY SET")
             
             response = requests.get(url, headers=self.headers, params=params)
             
             logger.info(f"API.Bible response status: {response.status_code}")
             
-            if response.status_code == 200:
-                data = response.json()
-                bibles = data.get("data", [])
-                logger.info(f"API.Bible returned {len(bibles)} bibles")
-                return bibles
-            else:
-                logger.error(f"Failed to get bibles: {response.status_code}")
-                logger.error(f"Response: {response.text[:500]}")
-                return []
+            if response.status_code == 401:
+                error_msg = "API.Bible authentication failed. Invalid API key."
+                logger.error(error_msg)
+                logger.error("Please check your API_BIBLE_KEY in .env file")
+                raise Exception(error_msg)
+            
+            if response.status_code == 403:
+                error_msg = "API.Bible access forbidden. Check API key permissions."
+                logger.error(error_msg)
+                raise Exception(error_msg)
+            
+            if response.status_code != 200:
+                error_msg = f"API.Bible request failed with status {response.status_code}"
+                logger.error(f"{error_msg}: {response.text[:500]}")
+                raise Exception(error_msg)
+            
+            data = response.json()
+            bibles = data.get("data", [])
+            logger.info(f"API.Bible returned {len(bibles)} bibles")
+            
+            if len(bibles) == 0:
+                logger.warning("API.Bible returned 0 bibles - this may indicate an API issue")
+            
+            return bibles
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Network error connecting to API.Bible: {e}")
+            raise Exception(f"Failed to connect to API.Bible: {e}")
         except Exception as e:
             logger.error(f"Error getting available bibles: {e}")
-            return []
+            raise
