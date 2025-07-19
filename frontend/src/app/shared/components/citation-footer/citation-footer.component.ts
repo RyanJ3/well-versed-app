@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { BibleService } from '../../../core/services/bible.service';
+import { UserService } from '../../../core/services/user.service';
 import { Subject, takeUntil } from 'rxjs';
 
 interface BibleVersion {
@@ -12,6 +13,15 @@ interface BibleVersion {
   copyright?: string;
   copyrightUrl?: string;
 }
+
+const ESV_BIBLE_VERSION: BibleVersion = {
+  id: '01b29f4b342acc35-01',
+  name: 'English Standard Version',
+  abbreviation: 'ESV',
+  isPublicDomain: false,
+  copyright: '© 2016 Crossway Bibles.',
+  copyrightUrl: 'https://www.crossway.org'
+};
 
 @Component({
   selector: 'app-citation-footer',
@@ -34,7 +44,12 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
   tooltipX = 0;
   tooltipY = 0;
 
-  constructor(private bibleService: BibleService) {}
+  useEsvApi = false;
+
+  constructor(
+    private bibleService: BibleService,
+    private userService: UserService
+  ) {}
 
   ngOnInit() {
     // Subscribe to current Bible version changes
@@ -44,6 +59,13 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
         if (version) {
           this.currentBibleVersion = version;
         }
+      });
+
+    // Watch user preference for ESV API usage
+    this.userService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(user => {
+        this.useEsvApi = user?.useEsvApi ?? false;
       });
   }
 
@@ -64,10 +86,29 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
     this.showTooltip = false;
   }
 
+  isEsv(): boolean {
+    return this.useEsvApi;
+  }
+
+  get displayBibleVersion(): BibleVersion {
+    return this.isEsv() ? ESV_BIBLE_VERSION : this.currentBibleVersion;
+  }
+
+  get providerName(): string {
+    return this.isEsv() ? 'Crossway' : 'API.Bible';
+  }
+
+  get providerUrl(): string {
+    return this.isEsv()
+      ? 'https://www.crossway.org'
+      : 'https://scripture.api.bible';
+  }
+
   getCitationText(): string {
-    if (this.currentBibleVersion.isPublicDomain) {
-      return `Scripture quotations from ${this.currentBibleVersion.abbreviation} (Public Domain)`;
+    const version = this.displayBibleVersion;
+    if (version.isPublicDomain) {
+      return `Scripture quotations from ${version.abbreviation} (Public Domain)`;
     }
-    return `Scripture quotations from ${this.currentBibleVersion.abbreviation}`;
+    return `Scripture quotations from ${version.abbreviation}`;
   }
 }
