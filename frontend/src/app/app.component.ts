@@ -5,17 +5,19 @@ import { RouterOutlet } from '@angular/router';
 import { NavigationComponent } from './shared/components/navigation/navigation.component';
 import { ModalComponent } from './shared/components/modal/modal.component';
 import { NotificationComponent } from './shared/components/notification/notification.component';
+import { CitationFooterComponent } from "./shared/components/citation-footer/citation-footer.component";
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
-    CommonModule, 
-    RouterOutlet, 
+    CommonModule,
+    RouterOutlet,
     NavigationComponent,
     ModalComponent,
-    NotificationComponent
-  ],
+    NotificationComponent,
+    CitationFooterComponent
+],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })

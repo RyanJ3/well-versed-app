@@ -1,0 +1,137 @@
+<div class="copyright-page">
+  <div class="page-header">
+    <h1>Bible Copyright Information</h1>
+    <p class="subtitle">
+      Scripture quotations and copyright acknowledgments for Bible translations used in Well Versed
+    </p>
+  </div>
+
+  <!-- Current Version Highlight -->
+  <div class="current-version-section" *ngIf="currentVersion">
+    <h2>Currently Using</h2>
+    <div class="current-version-card">
+      <div class="version-header">
+        <h3>{{ currentVersion.name }} ({{ currentVersion.abbreviation }})</h3>
+        <span class="version-badge" [ngClass]="getCopyrightClass(currentVersion)">
+          {{ currentVersion.isPublicDomain ? 'Public Domain' : 'Copyrighted' }}
+        </span>
+      </div>
+      <div class="version-content">
+        <p *ngIf="currentVersion.description">{{ currentVersion.description }}</p>
+        <div class="copyright-info">
+          <strong>Copyright:</strong> {{ currentVersion.copyright }}
+        </div>
+        <div class="ip-holder" *ngIf="!currentVersion.isPublicDomain">
+          <strong>Rights Holder:</strong>
+          <a *ngIf="currentVersion.ipHolderUrl; else plainText" 
+             [href]="currentVersion.ipHolderUrl" 
+             target="_blank" 
+             rel="noopener noreferrer">
+            {{ currentVersion.ipHolder }}
+          </a>
+          <ng-template #plainText>{{ currentVersion.ipHolder }}</ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- All Versions -->
+  <div class="all-versions-section">
+    <h2>All Available Bible Translations</h2>
+    
+    <div class="version-cards">
+      <div 
+        class="version-card"
+        *ngFor="let version of bibleVersions"
+        [class.current]="isCurrentVersion(version)"
+        [ngClass]="getCopyrightClass(version)"
+      >
+        <div class="version-header">
+          <h3>{{ version.name }}</h3>
+          <div class="version-meta">
+            <span class="abbreviation">{{ version.abbreviation }}</span>
+            <span class="language">{{ version.language }}</span>
+          </div>
+        </div>
+        
+        <div class="version-body">
+          <p *ngIf="version.description" class="description">
+            {{ version.description }}
+          </p>
+          
+          <div class="copyright-details">
+            <div class="detail-row">
+              <span class="label">Copyright:</span>
+              <span class="value">{{ version.copyright }}</span>
+            </div>
+            
+            <div class="detail-row" *ngIf="!version.isPublicDomain">
+              <span class="label">Rights Holder:</span>
+              <span class="value">
+                <a *ngIf="version.ipHolderUrl; else plainHolder" 
+                   [href]="version.ipHolderUrl" 
+                   target="_blank" 
+                   rel="noopener noreferrer">
+                  {{ version.ipHolder }}
+                </a>
+                <ng-template #plainHolder>{{ version.ipHolder }}</ng-template>
+              </span>
+            </div>
+            
+            <div class="detail-row" *ngIf="version.copyrightUrl">
+              <span class="label">More Info:</span>
+              <a [href]="version.copyrightUrl" 
+                 target="_blank" 
+                 rel="noopener noreferrer"
+                 class="external-link">
+                View Full Copyright →
+              </a>
+            </div>
+          </div>
+          
+          <div class="usage-note" *ngIf="version.notes">
+            <strong>Note:</strong> {{ version.notes }}
+          </div>
+        </div>
+        
+        <div class="current-indicator" *ngIf="isCurrentVersion(version)">
+          <span>Currently in use</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- API.Bible Attribution -->
+  <div class="api-bible-section">
+    <h2>API.Bible Attribution</h2>
+    <div class="attribution-card">
+      <p>
+        Scripture quotations and biblical text access are provided courtesy of 
+        <a href="https://scripture.api.bible" target="_blank" rel="noopener noreferrer">API.Bible</a>.
+      </p>
+      <p>
+        API.Bible is a service of the American Bible Society, providing programmatic access to 
+        Bible text in hundreds of versions and languages.
+      </p>
+      <div class="api-bible-logo">
+        <a href="https://scripture.api.bible" target="_blank" rel="noopener noreferrer">
+          <img src="assets/images/api-bible-logo.png" alt="API.Bible" onerror="this.style.display='none'">
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Usage Guidelines -->
+  <div class="usage-section">
+    <h2>Usage Guidelines</h2>
+    <div class="guidelines-card">
+      <ul>
+        <li>All Scripture quotations must include proper citation</li>
+        <li>Copyright notices must not be removed or altered</li>
+        <li>Some translations may have additional restrictions</li>
+        <li>Public domain translations may be used freely but should still be cited</li>
+        <li>For questions about specific usage, contact the rights holder</li>
+      </ul>
+    </div>
+  </div>
+</div>

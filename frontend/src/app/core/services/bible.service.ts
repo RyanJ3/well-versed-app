@@ -7,6 +7,16 @@ import { BibleData, UserVerseDetail, BibleBook } from '../models/bible';
 import { NotificationService } from './notification.service';
 import { environment } from '../../../environments/environment';
 
+// Bible version tracking for citations
+export interface BibleVersion {
+  id: string;
+  name: string;
+  abbreviation: string;
+  isPublicDomain: boolean;
+  copyright?: string;
+  copyrightUrl?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -23,6 +33,15 @@ export class BibleService {
   // Emits wait time in seconds when ESV API limits are hit
   private esvRetrySubject = new Subject<number>();
   public esvRetry$ = this.esvRetrySubject.asObservable();
+
+  // Current Bible version for citations
+  private currentBibleVersionSubject = new BehaviorSubject<BibleVersion>({
+    id: 'de4e12af7f28f599-02',
+    name: 'King James Version', 
+    abbreviation: 'KJV',
+    isPublicDomain: true
+  });
+  public currentBibleVersion$ = this.currentBibleVersionSubject.asObservable();
 
   public preferences$ = this.preferencesSubject.asObservable();
 
@@ -235,4 +254,12 @@ export class BibleService {
       payload,
     );
   }
+
+  /**
+   * Updates the current Bible version (for citations)
+   */
+  setCurrentBibleVersion(version: BibleVersion): void {
+    this.currentBibleVersionSubject.next(version);
+  }
+
 }

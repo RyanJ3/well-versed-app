@@ -18,6 +18,11 @@ import { BibleTrackerComponent } from './bible-tracker/bible-tracker.component';
 // Routing configuration
 export const routes: Routes = [
   { path: '', component: HomeComponent },
+  {
+    path: 'copyright',
+    loadComponent: () => import('./features/copyright/copyright.component').then(m => m.CopyrightComponent),
+    title: 'Bible Copyright Information'
+  },
   { path: 'tracker', component: BibleTrackerComponent },
   { path: 'profile', component: ProfileComponent },
   { path: 'stats', component: StatsComponent },

@@ -1,0 +1,43 @@
+<footer class="citation-footer">
+  <div class="citation-container">
+    <div class="citation-text">
+      <span 
+        class="citation-link"
+        (mouseenter)="showCopyrightTooltip($event)"
+        (mouseleave)="hideCopyrightTooltip()"
+        [routerLink]="['/copyright']"
+        [queryParams]="{version: currentBibleVersion.id}"
+      >
+        {{ getCitationText() }}
+      </span>
+      <span class="citation-separator">•</span>
+      <span class="api-bible-credit">
+        Scripture courtesy of 
+        <a href="https://scripture.api.bible" target="_blank" rel="noopener noreferrer" class="api-bible-link">
+          API.Bible
+        </a>
+      </span>
+    </div>
+  </div>
+
+  <!-- Copyright Tooltip -->
+  <div 
+    class="copyright-tooltip"
+    [class.show]="showTooltip"
+    [style.left.px]="tooltipX"
+    [style.top.px]="tooltipY"
+  >
+    <div class="tooltip-content">
+      <div class="tooltip-header">{{ currentBibleVersion.name }}</div>
+      <div class="tooltip-body">
+        <ng-container *ngIf="currentBibleVersion.isPublicDomain; else copyrighted">
+          <p>This translation is in the public domain.</p>
+        </ng-container>
+        <ng-template #copyrighted>
+          <p>{{ currentBibleVersion.copyright || 'Copyright information available on copyright page.' }}</p>
+        </ng-template>
+        <a [routerLink]="['/copyright']" class="tooltip-link">View full copyright →</a>
+      </div>
+    </div>
+  </div>
+</footer>

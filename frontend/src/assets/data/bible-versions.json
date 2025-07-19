@@ -1,0 +1,55 @@
+{
+  "versions": [
+    {
+      "id": "de4e12af7f28f599-02",
+      "name": "King James Version",
+      "abbreviation": "KJV",
+      "language": "English",
+      "copyright": "Public Domain",
+      "isPublicDomain": true,
+      "ipHolder": "Public Domain",
+      "description": "The King James Version (KJV), also known as the Authorized Version, is an English translation of the Christian Bible for the Church of England, commissioned in 1604 and completed in 1611."
+    },
+    {
+      "id": "06125adad2d5898a-01",
+      "name": "American Standard Version",
+      "abbreviation": "ASV",
+      "language": "English",
+      "copyright": "Public Domain",
+      "isPublicDomain": true,
+      "ipHolder": "Public Domain",
+      "description": "The American Standard Version (ASV) is a revision of the King James Version, published in 1901. It is now in the public domain."
+    },
+    {
+      "id": "9879dbb7cfe39e4d-01",
+      "name": "World English Bible",
+      "abbreviation": "WEB",
+      "language": "English",
+      "copyright": "Public Domain",
+      "isPublicDomain": true,
+      "ipHolder": "Public Domain",
+      "description": "The World English Bible (WEB) is a public domain Modern English translation of the Holy Bible, based on the American Standard Version, the Biblia Hebraica, and the Greek Majority Text."
+    },
+    {
+      "id": "65eec8e0b60e656b-01",
+      "name": "Free Bible Version",
+      "abbreviation": "FBV",
+      "language": "English",
+      "copyright": "Copyright Dr. Jonathan Gallagher. Released under Creative Commons Attribution-ShareAlike 4.0 Unported License",
+      "isPublicDomain": false,
+      "ipHolder": "Dr. Jonathan Gallagher",
+      "copyrightUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "description": "This translation is directly from the Hebrew and Greek text. It is licensed under a Creative Commons Attribution-ShareAlike 4.0 Unported License.",
+      "notes": "The FBV text may not be quoted in any publication made available to the public by a Creative Commons license. The FBV may not be translated into any other language."
+    }
+  ],
+  "ipHolders": {
+    "American Bible Society": "https://www.americanbible.org",
+    "Biblica, Inc": "https://www.biblica.com",
+    "Crossway": "https://www.crossway.org",
+    "HarperCollins Publishers": "https://www.harpercollins.com",
+    "Lifeway Christian Resources": "https://www.lifeway.com",
+    "The Lockman Foundation": "https://www.lockman.org",
+    "Tyndale House Publishers": "https://www.tyndale.com"
+  }
+}

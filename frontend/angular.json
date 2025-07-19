@@ -36,7 +36,7 @@
               }
             ],
             "styles": [
-              "src/styles.css",
+              "src/styles.scss",
               "node_modules/mapbox-gl/dist/mapbox-gl.css",
             ],
             "scripts": [],
@@ -114,7 +114,7 @@
               }
             ],
             "styles": [
-              "src/styles.css",
+              "src/styles.scss",
               "node_modules/@progress/kendo-theme-default/dist/all.css",
             ],
             "scripts": []
