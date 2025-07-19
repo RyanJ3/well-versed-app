@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { BibleService } from '../../../core/services/bible.service';
+import { UserService } from '../../../core/services/user.service';
 import { Subject, takeUntil } from 'rxjs';
 
 interface BibleVersion {
@@ -34,7 +35,12 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
   tooltipX = 0;
   tooltipY = 0;
 
-  constructor(private bibleService: BibleService) {}
+  useEsvApi = false;
+
+  constructor(
+    private bibleService: BibleService,
+    private userService: UserService
+  ) {}
 
   ngOnInit() {
     // Subscribe to current Bible version changes
@@ -44,6 +50,13 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
         if (version) {
           this.currentBibleVersion = version;
         }
+      });
+
+    // Watch user preference for ESV API usage
+    this.userService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(user => {
+        this.useEsvApi = user?.useEsvApi ?? false;
       });
   }
 
@@ -65,7 +78,7 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
   }
 
   isEsv(): boolean {
-    return this.currentBibleVersion.abbreviation?.toUpperCase() === 'ESV';
+    return this.useEsvApi;
   }
 
   get providerName(): string {
