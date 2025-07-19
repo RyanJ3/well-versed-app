@@ -107,7 +107,30 @@
             </svg>
           </div>
         </div>
+
+        <!-- Language Selection -->
+        <div class="form-group">
+          <label for="preferredLanguage">Bible Language</label>
+          <div class="select-wrapper">
+            <select 
+              id="preferredLanguage" 
+              class="form-control" 
+              [(ngModel)]="profileForm.preferredLanguage" 
+              name="preferredLanguage"
+              (change)="onLanguageChange()">
+              <option value="">Select Language</option>
+              <option *ngFor="let lang of languages" [value]="lang.id">
+                {{ lang.name }} 
+                <span *ngIf="lang.nameLocal && lang.nameLocal !== lang.name">({{ lang.nameLocal }})</span>
+              </option>
+            </select>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="select-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
               
+        <!-- Bible Translation Selection -->
         <div class="form-group">
           <label for="preferredBible">Preferred Bible Translation</label>
           <div class="select-wrapper">
@@ -115,15 +138,25 @@
               id="preferredBible" 
               class="form-control" 
               [(ngModel)]="profileForm.preferredBible" 
-              name="preferredBible">
-              <option *ngFor="let option of bibleOptions" [value]="option.value">
-                {{ option.text }}
+              name="preferredBible"
+              (change)="onBibleChange()"
+              [disabled]="loadingBibles || availableBibles.length === 0">
+              <option value="">
+                {{ loadingBibles ? 'Loading Bibles...' : 
+                   availableBibles.length === 0 ? 'No Bibles available for selected language' : 
+                   'Select Bible Translation' }}
+              </option>
+              <option *ngFor="let bible of availableBibles" [value]="bible.abbreviation">
+                {{ bible.name }} ({{ bible.abbreviation }})
               </option>
             </select>
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="select-icon">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </div>
+          <small class="form-text" *ngIf="selectedBibleId">
+            Bible ID: {{ selectedBibleId }}
+          </small>
         </div>
               
         <div class="form-group">
@@ -156,7 +189,7 @@
               <span class="toggle-switch"></span>
               <span class="toggle-text">
                 <strong>Use ESV API</strong>
-                <small>Retrieve verses from the ESV API</small>
+                <small>Retrieve verses from the ESV API (requires API token)</small>
               </span>
             </label>
           </div>
@@ -171,6 +204,9 @@
             [(ngModel)]="profileForm.esvApiToken"
             name="esvApiToken"
             placeholder="Enter your ESV API token">
+          <small class="form-text">
+            Get your token from <a href="https://api.esv.org/" target="_blank" rel="noopener">api.esv.org</a>
+          </small>
         </div>
               
         <div class="form-actions">

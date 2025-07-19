@@ -7,6 +7,30 @@ import { ModalService } from '../../core/services/modal.service';
 import { User } from '../../core/models/user';
 import { UserService } from '../../core/services/user.service';
 import { BibleService } from '../../core/services/bible.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+
+interface LanguageOption {
+  id: string;
+  name: string;
+  nameLocal: string;
+}
+
+interface BibleVersion {
+  id: string;
+  name: string;
+  abbreviation: string;
+  abbreviationLocal: string;
+  language: string;
+  languageId: string;
+  description?: string;
+}
+
+interface AvailableBiblesResponse {
+  languages: LanguageOption[];
+  bibles: BibleVersion[];
+  cacheExpiry: string;
+}
 
 @Component({
   selector: 'app-profile',
@@ -24,6 +48,7 @@ export class ProfileComponent implements OnInit {
   isLoading = true;
   showSuccess = false;
   isSaving = false;
+  loadingBibles = false;
 
   // Form data (always available for editing)
   profileForm: any = {
@@ -31,10 +56,16 @@ export class ProfileComponent implements OnInit {
     lastName: '',
     denomination: '',
     preferredBible: '',
+    preferredLanguage: 'eng', // Default to English
     includeApocrypha: false,
     useEsvApi: false,
     esvApiToken: ''
   };
+  
+  // Language and Bible data
+  languages: LanguageOption[] = [];
+  availableBibles: BibleVersion[] = [];
+  selectedBibleId: string = '';
   
   // Dropdown options
   denominationOptions = [
@@ -51,29 +82,17 @@ export class ProfileComponent implements OnInit {
     { text: 'Other', value: 'Other' }
   ];
   
-  bibleOptions = [
-    { text: 'Select Bible Translation', value: '' },
-    { text: 'King James Version (KJV)', value: 'KJV' },
-    { text: 'New International Version (NIV)', value: 'NIV' },
-    { text: 'English Standard Version (ESV)', value: 'ESV' },
-    { text: 'New American Standard Bible (NASB)', value: 'NASB' },
-    { text: 'New Living Translation (NLT)', value: 'NLT' },
-    { text: 'Christian Standard Bible (CSB)', value: 'CSB' },
-    { text: 'New King James Version (NKJV)', value: 'NKJV' },
-    { text: 'Revised Standard Version (RSV)', value: 'RSV' },
-    { text: 'The Message (MSG)', value: 'MSG' },
-    { text: 'Amplified Bible (AMP)', value: 'AMP' }
-  ];
-  
   constructor(
     private userService: UserService,
     private bibleService: BibleService,
     private router: Router,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private http: HttpClient
   ) { }
 
   ngOnInit(): void {
     this.loadUserProfile();
+    this.loadAvailableBibles();
   }
   
   loadUserProfile(): void {
@@ -99,6 +118,80 @@ export class ProfileComponent implements OnInit {
     
     this.userService.fetchCurrentUser();
   }
+
+  loadAvailableBibles(language?: string): void {
+    this.loadingBibles = true;
+    
+    const url = language 
+      ? `${environment.apiUrl}/bibles/available?language=${language}`
+      : `${environment.apiUrl}/bibles/available`;
+    
+    this.http.get<AvailableBiblesResponse>(url).subscribe({
+      next: (response) => {
+        this.languages = response.languages;
+        this.availableBibles = response.bibles;
+        
+        // If only one Bible available, auto-select it
+        if (this.availableBibles.length === 1) {
+          this.profileForm.preferredBible = this.availableBibles[0].abbreviation;
+          this.selectedBibleId = this.availableBibles[0].id;
+        } else {
+          // Try to match current preferred Bible
+          this.matchCurrentBible();
+        }
+        
+        this.loadingBibles = false;
+        console.log(`Loaded ${response.languages.length} languages and ${response.bibles.length} Bibles`);
+      },
+      error: (error) => {
+        console.error('Error loading available Bibles:', error);
+        this.loadingBibles = false;
+      }
+    });
+  }
+
+  onLanguageChange(): void {
+    console.log('Language changed to:', this.profileForm.preferredLanguage);
+    this.profileForm.preferredBible = ''; // Reset Bible selection
+    this.selectedBibleId = '';
+    this.loadAvailableBibles(this.profileForm.preferredLanguage);
+  }
+
+  onBibleChange(): void {
+    // Find the selected Bible and store its ID
+    const selectedBible = this.availableBibles.find(
+      b => b.abbreviation === this.profileForm.preferredBible
+    );
+    
+    if (selectedBible) {
+      this.selectedBibleId = selectedBible.id;
+      console.log('Bible selected:', selectedBible.abbreviation, 'ID:', selectedBible.id);
+      
+      // Update the Bible service with the selected version
+      this.bibleService.setCurrentBibleVersion({
+        id: selectedBible.id,
+        name: selectedBible.name,
+        abbreviation: selectedBible.abbreviation,
+        isPublicDomain: true, // You might want to determine this from the API
+        copyright: selectedBible.description
+      });
+    }
+  }
+
+  matchCurrentBible(): void {
+    if (!this.profileForm.preferredBible) return;
+    
+    // Try to find the Bible by abbreviation
+    const matchingBible = this.availableBibles.find(
+      b => b.abbreviation === this.profileForm.preferredBible ||
+           b.abbreviationLocal === this.profileForm.preferredBible
+    );
+    
+    if (matchingBible) {
+      this.selectedBibleId = matchingBible.id;
+      this.profileForm.preferredBible = matchingBible.abbreviation;
+    }
+  }
   
   // Initialize form with user data
   initializeForm(user: User): void {
@@ -109,18 +202,25 @@ export class ProfileComponent implements OnInit {
       lastName: nameParts.slice(1).join(' ') || '',
       denomination: user.denomination || '',
       preferredBible: user.preferredBible || '',
+      preferredLanguage: user.preferredLanguage || 'eng',
       includeApocrypha: user.includeApocrypha !== undefined ? user.includeApocrypha : false,
       useEsvApi: user.useEsvApi || false,
       esvApiToken: user.esvApiToken || ''
     };
     
     console.log('Profile form initialized with:', this.profileForm);
+    
+    // Load Bibles for the user's language
+    if (this.profileForm.preferredLanguage) {
+      this.loadAvailableBibles(this.profileForm.preferredLanguage);
+    }
   }
   
   saveProfile(): void {
     if (!this.profileForm || this.isSaving) return;
     
     console.log('Saving profile with data:', this.profileForm);
+    console.log('Selected Bible ID:', this.selectedBibleId);
     this.isSaving = true;
     
     // Create a clean user profile update object
@@ -128,7 +228,8 @@ export class ProfileComponent implements OnInit {
       firstName: this.profileForm.firstName,
       lastName: this.profileForm.lastName,
       denomination: this.profileForm.denomination,
-      preferredBible: this.profileForm.preferredBible,
+      preferredBible: this.profileForm.preferredBible, // Store abbreviation
+      preferredLanguage: this.profileForm.preferredLanguage,
       includeApocrypha: this.profileForm.includeApocrypha,
       useEsvApi: this.profileForm.useEsvApi,
       esvApiToken: this.profileForm.esvApiToken
@@ -159,7 +260,7 @@ export class ProfileComponent implements OnInit {
       error: (error: any) => {
         console.error('Error updating profile:', error);
         this.isSaving = false;
-        // TODO: Show error message using modal service
+        this.modalService.alert('Error', 'Failed to update profile. Please try again.', 'danger');
       }
     });
   }

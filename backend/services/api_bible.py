@@ -250,12 +250,17 @@ class APIBibleService:
         results = self.get_verses_batch([verse_code], bible_id)
         return results.get(verse_code, None)
     
+    # backend/services/api_bible.py (updated get_available_bibles method)
     @lru_cache(maxsize=10)
-    def get_available_bibles(self) -> List[Dict]:
+    def get_available_bibles(self, language: Optional[str] = None) -> List[Dict]:
         """Get list of available Bible translations"""
         try:
             url = f"{self.BASE_URL}/bibles"
-            response = requests.get(url, headers=self.headers)
+            params = {}
+            if language:
+                params['language'] = language  # 3-letter ISO 639-3 code
+            
+            response = requests.get(url, headers=self.headers, params=params)
             
             if response.status_code == 200:
                 data = response.json()

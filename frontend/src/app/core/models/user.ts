@@ -14,6 +14,7 @@ export interface User {
   // Profile details
   denomination?: string;
   preferredBible?: string;
+  preferredLanguage?: string;
   includeApocrypha?: boolean;
   useEsvApi?: boolean;
   esvApiToken?: string;
@@ -32,10 +33,11 @@ export interface UserApiResponse {
   id: string | number;
   name: string;
   email: string;
-  created_at: string; // API returns dates as strings
+  created_at: string;
   
   denomination?: string;
   preferred_bible?: string;
+  preferred_language?: string;
   include_apocrypha?: boolean;
   use_esv_api?: boolean;
   esv_api_token?: string;
@@ -51,6 +53,7 @@ export interface UserProfileUpdate {
   last_name?: string;
   denomination?: string;
   preferred_bible?: string;
+  preferred_language?: string;
   include_apocrypha?: boolean;
   use_esv_api?: boolean;
   esv_api_token?: string;

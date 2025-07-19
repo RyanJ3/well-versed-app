@@ -57,6 +57,7 @@ export class UserService {
       last_name: formData.lastName || formData.last_name,
       denomination: formData.denomination,
       preferred_bible: formData.preferredBible || formData.preferred_bible,
+      preferred_language: formData.preferredLanguage || formData.preferred_language,
       // Use the normalized boolean value
       include_apocrypha: includeApocrypha,
       use_esv_api: formData.useEsvApi,
@@ -114,6 +115,7 @@ export class UserService {
 
       denomination: apiResponse.denomination,
       preferredBible: apiResponse.preferred_bible,
+      preferredLanguage: apiResponse.preferred_language || 'eng',
       includeApocrypha: includeApocrypha,
       useEsvApi: apiResponse.use_esv_api,
       esvApiToken: apiResponse.esv_api_token,

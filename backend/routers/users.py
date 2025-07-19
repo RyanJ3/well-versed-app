@@ -20,6 +20,7 @@ class UserResponse(BaseModel):
     last_name: Optional[str]
     denomination: Optional[str]
     preferred_bible: Optional[str]
+    preferred_language: str = "eng"
     include_apocrypha: bool = False
     use_esv_api: bool = False
     esv_api_token: Optional[str]
@@ -33,6 +34,7 @@ class UserUpdate(BaseModel):
     last_name: Optional[str] = None
     denomination: Optional[str] = None
     preferred_bible: Optional[str] = None
+    preferred_language: Optional[str] = None
     include_apocrypha: Optional[bool] = None
     use_esv_api: Optional[bool] = None
     esv_api_token: Optional[str] = None
@@ -56,6 +58,7 @@ async def get_user(user_id: int, db: DatabaseConnection = Depends(get_db)):
             last_name,
             denomination,
             preferred_bible,
+            preferred_language,
             include_apocrypha,
             use_esv_api,
             esv_api_token,
@@ -68,7 +71,7 @@ async def get_user(user_id: int, db: DatabaseConnection = Depends(get_db)):
         user = db.fetch_one(query, (user_id,))
     except errors.UndefinedColumn:
         # Older database without new columns
-        logger.warning("Database missing ESV columns, falling back")
+        logger.warning("Database missing new columns, falling back")
         legacy_query = """
             SELECT
                 user_id as id,
@@ -86,6 +89,7 @@ async def get_user(user_id: int, db: DatabaseConnection = Depends(get_db)):
         user = db.fetch_one(legacy_query, (user_id,)) or {}
         user["use_esv_api"] = False
         user["esv_api_token"] = None
+        user["preferred_language"] = "eng"
 
     if not user:
         logger.warning(f"User {user_id} not found")
@@ -135,6 +139,10 @@ async def update_user(
     if user_update.preferred_bible is not None:
         update_fields.append("preferred_bible = %s")
         params.append(user_update.preferred_bible)
+        
+    if user_update.preferred_language is not None:
+        update_fields.append("preferred_language = %s")
+        params.append(user_update.preferred_language)
 
     if user_update.include_apocrypha is not None:
         update_fields.append("include_apocrypha = %s")
@@ -175,11 +183,11 @@ async def update_user(
         db.execute(query, tuple(params))
     except errors.UndefinedColumn:
         # Column doesn't exist in older schema; retry without new fields
-        logger.warning("Database missing ESV columns on update, retrying")
+        logger.warning("Database missing new columns on update, retrying")
         filtered_fields = []
         filtered_params = []
         for field, value in zip(update_fields, params[:-1]):
-            if field.startswith("use_esv_api") or field.startswith("esv_api_token"):
+            if field.startswith("use_esv_api") or field.startswith("esv_api_token") or field.startswith("preferred_language"):
                 continue
             filtered_fields.append(field)
             filtered_params.append(value)
@@ -198,5 +206,3 @@ async def update_user(
 
     logger.info(f"User {user_id} updated successfully")
     return await get_user(user_id, db)
-
-
