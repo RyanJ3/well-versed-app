@@ -64,6 +64,20 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
     this.showTooltip = false;
   }
 
+  isEsv(): boolean {
+    return this.currentBibleVersion.abbreviation?.toUpperCase() === 'ESV';
+  }
+
+  get providerName(): string {
+    return this.isEsv() ? 'Crossway' : 'API.Bible';
+  }
+
+  get providerUrl(): string {
+    return this.isEsv()
+      ? 'https://www.crossway.org'
+      : 'https://scripture.api.bible';
+  }
+
   getCitationText(): string {
     if (this.currentBibleVersion.isPublicDomain) {
       return `Scripture quotations from ${this.currentBibleVersion.abbreviation} (Public Domain)`;
