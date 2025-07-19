@@ -18,7 +18,7 @@ class Config:
     
     # API
     API_HOST = os.getenv('API_HOST')
-    API_PORT = int(os.getenv('API_PORT'))
+    API_PORT = os.getenv('API_PORT')
     LOG_LEVEL = os.getenv('LOG_LEVEL')
     
     # CORS

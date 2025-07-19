@@ -11,7 +11,7 @@ import db_pool
 
 # Configure logging
 logging.basicConfig(
-    level=getattr(logging, Config.LOG_LEVEL),
+    level=Config.LOG_LEVEL,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)

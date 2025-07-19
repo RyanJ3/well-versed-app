@@ -25,22 +25,13 @@ class Colors:
 
 # Load environment variables
 def load_env():
-    """Load environment variables from backend/.env"""
-    backend_env_path = Path(__file__).parent.parent / 'backend' / '.env'
-    if not backend_env_path.exists():
-        print(f"{Colors.RED}Error: backend/.env not found!{Colors.RESET}")
-        print("Please copy backend/.env.example to backend/.env and configure it.")
-        sys.exit(1)
-    
-    load_dotenv(backend_env_path)
-    
     # Verify required environment variables
     required_vars = ['DATABASE_HOST', 'DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWORD']
     missing_vars = [var for var in required_vars if not os.getenv(var)]
     
     if missing_vars:
         print(f"{Colors.RED}Error: Missing required environment variables: {', '.join(missing_vars)}{Colors.RESET}")
-        print("Please check your backend/.env file.")
+        print("Please check your .bashrc file.")
         sys.exit(1)
 
 # Configure logging
@@ -128,9 +119,9 @@ def get_db_connection():
     retry_delay = 2
     
     conn_params = {
-        'host': os.getenv('DATABASE_HOST', 'localhost'),
-        'port': os.getenv('DATABASE_PORT', '5432'),
-        'database': os.getenv('DATABASE_NAME', 'wellversed01DEV'),
+        'host': os.getenv('DATABASE_HOST'),
+        'port': os.getenv('DATABASE_PORT'),
+        'database': os.getenv('DATABASE_NAME'),
         'user': os.getenv('DATABASE_USER'),
         'password': os.getenv('DATABASE_PASSWORD')
     }
