@@ -6,7 +6,7 @@
         (mouseenter)="showCopyrightTooltip($event)"
         (mouseleave)="hideCopyrightTooltip()"
         [routerLink]="['/copyright']"
-        [queryParams]="{version: currentBibleVersion.id}"
+        [queryParams]="{version: displayBibleVersion.id}"
       >
         {{ getCitationText() }}
       </span>
@@ -28,13 +28,13 @@
     [style.top.px]="tooltipY"
   >
     <div class="tooltip-content">
-      <div class="tooltip-header">{{ currentBibleVersion.name }}</div>
+      <div class="tooltip-header">{{ displayBibleVersion.name }}</div>
       <div class="tooltip-body">
-        <ng-container *ngIf="currentBibleVersion.isPublicDomain; else copyrighted">
+        <ng-container *ngIf="displayBibleVersion.isPublicDomain; else copyrighted">
           <p>This translation is in the public domain.</p>
         </ng-container>
         <ng-template #copyrighted>
-          <p>{{ currentBibleVersion.copyright || 'Copyright information available on copyright page.' }}</p>
+          <p>{{ displayBibleVersion.copyright || 'Copyright information available on copyright page.' }}</p>
         </ng-template>
         <a [routerLink]="['/copyright']" class="tooltip-link">View full copyright →</a>
       </div>

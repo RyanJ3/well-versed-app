@@ -14,6 +14,15 @@ interface BibleVersion {
   copyrightUrl?: string;
 }
 
+const ESV_BIBLE_VERSION: BibleVersion = {
+  id: '01b29f4b342acc35-01',
+  name: 'English Standard Version',
+  abbreviation: 'ESV',
+  isPublicDomain: false,
+  copyright: '© 2016 Crossway Bibles.',
+  copyrightUrl: 'https://www.crossway.org'
+};
+
 @Component({
   selector: 'app-citation-footer',
   standalone: true,
@@ -81,6 +90,10 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
     return this.useEsvApi;
   }
 
+  get displayBibleVersion(): BibleVersion {
+    return this.isEsv() ? ESV_BIBLE_VERSION : this.currentBibleVersion;
+  }
+
   get providerName(): string {
     return this.isEsv() ? 'Crossway' : 'API.Bible';
   }
@@ -92,9 +105,10 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
   }
 
   getCitationText(): string {
-    if (this.currentBibleVersion.isPublicDomain) {
-      return `Scripture quotations from ${this.currentBibleVersion.abbreviation} (Public Domain)`;
+    const version = this.displayBibleVersion;
+    if (version.isPublicDomain) {
+      return `Scripture quotations from ${version.abbreviation} (Public Domain)`;
     }
-    return `Scripture quotations from ${this.currentBibleVersion.abbreviation}`;
+    return `Scripture quotations from ${version.abbreviation}`;
   }
 }
