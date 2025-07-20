@@ -176,6 +176,38 @@ export class ProfileComponent implements OnInit {
         if (!language) {
           this.languages = [];
         }
+        // Attempt to load static fallback data
+        this.loadBiblesFromAssets(language);
+      }
+    });
+  }
+
+  private loadBiblesFromAssets(language?: string): void {
+    this.http.get<any>('assets/data/bible-versions.json').subscribe({
+      next: data => {
+        const versions = Array.isArray(data.versions) ? data.versions : [];
+
+        const langOption: LanguageOption = { id: 'eng', name: 'English', nameLocal: 'English' };
+        if (!language) {
+          this.languages = [langOption];
+        }
+
+        const mapped: BibleVersion[] = versions.map((v: any) => ({
+          id: v.id,
+          name: v.name,
+          abbreviation: v.abbreviation,
+          abbreviationLocal: v.abbreviation,
+          language: v.language,
+          languageId: 'eng',
+          description: v.description
+        }));
+
+        this.availableBibles = mapped.filter(b => !language || b.languageId === language);
+        this.matchCurrentBible();
+        this.loadingBibles = false;
+      },
+      error: () => {
+        console.error('Failed to load local Bible data');
         this.loadingBibles = false;
       }
     });
