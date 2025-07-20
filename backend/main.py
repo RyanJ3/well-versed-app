@@ -51,8 +51,7 @@ async def lifespan(app: FastAPI):
         logger.info(f"✓ API.Bible connection successful: {len(bibles)} Bibles available")
     except Exception as e:
         logger.error(f"✗ API.Bible connection FAILED: {e}")
-        logger.error("Please check your API_BIBLE_KEY in .env file")
-        logger.error("Get a key from: https://scripture.api.bible/")
+        logger.error("Please check your API_BIBLE_KEY in .bashrc file")
         raise Exception(f"API.Bible startup check failed: {e}")
 
     yield
