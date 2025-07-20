@@ -132,7 +132,6 @@ export class ProfileComponent implements OnInit {
     
     this.http.get<AvailableBiblesResponse>(url).subscribe({
       next: (response) => {
-        console.log('API Response:', response);
         
         // Only update languages when fetching all (not filtered by language)
         if (!language) {

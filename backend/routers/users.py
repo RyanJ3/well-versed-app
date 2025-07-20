@@ -120,6 +120,14 @@ async def update_user(
     """Update user profile"""
     logger.info(f"Updating user {user_id}: {user_update.dict(exclude_unset=True)}")
     
+    # Check if Bible translation is changing
+    bible_changed = False
+    if user_update.preferred_bible is not None:
+        current_user = db.fetch_one("SELECT preferred_bible FROM users WHERE user_id = %s", (user_id,))
+        if current_user and current_user.get('preferred_bible') != user_update.preferred_bible:
+            bible_changed = True
+            logger.info(f"Bible translation changing from {current_user.get('preferred_bible')} to {user_update.preferred_bible}")
+    
     # Build update query dynamically
     update_fields = []
     params = []
@@ -205,4 +213,31 @@ async def update_user(
         raise HTTPException(status_code=500, detail="Failed to update user")
 
     logger.info(f"User {user_id} updated successfully")
+    
+    # Clear all caches if Bible translation changed
+    if bible_changed:
+        logger.info("Bible translation changed - clearing all caches")
+        
+        # Clear database cache
+        with db.get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute("DELETE FROM api_cache")
+                deleted_count = cur.rowcount
+                conn.commit()
+        logger.info(f"Cleared {deleted_count} database cache entries")
+        
+        # Clear in-memory caches
+        from services.api_bible import APIBibleService
+        from services.esv_api import ESVService
+        
+        # Reset APIBibleService cache
+        APIBibleService._cache = {}
+        APIBibleService.get_verse_text.cache_clear()
+        APIBibleService.get_available_bibles.cache_clear()
+        
+        # Reset ESVService cache 
+        ESVService._cache = ESVService._cache.__class__()  # Create new cache instance
+        
+        logger.info("Cleared all in-memory caches")
+    
     return await get_user(user_id, db)

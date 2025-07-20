@@ -178,9 +178,44 @@ async def clear_bible_cache(db: DatabaseConnection = Depends(get_db)):
     """Clear the Bible cache"""
     logger.info("Clearing Bible cache")
     
-    db.execute("DELETE FROM api_cache WHERE cache_key LIKE 'bibles_available_%'")
+    # Use fetch_all instead of execute to avoid parameter issues
+    with db.get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM api_cache WHERE cache_key LIKE 'bibles_available_%'")
+            deleted_count = cur.rowcount
+            conn.commit()
+    
+    logger.info(f"Cleared {deleted_count} cache entries")
     
     return {"message": "Bible cache cleared"}
+
+@router.delete("/cache/all")
+async def clear_all_caches(db: DatabaseConnection = Depends(get_db)):
+    """Clear ALL caches - Bible cache, verse texts, etc."""
+    logger.info("Clearing ALL caches")
+    
+    # Clear database cache
+    with db.get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM api_cache")
+            deleted_count = cur.rowcount
+            conn.commit()
+    
+    # Clear in-memory caches
+    from services.api_bible import APIBibleService
+    from services.esv_api import ESVService
+    
+    # Reset APIBibleService cache
+    APIBibleService._cache = {}
+    APIBibleService.get_verse_text.cache_clear()
+    APIBibleService.get_available_bibles.cache_clear()
+    
+    # Reset ESVService cache 
+    ESVService._cache = ESVService._cache.__class__()  # Create new cache instance
+    
+    logger.info(f"Cleared {deleted_count} database cache entries and all in-memory caches")
+    
+    return {"message": "All caches cleared", "database_entries_cleared": deleted_count}
 
 @router.get("/bible/{bible_id}")
 async def get_bible_details(

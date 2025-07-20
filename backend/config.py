@@ -38,13 +38,42 @@ class Config:
     if not FRONTEND_URL:
         raise ValueError("FRONTEND_URL not found in environment. Add to .bashrc or .env file")
     
-    # API.Bible
+    # API.Bible - Enhanced validation
     API_BIBLE_KEY = os.getenv('API_BIBLE_KEY')
     if not API_BIBLE_KEY:
         raise ValueError(
-            "API_BIBLE_KEY not found in environment. "
-            "Add to .bashrc or .env file. "
-            "Get your API key from https://scripture.api.bible/"
+            "\n" + "="*60 + "\n"
+            "API_BIBLE_KEY not found in environment!\n\n"
+            "To fix this:\n"
+            "1. Get a free API key from: https://scripture.api.bible/\n"
+            "2. Add to your .env file:\n"
+            "   API_BIBLE_KEY=your_actual_key_here\n"
+            "3. Restart the backend\n" +
+            "="*60
+        )
+    
+    # Check for placeholder values
+    if API_BIBLE_KEY in ['your_api_key_here', 'YOUR_API_KEY_HERE', 'api_key_here', '']:
+        raise ValueError(
+            "\n" + "="*60 + "\n"
+            "API_BIBLE_KEY appears to be a placeholder!\n\n"
+            f"Current value: '{API_BIBLE_KEY}'\n\n"
+            "Please replace it with your actual API key:\n"
+            "1. Get a free API key from: https://scripture.api.bible/\n"
+            "2. Update your .env file with the real key\n"
+            "3. Restart the backend\n" +
+            "="*60
+        )
+    
+    # Basic key format validation
+    if len(API_BIBLE_KEY) < 10:
+        raise ValueError(
+            "\n" + "="*60 + "\n"
+            "API_BIBLE_KEY seems too short to be valid!\n\n"
+            f"Current length: {len(API_BIBLE_KEY)} characters\n"
+            "API.Bible keys are typically 32+ characters long.\n\n"
+            "Please check your API key and try again.\n" +
+            "="*60
         )
     
     DEFAULT_BIBLE_ID = os.getenv('DEFAULT_BIBLE_ID', 'de4e12af7f28f599-02')  # KJV
@@ -55,5 +84,12 @@ class Config:
     
     @classmethod
     def log_config(cls):
-        logger.info(f"WELLVERSED DB - successfully setup!")
-        logger.info(f"API_BIBLE_KEY - successfully retrieved!")
+        logger.info("="*60)
+        logger.info("Configuration loaded successfully!")
+        logger.info("="*60)
+        logger.info(f"Database: {cls.DATABASE_NAME} on {cls.DATABASE_HOST}:{cls.DATABASE_PORT}")
+        logger.info(f"API: Running on {cls.API_HOST}:{cls.API_PORT}")
+        logger.info(f"Frontend URL: {cls.FRONTEND_URL}")
+        logger.info(f"API.Bible key: {'✓ Configured' if cls.API_BIBLE_KEY else '✗ Missing'} (length: {len(cls.API_BIBLE_KEY) if cls.API_BIBLE_KEY else 0})")
+        logger.info(f"Default Bible: {cls.DEFAULT_BIBLE_ID}")
+        logger.info("="*60)

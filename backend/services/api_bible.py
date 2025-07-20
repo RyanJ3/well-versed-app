@@ -35,6 +35,12 @@ class APIBibleService:
     }
     
     def __init__(self, api_key: str, default_bible_id: str):
+        if not api_key:
+            raise ValueError("API key is required for APIBibleService")
+        
+        if api_key == "your_api_key_here" or len(api_key) < 10:
+            raise ValueError("API key appears to be a placeholder. Please provide a valid API key.")
+            
         self.api_key = api_key
         self.default_bible_id = default_bible_id
         self.headers = {
@@ -43,6 +49,7 @@ class APIBibleService:
         }
         self._cache = {}
         logger.info(f"APIBibleService initialized with Bible ID: {default_bible_id}")
+        logger.debug(f"API key length: {len(api_key)}")
     
     def convert_verse_code(self, verse_code: str) -> tuple:
         """Convert verse code from '40-1-1' to ('MAT', 1, 1)"""
@@ -146,15 +153,23 @@ class APIBibleService:
             reference = f"{book_code}.{chapter}.{verse}"
             url = f"{self.BASE_URL}/bibles/{bible_id}/verses/{reference}"
             
+            logger.debug(f"Fetching verse: {reference}")
+            
             response = requests.get(url, headers=self.headers, params={
                 "content-type": "text",
                 "include-notes": "false",
                 "include-titles": "false",
                 "include-chapter-numbers": "false",
                 "include-verse-numbers": "false"
-            })
+            }, timeout=10)
             
-            if response.status_code == 200:
+            if response.status_code == 401:
+                logger.error("API.Bible authentication failed - invalid API key")
+                return None
+            elif response.status_code == 403:
+                logger.error("API.Bible access forbidden - check API key permissions")
+                return None
+            elif response.status_code == 200:
                 data = response.json()
                 text = data.get("data", {}).get("content", "").strip()
                 
@@ -162,15 +177,22 @@ class APIBibleService:
                     # Cache it
                     cache_key = f"{bible_id}:{reference}"
                     self._cache[cache_key] = text
-                    logger.debug(f"Fetched verse {reference}")
+                    logger.debug(f"Successfully fetched verse {reference}")
                 
                 return text
             else:
-                logger.error(f"Failed to fetch verse {reference}: {response.status_code}")
+                logger.error(f"Failed to fetch verse {reference}: HTTP {response.status_code}")
+                logger.debug(f"Response: {response.text[:200]}")
                 return None
                 
+        except requests.exceptions.Timeout:
+            logger.error(f"Timeout fetching verse {book_code}.{chapter}.{verse}")
+            return None
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Network error fetching verse {book_code}.{chapter}.{verse}: {e}")
+            return None
         except Exception as e:
-            logger.error(f"Error fetching verse {book_code}.{chapter}.{verse}: {e}")
+            logger.error(f"Unexpected error fetching verse {book_code}.{chapter}.{verse}: {e}")
             return None
     
     def _fetch_verse_range(self, bible_id: str, book_code: str, chapter: int, 
@@ -201,7 +223,7 @@ class APIBibleService:
                 "include-titles": "false",
                 "include-chapter-numbers": "false",
                 "include-verse-numbers": "false"
-            })
+            }, timeout=15)
             
             if response.status_code == 200:
                 data = response.json()
@@ -250,28 +272,34 @@ class APIBibleService:
     
     @lru_cache(maxsize=10)
     def get_available_bibles(self, language: Optional[str] = None) -> List[Dict]:
-        """Get list of available Bible translations"""
+        """Get list of available Bible translations with robust error handling"""
         try:
             url = f"{self.BASE_URL}/bibles"
             params = {}
             if language:
                 params['language'] = language  # 3-letter ISO 639-3 code
             
-            logger.info(f"Fetching bibles from {url} with params: {params}")
-            logger.info(f"Using API key: {self.api_key[:10]}..." if self.api_key else "NO API KEY SET")
+            logger.info(f"Fetching bibles from API.Bible")
+            logger.debug(f"URL: {url}, Params: {params}")
             
-            response = requests.get(url, headers=self.headers, params=params)
+            response = requests.get(url, headers=self.headers, params=params, timeout=15)
             
             logger.info(f"API.Bible response status: {response.status_code}")
             
             if response.status_code == 401:
-                error_msg = "API.Bible authentication failed. Invalid API key."
+                error_msg = "API.Bible authentication failed. Your API key is invalid or expired."
                 logger.error(error_msg)
                 logger.error("Please check your API_BIBLE_KEY in .env file")
+                logger.error("Get a new key from: https://scripture.api.bible/")
                 raise Exception(error_msg)
             
             if response.status_code == 403:
-                error_msg = "API.Bible access forbidden. Check API key permissions."
+                error_msg = "API.Bible access forbidden. Your API key may not have the required permissions."
+                logger.error(error_msg)
+                raise Exception(error_msg)
+            
+            if response.status_code == 429:
+                error_msg = "API.Bible rate limit exceeded. Please try again later."
                 logger.error(error_msg)
                 raise Exception(error_msg)
             
@@ -280,17 +308,49 @@ class APIBibleService:
                 logger.error(f"{error_msg}: {response.text[:500]}")
                 raise Exception(error_msg)
             
-            data = response.json()
+            # Parse response
+            try:
+                data = response.json()
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse API.Bible response as JSON: {e}")
+                logger.error(f"Response content: {response.text[:500]}")
+                raise Exception("API.Bible returned invalid JSON response")
+            
             bibles = data.get("data", [])
+            
+            if not isinstance(bibles, list):
+                logger.error(f"API.Bible returned unexpected data type: {type(bibles)}")
+                raise Exception("API.Bible returned unexpected response format")
+            
             logger.info(f"API.Bible returned {len(bibles)} bibles")
             
             if len(bibles) == 0:
-                logger.warning("API.Bible returned 0 bibles - this may indicate an API issue")
+                logger.warning("API.Bible returned 0 bibles - this likely indicates:")
+                logger.warning("1. Invalid API key")
+                logger.warning("2. API key with no permissions")
+                logger.warning("3. API.Bible service issue")
+                logger.warning(f"Response data: {data}")
+            
+            # Log first few Bibles for debugging
+            if bibles and logger.isEnabledFor(logging.DEBUG):
+                for i, bible in enumerate(bibles[:3]):
+                    logger.debug(f"Bible {i+1}: {bible.get('name', 'Unknown')} - {bible.get('id', 'Unknown')}")
             
             return bibles
+            
+        except requests.exceptions.Timeout:
+            logger.error("Timeout connecting to API.Bible (15s exceeded)")
+            raise Exception("API.Bible request timed out. Please check your internet connection.")
+        except requests.exceptions.ConnectionError as e:
+            logger.error(f"Failed to connect to API.Bible: {e}")
+            raise Exception(f"Failed to connect to API.Bible. Please check your internet connection.")
         except requests.exceptions.RequestException as e:
             logger.error(f"Network error connecting to API.Bible: {e}")
-            raise Exception(f"Failed to connect to API.Bible: {e}")
+            raise Exception(f"Network error when connecting to API.Bible: {e}")
         except Exception as e:
-            logger.error(f"Error getting available bibles: {e}")
-            raise
+            # Re-raise our custom exceptions
+            if "API.Bible" in str(e):
+                raise
+            # Wrap unexpected exceptions
+            logger.error(f"Unexpected error getting available bibles: {e}")
+            raise Exception(f"Unexpected error when fetching Bibles: {e}")
