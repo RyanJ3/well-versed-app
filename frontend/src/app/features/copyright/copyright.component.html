@@ -1,137 +1,234 @@
+<!-- frontend/src/app/features/copyright/copyright.component.html -->
 <div class="copyright-page">
-  <div class="page-header">
-    <h1>Bible Copyright Information</h1>
-    <p class="subtitle">
-      Scripture quotations and copyright acknowledgments for Bible translations used in Well Versed
-    </p>
-  </div>
-
-  <!-- Current Version Highlight -->
-  <div class="current-version-section" *ngIf="currentVersion">
-    <h2>Currently Using</h2>
-    <div class="current-version-card">
-      <div class="version-header">
-        <h3>{{ currentVersion.name }} ({{ currentVersion.abbreviation }})</h3>
-        <span class="version-badge" [ngClass]="getCopyrightClass(currentVersion)">
-          {{ currentVersion.isPublicDomain ? 'Public Domain' : 'Copyrighted' }}
-        </span>
-      </div>
-      <div class="version-content">
-        <p *ngIf="currentVersion.description">{{ currentVersion.description }}</p>
-        <div class="copyright-info">
-          <strong>Copyright:</strong> {{ currentVersion.copyright }}
-        </div>
-        <div class="ip-holder" *ngIf="!currentVersion.isPublicDomain">
-          <strong>Rights Holder:</strong>
-          <a *ngIf="currentVersion.ipHolderUrl; else plainText" 
-             [href]="currentVersion.ipHolderUrl" 
-             target="_blank" 
-             rel="noopener noreferrer">
-            {{ currentVersion.ipHolder }}
-          </a>
-          <ng-template #plainText>{{ currentVersion.ipHolder }}</ng-template>
-        </div>
-      </div>
+  <!-- Header -->
+  <header class="copyright-header">
+    <div class="container">
+      <button class="back-button" (click)="navigateHome()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Home
+      </button>
+      
+      <h1 class="page-title">Bible Copyright Information</h1>
+      <p class="page-subtitle">
+        Well Versed uses Bible texts from multiple sources. Below is the copyright information 
+        for all available Bible translations.
+      </p>
     </div>
-  </div>
+  </header>
 
-  <!-- All Versions -->
-  <div class="all-versions-section">
-    <h2>All Available Bible Translations</h2>
-    
-    <div class="version-cards">
-      <div 
-        class="version-card"
-        *ngFor="let version of bibleVersions"
-        [class.current]="isCurrentVersion(version)"
-        [ngClass]="getCopyrightClass(version)"
-      >
-        <div class="version-header">
-          <h3>{{ version.name }}</h3>
-          <div class="version-meta">
-            <span class="abbreviation">{{ version.abbreviation }}</span>
-            <span class="language">{{ version.language }}</span>
-          </div>
-        </div>
-        
-        <div class="version-body">
-          <p *ngIf="version.description" class="description">
-            {{ version.description }}
-          </p>
+  <!-- Main Content -->
+  <main class="copyright-content">
+    <div class="container">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading Bible versions...</p>
+      </div>
+
+      <!-- Content -->
+      <div *ngIf="!isLoading" class="content-wrapper">
+        <!-- Primary Sources Section -->
+        <section class="sources-section">
+          <h2>Primary Bible Text Sources</h2>
           
-          <div class="copyright-details">
-            <div class="detail-row">
-              <span class="label">Copyright:</span>
-              <span class="value">{{ version.copyright }}</span>
+          <div class="source-cards">
+            <!-- API.Bible Card -->
+            <div class="source-card">
+              <div class="source-icon api-bible">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+              <h3>API.Bible</h3>
+              <p>
+                Provides access to multiple Bible translations through a unified API. 
+                Used for most Bible versions in Well Versed.
+              </p>
+              <a href="https://scripture.api.bible" target="_blank" rel="noopener noreferrer" class="source-link">
+                Visit API.Bible
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
             </div>
-            
-            <div class="detail-row" *ngIf="!version.isPublicDomain">
-              <span class="label">Rights Holder:</span>
-              <span class="value">
-                <a *ngIf="version.ipHolderUrl; else plainHolder" 
-                   [href]="version.ipHolderUrl" 
-                   target="_blank" 
-                   rel="noopener noreferrer">
-                  {{ version.ipHolder }}
-                </a>
-                <ng-template #plainHolder>{{ version.ipHolder }}</ng-template>
-              </span>
-            </div>
-            
-            <div class="detail-row" *ngIf="version.copyrightUrl">
-              <span class="label">More Info:</span>
-              <a [href]="version.copyrightUrl" 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 class="external-link">
-                View Full Copyright →
+
+            <!-- ESV Card -->
+            <div class="source-card">
+              <div class="source-icon esv">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
+              <h3>ESV API (Crossway)</h3>
+              <p>
+                Direct access to the English Standard Version (ESV) Bible. 
+                Available for users with ESV API tokens.
+              </p>
+              <div class="esv-copyright">
+                <p class="copyright-text">
+                  Scripture quotations are from the ESV® Bible (The Holy Bible, English Standard Version®), 
+                  copyright © 2001 by Crossway, a publishing ministry of Good News Publishers.
+                </p>
+              </div>
+              <a href="https://www.esv.org" target="_blank" rel="noopener noreferrer" class="source-link">
+                Visit ESV.org
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
               </a>
             </div>
           </div>
-          
-          <div class="usage-note" *ngIf="version.notes">
-            <strong>Note:</strong> {{ version.notes }}
+        </section>
+
+        <!-- Search and Controls -->
+        <section class="controls-section">
+          <div class="search-container">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="search-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input 
+              type="text" 
+              class="search-input" 
+              placeholder="Search Bible versions..."
+              (input)="onSearch($event)"
+            >
           </div>
+          
+          <div class="action-buttons">
+            <button class="action-button" (click)="expandAll()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+              </svg>
+              Expand All
+            </button>
+            <button class="action-button" (click)="collapseAll()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4-4m0 0l4 4m-4-4v12M20 8l-4 4m0 0l-4-4m4 4V0" />
+              </svg>
+              Collapse All
+            </button>
+          </div>
+        </section>
+
+        <!-- No Results Message -->
+        <div *ngIf="searchTerm && filteredGroups.length === 0" class="no-results">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M12 12h.01M12 12h.01M12 12h.01M12 12h.01M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p>No Bible versions found matching "{{ searchTerm }}"</p>
         </div>
-        
-        <div class="current-indicator" *ngIf="isCurrentVersion(version)">
-          <span>Currently in use</span>
-        </div>
+
+        <!-- Bible Versions by Language -->
+        <section class="versions-section" *ngIf="filteredGroups.length > 0">
+          <h2>Available Bible Versions by Language</h2>
+          <p class="section-subtitle">
+            {{ filteredGroups.length }} languages, 
+            {{ getTotalBibleCount() }} Bible versions
+          </p>
+
+          <div class="language-groups">
+            <div *ngFor="let group of filteredGroups" class="language-group" [class.expanded]="isExpanded(group.language)">
+              <button class="language-header" (click)="toggleLanguage(group.language)">
+                <div class="language-info">
+                  <h3>{{ group.language }}</h3>
+                  <span class="bible-count">{{ group.bibles.length }} version{{ group.bibles.length !== 1 ? 's' : '' }}</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="expand-icon">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <div class="bible-list" *ngIf="isExpanded(group.language)">
+                <div *ngFor="let bible of group.bibles" class="bible-item" [class.public-domain]="isPublicDomain(bible)">
+                  <div class="bible-header">
+                    <div class="bible-title">
+                      <h4>{{ bible.name }}</h4>
+                      <div class="bible-codes">
+                        <span class="abbreviation">{{ bible.abbreviation }}</span>
+                        <span *ngIf="bible.abbreviationLocal !== bible.abbreviation" class="abbreviation-local">
+                          {{ bible.abbreviationLocal }}
+                        </span>
+                      </div>
+                    </div>
+                    <span *ngIf="isPublicDomain(bible)" class="public-domain-badge">
+                      Public Domain
+                    </span>
+                  </div>
+                  
+                  <p *ngIf="bible.description" class="bible-description">
+                    {{ bible.description }}
+                  </p>
+                  
+                  <div class="bible-copyright">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{{ getCopyrightNotice(bible) }}</span>
+                  </div>
+                  
+                  <div class="bible-meta">
+                    <span class="meta-item">Type: {{ bible.type }}</span>
+                    <span class="meta-item">ID: {{ bible.id }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Additional Information -->
+        <section class="info-section">
+          <h2>Important Information</h2>
+          
+          <div class="info-cards">
+            <div class="info-card">
+              <h3>Fair Use</h3>
+              <p>
+                Well Versed displays Bible verses for personal study and memorization. 
+                We respect all copyright holders and follow fair use guidelines for 
+                educational and religious purposes.
+              </p>
+            </div>
+            
+            <div class="info-card">
+              <h3>Commercial Use</h3>
+              <p>
+                If you plan to use Bible texts for commercial purposes, please consult 
+                the copyright holders directly. Each translation has specific guidelines 
+                for commercial usage.
+              </p>
+            </div>
+            
+            <div class="info-card">
+              <h3>Accuracy</h3>
+              <p>
+                While we strive for accuracy, please refer to official sources for 
+                authoritative Bible texts. Report any discrepancies to help us improve.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="copyright-footer">
+          <p>
+            Well Versed is a Bible memorization tool that helps users study and memorize Scripture. 
+            We are not affiliated with any Bible publisher or translation committee.
+          </p>
+          <p>
+            For questions about specific Bible copyright permissions, please contact the respective publishers directly.
+          </p>
+        </footer>
       </div>
     </div>
-  </div>
+  </main>
 
-  <!-- API.Bible Attribution -->
-  <div class="api-bible-section">
-    <h2>API.Bible Attribution</h2>
-    <div class="attribution-card">
-      <p>
-        Scripture quotations and biblical text access are provided courtesy of 
-        <a href="https://scripture.api.bible" target="_blank" rel="noopener noreferrer">API.Bible</a>.
-      </p>
-      <p>
-        API.Bible is a service of the American Bible Society, providing programmatic access to 
-        Bible text in hundreds of versions and languages.
-      </p>
-      <div class="api-bible-logo">
-        <a href="https://scripture.api.bible" target="_blank" rel="noopener noreferrer">
-          <img src="assets/images/api-bible-logo.png" alt="API.Bible" onerror="this.style.display='none'">
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Usage Guidelines -->
-  <div class="usage-section">
-    <h2>Usage Guidelines</h2>
-    <div class="guidelines-card">
-      <ul>
-        <li>All Scripture quotations must include proper citation</li>
-        <li>Copyright notices must not be removed or altered</li>
-        <li>Some translations may have additional restrictions</li>
-        <li>Public domain translations may be used freely but should still be cited</li>
-        <li>For questions about specific usage, contact the rights holder</li>
-      </ul>
-    </div>
-  </div>
+  <!-- Scroll to Top Button -->
+  <button *ngIf="showScrollTop" class="scroll-top" (click)="scrollToTop()">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+    </svg>
+  </button>
 </div>
