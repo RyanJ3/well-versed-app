@@ -8,134 +8,240 @@
 
   <!-- Profile Content -->
   <div *ngIf="!isLoading && user" class="profile-container">
-    <!-- Header -->
-    <div class="profile-header">
-      <div class="header-content">
-        <div class="header-title">
-          <h1>Profile</h1>
-          <p>Manage your account settings and preferences</p>
+    <!-- Success Alert -->
+    <div class="alert alert-success" *ngIf="showSuccess">
+      <div class="alert-content">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="alert-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <div class="alert-text">
+          <strong>Success!</strong> Profile updated successfully.
+          <span *ngIf="profileForm.includeApocrypha"> Apocryphal books are now visible in the Bible tracker.</span>
+          <span *ngIf="!profileForm.includeApocrypha"> Apocryphal books are now hidden in the Bible tracker.</span>
         </div>
-        <div class="user-info">
-          <div class="user-avatar">
-            {{ user!.name ? user!.name.charAt(0).toUpperCase() : '' }}
-          </div>
-          <div class="user-details">
-            <div class="user-name">{{ user!.name }}</div>
-            <div class="user-email">{{ user!.email }}</div>
-          </div>
-        </div>
+        <button class="alert-close" (click)="dismissSuccess()">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="profile-body">
-      <!-- Personal Information Card -->
-      <div class="card">
-        <div class="card-header">
-          <h2>Personal Information</h2>
-        </div>
-        
-        <form (ngSubmit)="saveProfile()" class="profile-form">
-          <div class="form-grid">
-            <div class="form-field">
-              <label for="firstName">First Name</label>
-              <input 
-                type="text" 
-                id="firstName" 
-                [(ngModel)]="profileForm.firstName" 
-                name="firstName" 
-                required
-                placeholder="Enter your first name">
-            </div>
-            
-            <div class="form-field">
-              <label for="lastName">Last Name</label>
-              <input 
-                type="text" 
-                id="lastName" 
-                [(ngModel)]="profileForm.lastName" 
-                name="lastName"
-                placeholder="Enter your last name">
-            </div>
-          </div>
-
-          <!-- Bible Settings Section -->
-          <div class="section-divider">
-            <h3>Bible Settings</h3>
-          </div>
-
-          <div class="form-field">
-            <label for="preferredBible">Preferred Translation</label>
-            <div class="select-wrapper">
-              <select 
-                id="preferredBible" 
-                [(ngModel)]="profileForm.preferredBible" 
-                name="preferredBible"
-                (change)="onBibleChange()"
-                [disabled]="loadingBibles">
-                <option value="">
-                  {{ loadingBibles ? 'Loading translations...' : 'Select a translation' }}
-                </option>
-                <option *ngFor="let bible of availableBibles" [value]="bible.abbreviation">
-                  {{ bible.name }} ({{ bible.abbreviation }})
-                </option>
-              </select>
-              <svg class="select-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-            <p class="field-hint" *ngIf="selectedBibleId">
-              Currently using {{ profileForm.preferredBible }} translation
-            </p>
-          </div>
-
-          <!-- ESV Token Field -->
-          <div class="form-field esv-field" *ngIf="showEsvTokenField">
-            <label for="esvApiToken">
-              ESV API Token
-              <span class="required">*Required for ESV</span>
-            </label>
-            <input
-              type="text"
-              id="esvApiToken"
-              [(ngModel)]="profileForm.esvApiToken"
-              name="esvApiToken"
-              placeholder="Enter your ESV API token">
-            <p class="field-hint">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Get your free token from <a href="https://api.esv.org/" target="_blank" rel="noopener">api.esv.org</a>
-            </p>
-          </div>
-
-          <!-- Save Button -->
-          <div class="form-actions">
-            <button type="submit" class="btn-save" [disabled]="isSaving">
-              <span *ngIf="!isSaving">Save Changes</span>
-              <span *ngIf="isSaving">
-                <div class="spinner"></div>
-                Saving...
-              </span>
-            </button>
-          </div>
-        </form>
+    <!-- Profile Hero Section -->
+    <div class="hero-section">
+      <div class="hero-background">
+        <div class="hero-gradient"></div>
+        <div class="hero-pattern"></div>
       </div>
 
-      <!-- Danger Zone Card -->
-      <div class="card danger-card">
-        <div class="card-header">
-          <h2>Data Management</h2>
+      <div class="hero-content">
+        <div class="profile-avatar">
+          <span>{{ user!.name ? user!.name.charAt(0).toUpperCase() : '' }}</span>
         </div>
-        <div class="danger-content">
-          <div class="danger-info">
-            <h3>Clear Memorization Data</h3>
-            <p>This will permanently delete all your verse memorization progress. Your account and profile settings will remain unchanged.</p>
-          </div>
-          <button type="button" class="btn-danger" (click)="clearAllData()">
+        <div class="profile-info">
+          <h1 class="profile-name">{{ user!.name }}</h1>
+          <p class="profile-email">{{ user!.email }}</p>
+          <p class="profile-join-date">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
+            Member since {{ user!.createdAt | date:'mediumDate' }}
+          </p>
+        </div>
+      </div>
+      </div>
+
+      <div class="profile-content">
+        <!-- Settings Form -->
+        <div class="settings-card">
+      <div class="card-header">
+        <h2 class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Profile Settings
+        </h2>
+      </div>
+      
+      <form (ngSubmit)="saveProfile()" class="settings-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input 
+              type="text" 
+              id="firstName" 
+              class="form-control" 
+              [(ngModel)]="profileForm.firstName" 
+              name="firstName" 
+              required
+              placeholder="Enter your first name">
+          </div>
+              
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input 
+              type="text" 
+              id="lastName" 
+              class="form-control" 
+              [(ngModel)]="profileForm.lastName" 
+              name="lastName"
+              placeholder="Enter your last name">
+          </div>
+        </div>
+              
+        <div class="form-group">
+          <label for="denomination">Denomination</label>
+          <div class="select-wrapper">
+            <select 
+              id="denomination" 
+              class="form-control" 
+              [(ngModel)]="profileForm.denomination" 
+              name="denomination">
+              <option *ngFor="let option of denominationOptions" [value]="option.value">
+                {{ option.text }}
+              </option>
+            </select>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="select-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Language Selection -->
+        <div class="form-group">
+          <label for="preferredLanguage">
+            Bible Language
+            <span class="required-indicator">*</span>
+          </label>
+          <div class="select-wrapper">
+            <select 
+              id="preferredLanguage" 
+              class="form-control" 
+              [(ngModel)]="profileForm.preferredLanguage" 
+              name="preferredLanguage"
+              (change)="onLanguageChange()"
+              [class.error]="!profileForm.preferredLanguage"
+              required>
+              <option value="">Select Language (Required)</option>
+              <option *ngFor="let lang of languages" [value]="lang.id">
+                {{ lang.name }} 
+                <span *ngIf="lang.nameLocal && lang.nameLocal !== lang.name">({{ lang.nameLocal }})</span>
+              </option>
+            </select>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="select-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          <small class="form-text error-text" *ngIf="!profileForm.preferredLanguage">
+            Bible language is required
+          </small>
+        </div>
+              
+        <!-- Bible Translation Selection -->
+        <div class="form-group">
+          <label for="preferredBible">
+            Preferred Bible Translation
+            <span class="required-indicator">*</span>
+          </label>
+          <div class="select-wrapper">
+            <select 
+              id="preferredBible" 
+              class="form-control" 
+              [(ngModel)]="profileForm.preferredBible" 
+              name="preferredBible"
+              (change)="onBibleChange()"
+              [disabled]="loadingBibles || availableBibles.length === 0"
+              [class.error]="!profileForm.preferredBible"
+              required>
+              <option value="">
+                {{ loadingBibles ? 'Loading Bibles...' : 
+                   availableBibles.length === 0 ? 'No Bibles available for selected language' : 
+                   'Select Bible Translation (Required)' }}
+              </option>
+              <option *ngFor="let bible of availableBibles" [value]="bible.abbreviation">
+                {{ bible.name }} ({{ bible.abbreviation }})
+              </option>
+            </select>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="select-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+          <small class="form-text error-text" *ngIf="!profileForm.preferredBible">
+            Bible translation is required
+          </small>
+          <small class="form-text" *ngIf="selectedBibleId && profileForm.preferredBible">
+            Bible ID: {{ selectedBibleId }}
+          </small>
+        </div>
+              
+        <div class="form-group">
+          <div class="toggle-container">
+            <input
+              type="checkbox"
+              id="includeApocrypha"
+              class="toggle-input"
+              [(ngModel)]="profileForm.includeApocrypha"
+              name="includeApocrypha">
+            <label for="includeApocrypha" class="toggle-label">
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">
+                <strong>Include Apocrypha</strong>
+                <small>Show apocryphal books and chapters in the Bible tracker</small>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="toggle-container">
+            <input
+              type="checkbox"
+              id="useEsvApi"
+              class="toggle-input"
+              [(ngModel)]="profileForm.useEsvApi"
+              name="useEsvApi">
+            <label for="useEsvApi" class="toggle-label">
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">
+                <strong>Use ESV API</strong>
+                <small>Retrieve verses from the ESV API (requires API token)</small>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="profileForm.useEsvApi">
+          <label for="esvApiToken">ESV API Token</label>
+          <input
+            type="text"
+            id="esvApiToken"
+            class="form-control"
+            [(ngModel)]="profileForm.esvApiToken"
+            name="esvApiToken"
+            placeholder="Enter your ESV API token">
+          <small class="form-text">
+            Get your token from <a href="https://api.esv.org/" target="_blank" rel="noopener">api.esv.org</a>
+          </small>
+        </div>
+              
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="isSaving">
+            <svg *ngIf="!isSaving" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2" />
+            </svg>
+            <div *ngIf="isSaving" class="button-spinner"></div>
+            <span>{{ isSaving ? 'Saving...' : 'Save Changes' }}</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- Danger Zone -->
+      <div class="danger-zone">
+        <h3>Danger Zone</h3>
+        <p>Clear your memorization data and start from scratch.</p>
+        <div class="danger-actions">
+          <button type="button" class="btn btn-danger" (click)="clearAllData()">
             Clear All Data
           </button>
         </div>

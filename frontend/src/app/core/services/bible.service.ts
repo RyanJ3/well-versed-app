@@ -24,6 +24,7 @@ export class BibleService {
   private apiUrl = environment.apiUrl;
   private bibleData: BibleData;
   private isBrowser: boolean;
+  private verseTextCache = new Map<string, string>();
 
   private preferencesSubject = new BehaviorSubject<{ includeApocrypha: boolean }>({
     includeApocrypha: false
@@ -33,13 +34,8 @@ export class BibleService {
   private esvRetrySubject = new Subject<number>();
   public esvRetry$ = this.esvRetrySubject.asObservable();
 
-  // Current Bible version for citations
-  private currentBibleVersionSubject = new BehaviorSubject<BibleVersion>({
-    id: 'de4e12af7f28f599-02',
-    name: 'King James Version', 
-    abbreviation: 'KJV',
-    isPublicDomain: true
-  });
+  // Current Bible version for citations - now starts as null
+  private currentBibleVersionSubject = new BehaviorSubject<BibleVersion | null>(null);
   public currentBibleVersion$ = this.currentBibleVersionSubject.asObservable();
 
   public preferences$ = this.preferencesSubject.asObservable();
@@ -66,6 +62,33 @@ export class BibleService {
     this.preferencesSubject.next({ includeApocrypha });
   }
 
+  /**
+   * Check if a Bible translation has been selected
+   */
+  get hasSelectedBible(): boolean {
+    return this.currentBibleVersionSubject.value !== null;
+  }
+
+  /**
+   * Get the current Bible version
+   */
+  get currentBibleVersion(): BibleVersion | null {
+    return this.currentBibleVersionSubject.value;
+  }
+
+  /**
+   * Return cached texts for the given verse codes if available
+   */
+  getCachedVerseTexts(verseCodes: string[]): Record<string, string> | null {
+    if (verseCodes.every((c) => this.verseTextCache.has(c))) {
+      const result: Record<string, string> = {};
+      verseCodes.forEach((c) => {
+        result[c] = this.verseTextCache.get(c) || '';
+      });
+      return result;
+    }
+    return null;
+  }
 
   getUserVerses(userId: number, includeApocrypha?: boolean): Observable<UserVerseDetail[]> {
     let params = new HttpParams();
@@ -195,16 +218,30 @@ export class BibleService {
    * Get verse texts from API.Bible through backend
    */
   getVerseTexts(userId: number, verseCodes: string[], bibleId?: string): Observable<Record<string, string>> {
+    // Check if we have a Bible selected
+    if (!bibleId && !this.currentBibleVersion) {
+      console.error('No Bible translation selected');
+      return throwError(() => new Error('No Bible translation selected. Please select a Bible translation in your profile settings.'));
+    }
+    
     console.log(`Getting texts for ${verseCodes.length} verses`);
+
+    const cached = this.getCachedVerseTexts(verseCodes);
+    if (cached) {
+      return of(cached);
+    }
 
     const payload = {
       verse_codes: verseCodes,
-      bible_id: bibleId,
+      bible_id: bibleId || this.currentBibleVersion?.id,
     };
 
     return this.http.post<Record<string, string>>(`${this.apiUrl}/user-verses/${userId}/verses/texts`, payload).pipe(
       tap((texts) => {
         console.log(`Received texts for ${Object.keys(texts).length} verses`);
+        Object.entries(texts).forEach(([code, text]) => {
+          this.verseTextCache.set(code, text);
+        });
       }),
       catchError((error: HttpErrorResponse) => {
         console.error('Error getting verse texts:', error);
@@ -236,8 +273,29 @@ export class BibleService {
   /**
    * Updates the current Bible version (for citations)
    */
-  setCurrentBibleVersion(version: BibleVersion): void {
+  setCurrentBibleVersion(version: BibleVersion | null): void {
     this.currentBibleVersionSubject.next(version);
+  }
+
+  /**
+   * Initialize Bible version from user preference
+   * This should be called after user profile is loaded
+   */
+  initializeBibleFromUserPreference(abbreviation: string, id?: string): void {
+    if (!abbreviation) {
+      console.warn('No Bible abbreviation provided for initialization');
+      return;
+    }
+    
+    // For now, set a basic version info
+    // In a real app, you might want to fetch full details from the API
+    this.setCurrentBibleVersion({
+      id: id || '',
+      name: abbreviation, // This will be updated when full details are loaded
+      abbreviation: abbreviation,
+      isPublicDomain: true, // Default, will be updated
+      copyright: ''
+    });
   }
 
 }

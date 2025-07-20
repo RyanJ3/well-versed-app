@@ -3,9 +3,9 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { NavigationComponent } from './shared/components/navigation/navigation.component';
+import { CitationFooterComponent } from './shared/components/citation-footer/citation-footer.component';
 import { ModalComponent } from './shared/components/modal/modal.component';
 import { NotificationComponent } from './shared/components/notification/notification.component';
-import { CitationFooterComponent } from "./shared/components/citation-footer/citation-footer.component";
 
 @Component({
   selector: 'app-root',
@@ -14,13 +14,13 @@ import { CitationFooterComponent } from "./shared/components/citation-footer/cit
     CommonModule,
     RouterOutlet,
     NavigationComponent,
+    CitationFooterComponent,
     ModalComponent,
-    NotificationComponent,
-    CitationFooterComponent
-],
+    NotificationComponent
+  ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'Well Versed';
+  title = 'well-versed';
 }
