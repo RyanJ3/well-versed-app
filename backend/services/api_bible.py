@@ -2,7 +2,6 @@
 import requests
 import logging
 from typing import Dict, List, Optional, Tuple
-from functools import lru_cache
 import json
 import os
 from collections import defaultdict
@@ -42,7 +41,6 @@ class APIBibleService:
             "api-key": api_key,
             "accept": "application/json"
         }
-        self._cache = {}
         logger.info(f"APIBibleService initialized with Bible ID: {default_bible_id}")
     
     def convert_verse_code(self, verse_code: str) -> tuple:
@@ -84,20 +82,8 @@ class APIBibleService:
             for chapter, verse_list in chapters.items():
                 verse_list.sort(key=lambda x: x[0])
                 
-                # Check cache first
-                uncached_verses = []
-                for verse_num, original_code in verse_list:
-                    cache_key = f"{bible_id}:{book_code}.{chapter}.{verse_num}"
-                    if cache_key in self._cache:
-                        results[original_code] = self._cache[cache_key]
-                    else:
-                        uncached_verses.append((verse_num, original_code))
-                
-                if not uncached_verses:
-                    continue  # All verses were cached
-                
                 # Group consecutive verses into ranges
-                ranges = self._group_consecutive_verses(uncached_verses)
+                ranges = self._group_consecutive_verses(verse_list)
                 
                 # Fetch each range
                 for range_verses in ranges:
@@ -160,9 +146,6 @@ class APIBibleService:
                 text = data.get("data", {}).get("content", "").strip()
                 
                 if text:
-                    # Cache it
-                    cache_key = f"{bible_id}:{reference}"
-                    self._cache[cache_key] = text
                     logger.debug(f"Fetched verse {reference}")
                 
                 return text
@@ -222,9 +205,6 @@ class APIBibleService:
                                 text = parts[i].strip() + '.'
                                 verse_texts[verse_num] = text
                                 
-                                # Cache it
-                                cache_key = f"{bible_id}:{book_code}.{chapter}.{verse_num}"
-                                self._cache[cache_key] = text
                     else:
                         # Fallback: give entire content to first verse
                         verse_texts[verses[0][0]] = content
@@ -243,13 +223,11 @@ class APIBibleService:
             result[verse_num] = text or ""
         return result
     
-    @lru_cache(maxsize=1000)
     def get_verse_text(self, verse_code: str, bible_id: Optional[str] = None) -> Optional[str]:
         """Get single verse text from API.Bible"""
         results = self.get_verses_batch([verse_code], bible_id)
         return results.get(verse_code, None)
     
-    @lru_cache(maxsize=10)
     def get_available_bibles(self, language: Optional[str] = None) -> List[Dict]:
         """Get list of available Bible translations"""
         try:

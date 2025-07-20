@@ -15,17 +15,12 @@ interface BibleVersion {
   description?: string;
 }
 
-interface CachedBibles {
-  data: BibleVersion[];
-  expiry: Date;
-}
 
 @Injectable({
   providedIn: 'root'
 })
 export class BibleMappingService {
   private apiUrl = `${environment.apiUrl}/bibles`;
-  private biblesCache = new Map<string, CachedBibles>();
   private currentBibleIdSubject = new BehaviorSubject<string>('');
   
   public currentBibleId$ = this.currentBibleIdSubject.asObservable();
@@ -65,16 +60,7 @@ export class BibleMappingService {
    */
   getBibleById(bibleId: string): Observable<BibleVersion | null> {
     if (!bibleId) return of(null);
-    
-    // Check all cached languages for this Bible ID
-    for (const [key, cached] of this.biblesCache.entries()) {
-      const bible = cached.data.find(b => b.id === bibleId);
-      if (bible) {
-        return of(bible);
-      }
-    }
-    
-    // Not in cache, fetch from API
+
     return this.http.get<BibleVersion>(`${this.apiUrl}/bible/${bibleId}`).pipe(
       catchError(() => of(null))
     );
@@ -86,26 +72,8 @@ export class BibleMappingService {
    * @returns Observable of Bible versions
    */
   getAvailableBibles(languageId: string = 'eng'): Observable<BibleVersion[]> {
-    const cacheKey = `bibles_${languageId}`;
-    const cached = this.biblesCache.get(cacheKey);
-    
-    // Check cache validity (29 days)
-    if (cached && cached.expiry > new Date()) {
-      console.log(`Returning cached Bibles for language ${languageId}`);
-      return of(cached.data);
-    }
-    
-    // Fetch from API
     const url = `${this.apiUrl}/available?language=${languageId}`;
-    return this.http.get<{bibles: BibleVersion[], cacheExpiry: string}>(url).pipe(
-      tap(response => {
-        // Cache the results
-        this.biblesCache.set(cacheKey, {
-          data: response.bibles,
-          expiry: new Date(response.cacheExpiry)
-        });
-        console.log(`Cached ${response.bibles.length} Bibles for language ${languageId}`);
-      }),
+    return this.http.get<{bibles: BibleVersion[]}>(url).pipe(
       map(response => response.bibles),
       catchError(error => {
         console.error('Error fetching available Bibles:', error);
@@ -118,7 +86,6 @@ export class BibleMappingService {
    * Clear the local cache
    */
   clearCache(): void {
-    this.biblesCache.clear();
     console.log('Bible cache cleared');
   }
 

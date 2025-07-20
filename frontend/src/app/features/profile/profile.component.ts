@@ -29,7 +29,6 @@ interface BibleVersion {
 interface AvailableBiblesResponse {
   languages: LanguageOption[];
   bibles: BibleVersion[];
-  cacheExpiry: string;
 }
 
 @Component({

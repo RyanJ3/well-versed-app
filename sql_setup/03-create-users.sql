@@ -35,10 +35,5 @@ INSERT INTO users (email, name, first_name, last_name, include_apocrypha)
 VALUES ('test@example.com', 'Test User', 'Test', 'User', false)
 ON CONFLICT (email) DO NOTHING;
 
-CREATE TABLE api_cache (
-    cache_key VARCHAR(255) PRIMARY KEY,
-    cache_data TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_language VARCHAR(10) DEFAULT 'eng';
