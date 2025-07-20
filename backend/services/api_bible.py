@@ -4,6 +4,7 @@ import logging
 from typing import Dict, List, Optional, Tuple
 from functools import lru_cache
 import json
+import os
 from collections import defaultdict
 
 logger = logging.getLogger(__name__)
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 class APIBibleService:
     """Service for interacting with API.Bible - Hybrid approach"""
     
-    BASE_URL = "https://api.scripture.api.bible/v1"
+    BASE_URL = os.getenv("API_BIBLE_HOST")
     
     # Book ID mapping from numeric to API.Bible format
     BOOK_ID_MAP = {
