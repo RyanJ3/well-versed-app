@@ -154,14 +154,14 @@ export class ProfileComponent implements OnInit {
         if (response.bibles && Array.isArray(response.bibles)) {
           this.availableBibles = response.bibles;
           console.log(`Loaded ${this.availableBibles.length} Bibles${language ? ` for language ${language}` : ''}`);
-          
-          // If only one Bible available, auto-select it
-          if (this.availableBibles.length === 1) {
+
+          // Attempt to match the user's currently selected Bible
+          const matched = this.matchCurrentBible();
+
+          // If nothing matched and only one Bible exists, auto select it
+          if (!matched && this.availableBibles.length === 1) {
             this.profileForm.preferredBible = this.availableBibles[0].abbreviation;
             this.selectedBibleId = this.availableBibles[0].id;
-          } else {
-            // Try to match current preferred Bible
-            this.matchCurrentBible();
           }
         } else {
           console.warn('No bibles array in response:', response);
@@ -209,19 +209,24 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  matchCurrentBible(): void {
-    if (!this.profileForm.preferredBible) return;
-    
+  matchCurrentBible(): boolean {
+    if (!this.profileForm.preferredBible) {
+      return false;
+    }
+
     // Try to find the Bible by abbreviation
     const matchingBible = this.availableBibles.find(
       b => b.abbreviation === this.profileForm.preferredBible ||
            b.abbreviationLocal === this.profileForm.preferredBible
     );
-    
+
     if (matchingBible) {
       this.selectedBibleId = matchingBible.id;
       this.profileForm.preferredBible = matchingBible.abbreviation;
+      return true;
     }
+
+    return false;
   }
   
   // Initialize form with user data
