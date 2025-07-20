@@ -9,9 +9,13 @@ import { NotificationService, NotificationMessage } from '../../../core/services
   imports: [CommonModule],
   template: `
     <div
-      class="notification warning"
+      class="notification"
       *ngIf="message"
       [class.show]="visible"
+      [class.success]="type === 'success'"
+      [class.warning]="type === 'warning'"
+      [class.danger]="type === 'danger'"
+      [class.info]="type === 'info'"
     >
       {{ message }}
     </div>
@@ -20,20 +24,35 @@ import { NotificationService, NotificationMessage } from '../../../core/services
 })
 export class NotificationComponent implements OnInit, OnDestroy {
   message = '';
+  type: 'info' | 'success' | 'warning' | 'danger' = 'info';
   visible = false;
   private sub?: Subscription;
+  private timeout?: any;
 
   constructor(private notifications: NotificationService) {}
 
   ngOnInit() {
     this.sub = this.notifications.messages$.subscribe((msg: NotificationMessage) => {
       this.message = msg.text;
+      this.type = msg.type;
       this.visible = true;
-      setTimeout(() => (this.visible = false), 3000);
+      
+      // Clear any existing timeout
+      if (this.timeout) {
+        clearTimeout(this.timeout);
+      }
+      
+      // Set new timeout
+      this.timeout = setTimeout(() => {
+        this.visible = false;
+      }, 3000);
     });
   }
 
   ngOnDestroy() {
     this.sub?.unsubscribe();
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+    }
   }
 }
