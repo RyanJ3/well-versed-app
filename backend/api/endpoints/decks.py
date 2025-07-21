@@ -40,3 +40,16 @@ async def get_deck_verses(deck_id: int, user_id: int, deck_service: DeckService 
         return await deck_service.get_deck_with_cards(deck_id, user_id)
     except DeckNotFoundError:
         raise HTTPException(status_code=404, detail="Deck not found")
+
+
+@router.post("/{deck_id}/verses", response_model=schemas.CardWithVerses)
+async def add_deck_verses(
+    deck_id: int,
+    request: schemas.AddVersesRequest,
+    deck_service: DeckService = Depends(get_deck_service),
+):
+    """Add verses to a deck as a new card"""
+    try:
+        return await deck_service.add_verses_to_deck(deck_id, user_id=1, request=request)
+    except DeckNotFoundError:
+        raise HTTPException(status_code=404, detail="Deck not found")

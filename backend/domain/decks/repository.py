@@ -104,3 +104,42 @@ class DeckRepository:
             del DECKS[deck_id]
             return True
         return False
+
+    async def add_card(self, deck_id: int, verse_codes: List[str], reference: str | None = None) -> Optional[dict]:
+        """Add a new card with the given verses to the deck."""
+        deck = DECKS.get(deck_id)
+        if not deck or not verse_codes:
+            return None
+
+        global NEXT_CARD_ID
+        now = datetime.utcnow().isoformat()
+
+        card = {
+            "card_id": NEXT_CARD_ID,
+            "card_type": "single_verse" if len(verse_codes) == 1 else "verse_range",
+            "reference": reference or ", ".join(verse_codes),
+            "verses": [],
+            "position": len(deck["cards"]) + 1,
+            "added_at": now,
+        }
+
+        for idx, code in enumerate(verse_codes, start=1):
+            card["verses"].append(
+                {
+                    "verse_id": NEXT_CARD_ID + idx - 1,
+                    "verse_code": code,
+                    "book_id": 0,
+                    "book_name": "",
+                    "chapter_number": 0,
+                    "verse_number": 0,
+                    "reference": code,
+                    "text": "",
+                    "verse_order": idx,
+                }
+            )
+
+        NEXT_CARD_ID += len(verse_codes)
+        deck["cards"].append(card)
+        deck["card_count"] += 1
+
+        return card

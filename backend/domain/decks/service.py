@@ -26,3 +26,18 @@ class DeckService:
             total_cards=len(deck.get("cards", [])),
             cards=[schemas.CardWithVerses(**c) for c in deck.get("cards", [])],
         )
+
+    async def add_verses_to_deck(
+        self, deck_id: int, user_id: int, request: schemas.AddVersesRequest
+    ) -> schemas.CardWithVerses:
+        deck = await self.repo.get_deck_by_id(deck_id, user_id)
+        if not deck:
+            raise DeckNotFoundError(deck_id)
+
+        card = await self.repo.add_card(
+            deck_id, request.verse_codes, reference=request.reference
+        )
+        if not card:
+            raise DeckNotFoundError(deck_id)
+
+        return schemas.CardWithVerses(**card)
