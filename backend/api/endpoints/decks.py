@@ -6,7 +6,7 @@ from domain.decks import schemas
 from domain.decks.service import DeckService
 from domain.decks.exceptions import DeckNotFoundError, DeckAccessDeniedError
 
-router = APIRouter(prefix="/decks", tags=["decks"])
+router = APIRouter(tags=["decks"])
 
 
 @router.post("/", response_model=schemas.DeckResponse, status_code=status.HTTP_201_CREATED)
