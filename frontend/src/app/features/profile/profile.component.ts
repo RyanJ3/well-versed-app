@@ -1,23 +1,15 @@
 // frontend/src/app/features/profile/profile.component.ts
-/**
- * Profile Component - Fixed Issues:
- * 1. Form values persist after save (formInitialized flag prevents re-loading)
- * 2. Bible version only updates globally on save (pendingBibleInfo stores selection)
- * 3. Both language and Bible translation are required fields
- * 4. UI spacing fixed for toggle switches (CSS updated)
- * 5. Form stability maintained - only loads once on init
- */
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { ModalService } from '../../core/services/modal.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { User } from '../../core/models/user';
 import { UserService } from '../../core/services/user.service';
 import { BibleService } from '../../core/services/bible.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Subject, takeUntil } from 'rxjs';
 
 interface LanguageOption {
   id: string;
@@ -52,16 +44,11 @@ interface AvailableBiblesResponse {
     RouterModule
   ]
 })
-export class ProfileComponent implements OnInit, OnDestroy {
+export class ProfileComponent implements OnInit {
   user: User | null = null;
   isLoading = true;
-  showSuccess = false;
   isSaving = false;
   loadingBibles = false;
-  
-  // Track if form has been initialized to prevent re-loading
-  private formInitialized = false;
-  private destroy$ = new Subject<void>();
 
   // Form data (always available for editing)
   profileForm: any = {
@@ -69,19 +56,26 @@ export class ProfileComponent implements OnInit, OnDestroy {
     lastName: '',
     denomination: '',
     preferredBible: '',
-    preferredLanguage: '', 
+    preferredLanguage: '',
     includeApocrypha: false,
-    useEsvApi: false,
     esvApiToken: ''
   };
-  
-  // Store the original Bible info to only update on save
-  private pendingBibleInfo: BibleVersion | null = null;
   
   // Language and Bible data
   languages: LanguageOption[] = [];
   availableBibles: BibleVersion[] = [];
   selectedBibleId: string = '';
+  
+  // ESV Bible option
+  private esvBibleOption: BibleVersion = {
+    id: 'esv',
+    name: 'English Standard Version',
+    abbreviation: 'ESV',
+    abbreviationLocal: 'ESV',
+    language: 'eng',
+    languageId: 'eng',
+    description: 'English Standard Version (requires API token)'
+  };
   
   // Dropdown options
   denominationOptions = [
@@ -103,6 +97,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private bibleService: BibleService,
     private router: Router,
     private modalService: ModalService,
+    private notificationService: NotificationService,
     private http: HttpClient
   ) { }
 
@@ -111,40 +106,28 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.loadUserProfile();
   }
   
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-  
   loadUserProfile(): void {
-    if (this.formInitialized) {
-      console.log('Form already initialized, skipping reload');
-      return;
-    }
-    
     this.isLoading = true;
     
-    this.userService.currentUser$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (user: any) => {
-          // Only initialize if not already done
-          if (!this.formInitialized && user) {
-            this.user = user;
-            this.initializeForm(user);
-            this.formInitialized = true;
-            // After user is loaded and form initialized, load available Bibles
-            this.loadAvailableBibles();
-          }
-          
-          this.isLoading = false;
-          console.log('Loaded user profile:', user);
-        },
-        error: (error: any) => {
-          console.error('Error loading user profile:', error);
-          this.isLoading = false;
+    this.userService.currentUser$.subscribe({
+      next: (user: any) => {
+        this.user = user;
+        
+        if (user) {
+          // Initialize the form fields with user data
+          this.initializeForm(user);
+          // After user is loaded and form initialized, load available Bibles
+          this.loadAvailableBibles();
         }
-      });
+        
+        this.isLoading = false;
+        console.log('Loaded user profile:', user);
+      },
+      error: (error: any) => {
+        console.error('Error loading user profile:', error);
+        this.isLoading = false;
+      }
+    });
     
     this.userService.fetchCurrentUser();
   }
@@ -181,18 +164,29 @@ export class ProfileComponent implements OnInit, OnDestroy {
         
         if (response.bibles && Array.isArray(response.bibles)) {
           this.availableBibles = response.bibles;
+          
+          // Add ESV option if English is selected
+          if (this.profileForm.preferredLanguage === 'eng') {
+            // Insert ESV alphabetically
+            const esvIndex = this.availableBibles.findIndex(b => 
+              b.abbreviation.localeCompare('ESV') > 0
+            );
+            if (esvIndex === -1) {
+              this.availableBibles.push(this.esvBibleOption);
+            } else {
+              this.availableBibles.splice(esvIndex, 0, this.esvBibleOption);
+            }
+          }
+          
           console.log(`Loaded ${this.availableBibles.length} Bibles${language ? ` for language ${language}` : ''}`);
           
-          // Try to match current preferred Bible
-          this.matchCurrentBible();
-          
-          // If no Bible is matched and user has a preference, show error
-          if (this.profileForm.preferredBible && !this.selectedBibleId) {
-            this.modalService.alert(
-              'Bible Translation Not Found',
-              `Your preferred Bible translation "${this.profileForm.preferredBible}" is not available. Please select a different translation.`,
-              'warning'
-            );
+          // If only one Bible available, auto-select it
+          if (this.availableBibles.length === 1) {
+            this.profileForm.preferredBible = this.availableBibles[0].abbreviation;
+            this.selectedBibleId = this.availableBibles[0].id;
+          } else {
+            // Try to match current preferred Bible
+            this.matchCurrentBible();
           }
         } else {
           console.warn('No bibles array in response:', response);
@@ -204,6 +198,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('Error loading available Bibles:', error);
         this.availableBibles = [];
+        // Only clear languages if we were loading the full list
         if (!language) {
           this.languages = [];
         }
@@ -214,9 +209,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   onLanguageChange(): void {
     console.log('Language changed to:', this.profileForm.preferredLanguage);
-    this.profileForm.preferredBible = ''; // Reset Bible selection
+    
+    // Clear Bible selection
+    this.profileForm.preferredBible = '';
     this.selectedBibleId = '';
-    this.pendingBibleInfo = null;
+    
+    // If changing away from English and ESV was selected, clear the token
+    if (this.profileForm.preferredLanguage !== 'eng' && this.profileForm.preferredBible === 'ESV') {
+      this.profileForm.esvApiToken = '';
+    }
+    
     this.loadAvailableBibles(this.profileForm.preferredLanguage);
   }
 
@@ -230,20 +232,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.selectedBibleId = selectedBible.id;
       console.log('Bible selected:', selectedBible.abbreviation, 'ID:', selectedBible.id);
       
-      // Store the pending Bible info but DON'T update the service yet
-      this.pendingBibleInfo = selectedBible;
-    } else {
-      // Clear pending Bible info if nothing selected
-      this.pendingBibleInfo = null;
-      this.selectedBibleId = '';
+      // Update the Bible service with the selected version
+      this.bibleService.setCurrentBibleVersion({
+        id: selectedBible.id,
+        name: selectedBible.name,
+        abbreviation: selectedBible.abbreviation,
+        isPublicDomain: selectedBible.abbreviation !== 'ESV',
+        copyright: selectedBible.description
+      });
     }
   }
 
   matchCurrentBible(): void {
-    if (!this.profileForm.preferredBible) {
-      console.warn('No preferred Bible set in user profile');
-      return;
-    }
+    if (!this.profileForm.preferredBible) return;
     
     // Try to find the Bible by abbreviation
     const matchingBible = this.availableBibles.find(
@@ -253,23 +254,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     
     if (matchingBible) {
       this.selectedBibleId = matchingBible.id;
-      // Store as pending Bible info
-      this.pendingBibleInfo = matchingBible;
-      console.log('Matched Bible:', matchingBible.abbreviation, 'ID:', matchingBible.id);
-      
-      // Initialize Bible service with current saved preference (not pending changes)
-      if (this.user?.preferredBible) {
-        this.bibleService.initializeBibleFromUserPreference(
-          matchingBible.abbreviation,
-          matchingBible.id
-        );
-      }
-    } else {
-      console.error(`Could not find Bible with abbreviation: ${this.profileForm.preferredBible}`);
-      // Clear the invalid selection
-      this.profileForm.preferredBible = '';
-      this.selectedBibleId = '';
-      this.pendingBibleInfo = null;
+      this.profileForm.preferredBible = matchingBible.abbreviation;
     }
   }
   
@@ -282,34 +267,58 @@ export class ProfileComponent implements OnInit, OnDestroy {
       lastName: nameParts.slice(1).join(' ') || '',
       denomination: user.denomination || '',
       preferredBible: user.preferredBible || '',
-      preferredLanguage: user.preferredLanguage || 'eng',
+      preferredLanguage: user.preferredLanguage || '',
       includeApocrypha: user.includeApocrypha !== undefined ? user.includeApocrypha : false,
-      useEsvApi: user.useEsvApi || false,
       esvApiToken: user.esvApiToken || ''
     };
     
+    // Set useEsvApi based on whether ESV is selected
+    if (user.preferredBible === 'ESV') {
+      this.profileForm.useEsvApi = true;
+    }
+    
     console.log('Profile form initialized with:', this.profileForm);
+    console.log('Preferred language set to:', this.profileForm.preferredLanguage);
+  }
+  
+  // Validate form
+  isFormValid(): boolean {
+    // Check required fields
+    if (!this.profileForm.firstName?.trim()) {
+      return false;
+    }
+    
+    if (!this.profileForm.preferredLanguage) {
+      return false;
+    }
+    
+    if (!this.profileForm.preferredBible) {
+      return false;
+    }
+    
+    // Check ESV token if ESV is selected
+    if (this.profileForm.preferredBible === 'ESV' && !this.profileForm.esvApiToken?.trim()) {
+      return false;
+    }
+    
+    return true;
   }
   
   saveProfile(): void {
     if (!this.profileForm || this.isSaving) return;
     
-    // Validate required fields
-    if (!this.profileForm.preferredLanguage) {
-      this.modalService.alert(
-        'Language Required', 
-        'Please select a Bible language before saving.', 
-        'warning'
-      );
-      return;
-    }
-    
-    if (!this.profileForm.preferredBible) {
-      this.modalService.alert(
-        'Bible Translation Required', 
-        'Please select a preferred Bible translation before saving.', 
-        'warning'
-      );
+    // Validate form
+    if (!this.isFormValid()) {
+      // Show specific error messages
+      if (!this.profileForm.firstName?.trim()) {
+        this.notificationService.danger('First Name is required');
+      } else if (!this.profileForm.preferredLanguage) {
+        this.notificationService.danger('Bible Language is required');
+      } else if (!this.profileForm.preferredBible) {
+        this.notificationService.danger('Preferred Bible Translation is required');
+      } else if (this.profileForm.preferredBible === 'ESV' && !this.profileForm.esvApiToken?.trim()) {
+        this.notificationService.danger('ESV API token is required when using ESV translation');
+      }
       return;
     }
     
@@ -322,10 +331,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
       firstName: this.profileForm.firstName,
       lastName: this.profileForm.lastName,
       denomination: this.profileForm.denomination,
-      preferredBible: this.profileForm.preferredBible, // Store abbreviation
+      preferredBible: this.profileForm.preferredBible,
       preferredLanguage: this.profileForm.preferredLanguage,
       includeApocrypha: this.profileForm.includeApocrypha,
-      useEsvApi: this.profileForm.useEsvApi,
+      useEsvApi: this.profileForm.preferredBible === 'ESV',
       esvApiToken: this.profileForm.esvApiToken
     };
     
@@ -335,18 +344,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
       next: (updatedUser: any) => {
         console.log('Profile updated successfully:', updatedUser);
         
-        // Update the current user object
+        // Update the local user object to prevent form reset
         this.user = updatedUser;
         
-        // NOW update the Bible service with the saved selection
-        if (this.pendingBibleInfo) {
-          this.bibleService.setCurrentBibleVersion({
-            id: this.pendingBibleInfo.id,
-            name: this.pendingBibleInfo.name,
-            abbreviation: this.pendingBibleInfo.abbreviation,
-            isPublicDomain: true,
-            copyright: this.pendingBibleInfo.description
-          });
+        // Only re-initialize form if language has changed
+        const currentLanguage = this.profileForm.preferredLanguage;
+        this.initializeForm(updatedUser);
+        
+        // Preserve the language if it was properly set
+        if (currentLanguage && !updatedUser.preferredLanguage) {
+          this.profileForm.preferredLanguage = currentLanguage;
         }
         
         // Update Bible service with new apocrypha setting
@@ -355,26 +362,29 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.bibleService.updateUserPreferences(updatedUser.includeApocrypha);
         }
         
-        // Show success message
-        this.showSuccess = true;
-        
-        // Auto-dismiss after 5 seconds
-        setTimeout(() => {
-          this.dismissSuccess();
-        }, 5000);
+        // Show success notification
+        const apocryphaMessage = updatedUser.includeApocrypha 
+          ? 'Apocryphal books are now visible in the Bible tracker.'
+          : 'Apocryphal books are now hidden in the Bible tracker.';
+        this.notificationService.success(`Profile updated successfully. ${apocryphaMessage}`, 5000);
         
         this.isSaving = false;
+        
+        // Ensure we reload Bibles for the saved language
+        const savedLanguage = updatedUser.preferredLanguage || this.profileForm.preferredLanguage;
+        if (savedLanguage) {
+          // Small delay to ensure form is properly updated
+          setTimeout(() => {
+            this.loadAvailableBibles(savedLanguage);
+          }, 100);
+        }
       },
       error: (error: any) => {
         console.error('Error updating profile:', error);
         this.isSaving = false;
-        this.modalService.alert('Error', 'Failed to update profile. Please try again.', 'danger');
+        this.notificationService.danger('Failed to update profile. Please try again.');
       }
     });
-  }
-  
-  dismissSuccess(): void {
-    this.showSuccess = false;
   }
 
   async clearAllData(): Promise<void> {
@@ -388,12 +398,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     this.userService.clearMemorizationData().subscribe({
       next: () => {
-        this.modalService.success('Data Cleared', 'All memorization data has been removed.');
+        this.notificationService.success('All memorization data has been removed.', 5000);
         this.router.navigate(['/']);
       },
       error: (error: any) => {
         console.error('Error clearing data:', error);
-        this.modalService.alert('Error', 'Failed to clear data. Please try again.', 'danger');
+        this.notificationService.danger('Failed to clear data. Please try again.');
       }
     });
   }

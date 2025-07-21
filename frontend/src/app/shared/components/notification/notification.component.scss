@@ -2,36 +2,76 @@
   position: fixed;
   top: 2rem;
   right: 2rem;
-  color: white;
   padding: 0.75rem 1.25rem;
   border-radius: 0.375rem;
   font-weight: 500;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   opacity: 0;
   transform: translateY(-1rem);
   transition: all 0.3s;
   pointer-events: none;
   z-index: 2000;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   max-width: 400px;
-
-  &.warning {
-    background: #f59e0b;
-  }
-
-  &.success {
-    background: #10b981;
-  }
-
-  &.danger {
-    background: #ef4444;
-  }
-
-  &.info {
-    background: #3b82f6;
-  }
+  word-wrap: break-word;
 
   &.show {
     opacity: 1;
     transform: translateY(0);
+  }
+
+  .notification-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  // Notification types
+  &.info {
+    background: #3b82f6;
+    color: white;
+    
+    .notification-icon {
+      color: white;
+    }
+  }
+
+  &.success {
+    background: #10b981;
+    color: white;
+    
+    .notification-icon {
+      color: white;
+    }
+  }
+
+  &.warning {
+    background: #f59e0b;
+    color: white;
+    
+    .notification-icon {
+      color: white;
+    }
+  }
+
+  &.danger {
+    background: #ef4444;
+    color: white;
+    
+    .notification-icon {
+      color: white;
+    }
+  }
+}
+
+// Mobile responsive
+@media (max-width: 768px) {
+  .notification {
+    top: 1rem;
+    right: 1rem;
+    left: 1rem;
+    max-width: none;
   }
 }
