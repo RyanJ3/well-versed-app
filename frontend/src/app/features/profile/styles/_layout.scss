@@ -1,0 +1,19 @@
+// frontend/src/app/features/profile/styles/_layout.scss
+
+.profile-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+  padding: 2rem 0;
+}
+
+.profile-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.profile-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 0;
+}
