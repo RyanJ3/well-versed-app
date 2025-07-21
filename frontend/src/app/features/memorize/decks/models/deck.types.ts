@@ -4,6 +4,7 @@ export interface Deck {
   description?: string;
   is_public: boolean;
   card_count: number;
+  created_at: string;
   updated_at: string;
   tags?: string[];
 }
@@ -12,7 +13,7 @@ export interface DeckWithCounts extends Deck {
   verse_count?: number;
   save_count?: number;
   memorized_count?: number;
-  creator_id?: number;
+  creator_id: number;
   creator_name?: string;
   is_saved?: boolean;
   loading_counts?: boolean;

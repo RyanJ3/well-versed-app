@@ -3,14 +3,20 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { DeckCardComponent } from '../../components/deck-card/deck-card.component';
 import { DeckListComponent as DeckListPresentationalComponent } from '../../components/deck-list/deck-list.component';
-import { DeckWithCounts } from '../../models/deck.types';
+import { DeckWithCounts } from '../../components/deck-card/deck-card.component';
 import { CreateDeckModalComponent } from '../../components/create-deck-modal/create-deck-modal.component';
 import { DeckFilterComponent } from '../../components/deck-filter/deck-filter.component';
-import { UserService } from '../../../../core/services/user.service';
-import { ModalService } from '../../../../core/services/modal.service';
-import { DeckCreate, DeckService } from '../../../../core/services/deck.service';
+import { UserService } from '../../../../../core/services/user.service';
+import { ModalService } from '../../../../../core/services/modal.service';
+import {
+  DeckCreate,
+  DeckService,
+  DeckResponse,
+  DeckListResponse,
+  CardWithVerses,
+  DeckCardsResponse,
+} from '../../../../../core/services/deck.service';
 
 interface Tab {
   id: 'my-decks' | 'public' | 'saved';
@@ -25,7 +31,6 @@ interface Tab {
     CommonModule, 
     FormsModule,
     RouterModule,
-    DeckCardComponent,
     DeckListPresentationalComponent,
     CreateDeckModalComponent,
     DeckFilterComponent
@@ -79,7 +84,7 @@ export class DeckListPageComponent implements OnInit {
 
   ngOnInit() {
     // Get current user ID
-    this.userService.currentUser$.subscribe(user => {
+    this.userService.currentUser$.subscribe((user: any) => {
       if (user) {
         this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
         this.loadMyDecks();
@@ -125,8 +130,8 @@ export class DeckListPageComponent implements OnInit {
   loadMyDecks() {
     this.isLoading = true;
     this.deckService.getUserDecks(this.userId).subscribe({
-      next: (response) => {
-        this.myDecks = response.decks.map(deck => ({ 
+      next: (response: DeckListResponse) => {
+        this.myDecks = response.decks.map((deck: DeckResponse) => ({
           ...deck, 
           loading_counts: false,
           creator_id: deck.creator_id || this.userId,
@@ -136,7 +141,7 @@ export class DeckListPageComponent implements OnInit {
         this.loadDetailedCounts(this.myDecks);
         this.updateTagCounts();
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading decks:', error);
         this.isLoading = false;
         this.modalService.alert(
@@ -151,8 +156,8 @@ export class DeckListPageComponent implements OnInit {
   loadPublicDecks() {
     this.isLoading = true;
     this.deckService.getPublicDecks().subscribe({
-      next: (response) => {
-        this.publicDecks = response.decks.map(deck => ({ 
+      next: (response: DeckListResponse) => {
+        this.publicDecks = response.decks.map((deck: DeckResponse) => ({
           ...deck, 
           loading_counts: false,
           updated_at: deck.updated_at || deck.created_at
@@ -161,7 +166,7 @@ export class DeckListPageComponent implements OnInit {
         this.loadDetailedCounts(this.publicDecks);
         this.updateTagCounts();
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading public decks:', error);
         this.isLoading = false;
         this.modalService.alert(
@@ -177,8 +182,8 @@ export class DeckListPageComponent implements OnInit {
     this.isLoading = true;
     
     this.deckService.getSavedDecks(this.userId).subscribe({
-      next: (response) => {
-        this.savedDecks = response.decks.map(deck => ({ 
+      next: (response: DeckListResponse) => {
+        this.savedDecks = response.decks.map((deck: DeckResponse) => ({
           ...deck, 
           loading_counts: false,
           is_saved: true,
@@ -188,7 +193,7 @@ export class DeckListPageComponent implements OnInit {
         this.loadDetailedCounts(this.savedDecks);
         this.updateTagCounts();
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading saved decks:', error);
         this.isLoading = false;
         this.savedDecks = [];
@@ -205,14 +210,14 @@ export class DeckListPageComponent implements OnInit {
   }
 
   private loadDetailedCounts(decks: DeckWithCounts[]) {
-    const decksToLoad = decks.filter(deck => deck.verse_count === undefined);
+    const decksToLoad = decks.filter((deck: DeckWithCounts) => deck.verse_count === undefined);
     
-    decksToLoad.forEach(deck => {
+    decksToLoad.forEach((deck: DeckWithCounts) => {
       deck.loading_counts = true;
       
       this.deckService.getDeckCards(deck.deck_id, this.userId).subscribe({
-        next: (response) => {
-          const totalVerses = response.cards.reduce((total, card) => {
+        next: (response: DeckCardsResponse) => {
+          const totalVerses = response.cards.reduce((total: number, card: CardWithVerses) => {
             if (card.card_type === 'single_verse') {
               return total + 1;
             } else if (card.card_type === 'verse_range' && card.verses) {
@@ -231,7 +236,7 @@ export class DeckListPageComponent implements OnInit {
             this.loadMemorizationCount(deck);
           }
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error(`Error loading counts for deck ${deck.deck_id}:`, error);
           deck.loading_counts = false;
           deck.verse_count = deck.card_count;
@@ -254,9 +259,9 @@ export class DeckListPageComponent implements OnInit {
     const allDecks = this.getDisplayDecks();
     const tagSet = new Set<string>();
     
-    allDecks.forEach(deck => {
+    allDecks.forEach((deck: DeckWithCounts) => {
       if (deck.tags && deck.tags.length > 0) {
-        deck.tags.forEach(tag => tagSet.add(tag));
+        deck.tags.forEach((tag: string) => tagSet.add(tag));
       }
     });
     
@@ -267,9 +272,9 @@ export class DeckListPageComponent implements OnInit {
     this.tagCounts.clear();
     const allDecks = this.getDisplayDecks();
     
-    allDecks.forEach(deck => {
+    allDecks.forEach((deck: DeckWithCounts) => {
       if (deck.tags) {
-        deck.tags.forEach(tag => {
+        deck.tags.forEach((tag: string) => {
           this.tagCounts.set(tag, (this.tagCounts.get(tag) || 0) + 1);
         });
       }
@@ -293,9 +298,9 @@ export class DeckListPageComponent implements OnInit {
     let decks = this.getDisplayDecks();
     
     if (this.selectedTags.length > 0) {
-      decks = decks.filter(deck => {
+      decks = decks.filter((deck: DeckWithCounts) => {
         if (!deck.tags || deck.tags.length === 0) return false;
-        return this.selectedTags.some(tag => deck.tags!.includes(tag));
+        return this.selectedTags.some((tag: string) => deck.tags!.includes(tag));
       });
     }
     
@@ -370,7 +375,7 @@ export class DeckListPageComponent implements OnInit {
     this.isLoading = true;
 
     this.deckService.createDeck(newDeck).subscribe({
-      next: (deck) => {
+      next: (deck: DeckResponse) => {
         const deckWithCounts: DeckWithCounts = { 
           ...deck, 
           loading_counts: false,
@@ -387,7 +392,7 @@ export class DeckListPageComponent implements OnInit {
           `Your deck "${deck.name}" has been created successfully!`
         );
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error creating deck:', error);
         this.isLoading = false;
         this.modalService.alert(
@@ -401,7 +406,7 @@ export class DeckListPageComponent implements OnInit {
 
   // Deck Actions
   async deleteDeck(deckId: number) {
-    const deck = this.myDecks.find(d => d.deck_id === deckId);
+    const deck = this.myDecks.find((d: DeckWithCounts) => d.deck_id === deckId);
     if (!deck) return;
 
     const confirmed = await this.modalService.danger(
@@ -414,14 +419,14 @@ export class DeckListPageComponent implements OnInit {
 
     this.deckService.deleteDeck(deckId).subscribe({
       next: () => {
-        this.myDecks = this.myDecks.filter(d => d.deck_id !== deckId);
+        this.myDecks = this.myDecks.filter((d: DeckWithCounts) => d.deck_id !== deckId);
         this.updateTagCounts();
         this.modalService.success(
           'Deck Deleted',
           `"${deck.name}" has been deleted successfully.`
         );
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error deleting deck:', error);
         this.modalService.alert(
           'Error Deleting Deck',
@@ -441,7 +446,7 @@ export class DeckListPageComponent implements OnInit {
         deck.save_count = (deck.save_count || 0) + 1;
         deck.saving = false;
         
-        if (!this.savedDecks.find(d => d.deck_id === deck.deck_id)) {
+        if (!this.savedDecks.find((d: DeckWithCounts) => d.deck_id === deck.deck_id)) {
           this.savedDecks.push({ 
             ...deck,
             updated_at: deck.updated_at || deck.created_at
@@ -484,9 +489,9 @@ export class DeckListPageComponent implements OnInit {
         deck.save_count = Math.max(0, (deck.save_count || 1) - 1);
         deck.saving = false;
         
-        this.savedDecks = this.savedDecks.filter(d => d.deck_id !== deck.deck_id);
+        this.savedDecks = this.savedDecks.filter((d: DeckWithCounts) => d.deck_id !== deck.deck_id);
         
-        const publicDeck = this.publicDecks.find(d => d.deck_id === deck.deck_id);
+        const publicDeck = this.publicDecks.find((d: DeckWithCounts) => d.deck_id === deck.deck_id);
         if (publicDeck) {
           publicDeck.is_saved = false;
           publicDeck.save_count = deck.save_count;
@@ -497,7 +502,7 @@ export class DeckListPageComponent implements OnInit {
           `"${deck.name}" has been removed from your collection.`
         );
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error unsaving deck:', error);
         deck.saving = false;
         this.modalService.alert(
@@ -519,7 +524,7 @@ export class DeckListPageComponent implements OnInit {
     // Format tag for display (e.g., "daily-devotion" -> "Daily Devotion")
     return tag
       .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   }
 }
