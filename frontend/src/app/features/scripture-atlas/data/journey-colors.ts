@@ -39,7 +39,7 @@ export const SAMPLE_JOURNEYS = {
       },
       {
         title: 'Confronting Bar-Jesus',
-        description: 'Paul struck the sorcerer blind, leading to the proconsul's conversion.',
+        description: 'Paul struck the sorcerer blind, leading to the proconsul\'s conversion.',
         scriptures: ['Acts 13:6-12'],
         visualEffect: 'miracle' as const
       },

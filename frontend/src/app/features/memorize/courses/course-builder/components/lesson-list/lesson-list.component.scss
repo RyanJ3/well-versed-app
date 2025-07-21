@@ -1,0 +1,8 @@
+.lesson-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.selected {
+  font-weight: bold;
+}
