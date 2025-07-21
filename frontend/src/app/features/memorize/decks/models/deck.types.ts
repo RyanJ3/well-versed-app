@@ -4,6 +4,7 @@ export interface Deck {
   description?: string;
   is_public: boolean;
   card_count: number;
+  created_at: string;
   updated_at: string;
   tags?: string[];
 }

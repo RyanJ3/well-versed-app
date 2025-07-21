@@ -7,13 +7,13 @@ import {
   CardWithVerses,
   DeckResponse,
   DeckService,
-} from '../../../../core/services/deck.service';
+} from '../../../../../core/services/deck.service';
 import {
   VersePickerComponent,
   VerseSelection,
-} from '../../../../shared/components/verse-range-picker/verse-range-picker.component';
-import { BibleService } from '../../../../core/services/bible.service';
-import { ModalService } from '../../../../core/services/modal.service';
+} from '../../../../../shared/components/verse-range-picker/verse-range-picker.component';
+import { BibleService } from '../../../../../core/services/bible.service';
+import { ModalService } from '../../../../../core/services/modal.service';
 import { DeckFormComponent } from '../../components/deck-form/deck-form.component';
 import { CardEditorComponent } from '../../components/card-editor/card-editor.component';
 
@@ -61,7 +61,7 @@ export class DeckEditorPageComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.route.params.subscribe((params) => {
+    this.route.params.subscribe((params: any) => {
       this.deckId = +params['deckId'];
       this.loadDeck();
       this.loadDeckCards();
@@ -70,7 +70,7 @@ export class DeckEditorPageComponent implements OnInit {
 
   loadDeck() {
     this.deckService.getDeck(this.deckId).subscribe({
-      next: (deck) => {
+      next: (deck: DeckResponse) => {
         this.deck = deck;
         this.deckName = deck.name;
         this.deckDescription = deck.description || '';
@@ -90,7 +90,7 @@ export class DeckEditorPageComponent implements OnInit {
   loadDeckCards() {
     this.isLoading = true;
     this.deckService.getDeckCards(this.deckId, this.userId).subscribe({
-      next: (response) => {
+      next: (response: DeckCardsResponse) => {
         this.deckCards = response.cards;
         this.isLoading = false;
       },
@@ -131,7 +131,7 @@ export class DeckEditorPageComponent implements OnInit {
     };
 
     this.deckService.updateDeck(this.deckId, updates).subscribe({
-      next: (updatedDeck) => {
+      next: (updatedDeck: DeckResponse) => {
         this.deck = updatedDeck;
         this.isSaving = false;
         this.editMode = 'verses';
@@ -183,7 +183,7 @@ export class DeckEditorPageComponent implements OnInit {
               verse: endVerse,
             }
           : undefined,
-      verseCodes: card.verses.map((v) => v.verse_code),
+      verseCodes: card.verses.map((v: VerseInCard) => v.verse_code),
       verseCount: card.verses.length,
       reference: card.reference,
     };
@@ -191,13 +191,13 @@ export class DeckEditorPageComponent implements OnInit {
 
   async applyVerseSelection(card: CardWithVerses, selection: VerseSelection) {
     const existingVerseCodes = new Set<string>();
-    this.deckCards.forEach((c) => {
+    this.deckCards.forEach((c: CardWithVerses) => {
       if (c.card_id !== card.card_id) {
-        c.verses.forEach((v) => existingVerseCodes.add(v.verse_code));
+        c.verses.forEach((v: VerseInCard) => existingVerseCodes.add(v.verse_code));
       }
     });
 
-    const duplicateVerses = selection.verseCodes.filter((code) =>
+    const duplicateVerses = selection.verseCodes.filter((code: string) =>
       existingVerseCodes.has(code),
     );
     if (duplicateVerses.length > 0) {
@@ -328,7 +328,7 @@ export class DeckEditorPageComponent implements OnInit {
   // Bulk operations
   toggleAllCards(event: any) {
     if (event.target.checked) {
-      this.deckCards.forEach((card) => this.selectedCards.add(card.card_id));
+    this.deckCards.forEach((card: CardWithVerses) => this.selectedCards.add(card.card_id));
     } else {
       this.selectedCards.clear();
     }
@@ -343,7 +343,7 @@ export class DeckEditorPageComponent implements OnInit {
   }
 
   async removeCardFromDeck(cardId: number) {
-    const card = this.deckCards.find((c) => c.card_id === cardId);
+    const card = this.deckCards.find((c: CardWithVerses) => c.card_id === cardId);
     if (!card) return;
 
     const confirmed = await this.modalService.confirm({
@@ -358,13 +358,13 @@ export class DeckEditorPageComponent implements OnInit {
 
     // If it's a temporary card (negative ID), just remove from array
     if (cardId < 0) {
-      this.deckCards = this.deckCards.filter((c) => c.card_id !== cardId);
+      this.deckCards = this.deckCards.filter((c: CardWithVerses) => c.card_id !== cardId);
       return;
     }
 
     this.deckService.removeCardFromDeck(this.deckId, cardId).subscribe({
       next: () => {
-        this.deckCards = this.deckCards.filter((c) => c.card_id !== cardId);
+        this.deckCards = this.deckCards.filter((c: CardWithVerses) => c.card_id !== cardId);
         this.selectedCards.delete(cardId);
         this.modalService.success(
           'Card Removed',
@@ -394,15 +394,15 @@ export class DeckEditorPageComponent implements OnInit {
     if (!confirmed) return;
 
     // Filter out temporary cards
-    const cardIds = Array.from(this.selectedCards).filter((id) => id > 0);
-    const tempCardIds = Array.from(this.selectedCards).filter((id) => id < 0);
+    const cardIds = Array.from(this.selectedCards).filter((id: number) => id > 0);
+    const tempCardIds = Array.from(this.selectedCards).filter((id: number) => id < 0);
 
     // Remove temporary cards immediately
     if (tempCardIds.length > 0) {
       this.deckCards = this.deckCards.filter(
-        (c) => !tempCardIds.includes(c.card_id),
+        (c: CardWithVerses) => !tempCardIds.includes(c.card_id),
       );
-      tempCardIds.forEach((id) => this.selectedCards.delete(id));
+      tempCardIds.forEach((id: number) => this.selectedCards.delete(id));
     }
 
     // Remove real cards through API
@@ -412,7 +412,7 @@ export class DeckEditorPageComponent implements OnInit {
         .subscribe({
           next: () => {
             this.deckCards = this.deckCards.filter(
-              (c) => !this.selectedCards.has(c.card_id),
+              (c: CardWithVerses) => !this.selectedCards.has(c.card_id),
             );
             this.selectedCards.clear();
             this.modalService.success(
@@ -468,8 +468,8 @@ export class DeckEditorPageComponent implements OnInit {
 
   saveCardOrder() {
     const ids = this.deckCards
-      .filter((c) => c.card_id > 0)
-      .map((c) => c.card_id);
+      .filter((c: CardWithVerses) => c.card_id > 0)
+      .map((c: CardWithVerses) => c.card_id);
     this.deckService.reorderDeckCards(this.deckId, ids).subscribe();
   }
 
