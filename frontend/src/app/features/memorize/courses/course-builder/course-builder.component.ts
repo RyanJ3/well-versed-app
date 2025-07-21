@@ -47,12 +47,40 @@ export class CourseBuilderComponent implements OnInit {
     return this.state.currentStep;
   }
 
+  get isEditMode() {
+    return this.state.isEditMode;
+  }
+
+  get saving() {
+    return this.state.saving;
+  }
+
+  get draggedLessonIndex() {
+    return this.state.draggedLessonIndex;
+  }
+
+  get draggedCardIndex() {
+    return this.state.draggedCardIndex;
+  }
+
+  get estimatedDuration() {
+    return this.state.estimatedDuration;
+  }
+
+  get pieSlices() {
+    return this.state.pieSlices;
+  }
+
   get selectedTags() {
     return this.state.selectedTags;
   }
 
   get availableTags() {
     return this.state.availableTags;
+  }
+
+  get quizCards() {
+    return this.state.quizCards;
   }
 
   addLesson() {
@@ -77,6 +105,94 @@ export class CourseBuilderComponent implements OnInit {
 
   goToStep(step: number) {
     this.state.goToStep(step);
+  }
+
+  getStepStatus(step: number) {
+    return this.state.getStepStatus(step);
+  }
+
+  addTag(tag: string) {
+    this.state.addTag(tag);
+  }
+
+  removeTag(tag: string) {
+    this.state.removeTag(tag);
+  }
+
+  formatTag(tag: string) {
+    return this.state.formatTag(tag);
+  }
+
+  canProceed() {
+    return this.state.canProceed();
+  }
+
+  isLessonComplete(lesson: any) {
+    return this.state.isLessonComplete(lesson);
+  }
+
+  onLessonDragStart(index: number) {
+    this.state.onLessonDragStart(index);
+  }
+
+  onLessonDragOver(index: number, event: DragEvent) {
+    this.state.onLessonDragOver(index, event);
+  }
+
+  onLessonDrop(index: number) {
+    this.state.onLessonDrop(index);
+  }
+
+  onLessonDragEnd() {
+    this.state.onLessonDragEnd();
+  }
+
+  getLessonIcon(type: string) {
+    return this.state.getLessonIcon(type);
+  }
+
+  getLessonTypeLabel(type: string) {
+    return this.state.getLessonTypeLabel(type);
+  }
+
+  deleteLesson(index: number) {
+    this.state.deleteLesson(index);
+  }
+
+  onCardDragStart(index: number) {
+    this.state.onCardDragStart(index);
+  }
+
+  onCardDragOver(index: number, event: DragEvent) {
+    this.state.onCardDragOver(index, event);
+  }
+
+  onCardDrop(index: number) {
+    this.state.onCardDrop(index);
+  }
+
+  onCardDragEnd() {
+    this.state.onCardDragEnd();
+  }
+
+  getMaxVersesForCard(index: number) {
+    return this.state.getMaxVersesForCard(index);
+  }
+
+  applyQuizSelection(index: number, sel: any) {
+    this.state.applyQuizSelection(index, sel);
+  }
+
+  removeQuizCard(index: number) {
+    this.state.removeQuizCard(index);
+  }
+
+  getTotalQuizVerses() {
+    return this.state.getTotalQuizVerses();
+  }
+
+  addQuizCard() {
+    this.state.addQuizCard();
   }
 
   saveCourse() {

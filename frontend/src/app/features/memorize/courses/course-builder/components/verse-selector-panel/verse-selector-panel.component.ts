@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { VersePickerComponent, VerseSelection } from '../../../../../shared/components/verse-range-picker/verse-range-picker.component';
+import { VersePickerComponent, VerseSelection } from '../../../../../../shared/components/verse-range-picker/verse-range-picker.component';
 
 @Component({
   selector: 'app-verse-selector-panel',

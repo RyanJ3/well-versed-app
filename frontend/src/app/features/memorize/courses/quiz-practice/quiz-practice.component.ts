@@ -518,7 +518,7 @@ export class QuizPracticeComponent implements OnInit, OnDestroy {
       if (lesson.content_type !== 'quiz') {
         // Get flashcards from this lesson
         const flashcards = await this.courseService
-          .getLessonFlashcards(lesson.id)
+          .getLessonFlashcards(lesson.id!)
           .toPromise();
         flashcards?.forEach((card) => {
           if (card.verse_codes) {
