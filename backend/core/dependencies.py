@@ -1,9 +1,9 @@
 from fastapi import Depends
 from typing import Generator
-from backend.database import DatabaseConnection
-import backend.db_pool as db_pool
-from backend.domain.decks.repository import DeckRepository
-from backend.domain.decks.service import DeckService
+from database import DatabaseConnection
+import db_pool as db_pool
+from domain.decks.repository import DeckRepository
+from domain.decks.service import DeckService
 
 
 def get_db() -> Generator[DatabaseConnection, None, None]:

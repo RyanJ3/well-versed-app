@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
 
-from backend.core.dependencies import get_deck_service
-from backend.domain.decks import schemas
-from backend.domain.decks.service import DeckService
-from backend.domain.decks.exceptions import DeckNotFoundError, DeckAccessDeniedError
+from core.dependencies import get_deck_service
+from domain.decks import schemas
+from domain.decks.service import DeckService
+from domain.decks.exceptions import DeckNotFoundError, DeckAccessDeniedError
 
 router = APIRouter(prefix="/decks", tags=["decks"])
 
