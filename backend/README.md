@@ -84,15 +84,6 @@ own API token which is stored in the `esv_api_token` column.
 When enabled, verse text requests will be served from the ESV API instead of
 API.Bible.
 
-### Caching
-ESV responses are cached in memory with an eviction policy that follows
-Crossway's public guidelines:
-
-- No more than **500 verses** are stored at once.
-- The cache stores at most half the chapters of any single book.
-  Single chapter books are never cached.
-- Entries expire after 24 hours so the cache is periodically cleared.
-
 ### Database migration
 If you already have an existing database you will need to add the new columns:
 

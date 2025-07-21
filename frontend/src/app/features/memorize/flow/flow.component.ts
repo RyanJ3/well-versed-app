@@ -208,11 +208,6 @@ export class FlowComponent implements OnInit, OnDestroy {
   async loadVerses() {
     if (!this.currentSelection || this.retryCountdown !== null) return;
 
-    const cached = this.bibleService.getCachedVerseTexts(this.currentSelection.verseCodes);
-    if (cached) {
-      this.applyVerseTexts(cached);
-      return;
-    }
 
     this.isLoading = true;
     this.verses = [];

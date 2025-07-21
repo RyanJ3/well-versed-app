@@ -1,16 +1,5 @@
 # backend/routers/bibles.py
-"""
-Note: This requires adding the api_cache table to your database:
-
-CREATE TABLE api_cache (
-    cache_key VARCHAR(255) PRIMARY KEY,
-    cache_data TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-Also update users table:
-ALTER TABLE users ADD COLUMN IF NOT EXISTS preferred_language VARCHAR(10) DEFAULT 'eng';
-"""
+"""Bible routes for API.Bible integration"""
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -47,7 +36,6 @@ class LanguageOption(BaseModel):
 class AvailableBiblesResponse(BaseModel):
     languages: List[LanguageOption]
     bibles: List[BibleVersion]
-    cacheExpiry: str
 
 def get_db():
     return DatabaseConnection(db_pool.db_pool)
@@ -57,31 +45,8 @@ async def get_available_bibles(
     language: Optional[str] = None,  # 3-letter ISO 639-3 code (e.g., "eng")
     db: DatabaseConnection = Depends(get_db)
 ):
-    """Get available Bible versions and languages from API.Bible with caching"""
+    """Get available Bible versions and languages from API.Bible"""
     logger.info(f"Getting available Bibles for language: {language}")
-    
-    # Check cache first
-    cache_key = f"bibles_available_{language or 'all'}"
-    cache_query = """
-        SELECT cache_data, created_at 
-        FROM api_cache 
-        WHERE cache_key = %s 
-        AND created_at > %s
-    """
-    
-    # Cache for 29 days to ensure it's removed before 30
-    cache_expiry = datetime.now() - timedelta(days=29)
-    
-    cached = db.fetch_one(cache_query, (cache_key, cache_expiry))
-    
-    if cached:
-        logger.info("Returning cached Bible data")
-        data = json.loads(cached['cache_data'])
-        return AvailableBiblesResponse(
-            languages=data['languages'],
-            bibles=data['bibles'],
-            cacheExpiry=(cached['created_at'] + timedelta(days=29)).isoformat()
-        )
     
     # Fetch from API.Bible
     languages = []
@@ -141,29 +106,9 @@ async def get_available_bibles(
         filtered_bibles.sort(key=lambda x: x.name)
         
         # Cache the results
-        cache_data = {
-            'languages': [lang.dict() for lang in languages],
-            'bibles': [bible.dict() for bible in filtered_bibles]
-        }
-        
-        # Clear old cache entries
-        db.execute("DELETE FROM api_cache WHERE cache_key = %s", (cache_key,))
-        
-        # Insert new cache
-        db.execute(
-            """
-            INSERT INTO api_cache (cache_key, cache_data, created_at)
-            VALUES (%s, %s, %s)
-            """,
-            (cache_key, json.dumps(cache_data), datetime.now())
-        )
-        
-        logger.info(f"Cached {len(languages)} languages and {len(filtered_bibles)} Bibles")
-        
         return AvailableBiblesResponse(
             languages=languages,
             bibles=filtered_bibles,
-            cacheExpiry=(datetime.now() + timedelta(days=29)).isoformat()
         )
         
     except HTTPException:
@@ -173,14 +118,6 @@ async def get_available_bibles(
         logger.error(f"Error fetching available Bibles: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch available Bibles: {str(e)}")
 
-@router.delete("/cache")
-async def clear_bible_cache(db: DatabaseConnection = Depends(get_db)):
-    """Clear the Bible cache"""
-    logger.info("Clearing Bible cache")
-    
-    db.execute("DELETE FROM api_cache WHERE cache_key LIKE 'bibles_available_%'")
-    
-    return {"message": "Bible cache cleared"}
 
 @router.get("/bible/{bible_id}")
 async def get_bible_details(
@@ -189,22 +126,6 @@ async def get_bible_details(
 ):
     """Get details for a specific Bible version"""
     logger.info(f"Getting details for Bible: {bible_id}")
-    
-    # Check cache
-    cache_key = f"bible_details_{bible_id}"
-    cache_query = """
-        SELECT cache_data, created_at 
-        FROM api_cache 
-        WHERE cache_key = %s 
-        AND created_at > %s
-    """
-    
-    cache_expiry = datetime.now() - timedelta(days=29)
-    cached = db.fetch_one(cache_query, (cache_key, cache_expiry))
-    
-    if cached:
-        logger.info("Returning cached Bible details")
-        return json.loads(cached['cache_data'])
     
     # Fetch from API
     try:
@@ -216,16 +137,6 @@ async def get_bible_details(
         
         for bible in all_bibles:
             if bible.get('id') == bible_id:
-                # Cache it
-                db.execute("DELETE FROM api_cache WHERE cache_key = %s", (cache_key,))
-                db.execute(
-                    """
-                    INSERT INTO api_cache (cache_key, cache_data, created_at)
-                    VALUES (%s, %s, %s)
-                    """,
-                    (cache_key, json.dumps(bible), datetime.now())
-                )
-                
                 return bible
         
         raise HTTPException(status_code=404, detail="Bible not found")

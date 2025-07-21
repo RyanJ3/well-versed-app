@@ -255,7 +255,6 @@ Client → Backend → API.Bible → Backend → Client
 
 ### Vertical Scaling
 - **Database**: Larger instance for more connections
-- **Caching**: Redis for session and API cache
 - **Background Jobs**: Celery for async tasks
 
 ### Performance Monitoring

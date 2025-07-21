@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { ModalService } from '../../core/services/modal.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { User } from '../../core/models/user';
 import { UserService } from '../../core/services/user.service';
 import { BibleService } from '../../core/services/bible.service';
@@ -46,7 +47,6 @@ interface AvailableBiblesResponse {
 export class ProfileComponent implements OnInit {
   user: User | null = null;
   isLoading = true;
-  showSuccess = false;
   isSaving = false;
   loadingBibles = false;
 
@@ -56,9 +56,8 @@ export class ProfileComponent implements OnInit {
     lastName: '',
     denomination: '',
     preferredBible: '',
-    preferredLanguage: '', // Don't default to eng - let user data populate it
+    preferredLanguage: '',
     includeApocrypha: false,
-    useEsvApi: false,
     esvApiToken: ''
   };
   
@@ -66,6 +65,17 @@ export class ProfileComponent implements OnInit {
   languages: LanguageOption[] = [];
   availableBibles: BibleVersion[] = [];
   selectedBibleId: string = '';
+  
+  // ESV Bible option
+  private esvBibleOption: BibleVersion = {
+    id: 'esv',
+    name: 'English Standard Version',
+    abbreviation: 'ESV',
+    abbreviationLocal: 'ESV',
+    language: 'eng',
+    languageId: 'eng',
+    description: 'English Standard Version (requires API token)'
+  };
   
   // Dropdown options
   denominationOptions = [
@@ -87,6 +97,7 @@ export class ProfileComponent implements OnInit {
     private bibleService: BibleService,
     private router: Router,
     private modalService: ModalService,
+    private notificationService: NotificationService,
     private http: HttpClient
   ) { }
 
@@ -153,6 +164,20 @@ export class ProfileComponent implements OnInit {
         
         if (response.bibles && Array.isArray(response.bibles)) {
           this.availableBibles = response.bibles;
+          
+          // Add ESV option if English is selected
+          if (this.profileForm.preferredLanguage === 'eng') {
+            // Insert ESV alphabetically
+            const esvIndex = this.availableBibles.findIndex(b => 
+              b.abbreviation.localeCompare('ESV') > 0
+            );
+            if (esvIndex === -1) {
+              this.availableBibles.push(this.esvBibleOption);
+            } else {
+              this.availableBibles.splice(esvIndex, 0, this.esvBibleOption);
+            }
+          }
+          
           console.log(`Loaded ${this.availableBibles.length} Bibles${language ? ` for language ${language}` : ''}`);
           
           // If only one Bible available, auto-select it
@@ -173,6 +198,7 @@ export class ProfileComponent implements OnInit {
       error: (error) => {
         console.error('Error loading available Bibles:', error);
         this.availableBibles = [];
+        // Only clear languages if we were loading the full list
         if (!language) {
           this.languages = [];
         }
@@ -183,8 +209,16 @@ export class ProfileComponent implements OnInit {
 
   onLanguageChange(): void {
     console.log('Language changed to:', this.profileForm.preferredLanguage);
-    this.profileForm.preferredBible = ''; // Reset Bible selection
+    
+    // Clear Bible selection
+    this.profileForm.preferredBible = '';
     this.selectedBibleId = '';
+    
+    // If changing away from English and ESV was selected, clear the token
+    if (this.profileForm.preferredLanguage !== 'eng' && this.profileForm.preferredBible === 'ESV') {
+      this.profileForm.esvApiToken = '';
+    }
+    
     this.loadAvailableBibles(this.profileForm.preferredLanguage);
   }
 
@@ -203,7 +237,7 @@ export class ProfileComponent implements OnInit {
         id: selectedBible.id,
         name: selectedBible.name,
         abbreviation: selectedBible.abbreviation,
-        isPublicDomain: true, // You might want to determine this from the API
+        isPublicDomain: selectedBible.abbreviation !== 'ESV',
         copyright: selectedBible.description
       });
     }
@@ -233,20 +267,60 @@ export class ProfileComponent implements OnInit {
       lastName: nameParts.slice(1).join(' ') || '',
       denomination: user.denomination || '',
       preferredBible: user.preferredBible || '',
-      preferredLanguage: user.preferredLanguage || 'eng',
+      preferredLanguage: user.preferredLanguage || '',
       includeApocrypha: user.includeApocrypha !== undefined ? user.includeApocrypha : false,
-      useEsvApi: user.useEsvApi || false,
       esvApiToken: user.esvApiToken || ''
     };
     
-    console.log('Profile form initialized with:', this.profileForm);
+    // Set useEsvApi based on whether ESV is selected
+    if (user.preferredBible === 'ESV') {
+      this.profileForm.useEsvApi = true;
+    }
     
-    // Don't load language-specific Bibles here - let ngOnInit handle the initial load
-    // to ensure languages dropdown is populated
+    console.log('Profile form initialized with:', this.profileForm);
+    console.log('Preferred language set to:', this.profileForm.preferredLanguage);
+  }
+  
+  // Validate form
+  isFormValid(): boolean {
+    // Check required fields
+    if (!this.profileForm.firstName?.trim()) {
+      return false;
+    }
+    
+    if (!this.profileForm.preferredLanguage) {
+      return false;
+    }
+    
+    if (!this.profileForm.preferredBible) {
+      return false;
+    }
+    
+    // Check ESV token if ESV is selected
+    if (this.profileForm.preferredBible === 'ESV' && !this.profileForm.esvApiToken?.trim()) {
+      return false;
+    }
+    
+    return true;
   }
   
   saveProfile(): void {
     if (!this.profileForm || this.isSaving) return;
+    
+    // Validate form
+    if (!this.isFormValid()) {
+      // Show specific error messages
+      if (!this.profileForm.firstName?.trim()) {
+        this.notificationService.danger('First Name is required');
+      } else if (!this.profileForm.preferredLanguage) {
+        this.notificationService.danger('Bible Language is required');
+      } else if (!this.profileForm.preferredBible) {
+        this.notificationService.danger('Preferred Bible Translation is required');
+      } else if (this.profileForm.preferredBible === 'ESV' && !this.profileForm.esvApiToken?.trim()) {
+        this.notificationService.danger('ESV API token is required when using ESV translation');
+      }
+      return;
+    }
     
     console.log('Saving profile with data:', this.profileForm);
     console.log('Selected Bible ID:', this.selectedBibleId);
@@ -257,10 +331,10 @@ export class ProfileComponent implements OnInit {
       firstName: this.profileForm.firstName,
       lastName: this.profileForm.lastName,
       denomination: this.profileForm.denomination,
-      preferredBible: this.profileForm.preferredBible, // Store abbreviation
+      preferredBible: this.profileForm.preferredBible,
       preferredLanguage: this.profileForm.preferredLanguage,
       includeApocrypha: this.profileForm.includeApocrypha,
-      useEsvApi: this.profileForm.useEsvApi,
+      useEsvApi: this.profileForm.preferredBible === 'ESV',
       esvApiToken: this.profileForm.esvApiToken
     };
     
@@ -270,32 +344,47 @@ export class ProfileComponent implements OnInit {
       next: (updatedUser: any) => {
         console.log('Profile updated successfully:', updatedUser);
         
+        // Update the local user object to prevent form reset
+        this.user = updatedUser;
+        
+        // Only re-initialize form if language has changed
+        const currentLanguage = this.profileForm.preferredLanguage;
+        this.initializeForm(updatedUser);
+        
+        // Preserve the language if it was properly set
+        if (currentLanguage && !updatedUser.preferredLanguage) {
+          this.profileForm.preferredLanguage = currentLanguage;
+        }
+        
         // Update Bible service with new apocrypha setting
         if (updatedUser && updatedUser.includeApocrypha !== undefined) {
           console.log(`Explicitly updating BibleService with includeApocrypha=${updatedUser.includeApocrypha}`);
           this.bibleService.updateUserPreferences(updatedUser.includeApocrypha);
         }
         
-        // Show success message
-        this.showSuccess = true;
-        
-        // Auto-dismiss after 5 seconds
-        setTimeout(() => {
-          this.dismissSuccess();
-        }, 5000);
+        // Show success notification
+        const apocryphaMessage = updatedUser.includeApocrypha 
+          ? 'Apocryphal books are now visible in the Bible tracker.'
+          : 'Apocryphal books are now hidden in the Bible tracker.';
+        this.notificationService.success(`Profile updated successfully. ${apocryphaMessage}`, 5000);
         
         this.isSaving = false;
+        
+        // Ensure we reload Bibles for the saved language
+        const savedLanguage = updatedUser.preferredLanguage || this.profileForm.preferredLanguage;
+        if (savedLanguage) {
+          // Small delay to ensure form is properly updated
+          setTimeout(() => {
+            this.loadAvailableBibles(savedLanguage);
+          }, 100);
+        }
       },
       error: (error: any) => {
         console.error('Error updating profile:', error);
         this.isSaving = false;
-        this.modalService.alert('Error', 'Failed to update profile. Please try again.', 'danger');
+        this.notificationService.danger('Failed to update profile. Please try again.');
       }
     });
-  }
-  
-  dismissSuccess(): void {
-    this.showSuccess = false;
   }
 
   async clearAllData(): Promise<void> {
@@ -309,12 +398,12 @@ export class ProfileComponent implements OnInit {
 
     this.userService.clearMemorizationData().subscribe({
       next: () => {
-        this.modalService.success('Data Cleared', 'All memorization data has been removed.');
+        this.notificationService.success('All memorization data has been removed.', 5000);
         this.router.navigate(['/']);
       },
       error: (error: any) => {
         console.error('Error clearing data:', error);
-        this.modalService.alert('Error', 'Failed to clear data. Please try again.', 'danger');
+        this.notificationService.danger('Failed to clear data. Please try again.');
       }
     });
   }
