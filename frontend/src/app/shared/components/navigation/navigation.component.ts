@@ -22,7 +22,7 @@ export class NavigationComponent implements OnInit {
   constructor(
     private router: Router,
     private userService: UserService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.userService.currentUser$.subscribe(user => {
@@ -68,18 +68,29 @@ export class NavigationComponent implements OnInit {
   }
 
   getUserInitial(): string {
-    if (this.currentUser?.name) {
+    if (this.currentUser?.firstName) {
+      return this.currentUser.firstName.charAt(0).toUpperCase();
+    } else if (this.currentUser?.name) {
       return this.currentUser.name.charAt(0).toUpperCase();
     }
     return 'U';
   }
 
   getUserDisplayName(): string {
-    if (this.currentUser?.name) {
-      const firstName = this.currentUser.name.split(' ')[0];
-      return firstName;
+    const user = this.userService.getCurrentUser();
+    if (user?.firstName) {
+      return user.firstName;
+    } else if (user?.name) {
+      return user.name.split(' ')[0];
     }
-    return 'User';
+    return '';
+  }
+
+  getFullName(): string {
+    if (this.currentUser?.firstName || this.currentUser?.lastName) {
+      return `${this.currentUser.firstName || ''} ${this.currentUser.lastName || ''}`.trim();
+    }
+    return this.currentUser?.name || 'User';
   }
 
   logout() {

@@ -50,7 +50,7 @@ export class UserService {
 
     // Ensure includeApocrypha is a proper boolean
     const includeApocrypha = formData.includeApocrypha === true;
-    
+
     // Convert camelCase form data to snake_case for API
     const apiRequestData: UserProfileUpdate = {
       first_name: formData.firstName || formData.first_name,
@@ -99,19 +99,33 @@ export class UserService {
   // Helper method to convert API response (snake_case) to User model (camelCase)
   private mapApiResponseToUser(apiResponse: UserApiResponse): User {
     // Convert include_apocrypha to a proper boolean if it exists
-    const includeApocrypha = apiResponse.include_apocrypha !== undefined 
+    const includeApocrypha = apiResponse.include_apocrypha !== undefined
       ? apiResponse.include_apocrypha === true
       : false;
-    
-    console.log('Mapping API response - includeApocrypha:', includeApocrypha, 
-      'Original value:', apiResponse.include_apocrypha, 
+
+    console.log('Mapping API response - includeApocrypha:', includeApocrypha,
+      'Original value:', apiResponse.include_apocrypha,
       'Type:', typeof apiResponse.include_apocrypha);
-    
+
+    // Extract first and last names
+    const firstName = apiResponse.first_name || '';
+    const lastName = apiResponse.last_name || '';
+
+    // Compute full name - use the stored name or combine first/last
+    let fullName = apiResponse.name;
+    if (!fullName && (firstName || lastName)) {
+      fullName = `${firstName} ${lastName}`.trim();
+    }
+
     return {
       id: apiResponse.id,
-      name: apiResponse.name,
+      name: fullName,
       email: apiResponse.email,
       createdAt: new Date(apiResponse.created_at),
+
+      // Include separate name fields
+      firstName: firstName,
+      lastName: lastName,
 
       denomination: apiResponse.denomination,
       preferredBible: apiResponse.preferred_bible,
@@ -128,4 +142,5 @@ export class UserService {
       currentlyMemorizing: []
     };
   }
+  
 }

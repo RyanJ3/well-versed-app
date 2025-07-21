@@ -7,9 +7,13 @@ export interface MemorizationProgress {
 
 export interface User {
   id: string | number;
-  name: string;
+  name: string;  // Keep this as the full name (computed or stored)
   email: string;
   createdAt: Date;
+  
+  // Add separate name fields
+  firstName?: string;
+  lastName?: string;
   
   // Profile details
   denomination?: string;
@@ -28,12 +32,16 @@ export interface User {
   currentlyMemorizing?: MemorizationProgress[];
 }
 
-// Interface for API responses
+// Update API response interface to include name fields
 export interface UserApiResponse {
   id: string | number;
   name: string;
   email: string;
   created_at: string;
+  
+  // Add separate name fields
+  first_name?: string;
+  last_name?: string;
   
   denomination?: string;
   preferred_bible?: string;
