@@ -35,18 +35,7 @@ interface AvailableBiblesResponse {
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
-  styleUrls: [
-    './styles/layout.scss',
-    './styles/loading.scss',
-    './styles/alert.scss',
-    './styles/hero.scss',
-    './styles/settings-card.scss',
-    './styles/form.scss',
-    './styles/buttons.scss',
-    './styles/danger-zone.scss',
-    './styles/responsive.scss',
-    './styles/form-text.scss'
-  ],
+  styleUrls: ['./profile.component.scss'],
   standalone: true,
   imports: [
     CommonModule,
@@ -57,7 +46,6 @@ interface AvailableBiblesResponse {
 export class ProfileComponent implements OnInit {
   user: User | null = null;
   isLoading = true;
-  showSuccess = false;
   isSaving = false;
   loadingBibles = false;
 
@@ -204,11 +192,11 @@ export class ProfileComponent implements OnInit {
     const selectedBible = this.availableBibles.find(
       b => b.abbreviation === this.profileForm.preferredBible
     );
-    
+
     if (selectedBible) {
       this.selectedBibleId = selectedBible.id;
       console.log('Bible selected:', selectedBible.abbreviation, 'ID:', selectedBible.id);
-      
+
       // Update the Bible service with the selected version
       this.bibleService.setCurrentBibleVersion({
         id: selectedBible.id,
@@ -218,6 +206,9 @@ export class ProfileComponent implements OnInit {
         copyright: selectedBible.description
       });
     }
+
+    // Automatically toggle ESV API usage
+    this.profileForm.useEsvApi = this.profileForm.preferredBible === 'ESV';
   }
 
   matchCurrentBible(): void {
@@ -255,6 +246,20 @@ export class ProfileComponent implements OnInit {
     // Don't load language-specific Bibles here - let ngOnInit handle the initial load
     // to ensure languages dropdown is populated
   }
+
+  isFormValid(): boolean {
+    if (!this.profileForm.firstName ||
+        !this.profileForm.preferredLanguage ||
+        !this.profileForm.preferredBible) {
+      return false;
+    }
+
+    if (this.profileForm.preferredBible === 'ESV' && !this.profileForm.esvApiToken) {
+      return false;
+    }
+
+    return true;
+  }
   
   saveProfile(): void {
     if (!this.profileForm || this.isSaving) return;
@@ -262,6 +267,9 @@ export class ProfileComponent implements OnInit {
     console.log('Saving profile with data:', this.profileForm);
     console.log('Selected Bible ID:', this.selectedBibleId);
     this.isSaving = true;
+
+    // Ensure ESV API usage flag matches selected Bible
+    this.profileForm.useEsvApi = this.profileForm.preferredBible === 'ESV';
     
     // Create a clean user profile update object
     const profileUpdate = {
@@ -287,14 +295,6 @@ export class ProfileComponent implements OnInit {
           this.bibleService.updateUserPreferences(updatedUser.includeApocrypha);
         }
         
-        // Show success message
-        this.showSuccess = true;
-        
-        // Auto-dismiss after 5 seconds
-        setTimeout(() => {
-          this.dismissSuccess();
-        }, 5000);
-        
         this.isSaving = false;
       },
       error: (error: any) => {
@@ -305,10 +305,6 @@ export class ProfileComponent implements OnInit {
     });
   }
   
-  dismissSuccess(): void {
-    this.showSuccess = false;
-  }
-
   async clearAllData(): Promise<void> {
     const confirmed = await this.modalService.danger(
       'Clear All Data',
