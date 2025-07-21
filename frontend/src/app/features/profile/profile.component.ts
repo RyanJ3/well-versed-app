@@ -35,7 +35,18 @@ interface AvailableBiblesResponse {
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.scss'],
+  styleUrls: [
+    './styles/layout.scss',
+    './styles/loading.scss',
+    './styles/alert.scss',
+    './styles/hero.scss',
+    './styles/settings-card.scss',
+    './styles/form.scss',
+    './styles/buttons.scss',
+    './styles/danger-zone.scss',
+    './styles/responsive.scss',
+    './styles/form-text.scss'
+  ],
   standalone: true,
   imports: [
     CommonModule,
