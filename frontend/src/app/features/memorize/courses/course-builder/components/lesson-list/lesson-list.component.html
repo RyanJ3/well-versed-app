@@ -1,0 +1,10 @@
+<div class="lesson-list">
+  <div
+    *ngFor="let lesson of lessons; let i = index"
+    [class.selected]="i === selectedIndex"
+    (click)="select.emit(i)"
+  >
+    {{ lesson.title || 'Untitled Lesson' }}
+  </div>
+  <button (click)="addLesson.emit()">Add Lesson</button>
+</div>

@@ -1,63 +1,19 @@
 // frontend/src/app/features/courses/course-builder.component.ts
 
-import { Component, OnInit, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import {
-  FormsModule,
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-  FormArray,
-} from '@angular/forms';
+import { Injectable } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CourseService } from '../../../core/services/course.service';
-import { UserService } from '../../../core/services/user.service';
-import { ModalService } from '../../../core/services/modal.service';
+import { CourseService } from '../../../../core/services/course.service';
+import { UserService } from '../../../../core/services/user.service';
+import { ModalService } from '../../../../core/services/modal.service';
 
-import { LessonContent } from '../../../core/models/course.model';
-import {
-  VersePickerComponent,
-  VerseSelection,
-} from '../../../shared/components/verse-range-picker/verse-range-picker.component';
+import { LessonContent } from '../../../../core/models/course.model';
+import { VerseSelection } from '../../../../shared/components/verse-range-picker/verse-range-picker.component';
+import { Lesson } from './models/course-builder.types';
 
-interface Lesson {
-  id?: number;
-  title: string;
-  description?: string;
-  content_type: 'video' | 'article' | 'external_link' | 'quiz' | '';
-  /**
-   * Lessons retrieved from the API include a content_data object which holds
-   * the actual lesson content. When building a new lesson we flatten these
-   * values onto the lesson itself, but keeping this optional property allows
-   * us to easily map existing lessons returned by the backend.
-   */
-  content_data?: LessonContent;
-  youtube_url?: string;
-  article_text?: string;
-  external_url?: string;
-  external_title?: string;
-  // Quiz specific fields
-  quiz_verse_count?: number;
-  quiz_pass_threshold?: number;
-  quiz_randomize?: boolean;
-  quiz_cards?: { verseCodes: string[]; reference: string }[];
-  position: number;
-}
 
-@Component({
-  selector: 'app-course-builder',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    VersePickerComponent,
-  ],
-  templateUrl: './course-builder.component.html',
-  styleUrls: ['./course-builder.component.scss'],
-})
-export class CourseBuilderComponent implements OnInit {
+@Injectable({ providedIn: 'root' })
+export class CourseBuilderStateService {
   courseForm!: FormGroup;
   lessonForm!: FormGroup;
 
@@ -99,7 +55,7 @@ export class CourseBuilderComponent implements OnInit {
     this.initializeForms();
   }
 
-  ngOnInit() {
+  init() {
     this.availableTags = this.courseService.getSuggestedTags();
 
     // Load draft from localStorage if available
@@ -812,20 +768,6 @@ export class CourseBuilderComponent implements OnInit {
     }
   }
 
-  @HostListener('document:click', ['$event'])
-  onAnyButtonClick(event: Event) {
-    const target = event.target as HTMLElement;
-    if (target.closest('button') && this.currentStep === 2 && this.selectedLessonIndex !== null) {
-      this.saveLessonToMemory();
-    }
-  }
-
-  @HostListener('document:keydown')
-  onAnyKey() {
-    if (this.currentStep === 2 && this.selectedLessonIndex !== null) {
-      this.saveLessonToMemory();
-    }
-  }
 
   autoSave() {
     const state = {

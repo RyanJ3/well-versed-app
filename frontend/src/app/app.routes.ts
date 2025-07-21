@@ -10,7 +10,7 @@ import { DeckStudyComponent } from './features/memorize/decks/deck-study/deck-st
 import { DeckListComponent } from './features/memorize/decks/deck-list/deck-list.component';
 import { FeatureRequestComponent } from './features/feature-request/feature-request.component';
 import { CourseListComponent } from './features/memorize/courses/course-list.component';
-import { CourseBuilderComponent } from './features/memorize/courses/course-builder.component';
+import { CourseBuilderComponent } from './features/memorize/courses/course-builder/course-builder.component';
 import { LessonPracticeComponent } from './features/memorize/courses/lesson-practice/lesson-practice.component';
 import { ScriptureAtlasComponent } from './features/scripture-atlas/scripture-atlas.component';
 import { BibleTrackerComponent } from './bible-tracker/bible-tracker.component';
