@@ -6,10 +6,10 @@ from domain.decks import schemas
 from domain.decks.service import DeckService
 from domain.decks.exceptions import DeckNotFoundError, DeckAccessDeniedError
 
-router = APIRouter(tags=["decks"])
+router = APIRouter(tags=["decks"], redirect_slashes=False)
 
 
-@router.post("/", response_model=schemas.DeckResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=schemas.DeckResponse, status_code=status.HTTP_201_CREATED)
 async def create_deck(deck_data: schemas.DeckCreate, deck_service: DeckService = Depends(get_deck_service)):
     try:
         return await deck_service.create_deck(deck_data, user_id=1)
