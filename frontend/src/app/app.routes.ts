@@ -12,6 +12,7 @@ import { FeatureRequestComponent } from './features/feature-request/feature-requ
 import { CourseListComponent } from './features/memorize/courses/course-list.component';
 import { CourseBuilderComponent } from './features/memorize/courses/course-builder/course-builder.component';
 import { LessonPracticeComponent } from './features/memorize/courses/lesson-practice/lesson-practice.component';
+import { QuizPracticePageComponent } from './features/memorize/courses/quiz-practice/pages/quiz-practice-page/quiz-practice-page.component';
 import { ScriptureAtlasComponent } from './features/scripture-atlas/scripture-atlas.component';
 import { BibleTrackerComponent } from './bible-tracker/bible-tracker.component';
 
@@ -31,6 +32,7 @@ export const routes: Routes = [
   { path: 'decks/study/:deckId', component: DeckStudyComponent },
   { path: 'deck-editor/:deckId', component: DeckEditorPageComponent },
   { path: 'courses/:courseId/lessons/:lessonId/practice', component: LessonPracticeComponent },
+  { path: 'courses/:courseId/lessons/:lessonId/quiz', component: QuizPracticePageComponent },
   {
     path: 'feature-requests',
     component: FeatureRequestComponent,
