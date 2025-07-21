@@ -50,42 +50,11 @@
 
   <!-- Deck Info Tab -->
   <div *ngIf="!isLoading && editMode === 'info'" class="tab-content">
-    <div class="form-section">
-      <div class="form-group">
-        <label for="deck-name">Deck Name</label>
-        <input
-          id="deck-name"
-          type="text"
-          [(ngModel)]="deckName"
-          placeholder="Enter deck name..."
-          class="form-control"
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="deck-description">Description</label>
-        <textarea
-          id="deck-description"
-          [(ngModel)]="deckDescription"
-          placeholder="Enter deck description..."
-          rows="4"
-          class="form-control"
-        ></textarea>
-      </div>
-
-      <div class="form-group">
-        <label class="checkbox-label">
-          <input type="checkbox" [(ngModel)]="isDeckPublic" />
-          <span>Make this deck public</span>
-        </label>
-      </div>
-      <div class="form-actions">
-        <button class="save-button" (click)="updateDeckInfo()" [disabled]="isSaving">
-          <span *ngIf="!isSaving">Save Settings</span>
-          <span *ngIf="isSaving">Saving...</span>
-        </button>
-      </div>
-    </div>
+    <app-deck-form
+      [value]="{ name: deckName, description: deckDescription, isPublic: isDeckPublic }"
+      [saving]="isSaving"
+      (submitForm)="updateDeckInfoForm($event)"
+    ></app-deck-form>
   </div>
 
   <!-- Cards Tab with Table Design -->
@@ -154,90 +123,14 @@
             </tr>
           </thead>
           <tbody>
-            <tr
-              *ngFor="let card of deckCards; let i = index"
-              [class.selected]="selectedCards.has(card.card_id)"
-              [class.dragging]="draggedIndex === i"
-              draggable="true"
-              (dragstart)="onDragStart(i)"
-              (dragover)="onDragOver(i, $event)"
-              (drop)="onDrop(i)"
-              (dragend)="onDragEnd()"
-            >
-              <td class="td-checkbox">
-                <span class="drag-handle" title="Drag to reorder"></span>
-                <input
-                  type="checkbox"
-                  [checked]="selectedCards.has(card.card_id)"
-                  (change)="toggleCardSelection(card.card_id)"
-                  class="table-checkbox"
-                />
-              </td>
-
-              <td class="td-reference">
-                <div class="reference-cell">
-                  <app-verse-picker
-                    class="inline-picker"
-                    [theme]="'minimal'"
-                    [disabledModes]="['chapter']"
-                    [pageType]="'flashcard'"
-                    [maximumVerses]="7"
-                    [warningMessage]="pickerWarnings[card.card_id]"
-                    [initialSelection]="getCardSelection(card)"
-                    (selectionApplied)="applyVerseSelection(card, $event)"
-                  >
-                  </app-verse-picker>
-                </div>
-              </td>
-
-              <td class="td-added">
-                <span>{{ deck?.creator_name || 'You' }}</span>
-              </td>
-
-              <td class="td-added-date">
-                <span>{{ card.added_at | date: "shortDate" }}</span>
-              </td>
-
-              <td class="td-verses">
-                <span class="verse-count">{{ card.verses.length }}</span>
-              </td>
-
-              <td class="td-confidence">
-                <div class="confidence-display">
-                  <div class="confidence-bar">
-                    <div
-                      class="confidence-fill"
-                      [style.width.%]="card.confidence_score || 0"
-                    ></div>
-                  </div>
-                  <span class="confidence-value"
-                    >{{ card.confidence_score || 0 }}%</span
-                  >
-                </div>
-              </td>
-
-              <td class="td-actions">
-                <div class="action-buttons">
-                  <button
-                    class="action-btn delete"
-                    (click)="removeCardFromDeck(card.card_id)"
-                    title="Delete card"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </button>
-                </div>
+            <tr *ngFor="let card of deckCards">
+              <td colspan="7">
+                <app-card-editor
+                  [card]="card"
+                  [pickerWarning]="pickerWarnings[card.card_id]"
+                  (selectionApplied)="applyVerseSelection(card, $event)"
+                  (remove)="removeCardFromDeck(card.card_id)"
+                ></app-card-editor>
               </td>
             </tr>
 

@@ -3,9 +3,11 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { DeckCardComponent, DeckWithCounts } from '../components/deck-card/deck-card.component';
-import { CreateDeckModalComponent } from '../components/create-deck-modal/create-deck-modal.component';
-import { DeckFilterComponent } from '../components/deck-filter/deck-filter.component';
+import { DeckCardComponent } from '../../components/deck-card/deck-card.component';
+import { DeckListComponent as DeckListPresentationalComponent } from '../../components/deck-list/deck-list.component';
+import { DeckWithCounts } from '../../models/deck.types';
+import { CreateDeckModalComponent } from '../../components/create-deck-modal/create-deck-modal.component';
+import { DeckFilterComponent } from '../../components/deck-filter/deck-filter.component';
 import { UserService } from '../../../../core/services/user.service';
 import { ModalService } from '../../../../core/services/modal.service';
 import { DeckCreate, DeckService } from '../../../../core/services/deck.service';
@@ -17,22 +19,23 @@ interface Tab {
 }
 
 @Component({
-  selector: 'app-deck-list',
+  selector: 'app-deck-list-page',
   standalone: true,
   imports: [
     CommonModule, 
     FormsModule,
     RouterModule,
     DeckCardComponent,
+    DeckListPresentationalComponent,
     CreateDeckModalComponent,
     DeckFilterComponent
   ],
-  templateUrl: './deck-list.component.html',
+  templateUrl: './deck-list-page.component.html',
   styleUrls: [
-    './deck-list.component.scss'
+    './deck-list-page.component.scss'
   ]
 })
-export class DeckListComponent implements OnInit {
+export class DeckListPageComponent implements OnInit {
   // Tab configuration
   tabs: Tab[] = [
     {

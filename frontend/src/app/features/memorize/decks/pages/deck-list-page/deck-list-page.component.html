@@ -89,16 +89,14 @@
       </div>
 
       <!-- Deck Cards -->
-      <app-deck-card
-        *ngFor="let deck of getFilteredDecks(); trackBy: trackByDeckId; let i = index"
-        [deck]="deck"
+      <app-deck-list
+        [decks]="getFilteredDecks()"
         [viewMode]="activeTab"
-        [animationDelay]="i * 50"
         (tagClicked)="toggleTagFilter($event)"
-        (deleteClicked)="deleteDeck($event)"
-        (saveClicked)="saveDeck($event)"
-        (unsaveClicked)="unsaveDeck($event)">
-      </app-deck-card>
+        (delete)="deleteDeck($event)"
+        (save)="saveDeck($event)"
+        (unsave)="unsaveDeck($event)"
+      ></app-deck-list>
     </div>
   </div>
 </div>

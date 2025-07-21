@@ -5,9 +5,9 @@ import { ProfileComponent } from './features/profile/profile.component';
 
 import { FlowComponent } from './features/memorize/flow/flow.component';
 import { StatsComponent } from './features/stats/stats.component';
-import { DeckEditorComponent } from './features/memorize/decks/deck-editor/deck-editor.component';
+import { DeckEditorPageComponent } from './features/memorize/decks/pages/deck-editor-page/deck-editor-page.component';
 import { DeckStudyComponent } from './features/memorize/decks/deck-study/deck-study.component';
-import { DeckListComponent } from './features/memorize/decks/deck-list/deck-list.component';
+import { DeckListPageComponent } from './features/memorize/decks/pages/deck-list-page/deck-list-page.component';
 import { FeatureRequestComponent } from './features/feature-request/feature-request.component';
 import { CourseListComponent } from './features/memorize/courses/course-list.component';
 import { CourseBuilderComponent } from './features/memorize/courses/course-builder.component';
@@ -26,10 +26,10 @@ export const routes: Routes = [
   { path: 'tracker', component: BibleTrackerComponent },
   { path: 'profile', component: ProfileComponent },
   { path: 'stats', component: StatsComponent },
-  { path: 'deck', component: DeckListComponent },
-  { path: 'decks', component: DeckListComponent },
+  { path: 'deck', component: DeckListPageComponent },
+  { path: 'decks', component: DeckListPageComponent },
   { path: 'decks/study/:deckId', component: DeckStudyComponent },
-  { path: 'deck-editor/:deckId', component: DeckEditorComponent },
+  { path: 'deck-editor/:deckId', component: DeckEditorPageComponent },
   { path: 'courses/:courseId/lessons/:lessonId/practice', component: LessonPracticeComponent },
   {
     path: 'feature-requests',

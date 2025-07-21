@@ -1,0 +1,11 @@
+.card-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.delete-btn {
+  background: transparent;
+  border: none;
+  color: red;
+  cursor: pointer;
+}

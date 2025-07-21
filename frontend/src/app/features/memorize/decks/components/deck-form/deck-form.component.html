@@ -1,0 +1,17 @@
+<form (ngSubmit)="onSubmit()" class="deck-form">
+  <div class="form-group">
+    <label for="deck-name">Deck Name</label>
+    <input id="deck-name" type="text" [(ngModel)]="value.name" name="name" />
+  </div>
+  <div class="form-group">
+    <label for="deck-description">Description</label>
+    <textarea id="deck-description" rows="3" [(ngModel)]="value.description" name="description"></textarea>
+  </div>
+  <div class="form-group">
+    <label>
+      <input type="checkbox" [(ngModel)]="value.isPublic" name="isPublic" />
+      <span>Make this deck public</span>
+    </label>
+  </div>
+  <button type="submit" [disabled]="saving">{{ saving ? 'Saving...' : 'Save' }}</button>
+</form>

@@ -1,0 +1,12 @@
+<div class="decks-grid">
+  <app-deck-card
+    *ngFor="let deck of decks; trackBy: trackByDeckId; let i = index"
+    [deck]="deck"
+    [viewMode]="viewMode"
+    [animationDelay]="i * 50"
+    (tagClicked)="tagClicked.emit($event)"
+    (deleteClicked)="delete.emit($event)"
+    (saveClicked)="save.emit($event)"
+    (unsaveClicked)="unsave.emit($event)">
+  </app-deck-card>
+</div>
