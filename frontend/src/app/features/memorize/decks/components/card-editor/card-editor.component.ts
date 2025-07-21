@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { VersePickerComponent, VerseSelection } from '../../../../../shared/components/verse-range-picker/verse-range-picker.component';
-import { CardWithVerses } from '../../../../../core/services/deck.service';
+import { CardWithVerses, VerseInCard } from '../../../../../core/services/deck.service';
 
 @Component({
   selector: 'app-card-editor',
@@ -16,4 +16,8 @@ export class CardEditorComponent {
 
   @Output() selectionApplied = new EventEmitter<VerseSelection>();
   @Output() remove = new EventEmitter<void>();
+
+  getVerseCodes(card: CardWithVerses): string[] {
+    return card.verses.map((v: VerseInCard) => v.verse_code);
+  }
 }

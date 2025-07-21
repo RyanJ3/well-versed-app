@@ -10,10 +10,7 @@ import {
   DeckCardsResponse,
   VerseInCard,
 } from '../../../../../core/services/deck.service';
-import {
-  VersePickerComponent,
-  VerseSelection,
-} from '../../../../../shared/components/verse-range-picker/verse-range-picker.component';
+import { VerseSelection } from '../../../../../shared/components/verse-range-picker/verse-range-picker.component';
 import { BibleService } from '../../../../../core/services/bible.service';
 import { ModalService } from '../../../../../core/services/modal.service';
 import { DeckFormComponent } from '../../components/deck-form/deck-form.component';
@@ -22,7 +19,7 @@ import { CardEditorComponent } from '../../components/card-editor/card-editor.co
 @Component({
   selector: 'app-deck-editor-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, VersePickerComponent, DeckFormComponent, CardEditorComponent],
+  imports: [CommonModule, FormsModule, DeckFormComponent, CardEditorComponent],
   templateUrl: './deck-editor-page.component.html',
   styleUrls: ['./deck-editor-page.component.scss'],
 })

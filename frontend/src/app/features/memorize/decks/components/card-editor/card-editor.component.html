@@ -7,7 +7,13 @@
     [maximumVerses]="7"
     [warningMessage]="pickerWarning"
     (selectionApplied)="selectionApplied.emit($event)"
-    [initialSelection]="{ verseCodes: card.verses.map(v => v.verse_code), reference: card.reference, verseCount: card.verses.length, mode: 'single', startVerse: {book: '', bookId: 0, chapter: 0, verse: 0} }"
+    [initialSelection]="{
+      verseCodes: getVerseCodes(card),
+      reference: card.reference,
+      verseCount: card.verses.length,
+      mode: 'single',
+      startVerse: { book: '', bookId: 0, chapter: 0, verse: 0 }
+    }"
   ></app-verse-picker>
   <button class="delete-btn" (click)="remove.emit()">Delete</button>
 </div>
