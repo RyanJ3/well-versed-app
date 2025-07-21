@@ -17,9 +17,10 @@ async def create_deck(deck_data: schemas.DeckCreate, deck_service: DeckService =
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/", response_model=List[schemas.DeckResponse])
-async def get_user_decks(deck_service: DeckService = Depends(get_deck_service)):
-    return await deck_service.get_user_decks(user_id=1)
+@router.get("/user/{user_id}", response_model=schemas.DeckListResponse)
+async def get_user_decks(user_id: int, deck_service: DeckService = Depends(get_deck_service)):
+    decks = await deck_service.get_user_decks(user_id)
+    return schemas.DeckListResponse(total=len(decks), decks=decks)
 
 
 @router.get("/{deck_id}", response_model=schemas.DeckCardsResponse)
