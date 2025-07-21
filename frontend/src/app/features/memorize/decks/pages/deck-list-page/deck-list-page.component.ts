@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { DeckCardComponent } from '../../components/deck-card/deck-card.component';
 import { DeckListComponent as DeckListPresentationalComponent } from '../../components/deck-list/deck-list.component';
-import { DeckWithCounts } from '../../models/deck.types';
+import { DeckWithCounts } from '../../components/deck-card/deck-card.component';
 import { CreateDeckModalComponent } from '../../components/create-deck-modal/create-deck-modal.component';
 import { DeckFilterComponent } from '../../components/deck-filter/deck-filter.component';
 import { UserService } from '../../../../../core/services/user.service';

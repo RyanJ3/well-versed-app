@@ -7,6 +7,8 @@ import {
   CardWithVerses,
   DeckResponse,
   DeckService,
+  DeckCardsResponse,
+  VerseInCard,
 } from '../../../../../core/services/deck.service';
 import {
   VersePickerComponent,
