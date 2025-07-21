@@ -31,3 +31,12 @@ async def get_deck(deck_id: int, deck_service: DeckService = Depends(get_deck_se
         raise HTTPException(status_code=404, detail="Deck not found")
     except DeckAccessDeniedError:
         raise HTTPException(status_code=403, detail="Access denied")
+
+
+@router.get("/{deck_id}/verses", response_model=schemas.DeckCardsResponse)
+async def get_deck_verses(deck_id: int, user_id: int, deck_service: DeckService = Depends(get_deck_service)):
+    """Return deck cards for study"""
+    try:
+        return await deck_service.get_deck_with_cards(deck_id, user_id)
+    except DeckNotFoundError:
+        raise HTTPException(status_code=404, detail="Deck not found")
