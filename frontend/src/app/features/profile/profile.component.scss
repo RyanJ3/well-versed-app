@@ -2,20 +2,16 @@
 
 .profile-page {
   height: 100vh;
-  overflow: hidden; // Prevent page-level scrolling
-  position: fixed; // Fix the page to viewport
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #ffffff; // Set consistent background
+  overflow: hidden;
+  position: relative; // Changed from fixed to relative
+  background: #ffffff;
 }
 
 .profile-layout {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #ffffff; // Consistent background
+  background: #ffffff;
 }
 
 // Loading State
@@ -154,7 +150,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 1.5rem;
-  background: #ffffff; // Match page background
+  background: #ffffff;
   position: relative;
   
   // Center the content
@@ -162,7 +158,7 @@
   flex-direction: column;
   align-items: center;
   
-  // Custom scrollbar styling - only show when needed
+  // Custom scrollbar styling
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
   
@@ -177,17 +173,10 @@
   &::-webkit-scrollbar-thumb {
     background-color: rgba(0, 0, 0, 0.2);
     border-radius: 4px;
-    visibility: hidden; // Hide by default
     
     &:hover {
       background-color: rgba(0, 0, 0, 0.3);
     }
-  }
-  
-  // Only show scrollbar thumb when hovering over container or when scrolling
-  &:hover::-webkit-scrollbar-thumb,
-  &::-webkit-scrollbar-thumb:active {
-    visibility: visible;
   }
   
   // Ensure content is properly contained
@@ -251,19 +240,12 @@
   }
 }
 
-// Settings Card
-.settings-card {
-  background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  max-width: 800px;
-  width: 100%;
-}
-
+// Settings Card - ADD BORDER HERE
 .card-header {
-  background: #f9fafb; // Subtle background for header
+  background: #f9fafb;
   padding: 1rem 1.25rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem 0.75rem 0 0;
   border-bottom: 1px solid #e5e7eb;
   
   .card-title {
@@ -279,7 +261,10 @@
 
 .card-body {
   padding: 1.25rem;
-  background: #ffffff; // White background for body
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-top: none;
+  border-radius: 0 0 0.75rem 0.75rem;
 }
 
 // Pending changes indicator
@@ -383,11 +368,6 @@ select.form-control {
   font-size: 0.875rem;
 }
 
-.info-icon {
-  font-size: 1rem;
-  color: #6b7280;
-}
-
 .apocrypha-description {
   margin: 0;
   font-size: 0.8rem;
@@ -452,7 +432,16 @@ select.form-control {
   border-top: 1px solid #e5e7eb;
   display: flex;
   gap: 0.5rem;
-  justify-content: flex-end;
+  justify-content: space-between;
+  
+  @media (max-width: 640px) {
+    flex-direction: column;
+    
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
 }
 
 // Button Styles
@@ -489,10 +478,6 @@ select.form-control {
   
   &:hover:not(:disabled) {
     background: #4b5563;
-  }
-  
-  &:disabled {
-    opacity: 0.5;
   }
 }
 
@@ -546,7 +531,7 @@ select.form-control {
 // Responsive
 @media (max-width: 768px) {
   .profile-page {
-    position: relative; // Allow scrolling on mobile
+    position: relative;
     height: auto;
     min-height: 100vh;
   }
@@ -564,6 +549,10 @@ select.form-control {
   
   .settings-container {
     padding: 1rem;
-    overflow-y: visible; // Allow natural scrolling on mobile
+    overflow-y: visible;
+  }
+  
+  .loading-container {
+    height: 100vh;
   }
 }

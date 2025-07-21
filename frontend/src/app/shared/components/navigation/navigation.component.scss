@@ -7,9 +7,11 @@
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(229, 231, 235, 0.5);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  position: sticky;
+  position: fixed; // Changed to fixed to ensure it stays on top
   top: 0;
-  z-index: 100;
+  left: 0;
+  right: 0;
+  z-index: 1000; // Increased z-index
   transition: all 0.3s ease;
 }
 
@@ -82,12 +84,6 @@
 // Dropdown Styles
 .nav-dropdown {
   position: relative;
-
-  &:hover .dropdown-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0) scale(1);
-  }
 }
 
 .dropdown-toggle {
@@ -123,7 +119,7 @@
   transform: translateY(-10px) scale(0.95);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: 1px solid rgba(229, 231, 235, 0.5);
-  z-index: 150;
+  z-index: 1100; // Ensure dropdowns appear above other content
 
   &.active {
     opacity: 1;
@@ -207,39 +203,18 @@
   right: 0;
   left: auto;
   
-  .profile-menu-header {
-    padding: 20px;
-    background: linear-gradient(135deg, rgba(240, 249, 255, 0.8), rgba(224, 242, 254, 0.8));
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    border-bottom: 1px solid rgba(229, 231, 235, 0.5);
-  }
-
-  .user-avatar-large {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #3b82f6, #60a5fa);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    font-weight: 700;
-    color: white;
-    flex-shrink: 0;
-    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
-  }
-
+  // Fixed user info styling
   .user-info {
-    overflow: hidden;
-    flex: 1;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(240, 249, 255, 0.8), rgba(224, 242, 254, 0.8));
+    border-bottom: 1px solid rgba(229, 231, 235, 0.5);
   }
 
   .user-full-name {
     font-weight: 600;
     color: #1e293b;
     font-size: 16px;
+    margin-bottom: 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -287,7 +262,7 @@
   border: none;
   cursor: pointer;
   padding: 0;
-  z-index: 20;
+  z-index: 1200;
 
   .bar {
     width: 100%;
@@ -349,7 +324,7 @@
     padding: 80px 20px 30px;
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
     transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 10;
+    z-index: 1100;
     overflow-y: auto;
 
     &.active {

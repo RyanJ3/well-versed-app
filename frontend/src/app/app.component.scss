@@ -8,6 +8,7 @@
   flex-direction: column;
   background-color: #f9fafb;
   overflow: hidden;
+  padding-top: 60px; // Add padding for fixed header
 }
 
 // Main Content Area
@@ -25,7 +26,7 @@
   animation: fadeIn 0.4s ease;
   
   @media (max-width: 768px) {
-    padding: 80px 16px 16px; // Account for fixed mobile header
+    padding: 20px 16px 16px; // Reduced top padding since container already has padding
   }
 }
 
