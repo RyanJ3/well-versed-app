@@ -14,15 +14,17 @@ import {
 } from '../../../../shared/components/verse-range-picker/verse-range-picker.component';
 import { BibleService } from '../../../../core/services/bible.service';
 import { ModalService } from '../../../../core/services/modal.service';
+import { DeckFormComponent } from '../../components/deck-form/deck-form.component';
+import { CardEditorComponent } from '../../components/card-editor/card-editor.component';
 
 @Component({
-  selector: 'app-deck-editor',
+  selector: 'app-deck-editor-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, VersePickerComponent],
-  templateUrl: './deck-editor.component.html',
-  styleUrls: ['./deck-editor.component.scss'],
+  imports: [CommonModule, FormsModule, VersePickerComponent, DeckFormComponent, CardEditorComponent],
+  templateUrl: './deck-editor-page.component.html',
+  styleUrls: ['./deck-editor-page.component.scss'],
 })
-export class DeckEditorComponent implements OnInit {
+export class DeckEditorPageComponent implements OnInit {
   deckId: number = 0;
   deck: DeckResponse | null = null;
   deckCards: CardWithVerses[] = [];
@@ -102,6 +104,13 @@ export class DeckEditorComponent implements OnInit {
         );
       },
     });
+  }
+
+  updateDeckInfoForm(value: { name: string; description: string; isPublic: boolean }) {
+    this.deckName = value.name;
+    this.deckDescription = value.description;
+    this.isDeckPublic = value.isPublic;
+    this.updateDeckInfo();
   }
 
   updateDeckInfo() {
