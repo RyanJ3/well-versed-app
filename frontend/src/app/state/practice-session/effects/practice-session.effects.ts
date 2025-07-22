@@ -88,11 +88,11 @@ export class PracticeSessionEffects extends BaseEffect {
           map((response) => PracticeSessionActions.submitResponseSuccess({ response })),
           tap((successAction) => {
             // Show immediate feedback
-            if (successAction.response.correct) {
-              this.notificationService.success('Correct! 🎉', { duration: 1000 });
-            } else {
-              this.notificationService.error('Try again next time', { duration: 1000 });
-            }
+              if (successAction.response.correct) {
+                this.notificationService.success('Correct! 🎉', 1000);
+              } else {
+                this.notificationService.error('Try again next time', 1000);
+              }
           }),
           this.handleHttpError((error) => 
             PracticeSessionActions.submitResponseFailure({ error })
@@ -150,12 +150,12 @@ export class PracticeSessionEffects extends BaseEffect {
             this.audioService.playSound('session-complete');
             
             // Check for achievements
-            action.summary.achievements.forEach((achievement: Achievement) => {
-              this.notificationService.info(
-                `🏆 Achievement Unlocked: ${achievement.title}`,
-                { duration: 5000 }
-              );
-            });
+              action.summary.achievements.forEach((achievement: Achievement) => {
+                this.notificationService.info(
+                  `🏆 Achievement Unlocked: ${achievement.title}`,
+                  5000
+                );
+              });
           }),
           this.handleHttpError((error) => 
             PracticeSessionActions.completeSessionFailure({ error })
