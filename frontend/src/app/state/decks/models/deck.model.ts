@@ -64,9 +64,21 @@ export enum CardStatus {
 }
 
 // State Interfaces
+export interface DeckEntityState extends EntityState<Deck> {
+  loaded: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
+export interface CardEntityState extends EntityState<Card> {
+  loaded: boolean;
+  loading: boolean;
+  error: string | null;
+}
+
 export interface DecksState {
-  decks: EntityState<Deck>;
-  cards: EntityState<Card>;
+  decks: DeckEntityState;
+  cards: CardEntityState;
   filter: DeckFilter;
   sort: DeckSort;
   ui: DeckUIState;

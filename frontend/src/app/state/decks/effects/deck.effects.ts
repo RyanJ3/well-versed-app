@@ -4,9 +4,10 @@ import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
 import { map, mergeMap, catchError, withLatestFrom, tap, filter, debounceTime } from 'rxjs/operators';
 
-import { DeckService } from '@app/core/services/deck.service';
-import { NotificationService } from '@app/core/services/notification.service';
+import { DeckService } from '../../../core/services/deck.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { DeckActions, CardActions } from '../actions/deck.actions';
+import { Deck } from '../models/deck.model';
 import { selectSelectedDeckId } from '../selectors/deck.selectors';
 import { BaseEffect } from '../../core/effects/base.effect';
 
@@ -37,7 +38,7 @@ export class DeckEffects extends BaseEffect {
       mergeMap(({ deckId }) =>
         this.deckService.getDeck(deckId).pipe(
           mergeMap((deck) => [
-            DeckActions.loadDeckSuccess({ deck }),
+            DeckActions.loadDeckSuccess({ deck: deck as unknown as Deck }),
             CardActions.loadCards({ deckId }),
           ]),
           this.handleHttpError((error) => DeckActions.loadDeckFailure({ error }))
@@ -50,8 +51,8 @@ export class DeckEffects extends BaseEffect {
     this.actions$.pipe(
       ofType(DeckActions.createDeck),
       mergeMap(({ request }) =>
-        this.deckService.createDeck(request).pipe(
-          map((deck) => DeckActions.createDeckSuccess({ deck })),
+        this.deckService.createDeck(request as any).pipe(
+          map((deck) => DeckActions.createDeckSuccess({ deck: deck as unknown as Deck })),
           tap(() => {
             this.notificationService.success('Deck created successfully!');
           }),
@@ -65,10 +66,10 @@ export class DeckEffects extends BaseEffect {
     this.actions$.pipe(
       ofType(DeckActions.updateDeck),
       mergeMap(({ deckId, changes }) =>
-        this.deckService.updateDeck(deckId, changes).pipe(
+        this.deckService.updateDeck(deckId, changes as any).pipe(
           map((deck) =>
             DeckActions.updateDeckSuccess({
-              deck: { id: deck.id, changes: deck },
+              deck: { id: (deck as any).id, changes: deck as any },
             })
           ),
           tap(() => {

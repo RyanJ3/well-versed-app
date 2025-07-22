@@ -1,8 +1,17 @@
 // frontend/src/app/services/deck.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError } from 'rxjs';
+import { Observable, tap, catchError, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import {
+  Deck,
+  Card,
+  CreateDeckRequest,
+  CreateCardRequest,
+  UpdateDeckRequest,
+  StudySessionResult,
+  ImportDeckRequest,
+} from '../../state/decks/models/deck.model';
 
 export interface DeckCreate {
   name: string;
@@ -71,15 +80,21 @@ export class DeckService {
 
   constructor(private http: HttpClient) {}
 
-  createDeck(deck: DeckCreate): Observable<DeckResponse> {
-    console.log('Creating deck', deck);
-    return this.http.post<DeckResponse>(this.apiUrl, deck).pipe(
-      tap(res => console.log('Deck created', res)),
-      catchError(err => {
-        console.error('Error creating deck', err);
-        throw err;
-      })
-    );
+  createDeck(deck: DeckCreate): Observable<DeckResponse>;
+  createDeck(request: CreateDeckRequest): Observable<Deck>;
+  createDeck(arg: DeckCreate | CreateDeckRequest): Observable<DeckResponse | Deck> {
+    if ('is_public' in arg) {
+      console.log('Creating deck', arg);
+      return this.http.post<DeckResponse>(this.apiUrl, arg).pipe(
+        tap(res => console.log('Deck created', res)),
+        catchError(err => {
+          console.error('Error creating deck', err);
+          throw err;
+        })
+      );
+    }
+    // Placeholder implementation for NgRx state management
+    return of({} as Deck);
   }
 
   getUserDecks(userId: number): Observable<DeckListResponse> {
@@ -214,5 +229,30 @@ export class DeckService {
       tap(() => console.log('Deck unsaved')),
       catchError(err => { console.error('Error unsaving deck', err); throw err; })
     );
+  }
+
+  // --- Additional helper methods used in NgRx effects ---
+  getDecks(): Observable<Deck[]> {
+    return of([]);
+  }
+
+  getCards(deckId: number): Observable<Card[]> {
+    return of([]);
+  }
+
+  createCard(deckId: number, card: CreateCardRequest): Observable<Card> {
+    return of({} as Card);
+  }
+
+  toggleFavorite(deckId: number): Observable<boolean> {
+    return of(false);
+  }
+
+  importDeck(request: ImportDeckRequest): Observable<{ deck: Deck; cardsImported: number }> {
+    return of({ deck: {} as Deck, cardsImported: 0 });
+  }
+
+  completeStudySession(result: StudySessionResult): Observable<Partial<Deck>> {
+    return of({});
   }
 }

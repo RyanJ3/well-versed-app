@@ -3,6 +3,7 @@ import {
   Deck,
   Card,
   CreateDeckRequest,
+  CreateCardRequest,
   UpdateDeckRequest,
   DeckFilter,
   DeckSort,
