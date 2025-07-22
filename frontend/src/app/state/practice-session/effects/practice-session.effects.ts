@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { AppState } from '../../app.state';
@@ -29,7 +29,16 @@ import { ResponseQuality, Achievement } from '../models/practice-session.model';
 
 @Injectable()
 export class PracticeSessionEffects extends BaseEffect {
-  
+  private readonly actions$ = inject(Actions);
+  private readonly store = inject(Store<AppState>);
+  private readonly practiceService = inject(PracticeService);
+  private readonly audioService = inject(AudioService);
+  private readonly notificationService = inject(NotificationService);
+
+  constructor() {
+    super();
+  }
+
   startSession$ = createEffect(() =>
     this.actions$.pipe(
       ofType(PracticeSessionActions.startSession),
@@ -265,13 +274,4 @@ export class PracticeSessionEffects extends BaseEffect {
     )
   );
 
-  constructor(
-    private actions$: Actions,
-    private store: Store<AppState>,
-    private practiceService: PracticeService,
-    private audioService: AudioService,
-    private notificationService: NotificationService
-  ) {
-    super();
-  }
 }
