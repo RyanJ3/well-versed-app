@@ -6,14 +6,18 @@ import { map, mergeMap, withLatestFrom, debounceTime, tap } from 'rxjs/operators
 
 import { BibleService } from '../../../core/services/bible.service';
 import { BibleTrackerActions } from '../actions/bible-tracker.actions';
-import { BookProgress, BibleStatisticsState } from '../models/bible-tracker.model';
+import {
+  BookProgress,
+  BibleStatisticsState,
+  BibleTrackerState,
+} from '../models/bible-tracker.model';
 import { selectBibleTrackerState } from '../selectors/bible-tracker.selectors';
 import { BaseEffect } from '../../core/effects/base.effect';
 
 @Injectable()
 export class BibleTrackerEffects extends BaseEffect {
   private actions$ = inject(Actions);
-  private store = inject(Store);
+  private store = inject(Store<BibleTrackerState>);
   private bibleService = inject(BibleService);
   init$ = createEffect(() =>
     this.actions$.pipe(

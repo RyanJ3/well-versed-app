@@ -1,5 +1,13 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { BibleTrackerState, BookProgress } from '../models/bible-tracker.model';
+import {
+  BibleTrackerState,
+  BookProgress,
+  ReadingProgressState,
+  BibleStatisticsState,
+  StreakStatistics,
+  BibleTrackerUIState,
+  ChapterProgress,
+} from '../models/bible-tracker.model';
 
 // Feature selector
 export const selectBibleTrackerState = createFeatureSelector<BibleTrackerState>('bibleTracker');
@@ -7,25 +15,28 @@ export const selectBibleTrackerState = createFeatureSelector<BibleTrackerState>(
 // Reading Progress selectors
 export const selectReadingProgress = createSelector(
   selectBibleTrackerState,
-  (state) => state.readingProgress
+  (state: BibleTrackerState) => state.readingProgress
 );
 
 export const selectAllBooks = createSelector(
   selectReadingProgress,
-  (progress) => Object.values(progress.books)
+  (progress: ReadingProgressState) => Object.values(progress.books)
 );
 
 export const selectBookById = (bookId: string) =>
-  createSelector(selectReadingProgress, (progress) => progress.books[bookId]);
+  createSelector(
+    selectReadingProgress,
+    (progress: ReadingProgressState) => progress.books[bookId]
+  );
 
 export const selectChapterProgress = (bookId: string, chapter: number) =>
   createSelector(
     selectBookById(bookId),
-    (book) => book?.chapters[chapter] || null
+    (book: BookProgress | undefined) => book?.chapters[chapter] || null
   );
 
 export const selectIsBookComplete = (bookId: string) =>
-  createSelector(selectBookById(bookId), (book) => {
+  createSelector(selectBookById(bookId), (book: BookProgress | undefined) => {
     if (!book) return false;
     return book.percentComplete === 100;
   });
@@ -33,57 +44,60 @@ export const selectIsBookComplete = (bookId: string) =>
 // Statistics selectors
 export const selectStatistics = createSelector(
   selectBibleTrackerState,
-  (state) => state.statistics
+  (state: BibleTrackerState) => state.statistics
 );
 
 export const selectStatisticsOverview = createSelector(
   selectStatistics,
-  (stats) => stats.overview
+  (stats: BibleStatisticsState) => stats.overview
 );
 
 export const selectStreaks = createSelector(
   selectStatistics,
-  (stats) => stats.streaks
+  (stats: BibleStatisticsState) => stats.streaks
 );
 
 export const selectCurrentStreak = createSelector(
   selectStreaks,
-  (streaks) => streaks.currentStreak
+  (streaks: StreakStatistics) => streaks.currentStreak
 );
 
 // UI selectors
 export const selectUI = createSelector(
   selectBibleTrackerState,
-  (state) => state.ui
+  (state: BibleTrackerState) => state.ui
 );
 
 export const selectSelectedBook = createSelector(
   selectUI,
-  (ui) => ui.selectedBook
+  (ui: BibleTrackerUIState) => ui.selectedBook
 );
 
 export const selectSelectedChapter = createSelector(
   selectUI,
-  (ui) => ui.selectedChapter
+  (ui: BibleTrackerUIState) => ui.selectedChapter
 );
 
 export const selectViewMode = createSelector(
   selectUI,
-  (ui) => ui.viewMode
+  (ui: BibleTrackerUIState) => ui.viewMode
 );
 
 // Combined selectors
 export const selectSelectedBookDetails = createSelector(
   selectReadingProgress,
   selectSelectedBook,
-  (progress, selectedBookId) =>
+  (
+    progress: ReadingProgressState,
+    selectedBookId: string | null
+  ) =>
     selectedBookId ? progress.books[selectedBookId] : null
 );
 
 export const selectFilteredBooks = createSelector(
   selectAllBooks,
   selectUI,
-  (books, ui) => {
+  (books: BookProgress[], ui: BibleTrackerUIState) => {
     if (!ui.showCompletedOnly) {
       return books;
     }
@@ -94,48 +108,52 @@ export const selectFilteredBooks = createSelector(
 // Loading states
 export const selectIsLoadingProgress = createSelector(
   selectReadingProgress,
-  (progress) => progress.loading
+  (progress: ReadingProgressState) => progress.loading
 );
 
 export const selectIsLoadingStatistics = createSelector(
   selectStatistics,
-  (stats) => stats.loading
+  (stats: BibleStatisticsState) => stats.loading
 );
 
 export const selectIsAnyLoading = createSelector(
   selectIsLoadingProgress,
   selectIsLoadingStatistics,
-  (progressLoading, statsLoading) => progressLoading || statsLoading
+  (
+    progressLoading: boolean,
+    statsLoading: boolean
+  ) => progressLoading || statsLoading
 );
 
 // Error states
 export const selectProgressError = createSelector(
   selectReadingProgress,
-  (progress) => progress.error
+  (progress: ReadingProgressState) => progress.error
 );
 
 export const selectStatisticsError = createSelector(
   selectStatistics,
-  (stats) => stats.error
+  (stats: BibleStatisticsState) => stats.error
 );
 
 // Helper to convert lastSync string to Date
 export const selectLastSyncDate = createSelector(
   selectReadingProgress,
-  (progress) => (progress.lastSync ? new Date(progress.lastSync) : null)
+  (progress: ReadingProgressState) =>
+    progress.lastSync ? new Date(progress.lastSync) : null
 );
 
 // Progress calculations
 export const selectTodaysProgress = createSelector(
   selectAllBooks,
-  (books) => {
+  (books: BookProgress[]) => {
     const today = new Date().toDateString();
     let versesReadToday = 0;
     let chaptersCompletedToday = 0;
 
-    books.forEach((book) => {
-      Object.values(book.chapters).forEach((chapter) => {
-        if (chapter.completedDate && 
+    books.forEach((book: BookProgress) => {
+      Object.values(book.chapters).forEach((chapter: ChapterProgress) => {
+        if (chapter.completedDate &&
             new Date(chapter.completedDate).toDateString() === today) {
           chaptersCompletedToday++;
           versesReadToday += chapter.versesRead.length;
