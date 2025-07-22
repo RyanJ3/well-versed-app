@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
-import { of, forkJoin } from 'rxjs';
+import { Store, Action } from '@ngrx/store';
+import { of, forkJoin, Observable } from 'rxjs';
 import { map, mergeMap, catchError, withLatestFrom, debounceTime, tap } from 'rxjs/operators';
 
-import { BibleService } from '@app/core/services/bible.service';
+import { BibleService } from '../../../core/services/bible.service';
 import { BibleTrackerActions } from '../actions/bible-tracker.actions';
+import { BookProgress } from '../models/bible-tracker.model';
 import { selectBibleTrackerState } from '../selectors/bible-tracker.selectors';
 import { BaseEffect } from '../../core/effects/base.effect';
 
@@ -21,12 +22,12 @@ export class BibleTrackerEffects extends BaseEffect {
     )
   );
 
-  loadReadingProgress$ = createEffect(() =>
+  loadReadingProgress$ = createEffect((): Observable<Action> =>
     this.actions$.pipe(
       ofType(BibleTrackerActions.loadReadingProgress),
       mergeMap(() =>
         this.bibleService.getUserReadingProgress().pipe(
-          map((books) =>
+          map((books: { [bookId: string]: BookProgress }) =>
             BibleTrackerActions.loadReadingProgressSuccess({ books })
           ),
           this.handleHttpError((error) =>
@@ -37,7 +38,7 @@ export class BibleTrackerEffects extends BaseEffect {
     )
   );
 
-  markVersesAsRead$ = createEffect(() =>
+  markVersesAsRead$ = createEffect((): Observable<Action> =>
     this.actions$.pipe(
       ofType(BibleTrackerActions.markVersesAsRead),
       mergeMap(({ bookId, chapter, verses }) =>
@@ -56,7 +57,7 @@ export class BibleTrackerEffects extends BaseEffect {
     )
   );
 
-  markChapterAsComplete$ = createEffect(() =>
+  markChapterAsComplete$ = createEffect((): Observable<Action> =>
     this.actions$.pipe(
       ofType(BibleTrackerActions.markChapterAsComplete),
       mergeMap(({ bookId, chapter }) =>
@@ -113,7 +114,7 @@ export class BibleTrackerEffects extends BaseEffect {
     )
   );
 
-  syncProgress$ = createEffect(() =>
+  syncProgress$ = createEffect((): Observable<Action> =>
     this.actions$.pipe(
       ofType(BibleTrackerActions.syncProgress),
       withLatestFrom(this.store.select(selectBibleTrackerState)),

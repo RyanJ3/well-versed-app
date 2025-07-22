@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { catchError, of, Observable } from 'rxjs';
-import { TypedAction } from '@ngrx/store';
+import { Action } from '@ngrx/store';
 
 @Injectable()
 export abstract class BaseEffect {
-  protected handleError<T extends TypedAction<string>>(
+  protected handleError<T extends Action>(
     action: (error: string) => T
   ) {
     return (error: any): Observable<T> => {
@@ -14,10 +14,10 @@ export abstract class BaseEffect {
     };
   }
   
-  protected handleHttpError<T extends TypedAction<string>>(
+  protected handleHttpError<T extends Action>(
     actionCreator: (error: string) => T
   ) {
-    return catchError((error: any) => {
+    return catchError<any, Observable<T>>((error: any) => {
       let errorMessage = 'An error occurred';
       
       if (error.status === 0) {
