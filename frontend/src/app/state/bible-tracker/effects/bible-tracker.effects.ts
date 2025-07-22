@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store, Action } from '@ngrx/store';
-import { of, forkJoin, Observable } from 'rxjs';
-import { map, mergeMap, catchError, withLatestFrom, debounceTime, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map, mergeMap, withLatestFrom, debounceTime, tap } from 'rxjs/operators';
 
 import { BibleService } from '../../../core/services/bible.service';
 import { BibleTrackerActions } from '../actions/bible-tracker.actions';
-import { BookProgress } from '../models/bible-tracker.model';
+import { BookProgress, BibleStatisticsState } from '../models/bible-tracker.model';
 import { selectBibleTrackerState } from '../selectors/bible-tracker.selectors';
 import { BaseEffect } from '../../core/effects/base.effect';
 
@@ -152,7 +152,7 @@ export class BibleTrackerEffects extends BaseEffect {
     super();
   }
 
-  private calculateStatistics(books: any): any {
+  private calculateStatistics(books: { [bookId: string]: BookProgress }): BibleStatisticsState {
     // Implementation of statistics calculation
     let totalVersesRead = 0;
     let chaptersCompleted = 0;
@@ -196,6 +196,8 @@ export class BibleTrackerEffects extends BaseEffect {
         lastReadDate: new Date(),
         streakHistory: [],
       },
+      loading: false,
+      error: null,
     };
   }
 }
