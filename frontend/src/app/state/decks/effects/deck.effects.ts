@@ -1,5 +1,6 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
+import { Store } from '@ngrx/store';
 import { map, mergeMap, tap, filter, debounceTime } from 'rxjs/operators';
 
 import { DeckService } from '../../../core/services/deck.service';
@@ -10,9 +11,14 @@ import { BaseEffect } from '../../core/effects/base.effect';
 
 @Injectable()
 export class DeckEffects extends BaseEffect {
-  private actions$ = inject(Actions);
-  private deckService = inject(DeckService);
-  private notificationService = inject(NotificationService);
+  constructor(
+    private actions$: Actions,
+    private store: Store,
+    private deckService: DeckService,
+    private notificationService: NotificationService
+  ) {
+    super();
+  }
 
   init$ = createEffect(() =>
     this.actions$.pipe(
@@ -206,7 +212,4 @@ export class DeckEffects extends BaseEffect {
     )
   );
 
-  constructor() {
-    super();
-  }
 }
