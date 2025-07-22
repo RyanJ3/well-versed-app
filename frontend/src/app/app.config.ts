@@ -12,6 +12,8 @@ import { routes } from './app.routes';
 import { metaReducers } from './state/core/helpers/dev.helpers';
 import { bibleTrackerReducer } from './state/bible-tracker/reducers/bible-tracker.reducer';
 import { BibleTrackerEffects } from './state/bible-tracker/effects/bible-tracker.effects';
+import { decksReducer } from './state/decks/reducers/deck.reducer';
+import { DeckEffects } from './state/decks/effects/deck.effects';
 import { ConfigService } from './core/services/config.service';
 
 export const appConfig: ApplicationConfig = {
@@ -32,6 +34,7 @@ export const appConfig: ApplicationConfig = {
       {
         router: routerReducer,
         bibleTracker: bibleTrackerReducer,
+        decks: decksReducer,
       },
       {
         metaReducers: isDevMode() ? metaReducers : [],
@@ -49,6 +52,7 @@ export const appConfig: ApplicationConfig = {
     // NgRx Effects
     provideEffects([
       BibleTrackerEffects,
+      DeckEffects,
     ]),
 
     // Router Store
