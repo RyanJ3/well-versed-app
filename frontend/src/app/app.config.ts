@@ -10,6 +10,8 @@ import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { provideRouterStore, routerReducer } from '@ngrx/router-store';
 import { routes } from './app.routes';
 import { metaReducers } from './state/core/helpers/dev.helpers';
+import { bibleTrackerReducer } from './state/bible-tracker/reducers/bible-tracker.reducer';
+import { BibleTrackerEffects } from './state/bible-tracker/effects/bible-tracker.effects';
 import { ConfigService } from './core/services/config.service';
 
 export const appConfig: ApplicationConfig = {
@@ -29,6 +31,7 @@ export const appConfig: ApplicationConfig = {
     provideStore(
       {
         router: routerReducer,
+        bibleTracker: bibleTrackerReducer,
       },
       {
         metaReducers: isDevMode() ? metaReducers : [],
@@ -44,7 +47,9 @@ export const appConfig: ApplicationConfig = {
     ),
 
     // NgRx Effects
-    provideEffects([]),
+    provideEffects([
+      BibleTrackerEffects,
+    ]),
 
     // Router Store
     provideRouterStore(),

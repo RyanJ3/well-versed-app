@@ -13,3 +13,6 @@ export * from './core/helpers/store.helpers';
 
 // Export router selectors
 export * from './core/reducers/router.reducer';
+
+// Bible Tracker feature exports
+export * from './bible-tracker';
