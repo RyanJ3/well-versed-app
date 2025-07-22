@@ -4,8 +4,8 @@ import { Store } from '@ngrx/store';
 import { of } from 'rxjs';
 import { map, mergeMap, catchError, withLatestFrom, tap, filter, debounceTime } from 'rxjs/operators';
 
-import { DeckService } from '../../../core/services/deck.service';
-import { NotificationService } from '../../../core/services/notification.service';
+import { DeckService } from '@app/core/services/deck.service';
+import { NotificationService } from '@app/core/services/notification.service';
 import { DeckActions, CardActions } from '../actions/deck.actions';
 import { selectSelectedDeckId } from '../selectors/deck.selectors';
 import { BaseEffect } from '../../core/effects/base.effect';

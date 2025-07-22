@@ -1,5 +1,5 @@
 import { createReducer, on } from '@ngrx/store';
-import { createEntityAdapter, EntityAdapter } from '@ngrx/entity';
+import { createEntityAdapter, EntityAdapter, Update } from '@ngrx/entity';
 import { DecksState, Deck, Card } from '../models/deck.model';
 import { DeckActions, CardActions } from '../actions/deck.actions';
 
