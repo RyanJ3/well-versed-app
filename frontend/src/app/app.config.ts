@@ -14,6 +14,8 @@ import { bibleTrackerReducer } from './state/bible-tracker/reducers/bible-tracke
 import { BibleTrackerEffects } from './state/bible-tracker/effects/bible-tracker.effects';
 import { decksReducer } from './state/decks/reducers/deck.reducer';
 import { DeckEffects } from './state/decks/effects/deck.effects';
+import { practiceSessionReducer } from './state/practice-session/reducers/practice-session.reducer';
+import { PracticeSessionEffects } from './state/practice-session/effects/practice-session.effects';
 import { ConfigService } from './core/services/config.service';
 
 export const appConfig: ApplicationConfig = {
@@ -35,6 +37,7 @@ export const appConfig: ApplicationConfig = {
         router: routerReducer,
         bibleTracker: bibleTrackerReducer,
         decks: decksReducer,
+        practiceSession: practiceSessionReducer,
       },
       {
         metaReducers: isDevMode() ? metaReducers : [],
@@ -53,6 +56,7 @@ export const appConfig: ApplicationConfig = {
     provideEffects([
       BibleTrackerEffects,
       DeckEffects,
+      PracticeSessionEffects,
     ]),
 
     // Router Store
