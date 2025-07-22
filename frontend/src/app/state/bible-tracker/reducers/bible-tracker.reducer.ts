@@ -6,6 +6,7 @@ import {
 } from '../models/bible-tracker.model';
 import { BibleTrackerActions } from '../actions/bible-tracker.actions';
 
+// Here's the complete correct initialState:
 export const initialState: BibleTrackerState = {
   readingProgress: {
     books: {},
@@ -24,8 +25,8 @@ export const initialState: BibleTrackerState = {
       versesRead: 0,
       overallPercentage: 0,
       lastUpdated: null,
-    },
-    streaks: {
+    }, // <-- Make sure overview closes here
+    streaks: { // <-- streaks starts here, as a sibling
       currentStreak: 0,
       longestStreak: 0,
       lastReadDate: null,
@@ -169,10 +170,25 @@ export const bibleTrackerReducer = createReducer(
     ) => ({
       ...state,
       statistics: {
-        ...statistics,
-        loading: false,
-        error: null,
-      },
+    overview: {
+      totalBooks: 66,
+      booksCompleted: 0,
+      totalChapters: 1189,
+      chaptersCompleted: 0,
+      totalVerses: 31102,
+      versesRead: 0,
+      overallPercentage: 0,
+      lastUpdated: null,
+    },
+    streaks: {
+      currentStreak: 0,
+      longestStreak: 0,
+      lastReadDate: null,
+      streakHistory: [],
+    },
+    loading: false,
+    error: null,
+  },
     })
   )
 );
