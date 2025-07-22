@@ -2,7 +2,7 @@ import { ActionReducer, MetaReducer } from '@ngrx/store';
 
 // Logger meta-reducer for development
 export function logger(reducer: ActionReducer<any>): ActionReducer<any> {
-  return (state, action) => {
+  return (state: any, action: any) => {
     console.group(action.type);
     console.log('Previous State:', state);
     console.log('Action:', action);
@@ -18,7 +18,7 @@ export function logger(reducer: ActionReducer<any>): ActionReducer<any> {
 
 // State freeze meta-reducer to prevent mutations
 export function stateFreeze(reducer: ActionReducer<any>): ActionReducer<any> {
-  return (state, action) => {
+  return (state: any, action: any) => {
     if (state) {
       deepFreeze(state);
     }
