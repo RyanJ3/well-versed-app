@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { map, mergeMap, tap, filter, debounceTime } from 'rxjs/operators';
@@ -11,14 +11,10 @@ import { BaseEffect } from '../../core/effects/base.effect';
 
 @Injectable()
 export class DeckEffects extends BaseEffect {
-  constructor(
-    private actions$: Actions,
-    private store: Store,
-    private deckService: DeckService,
-    private notificationService: NotificationService
-  ) {
-    super();
-  }
+  private actions$ = inject(Actions);
+  private store = inject(Store);
+  private deckService = inject(DeckService);
+  private notificationService = inject(NotificationService);
 
   init$ = createEffect(() =>
     this.actions$.pipe(
@@ -117,7 +113,6 @@ export class DeckEffects extends BaseEffect {
     )
   );
 
-  // Load cards when deck is selected
   selectDeck$ = createEffect(() =>
     this.actions$.pipe(
       ofType(DeckActions.selectDeck),
@@ -153,7 +148,6 @@ export class DeckEffects extends BaseEffect {
     )
   );
 
-  // Auto-sync every 5 minutes if there are pending changes
   autoSync$ = createEffect(() =>
     this.actions$.pipe(
       ofType(
@@ -199,7 +193,7 @@ export class DeckEffects extends BaseEffect {
               updates,
             })
           ),
-          tap(({ updates }) => {
+          tap(() => {
             if (result.streakMaintained) {
               this.notificationService.success('Great job! Streak maintained! 🔥');
             }
@@ -211,5 +205,4 @@ export class DeckEffects extends BaseEffect {
       )
     )
   );
-
 }
