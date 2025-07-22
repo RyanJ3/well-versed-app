@@ -1,18 +1,19 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { Store } from '@ngrx/store';
-import { of } from 'rxjs';
-import { map, mergeMap, catchError, withLatestFrom, tap, filter, debounceTime } from 'rxjs/operators';
+import { map, mergeMap, tap, filter, debounceTime } from 'rxjs/operators';
 
 import { DeckService } from '../../../core/services/deck.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { DeckActions, CardActions } from '../actions/deck.actions';
 import { Deck } from '../models/deck.model';
-import { selectSelectedDeckId } from '../selectors/deck.selectors';
 import { BaseEffect } from '../../core/effects/base.effect';
 
 @Injectable()
 export class DeckEffects extends BaseEffect {
+  private actions$ = inject(Actions);
+  private deckService = inject(DeckService);
+  private notificationService = inject(NotificationService);
+
   init$ = createEffect(() =>
     this.actions$.pipe(
       ofType(DeckActions.init),
@@ -205,12 +206,7 @@ export class DeckEffects extends BaseEffect {
     )
   );
 
-  constructor(
-    private actions$: Actions,
-    private store: Store,
-    private deckService: DeckService,
-    private notificationService: NotificationService
-  ) {
+  constructor() {
     super();
   }
 }
