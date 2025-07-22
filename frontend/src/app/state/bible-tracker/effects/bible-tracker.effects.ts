@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store, Action } from '@ngrx/store';
 import { Observable } from 'rxjs';
@@ -12,6 +12,9 @@ import { BaseEffect } from '../../core/effects/base.effect';
 
 @Injectable()
 export class BibleTrackerEffects extends BaseEffect {
+  private actions$ = inject(Actions);
+  private store = inject(Store);
+  private bibleService = inject(BibleService);
   init$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BibleTrackerActions.init),
@@ -144,11 +147,7 @@ export class BibleTrackerEffects extends BaseEffect {
     { dispatch: false }
   );
 
-  constructor(
-    private actions$: Actions,
-    private store: Store,
-    private bibleService: BibleService
-  ) {
+  constructor() {
     super();
   }
 
