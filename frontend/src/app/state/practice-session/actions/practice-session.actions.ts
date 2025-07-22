@@ -60,7 +60,7 @@ export const PracticeSessionActions = createActionGroup({
     // UI Actions
     'Toggle Stats': emptyProps(),
     'Toggle Settings': emptyProps(),
-    'Show Feedback': props<{ message: string; type: 'success' | 'error' | 'info' }>(),
+    'Show Feedback': props<{ message: string; level: 'success' | 'error' | 'info' }>(),
     'Hide Feedback': emptyProps(),
     
     // Performance Updates

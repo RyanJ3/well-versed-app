@@ -38,6 +38,7 @@ export interface StudyCard {
   order: number;
   seen: boolean;
   lastResponseQuality?: number;
+  nextReview?: Date;
 }
 
 export interface CardResponse {

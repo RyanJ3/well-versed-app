@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
+import { AppState } from '../../app.state';
 import { of, interval, timer } from 'rxjs';
 import { 
   map, 
@@ -12,18 +13,19 @@ import {
   filter 
 } from 'rxjs/operators';
 
-import { PracticeService } from '@app/core/services/practice.service';
-import { AudioService } from '@app/core/services/audio.service';
-import { NotificationService } from '@app/core/services/notification.service';
+import { PracticeService } from '../../../core/services/practice.service';
+import { AudioService } from '../../../core/services/audio.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { PracticeSessionActions, PracticeKeyboardActions } from '../actions/practice-session.actions';
 import { 
-  selectActiveSession, 
+  selectActiveSession,
   selectCurrentCard,
   selectSettings,
-  selectSessionProgress 
+  selectSessionProgress,
+  selectUI
 } from '../selectors/practice-session.selectors';
 import { BaseEffect } from '../../core/effects/base.effect';
-import { ResponseQuality } from '../models/practice-session.model';
+import { ResponseQuality, Achievement } from '../models/practice-session.model';
 
 @Injectable()
 export class PracticeSessionEffects extends BaseEffect {
@@ -148,7 +150,7 @@ export class PracticeSessionEffects extends BaseEffect {
             this.audioService.playSound('session-complete');
             
             // Check for achievements
-            action.summary.achievements.forEach(achievement => {
+            action.summary.achievements.forEach((achievement: Achievement) => {
               this.notificationService.info(
                 `🏆 Achievement Unlocked: ${achievement.title}`,
                 { duration: 5000 }
@@ -219,7 +221,7 @@ export class PracticeSessionEffects extends BaseEffect {
       withLatestFrom(
         this.store.select(selectActiveSession),
         this.store.select(selectCurrentCard),
-        this.store.select(state => state.practiceSession.ui)
+        this.store.select(selectUI)
       ),
       map(([_, session, card, ui]) => {
         if (!session || !card) return { type: 'NO_OP' };
@@ -265,7 +267,7 @@ export class PracticeSessionEffects extends BaseEffect {
 
   constructor(
     private actions$: Actions,
-    private store: Store,
+    private store: Store<AppState>,
     private practiceService: PracticeService,
     private audioService: AudioService,
     private notificationService: NotificationService
