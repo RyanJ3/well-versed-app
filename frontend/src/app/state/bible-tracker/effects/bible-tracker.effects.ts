@@ -49,7 +49,7 @@ export class BibleTrackerEffects extends BaseEffect {
           map(() =>
             BibleTrackerActions.markVersesAsReadSuccess({
               update: { bookId, chapter, verses },
-              timestamp: new Date(),
+              timestamp: new Date().toISOString(),
             })
           ),
           this.handleHttpError((error) =>
@@ -68,7 +68,7 @@ export class BibleTrackerEffects extends BaseEffect {
           map(() =>
             BibleTrackerActions.markChapterAsCompleteSuccess({
               update: { bookId, chapter },
-              timestamp: new Date(),
+              timestamp: new Date().toISOString(),
             })
           ),
           this.handleHttpError((error) =>
@@ -124,7 +124,7 @@ export class BibleTrackerEffects extends BaseEffect {
       mergeMap(([_, state]) =>
         this.bibleService.syncProgress(state.readingProgress.books).pipe(
           map(() =>
-            BibleTrackerActions.syncProgressSuccess({ timestamp: new Date() })
+            BibleTrackerActions.syncProgressSuccess({ timestamp: new Date().toISOString() })
           ),
           this.handleHttpError((error) =>
             BibleTrackerActions.syncProgressFailure({ error })
@@ -186,13 +186,13 @@ export class BibleTrackerEffects extends BaseEffect {
         totalVerses: 31102,
         versesRead: totalVersesRead,
         overallPercentage,
-        lastUpdated: new Date(),
+        lastUpdated: new Date().toISOString(),
       },
       streaks: {
         // Streak calculation would go here
         currentStreak: 0,
         longestStreak: 0,
-        lastReadDate: new Date(),
+        lastReadDate: new Date().toISOString(),
         streakHistory: [],
       },
       loading: false,

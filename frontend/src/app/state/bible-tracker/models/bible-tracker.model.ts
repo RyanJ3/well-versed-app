@@ -9,7 +9,7 @@ export interface ReadingProgressState {
   loading: boolean;
   loaded: boolean;
   error: string | null;
-  lastSync: Date | null;
+  lastSync: string | null;
 }
 
 export interface BookProgress {
@@ -19,7 +19,7 @@ export interface BookProgress {
   totalVerses: number;
   chapters: { [chapterNumber: string]: ChapterProgress };
   percentComplete: number;
-  lastRead: Date | null;
+  lastRead: string | null;
 }
 
 export interface ChapterProgress {
@@ -27,7 +27,7 @@ export interface ChapterProgress {
   totalVerses: number;
   versesRead: number[];
   percentComplete: number;
-  completedDate: Date | null;
+  completedDate: string | null;
   notes: string | null;
 }
 
@@ -46,18 +46,18 @@ export interface StatisticsOverview {
   totalVerses: number;
   versesRead: number;
   overallPercentage: number;
-  lastUpdated: Date | null;
+  lastUpdated: string | null;
 }
 
 export interface StreakStatistics {
   currentStreak: number;
   longestStreak: number;
-  lastReadDate: Date | null;
+  lastReadDate: string | null;
   streakHistory: StreakEntry[];
 }
 
 export interface StreakEntry {
-  date: Date;
+  date: string;
   versesRead: number;
   chaptersCompleted: number;
 }

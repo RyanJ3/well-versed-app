@@ -20,20 +20,20 @@ export const BibleTrackerActions = createActionGroup({
 
     // Mark Progress
     'Mark Verses As Read': props<MarkVersesReadRequest>(),
-    'Mark Verses As Read Success': props<{ update: MarkVersesReadRequest; timestamp: Date }>(),
+    'Mark Verses As Read Success': props<{ update: MarkVersesReadRequest; timestamp: string }>(),
     'Mark Verses As Read Failure': props<{ error: string }>(),
 
     'Mark Chapter As Complete': props<MarkChapterCompleteRequest>(),
-    'Mark Chapter As Complete Success': props<{ update: MarkChapterCompleteRequest; timestamp: Date }>(),
+    'Mark Chapter As Complete Success': props<{ update: MarkChapterCompleteRequest; timestamp: string }>(),
     'Mark Chapter As Complete Failure': props<{ error: string }>(),
 
     'Mark Book As Complete': props<{ bookId: string }>(),
-    'Mark Book As Complete Success': props<{ bookId: string; timestamp: Date }>(),
+    'Mark Book As Complete Success': props<{ bookId: string; timestamp: string }>(),
     'Mark Book As Complete Failure': props<{ error: string }>(),
 
     // Bulk Operations
     'Bulk Update Progress': props<BulkUpdateRequest>(),
-    'Bulk Update Progress Success': props<{ updates: BulkUpdateRequest; timestamp: Date }>(),
+    'Bulk Update Progress Success': props<{ updates: BulkUpdateRequest; timestamp: string }>(),
     'Bulk Update Progress Failure': props<{ error: string }>(),
 
     // Statistics
@@ -44,7 +44,7 @@ export const BibleTrackerActions = createActionGroup({
 
     // Sync
     'Sync Progress': emptyProps(),
-    'Sync Progress Success': props<{ timestamp: Date }>(),
+    'Sync Progress Success': props<{ timestamp: string }>(),
     'Sync Progress Failure': props<{ error: string }>(),
 
     // Reset

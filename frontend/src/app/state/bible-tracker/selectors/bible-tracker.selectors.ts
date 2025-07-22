@@ -119,6 +119,12 @@ export const selectStatisticsError = createSelector(
   (stats) => stats.error
 );
 
+// Helper to convert lastSync string to Date
+export const selectLastSyncDate = createSelector(
+  selectReadingProgress,
+  (progress) => (progress.lastSync ? new Date(progress.lastSync) : null)
+);
+
 // Progress calculations
 export const selectTodaysProgress = createSelector(
   selectAllBooks,
