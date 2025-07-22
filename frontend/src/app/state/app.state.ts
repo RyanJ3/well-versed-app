@@ -1,10 +1,10 @@
 import { RouterReducerState } from '@ngrx/router-store';
+import { BibleTrackerState } from './bible-tracker/models/bible-tracker.model';
 
 // Root state interface - all feature states will be added here
 export interface AppState {
   router: RouterReducerState;
-  // Feature states will be added as we implement them:
-  // bibleTracker: BibleTrackerState;
+  bibleTracker: BibleTrackerState;
   // decks: DeckState;
   // practiceSession: PracticeSessionState;
 }
