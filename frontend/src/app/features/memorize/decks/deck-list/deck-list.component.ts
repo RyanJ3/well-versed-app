@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -10,7 +10,7 @@ import {
   selectDecksLoading,
   selectDeckStatistics,
   selectFilter,
-  selectViewMode
+  selectViewMode,
 } from '@app/state/decks/selectors/deck.selectors';
 import { DeckCategory } from '@app/state/decks/models/deck.model';
 
@@ -44,39 +44,44 @@ import { DeckCategory } from '@app/state/decks/models/deck.model';
           <span class="label">Due Today</span>
         </div>
         <div class="stat">
-          <span class="value">{{ stats.averageMastery | number:'1.0-0' }}%</span>
+          <span class="value"
+            >{{ stats.averageMastery | number: '1.0-0' }}%</span
+          >
           <span class="label">Avg Mastery</span>
         </div>
       </div>
 
       <!-- Filters -->
       <div class="deck-filters">
-        <input 
-          type="text" 
+        <input
+          type="text"
           placeholder="Search decks..."
           [value]="(filter$ | async)?.searchTerm"
-          (input)="updateSearch($event)">
-        
+          (input)="updateSearch($event)"
+        />
+
         <select (change)="filterByCategory($event)">
           <option value="">All Categories</option>
           <option *ngFor="let cat of categories" [value]="cat">
             {{ cat | titlecase }}
           </option>
         </select>
-        
+
         <label class="filter-toggle">
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             [checked]="(filter$ | async)?.showOnlyDue"
-            (change)="toggleDueFilter()">
+            (change)="toggleDueFilter()"
+          />
           Show only due
         </label>
-        
+
         <label class="filter-toggle">
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             [checked]="(filter$ | async)?.showOnlyFavorites"
-            (change)="toggleFavoritesFilter()">
+            (change)="toggleFavoritesFilter()"
+          />
           Favorites only
         </label>
       </div>
@@ -87,11 +92,11 @@ import { DeckCategory } from '@app/state/decks/models/deck.model';
       </div>
 
       <!-- Deck Grid/List -->
-      <div 
+      <div
         class="decks-container"
         [class.grid-view]="(viewMode$ | async) === 'grid'"
-        [class.list-view]="(viewMode$ | async) === 'list'">
-        
+        [class.list-view]="(viewMode$ | async) === 'list'"
+      >
         <app-deck-card
           *ngFor="let deck of decks$ | async; trackBy: trackByDeckId"
           [deck]="deck"
@@ -99,22 +104,24 @@ import { DeckCategory } from '@app/state/decks/models/deck.model';
           (click)="selectDeck(deck.id)"
           (favoriteToggled)="toggleFavorite(deck.id)"
           (editClicked)="editDeck(deck.id)"
-          (deleteClicked)="deleteDeck(deck.id)">
+          (deleteClicked)="deleteDeck(deck.id)"
+        >
         </app-deck-card>
-        
+
         <!-- Empty State -->
-        <div class="empty-state" *ngIf="(decks$ | async)?.length === 0 && !(loading$ | async)">
-          <img src="/assets/empty-decks.svg" alt="No decks">
+        <div
+          class="empty-state"
+          *ngIf="(decks$ | async)?.length === 0 && !(loading$ | async)"
+        >
+          <img src="/assets/empty-decks.svg" alt="No decks" />
           <h3>No decks found</h3>
           <p>Create your first deck to start memorizing!</p>
-          <button class="create-btn" (click)="createDeck()">
-            Create Deck
-          </button>
+          <button class="create-btn" (click)="createDeck()">Create Deck</button>
         </div>
       </div>
     </div>
   `,
-  styleUrls: ['./deck-list.component.scss']
+  styleUrls: ['./deck-list.component.scss'],
 })
 export class DeckListComponent implements OnInit {
   decks$ = this.store.select(selectFilteredDecks);
@@ -125,10 +132,8 @@ export class DeckListComponent implements OnInit {
 
   categories = Object.values(DeckCategory);
 
-  constructor(
-    private store: Store<AppState>,
-    private router: Router
-  ) {}
+  private store = inject(Store<AppState>);
+  private router = inject(Router);
 
   ngOnInit(): void {
     this.store.dispatch(DeckActions.init());
@@ -159,30 +164,38 @@ export class DeckListComponent implements OnInit {
 
   updateSearch(event: Event): void {
     const searchTerm = (event.target as HTMLInputElement).value;
-    this.store.dispatch(DeckActions.setFilter({ 
-      filter: { searchTerm } 
-    }));
+    this.store.dispatch(
+      DeckActions.setFilter({
+        filter: { searchTerm },
+      }),
+    );
   }
 
   filterByCategory(event: Event): void {
     const category = (event.target as HTMLSelectElement).value;
-    this.store.dispatch(DeckActions.setFilter({ 
-      filter: { 
-        categories: category ? [category as DeckCategory] : [] 
-      } 
-    }));
+    this.store.dispatch(
+      DeckActions.setFilter({
+        filter: {
+          categories: category ? [category as DeckCategory] : [],
+        },
+      }),
+    );
   }
 
   toggleDueFilter(): void {
-    this.store.dispatch(DeckActions.setFilter({ 
-      filter: { showOnlyDue: true } 
-    }));
+    this.store.dispatch(
+      DeckActions.setFilter({
+        filter: { showOnlyDue: true },
+      }),
+    );
   }
 
   toggleFavoritesFilter(): void {
-    this.store.dispatch(DeckActions.setFilter({ 
-      filter: { showOnlyFavorites: true } 
-    }));
+    this.store.dispatch(
+      DeckActions.setFilter({
+        filter: { showOnlyFavorites: true },
+      }),
+    );
   }
 
   trackByDeckId(index: number, deck: any): number {

@@ -1,8 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/state';
 import { DeckActions } from '@app/state/decks';
-import { selectFilteredDecks, selectDecksLoading, selectFilter } from '@app/state/decks/selectors/deck.selectors';
+import {
+  selectFilteredDecks,
+  selectDecksLoading,
+  selectFilter,
+} from '@app/state/decks/selectors/deck.selectors';
 
 @Component({
   selector: 'app-deck-manager-container',
@@ -13,17 +17,18 @@ import { selectFilteredDecks, selectDecksLoading, selectFilter } from '@app/stat
       [filter]="filter$ | async"
       (filterChanged)="onFilterChanged($event)"
       (deckSelected)="onDeckSelected($event)"
-      (deckDeleted)="onDeckDeleted($event)">
+      (deckDeleted)="onDeckDeleted($event)"
+    >
     </app-deck-list>
   `,
-  standalone: true
+  standalone: true,
 })
 export class DeckManagerContainerComponent {
+  private store = inject(Store<AppState>);
+
   decks$ = this.store.select(selectFilteredDecks);
   loading$ = this.store.select(selectDecksLoading);
   filter$ = this.store.select(selectFilter);
-
-  constructor(private store: Store<AppState>) {}
 
   onFilterChanged(filter: any): void {
     this.store.dispatch(DeckActions.setFilter({ filter }));

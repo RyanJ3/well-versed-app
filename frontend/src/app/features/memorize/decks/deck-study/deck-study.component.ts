@@ -1,4 +1,10 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  HostListener,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -6,16 +12,22 @@ import { Subject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 
 import { AppState } from '@app/state';
-import { PracticeSessionActions, PracticeKeyboardActions } from '@app/state/practice-session';
+import {
+  PracticeSessionActions,
+  PracticeKeyboardActions,
+} from '@app/state/practice-session';
 import {
   selectCurrentCard,
   selectIsCardFlipped,
   selectSessionProgress,
   selectSessionStats,
   selectCurrentStreak,
-  selectIsSessionActive
+  selectIsSessionActive,
 } from '@app/state/practice-session/selectors/practice-session.selectors';
-import { SessionType, ResponseQuality } from '@app/state/practice-session/models/practice-session.model';
+import {
+  SessionType,
+  ResponseQuality,
+} from '@app/state/practice-session/models/practice-session.model';
 
 @Component({
   selector: 'app-deck-study',
@@ -28,13 +40,13 @@ import { SessionType, ResponseQuality } from '@app/state/practice-session/models
         <div class="progress-info" *ngIf="progress$ | async as progress">
           <span>{{ progress.seenCards }} / {{ progress.totalCards }}</span>
           <div class="progress-bar">
-            <div 
-              class="progress-fill" 
-              [style.width.%]="progress.percentComplete">
-            </div>
+            <div
+              class="progress-fill"
+              [style.width.%]="progress.percentComplete"
+            ></div>
           </div>
         </div>
-        
+
         <div class="study-actions">
           <button (click)="toggleStats()">
             <i class="icon-stats"></i>
@@ -52,7 +64,7 @@ import { SessionType, ResponseQuality } from '@app/state/practice-session/models
       <div class="stats-panel" *ngIf="showStats">
         <div class="stat" *ngIf="stats$ | async as stats">
           <span class="label">Accuracy</span>
-          <span class="value">{{ stats.accuracy | number:'1.0-0' }}%</span>
+          <span class="value">{{ stats.accuracy | number: '1.0-0' }}%</span>
         </div>
         <div class="stat">
           <span class="label">Streak</span>
@@ -62,11 +74,11 @@ import { SessionType, ResponseQuality } from '@app/state/practice-session/models
 
       <!-- Card Display -->
       <div class="card-container" *ngIf="currentCard$ | async as card">
-        <div 
+        <div
           class="flashcard"
           [class.flipped]="isFlipped$ | async"
-          (click)="flipCard()">
-          
+          (click)="flipCard()"
+        >
           <div class="card-front">
             <div class="card-content">
               {{ card.front }}
@@ -75,15 +87,16 @@ import { SessionType, ResponseQuality } from '@app/state/practice-session/models
               {{ card.verseReference }}
             </div>
           </div>
-          
+
           <div class="card-back">
             <div class="card-content">
               {{ card.back }}
             </div>
-            <button 
-              class="hint-btn" 
+            <button
+              class="hint-btn"
               *ngIf="card.hint && !showingHint"
-              (click)="showHint($event)">
+              (click)="showHint($event)"
+            >
               Show Hint
             </button>
             <div class="hint" *ngIf="showingHint">
@@ -94,27 +107,19 @@ import { SessionType, ResponseQuality } from '@app/state/practice-session/models
 
         <!-- Response Buttons -->
         <div class="response-buttons" *ngIf="isFlipped$ | async">
-          <button 
-            class="response-btn again"
-            (click)="submitResponse(0)">
+          <button class="response-btn again" (click)="submitResponse(0)">
             <span class="quality">Again</span>
             <span class="interval">< 1 min</span>
           </button>
-          <button 
-            class="response-btn hard"
-            (click)="submitResponse(1)">
+          <button class="response-btn hard" (click)="submitResponse(1)">
             <span class="quality">Hard</span>
             <span class="interval">~5 min</span>
           </button>
-          <button 
-            class="response-btn good"
-            (click)="submitResponse(2)">
+          <button class="response-btn good" (click)="submitResponse(2)">
             <span class="quality">Good</span>
             <span class="interval">~10 min</span>
           </button>
-          <button 
-            class="response-btn easy"
-            (click)="submitResponse(3)">
+          <button class="response-btn easy" (click)="submitResponse(3)">
             <span class="quality">Easy</span>
             <span class="interval">~4 days</span>
           </button>
@@ -136,7 +141,7 @@ import { SessionType, ResponseQuality } from '@app/state/practice-session/models
       <button (click)="startNewSession()">Start Studying</button>
     </div>
   `,
-  styleUrls: ['./deck-study.component.scss']
+  styleUrls: ['./deck-study.component.scss'],
 })
 export class DeckStudyComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -154,26 +159,26 @@ export class DeckStudyComponent implements OnInit, OnDestroy {
   showingHint = false;
   deckId!: number;
 
-  constructor(
-    private store: Store<AppState>,
-    private route: ActivatedRoute,
-    private router: Router
-  ) {}
+  private store = inject(Store<AppState>);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   ngOnInit(): void {
-    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       this.deckId = +params['id'];
       this.startNewSession();
     });
 
-    this.currentCard$.pipe(
-      filter(card => card !== null),
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
-      this.responseStartTime = Date.now();
-      this.hintsUsed = 0;
-      this.showingHint = false;
-    });
+    this.currentCard$
+      .pipe(
+        filter((card) => card !== null),
+        takeUntil(this.destroy$),
+      )
+      .subscribe(() => {
+        this.responseStartTime = Date.now();
+        this.hintsUsed = 0;
+        this.showingHint = false;
+      });
   }
 
   ngOnDestroy(): void {
@@ -198,7 +203,9 @@ export class DeckStudyComponent implements OnInit, OnDestroy {
       case '2':
       case '3':
       case '4':
-        this.store.dispatch(PracticeKeyboardActions.pressNumber({ key: parseInt(event.key) }));
+        this.store.dispatch(
+          PracticeKeyboardActions.pressNumber({ key: parseInt(event.key) }),
+        );
         break;
       case 'h':
       case 'H':
@@ -215,16 +222,18 @@ export class DeckStudyComponent implements OnInit, OnDestroy {
   }
 
   startNewSession(): void {
-    this.store.dispatch(PracticeSessionActions.startSession({
-      request: {
-        deckId: this.deckId,
-        settings: {
-          sessionType: SessionType.REVIEW,
-          cardLimit: 20,
-          showHints: true
-        }
-      }
-    }));
+    this.store.dispatch(
+      PracticeSessionActions.startSession({
+        request: {
+          deckId: this.deckId,
+          settings: {
+            sessionType: SessionType.REVIEW,
+            cardLimit: 20,
+            showHints: true,
+          },
+        },
+      }),
+    );
   }
 
   flipCard(): void {
@@ -240,19 +249,23 @@ export class DeckStudyComponent implements OnInit, OnDestroy {
 
   submitResponse(quality: ResponseQuality): void {
     const responseTime = Date.now() - this.responseStartTime;
-    this.currentCard$.pipe(
-      filter(card => card !== null),
-      takeUntil(this.destroy$)
-    ).subscribe(card => {
-      if (card) {
-        this.store.dispatch(PracticeSessionActions.submitResponse({
-          cardId: card.id,
-          quality,
-          responseTime,
-          hintsUsed: this.hintsUsed
-        }));
-      }
-    });
+    this.currentCard$
+      .pipe(
+        filter((card) => card !== null),
+        takeUntil(this.destroy$),
+      )
+      .subscribe((card) => {
+        if (card) {
+          this.store.dispatch(
+            PracticeSessionActions.submitResponse({
+              cardId: card.id,
+              quality,
+              responseTime,
+              hintsUsed: this.hintsUsed,
+            }),
+          );
+        }
+      });
   }
 
   pauseSession(): void {

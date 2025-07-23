@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
@@ -11,7 +11,7 @@ import {
   selectIsLoadingProgress,
   selectSelectedBookDetails,
   selectTodaysProgress,
-  selectViewMode
+  selectViewMode,
 } from '@app/state/bible-tracker/selectors/bible-tracker.selectors';
 
 @Component({
@@ -28,10 +28,12 @@ import {
       <!-- Header with Stats -->
       <div class="tracker-header">
         <h1>Bible Reading Tracker</h1>
-        
+
         <div class="stats-summary" *ngIf="statistics$ | async as stats">
           <div class="stat-card">
-            <div class="stat-value">{{ stats.overallPercentage | number:'1.1-1' }}%</div>
+            <div class="stat-value">
+              {{ stats.overallPercentage | number: '1.1-1' }}%
+            </div>
             <div class="stat-label">Complete</div>
           </div>
           <div class="stat-card">
@@ -47,22 +49,25 @@ import {
 
       <!-- View Mode Toggle -->
       <div class="view-controls">
-        <button 
+        <button
           class="view-btn"
           [class.active]="(viewMode$ | async) === 'grid'"
-          (click)="setViewMode('grid')">
+          (click)="setViewMode('grid')"
+        >
           Grid View
         </button>
-        <button 
+        <button
           class="view-btn"
           [class.active]="(viewMode$ | async) === 'list'"
-          (click)="setViewMode('list')">
+          (click)="setViewMode('list')"
+        >
           List View
         </button>
-        <button 
+        <button
           class="view-btn"
           [class.active]="(viewMode$ | async) === 'reading'"
-          (click)="setViewMode('reading')">
+          (click)="setViewMode('reading')"
+        >
           Reading View
         </button>
       </div>
@@ -73,24 +78,27 @@ import {
           *ngSwitchCase="'grid'"
           [books]="books$ | async"
           (bookSelected)="selectBook($event)"
-          (versesMarked)="markVersesRead($event)">
+          (versesMarked)="markVersesRead($event)"
+        >
         </app-bible-tracker-book-grid>
 
         <app-bible-tracker-book-list
           *ngSwitchCase="'list'"
           [books]="books$ | async"
-          (bookSelected)="selectBook($event)">
+          (bookSelected)="selectBook($event)"
+        >
         </app-bible-tracker-book-list>
 
         <app-bible-tracker-reading-view
           *ngSwitchCase="'reading'"
           [selectedBook]="selectedBook$ | async"
-          (versesRead)="markVersesRead($event)">
+          (versesRead)="markVersesRead($event)"
+        >
         </app-bible-tracker-reading-view>
       </div>
     </div>
   `,
-  styleUrls: ['./bible-tracker.component.scss']
+  styleUrls: ['./bible-tracker.component.scss'],
 })
 export class BibleTrackerComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -103,7 +111,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   todaysProgress$ = this.store.select(selectTodaysProgress);
   viewMode$ = this.store.select(selectViewMode);
 
-  constructor(private store: Store<AppState>) {}
+  private store = inject(Store<AppState>);
 
   ngOnInit(): void {
     this.store.dispatch(BibleTrackerActions.init());
@@ -118,19 +126,27 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     this.store.dispatch(BibleTrackerActions.selectBook({ bookId }));
   }
 
-  markVersesRead(event: { bookId: string; chapter: number; verses: number[] }): void {
-    this.store.dispatch(BibleTrackerActions.markVersesAsRead({
-      bookId: event.bookId,
-      chapter: event.chapter,
-      verses: event.verses
-    }));
+  markVersesRead(event: {
+    bookId: string;
+    chapter: number;
+    verses: number[];
+  }): void {
+    this.store.dispatch(
+      BibleTrackerActions.markVersesAsRead({
+        bookId: event.bookId,
+        chapter: event.chapter,
+        verses: event.verses,
+      }),
+    );
   }
 
   markChapterComplete(bookId: string, chapter: number): void {
-    this.store.dispatch(BibleTrackerActions.markChapterAsComplete({
-      bookId,
-      chapter
-    }));
+    this.store.dispatch(
+      BibleTrackerActions.markChapterAsComplete({
+        bookId,
+        chapter,
+      }),
+    );
   }
 
   setViewMode(viewMode: 'grid' | 'list' | 'reading'): void {

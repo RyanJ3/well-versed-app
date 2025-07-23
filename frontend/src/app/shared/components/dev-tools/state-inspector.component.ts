@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/state';
 import { environment } from '../../../environments/environment';
@@ -13,25 +13,27 @@ import { environment } from '../../../environments/environment';
       <pre *ngIf="showState">{{ state$ | async | json }}</pre>
     </div>
   `,
-  styles: [`
-    .state-inspector {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      background: rgba(0,0,0,0.8);
-      color: white;
-      padding: 10px;
-      max-width: 400px;
-      max-height: 300px;
-      overflow: auto;
-      z-index: 9999;
-    }
-  `]
+  styles: [
+    `
+      .state-inspector {
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 10px;
+        max-width: 400px;
+        max-height: 300px;
+        overflow: auto;
+        z-index: 9999;
+      }
+    `,
+  ],
 })
 export class StateInspectorComponent {
   production = environment.production;
   showState = false;
-  state$ = this.store.select(state => state);
+  state$ = this.store.select((state) => state);
 
-  constructor(private store: Store<AppState>) {}
+  private store = inject(Store<AppState>);
 }

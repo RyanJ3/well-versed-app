@@ -1,15 +1,18 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/state';
 import { DeckActions } from '@app/state/decks';
-import { selectFilteredDecks, selectSelectedDeck } from '@app/state/decks/selectors/deck.selectors';
+import {
+  selectFilteredDecks,
+  selectSelectedDeck,
+} from '@app/state/decks/selectors/deck.selectors';
 
 @Injectable({ providedIn: 'root' })
 export class DeckFacade {
   decks$ = this.store.select(selectFilteredDecks);
   selectedDeck$ = this.store.select(selectSelectedDeck);
 
-  constructor(private store: Store<AppState>) {}
+  private store = inject(Store<AppState>);
 
   loadDecks(): void {
     this.store.dispatch(DeckActions.loadDecks());
@@ -18,8 +21,14 @@ export class DeckFacade {
   createDeck(name: string, description: string): void {
     this.store.dispatch(
       DeckActions.createDeck({
-        request: { name, description, category: 'custom', isPublic: false, tags: [] }
-      })
+        request: {
+          name,
+          description,
+          category: 'custom',
+          isPublic: false,
+          tags: [],
+        },
+      }),
     );
   }
 
