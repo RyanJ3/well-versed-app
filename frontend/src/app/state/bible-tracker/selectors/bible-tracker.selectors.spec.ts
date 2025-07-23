@@ -6,7 +6,11 @@ import {
     selectUI,
     selectSelectedBook,
     selectViewMode,
-    selectIsLoadingProgress
+    selectIsLoadingProgress,
+    selectTodaysProgress,
+    selectStatisticsOverview,
+    selectIsAnyLoading,
+    selectFilteredBooks
 } from './bible-tracker.selectors';
 import { BibleTrackerState } from '../models/bible-tracker.model';
 
@@ -122,4 +126,102 @@ describe('BibleTrackerSelectors', () => {
             expect(result).toBeUndefined();
         });
     });
+
+    describe('Complex selectors', () => {
+        it('should select filtered books when showCompletedOnly is false', () => {
+            const result = selectFilteredBooks(rootState);
+            expect(result.length).toBe(2);
+            expect(result[0].bookId).toBe('genesis');
+            expect(result[1].bookId).toBe('exodus');
+        });
+
+        it('should filter only completed books when showCompletedOnly is true', () => {
+            const stateWithFilter = {
+                bibleTracker: {
+                    ...mockState,
+                    ui: {
+                        ...mockState.ui,
+                        showCompletedOnly: true
+                    },
+                    readingProgress: {
+                        ...mockState.readingProgress,
+                        books: {
+                            'genesis': { ...mockState.readingProgress.books['genesis'], percentComplete: 100 },
+                            'exodus': { ...mockState.readingProgress.books['exodus'], percentComplete: 50 }
+                        }
+                    }
+                }
+            };
+
+            const result = selectFilteredBooks(stateWithFilter);
+            expect(result.length).toBe(1);
+            expect(result[0].bookId).toBe('genesis');
+        });
+
+        it('should calculate todays progress', () => {
+            const today = new Date().toDateString();
+            const stateWithTodaysProgress = {
+                bibleTracker: {
+                    ...mockState,
+                    readingProgress: {
+                        ...mockState.readingProgress,
+                        books: {
+                            'genesis': {
+                                ...mockState.readingProgress.books['genesis'],
+                                chapters: {
+                                    '1': {
+                                        chapterNumber: 1,
+                                        totalVerses: 31,
+                                        versesRead: [1, 2, 3, 4, 5],
+                                        percentComplete: 16.13,
+                                        completedDate: new Date().toISOString(), // Today
+                                        notes: null
+                                    },
+                                    '2': {
+                                        chapterNumber: 2,
+                                        totalVerses: 25,
+                                        versesRead: [1, 2, 3],
+                                        percentComplete: 12,
+                                        completedDate: '2024-01-01', // Not today
+                                        notes: null
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            const result = selectTodaysProgress(stateWithTodaysProgress);
+            expect(result.versesReadToday).toBe(5);
+            expect(result.chaptersCompletedToday).toBe(1);
+        });
+
+        it('should select statistics overview', () => {
+            const result = selectStatisticsOverview(rootState);
+            expect(result.totalBooks).toBe(66);
+            expect(result.chaptersCompleted).toBe(15);
+            expect(result.versesRead).toBe(450);
+        });
+
+        it('should determine if any loading is happening', () => {
+            // When nothing is loading
+            let result = selectIsAnyLoading(rootState);
+            expect(result).toBe(false);
+
+            // When progress is loading
+            const loadingState = {
+                bibleTracker: {
+                    ...mockState,
+                    readingProgress: {
+                        ...mockState.readingProgress,
+                        loading: true
+                    }
+                }
+            };
+            result = selectIsAnyLoading(loadingState);
+            expect(result).toBe(true);
+        });
+    });
 });
+
