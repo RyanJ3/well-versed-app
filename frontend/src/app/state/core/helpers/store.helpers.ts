@@ -2,7 +2,7 @@ import { ActionCreator, on } from '@ngrx/store';
 import { EntityLoadingState } from '../../app.state';
 
 // Helper for creating loading state reducers
-export function createLoadingReducer<State>(
+export function createLoadingReducer<State extends Record<string, any>>(
   loadingKey: keyof State,
   requestAction: ActionCreator,
   successAction: ActionCreator,
