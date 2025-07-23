@@ -8,8 +8,8 @@ import { DeckEffects } from './deck.effects';
 import { DeckActions, CardActions } from '../actions/deck.actions';
 import { decksReducer } from '../reducers/deck.reducer';
 import { Deck, Card, DeckCategory } from '../models/deck.model';
-import { DeckResponse, DeckService } from '@app/app/core/services/deck.service';
-import { NotificationService } from '@app/app/core/services/notification.service';
+import { DeckResponse, DeckService } from '@app/core/services/deck.service';
+import { NotificationService } from '@app/core/services/notification.service';
 
 describe('DeckEffects', () => {
     let actions$: ReplaySubject<any>;

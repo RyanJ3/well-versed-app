@@ -76,9 +76,10 @@ import {
       <!-- Book Grid/List -->
       <div class="books-container">
         <app-bible-tracker-book-grid
-          [books]="books$ | async"
-          (bookSelected)="selectBook($event)"
-          (versesMarked)="markVersesRead($event)"
+          [books]="(books$ | async) || []"
+          [viewMode]="(viewMode$ | async) || 'grid'"
+          (bookSelected)="onBookSelected($event)"
+          (versesMarked)="onVersesMarked($event)"
         ></app-bible-tracker-book-grid>
       </div>
     </div>
@@ -106,11 +107,11 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  selectBook(bookId: string): void {
-    this.store.dispatch(BibleTrackerActions.selectBook({ bookId }));
+  onBookSelected(book: BookProgress): void {
+    this.store.dispatch(BibleTrackerActions.selectBook({ bookId: book.bookId }));
   }
 
-  markVersesRead(event: {
+  onVersesMarked(event: {
     bookId: string;
     chapter: number;
     verses: number[];

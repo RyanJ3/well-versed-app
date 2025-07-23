@@ -9,39 +9,39 @@ export function createLoadingReducer<State extends Record<string, any>>(
   failureAction: ActionCreator<any, any>
 ) {
   return [
-    on(requestAction, (state): State => ({
+    on(requestAction, (state: State): State => ({
       ...state,
       [loadingKey]: {
-        ...(state[loadingKey] as any),
+        ...(state[loadingKey] as EntityLoadingState),
         isLoading: true,
         error: null,
-      },
+      } as State[keyof State],
     })),
-    on(successAction, (state): State => ({
+    on(successAction, (state: State): State => ({
       ...state,
       [loadingKey]: {
-        ...(state[loadingKey] as any),
+        ...(state[loadingKey] as EntityLoadingState),
         isLoading: false,
         isLoaded: true,
         error: null,
         lastFetch: new Date(),
-      },
+      } as State[keyof State],
     })),
-    on(failureAction, (state, { error }): State => ({
+    on(failureAction, (state: State, { error }: { error: string }): State => ({
       ...state,
       [loadingKey]: {
-        ...(state[loadingKey] as any),
+        ...(state[loadingKey] as EntityLoadingState),
         isLoading: false,
         error,
-      },
+      } as State[keyof State],
     })),
   ];
 }
 
 // Helper for creating entity adapter options
-export function createEntityAdapterOptions<T>(idSelector: keyof T) {
+export function createEntityAdapterOptions<T extends Record<string, any>>(idSelector: keyof T) {
   return {
-    selectId: (entity: T) => entity[idSelector] as any,
-    sortComparer: false,
+    selectId: (entity: T) => entity[idSelector] as string | number,
+    sortComparer: false as const,
   };
 }
