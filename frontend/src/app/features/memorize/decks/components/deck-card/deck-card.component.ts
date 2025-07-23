@@ -1,5 +1,5 @@
 // frontend/src/app/features/memorize/decks/components/deck-card/deck-card.component.ts
-import { Component, Input, Output, EventEmitter, HostListener, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -27,7 +27,8 @@ export interface DeckWithCounts {
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './deck-card.component.html',
-  styleUrls: ['./deck-card.component.scss']
+  styleUrls: ['./deck-card.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DeckCardComponent implements OnInit {
   @Input() deck!: DeckWithCounts;
