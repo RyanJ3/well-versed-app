@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
 import { BibleTrackerBookGridComponent } from './components/bible-tracker-book-grid/bible-tracker-book-grid.component';
+import { BookProgress } from '@app/state/bible-tracker/models/bible-tracker.model';
 
 import { AppState } from '@app/state';
 import { BibleTrackerActions } from '@app/state/bible-tracker';
@@ -108,14 +109,18 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   }
 
   onBookSelected(book: BookProgress): void {
-    this.store.dispatch(BibleTrackerActions.selectBook({ bookId: book.bookId }));
+    this.selectBook(book.bookId);
   }
 
-  onVersesMarked(event: {
-    bookId: string;
-    chapter: number;
-    verses: number[];
-  }): void {
+  onVersesMarked(event: { bookId: string; chapter: number; verses: number[] }): void {
+    this.markVersesRead(event);
+  }
+
+  selectBook(bookId: string): void {
+    this.store.dispatch(BibleTrackerActions.selectBook({ bookId }));
+  }
+
+  markVersesRead(event: { bookId: string; chapter: number; verses: number[] }): void {
     this.store.dispatch(
       BibleTrackerActions.markVersesAsRead({
         bookId: event.bookId,

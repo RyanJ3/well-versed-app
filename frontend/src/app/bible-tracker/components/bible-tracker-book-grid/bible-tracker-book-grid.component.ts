@@ -13,6 +13,9 @@ import { BibleGroup } from '../../../core/models/bible/bible-group.modle';
 export class BibleTrackerBookGridComponent {
   @Input() selectedGroup: BibleGroup | null = null;
   @Input() selectedBook: BibleBook | null = null;
+  @Input() books: BibleBook[] = [];
+  @Input() viewMode: 'grid' | 'list' | 'reading' = 'grid';
+  @Output() versesMarked = new EventEmitter<{ bookId: string; chapter: number; verses: number[] }>();
   @Output() bookSelected = new EventEmitter<BibleBook>();
   
   isApocryphalBook(book: BibleBook): boolean {

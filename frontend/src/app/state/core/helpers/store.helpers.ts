@@ -2,46 +2,46 @@ import { ActionCreator, on } from '@ngrx/store';
 import { EntityLoadingState } from '../../app.state';
 
 // Helper for creating loading state reducers
-export function createLoadingReducer<State extends Record<string, any>>(
+export function createLoadingReducer<State>(
   loadingKey: keyof State,
   requestAction: ActionCreator,
   successAction: ActionCreator,
   failureAction: ActionCreator<any, any>
 ) {
   return [
-    on(requestAction, (state: State): State => ({
+    on(requestAction, (state): State => ({
       ...state,
       [loadingKey]: {
-        ...(state[loadingKey] as EntityLoadingState),
+        ...(state[loadingKey] as any),
         isLoading: true,
         error: null,
-      } as State[keyof State],
+      },
     })),
-    on(successAction, (state: State): State => ({
+    on(successAction, (state): State => ({
       ...state,
       [loadingKey]: {
-        ...(state[loadingKey] as EntityLoadingState),
+        ...(state[loadingKey] as any),
         isLoading: false,
         isLoaded: true,
         error: null,
         lastFetch: new Date(),
-      } as State[keyof State],
+      },
     })),
-    on(failureAction, (state: State, { error }: { error: string }): State => ({
+    on(failureAction, (state, { error }): State => ({
       ...state,
       [loadingKey]: {
-        ...(state[loadingKey] as EntityLoadingState),
+        ...(state[loadingKey] as any),
         isLoading: false,
         error,
-      } as State[keyof State],
+      },
     })),
   ];
 }
 
 // Helper for creating entity adapter options
-export function createEntityAdapterOptions<T extends Record<string, any>>(idSelector: keyof T) {
+export function createEntityAdapterOptions<T>(idSelector: keyof T) {
   return {
-    selectId: (entity: T) => entity[idSelector] as string | number,
-    sortComparer: false as const,
+    selectId: (entity: T) => entity[idSelector] as any,
+    sortComparer: false,
   };
 }
