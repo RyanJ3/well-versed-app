@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
+import { AppState } from '../app.state';
 import { of, interval, timer } from 'rxjs';
 import {
   map,
@@ -15,7 +16,10 @@ import {
 import { PracticeService } from '@app/core/services/practice.service';
 import { AudioService } from '@app/core/services/audio.service';
 import { NotificationService } from '@app/core/services/notification.service';
-import { PracticeSessionActions, PracticeKeyboardActions } from '../actions/practice-session.actions';
+import {
+  PracticeSessionActions,
+  PracticeKeyboardActions,
+} from '../actions/practice-session.actions';
 import {
   selectActiveSession,
   selectCurrentCard,
@@ -32,16 +36,18 @@ export class PracticeSessionEffects extends BaseEffect {
       ofType(PracticeSessionActions.startSession),
       mergeMap(({ request }) =>
         this.practiceService.startSession(request).pipe(
-          map((session) => PracticeSessionActions.startSessionSuccess({ session })),
+          map((session) =>
+            PracticeSessionActions.startSessionSuccess({ session }),
+          ),
           tap(() => {
             this.notificationService.info('Session started! Good luck!');
           }),
           this.handleHttpError((error) =>
-            PracticeSessionActions.startSessionFailure({ error })
-          )
-        )
-      )
-    )
+            PracticeSessionActions.startSessionFailure({ error }),
+          ),
+        ),
+      ),
+    ),
   );
 
   // Auto-play audio when card is flipped (if enabled)
@@ -51,16 +57,18 @@ export class PracticeSessionEffects extends BaseEffect {
         ofType(PracticeSessionActions.flipCard),
         withLatestFrom(
           this.store.select(selectCurrentCard),
-          this.store.select(selectSettings)
+          this.store.select(selectSettings),
         ),
-        filter(([_, card, settings]) => settings.autoPlayAudio && !!card?.audioUrl),
+        filter(
+          ([_, card, settings]) => settings.autoPlayAudio && !!card?.audioUrl,
+        ),
         tap(([_, card]) => {
           if (card?.audioUrl) {
             this.audioService.play(card.audioUrl);
           }
-        })
+        }),
       ),
-    { dispatch: false }
+    { dispatch: false },
   );
 
   submitResponse$ = createEffect(() =>
@@ -70,7 +78,9 @@ export class PracticeSessionEffects extends BaseEffect {
       mergeMap(([action, session]) => {
         if (!session) {
           return of(
-            PracticeSessionActions.submitResponseFailure({ error: 'No active session' })
+            PracticeSessionActions.submitResponseFailure({
+              error: 'No active session',
+            }),
           );
         }
 
@@ -83,20 +93,32 @@ export class PracticeSessionEffects extends BaseEffect {
             hintsUsed: action.hintsUsed,
           })
           .pipe(
-            map((response) => PracticeSessionActions.submitResponseSuccess({ response })),
-            tap((successAction) => {
-              if (successAction.response.correct) {
-                this.notificationService.success('Correct! 🎉', { duration: 1000 });
-              } else {
-                this.notificationService.error('Try again next time', { duration: 1000 });
-              }
-            }),
+            map((response) =>
+              PracticeSessionActions.submitResponseSuccess({ response }),
+            ),
+            tap(
+              (
+                successAction: ReturnType<
+                  typeof PracticeSessionActions.submitResponseSuccess
+                >,
+              ) => {
+                if (successAction.response.correct) {
+                  this.notificationService.success('Correct! 🎉', {
+                    duration: 1000,
+                  });
+                } else {
+                  this.notificationService.error('Try again next time', {
+                    duration: 1000,
+                  });
+                }
+              },
+            ),
             this.handleHttpError((error) =>
-              PracticeSessionActions.submitResponseFailure({ error })
-            )
+              PracticeSessionActions.submitResponseFailure({ error }),
+            ),
           );
-      })
-    )
+      }),
+    ),
   );
 
   // Auto-advance to next card after response
@@ -105,7 +127,7 @@ export class PracticeSessionEffects extends BaseEffect {
       ofType(PracticeSessionActions.submitResponseSuccess),
       withLatestFrom(
         this.store.select(selectSettings),
-        this.store.select(selectSessionProgress)
+        this.store.select(selectSessionProgress),
       ),
       filter(([_, settings]) => settings.immediateAnswerFeedback),
       mergeMap(([_, __, progress]) => {
@@ -116,10 +138,10 @@ export class PracticeSessionEffects extends BaseEffect {
             } else {
               return PracticeSessionActions.completeSession();
             }
-          })
+          }),
         );
-      })
-    )
+      }),
+    ),
   );
 
   completeSession$ = createEffect(() =>
@@ -129,31 +151,44 @@ export class PracticeSessionEffects extends BaseEffect {
       mergeMap(([_, session]) => {
         if (!session) {
           return of(
-            PracticeSessionActions.completeSessionFailure({ error: 'No active session' })
+            PracticeSessionActions.completeSessionFailure({
+              error: 'No active session',
+            }),
           );
         }
 
         return this.practiceService.completeSession(session.id).pipe(
-          map((summary) => PracticeSessionActions.completeSessionSuccess({ summary })),
-          tap((action) => {
-            const { session } = action.summary;
-            const message = `Session complete! ${session.correctCount}/${session.cardsStudied} correct (${Math.round(
-              session.accuracy
-            )}%)`;
-            this.notificationService.success(message);
-            this.audioService.playSound('session-complete');
-            action.summary.achievements.forEach((achievement) => {
-              this.notificationService.info(`🏆 Achievement Unlocked: ${achievement.title}`, {
-                duration: 5000,
+          map((summary) =>
+            PracticeSessionActions.completeSessionSuccess({ summary }),
+          ),
+          tap(
+            (
+              action: ReturnType<
+                typeof PracticeSessionActions.completeSessionSuccess
+              >,
+            ) => {
+              const { session } = action.summary;
+              const message = `Session complete! ${session.correctCount}/${session.cardsStudied} correct (${Math.round(
+                session.accuracy,
+              )}%)`;
+              this.notificationService.success(message);
+              this.audioService.playSound('session-complete');
+              action.summary.achievements.forEach((achievement: any) => {
+                this.notificationService.info(
+                  `🏆 Achievement Unlocked: ${achievement.title}`,
+                  {
+                    duration: 5000,
+                  },
+                );
               });
-            });
-          }),
+            },
+          ),
           this.handleHttpError((error) =>
-            PracticeSessionActions.completeSessionFailure({ error })
-          )
+            PracticeSessionActions.completeSessionFailure({ error }),
+          ),
         );
-      })
-    )
+      }),
+    ),
   );
 
   // Session timer
@@ -170,16 +205,19 @@ export class PracticeSessionEffects extends BaseEffect {
         return timer(timeLimit).pipe(
           takeUntil(
             this.actions$.pipe(
-              ofType(PracticeSessionActions.completeSession, PracticeSessionActions.abandonSession)
-            )
+              ofType(
+                PracticeSessionActions.completeSession,
+                PracticeSessionActions.abandonSession,
+              ),
+            ),
           ),
           tap(() => {
             this.notificationService.warning('Time limit reached!');
           }),
-          map(() => PracticeSessionActions.completeSession())
+          map(() => PracticeSessionActions.completeSession()),
         );
-      })
-    )
+      }),
+    ),
   );
 
   // Update performance metrics periodically
@@ -190,13 +228,16 @@ export class PracticeSessionEffects extends BaseEffect {
         interval(5000).pipe(
           takeUntil(
             this.actions$.pipe(
-              ofType(PracticeSessionActions.completeSession, PracticeSessionActions.abandonSession)
-            )
+              ofType(
+                PracticeSessionActions.completeSession,
+                PracticeSessionActions.abandonSession,
+              ),
+            ),
           ),
-          map(() => PracticeSessionActions.updatePerformanceMetrics())
-        )
-      )
-    )
+          map(() => PracticeSessionActions.updatePerformanceMetrics()),
+        ),
+      ),
+    ),
   );
 
   // Keyboard shortcut handling
@@ -206,7 +247,7 @@ export class PracticeSessionEffects extends BaseEffect {
       withLatestFrom(
         this.store.select(selectActiveSession),
         this.store.select(selectCurrentCard),
-        this.store.select((state) => state.practiceSession.ui)
+        this.store.select((state) => state.practiceSession.ui),
       ),
       map(([_, session, card, ui]) => {
         if (!session || !card) return { type: 'NO_OP' };
@@ -223,8 +264,8 @@ export class PracticeSessionEffects extends BaseEffect {
         }
         return PracticeSessionActions.showNextCard();
       }),
-      filter((action) => action.type !== 'NO_OP')
-    )
+      filter((action) => action.type !== 'NO_OP'),
+    ),
   );
 
   // Load session history on init
@@ -233,19 +274,23 @@ export class PracticeSessionEffects extends BaseEffect {
       ofType(PracticeSessionActions.loadSessionHistory),
       mergeMap(() =>
         this.practiceService.getSessionHistory().pipe(
-          map((sessions) => PracticeSessionActions.loadSessionHistorySuccess({ sessions })),
-          this.handleHttpError((error) => PracticeSessionActions.loadSessionHistoryFailure({ error }))
-        )
-      )
-    )
+          map((sessions) =>
+            PracticeSessionActions.loadSessionHistorySuccess({ sessions }),
+          ),
+          this.handleHttpError((error) =>
+            PracticeSessionActions.loadSessionHistoryFailure({ error }),
+          ),
+        ),
+      ),
+    ),
   );
 
   constructor(
     private actions$: Actions,
-    private store: Store,
+    private store: Store<AppState>,
     private practiceService: PracticeService,
     private audioService: AudioService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
   ) {
     super();
   }

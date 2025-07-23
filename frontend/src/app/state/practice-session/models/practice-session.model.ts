@@ -28,16 +28,17 @@ export interface StudyCard {
   hint?: string;
   verseReference?: string;
   audioUrl?: string;
-  
+
   // SR Algorithm Data
   easeFactor: number;
   interval: number;
   repetitions: number;
-  
+
   // Session-specific
   order: number;
   seen: boolean;
   lastResponseQuality?: number;
+  nextReview?: Date;
 }
 
 export interface CardResponse {
@@ -47,7 +48,7 @@ export interface CardResponse {
   hintsUsed: number;
   audioPlayed: boolean;
   timestamp: Date;
-  
+
   // Calculated fields
   correct: boolean;
   newInterval: number;
@@ -58,7 +59,7 @@ export enum SessionType {
   REVIEW = 'review',
   LEARN = 'learn',
   CRAM = 'cram',
-  QUIZ = 'quiz'
+  QUIZ = 'quiz',
 }
 
 export enum SessionState {
@@ -66,15 +67,15 @@ export enum SessionState {
   IN_PROGRESS = 'in_progress',
   PAUSED = 'paused',
   COMPLETED = 'completed',
-  ABANDONED = 'abandoned'
+  ABANDONED = 'abandoned',
 }
 
 export enum ResponseQuality {
-  AGAIN = 0,      // Complete blackout
-  HARD = 1,       // Difficult recall
-  GOOD = 2,       // Normal recall
-  EASY = 3,       // Perfect recall
-  SKIP = -1       // Skipped card
+  AGAIN = 0, // Complete blackout
+  HARD = 1, // Difficult recall
+  GOOD = 2, // Normal recall
+  EASY = 3, // Perfect recall
+  SKIP = -1, // Skipped card
 }
 
 // Completed Session
@@ -99,37 +100,37 @@ export interface PracticeSettings {
   sessionType: SessionType;
   cardLimit: number;
   timeLimit: number | null; // minutes
-  
+
   // Card Selection
   newCardsPerSession: number;
   reviewOrder: ReviewOrder;
   prioritizeDue: boolean;
   includeNewCards: boolean;
-  
+
   // Display Options
   showHints: boolean;
   autoPlayAudio: boolean;
   flipAnimation: boolean;
   fontSize: 'small' | 'medium' | 'large';
-  
+
   // Behavior
   immediateAnswerFeedback: boolean;
   requireTypedAnswer: boolean;
   caseSensitive: boolean;
   showProgress: boolean;
-  
+
   // Spaced Repetition
-  easyBonus: number;        // 1.3 default
+  easyBonus: number; // 1.3 default
   intervalModifier: number; // 1.0 default
-  lapseMultiplier: number;  // 0.5 default
-  minimumInterval: number;  // 1 day
+  lapseMultiplier: number; // 0.5 default
+  minimumInterval: number; // 1 day
 }
 
 export enum ReviewOrder {
   DUE_DATE = 'due_date',
   RANDOM = 'random',
   DIFFICULTY = 'difficulty',
-  CREATED = 'created'
+  CREATED = 'created',
 }
 
 // Performance Metrics
@@ -139,7 +140,7 @@ export interface PerformanceMetrics {
   longestStreak: number;
   totalTime: number;
   cardsPerMinute: number;
-  
+
   // Historical
   dailyAverage: number;
   weeklyProgress: number;
