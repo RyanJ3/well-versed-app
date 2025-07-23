@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { AppState } from '../../app.state';
@@ -13,9 +13,6 @@ import {
   filter,
 } from 'rxjs/operators';
 
-import { PracticeService } from '@app/app/core/services/practice.service';
-import { AudioService } from '@app/app/core/services/audio.service';
-import { NotificationService } from '@app/app/core/services/notification.service';
 import {
   PracticeSessionActions,
   PracticeKeyboardActions,
@@ -28,9 +25,19 @@ import {
 } from '../selectors/practice-session.selectors';
 import { BaseEffect } from '../../core/effects/base.effect';
 import { ResponseQuality } from '../models/practice-session.model';
+import { PracticeService } from '@app/app/core/services/practice.service';
+import { AudioService } from '@app/app/core/services/audio.service';
+import { NotificationService } from '@app/app/core/services/notification.service';
 
 @Injectable()
 export class PracticeSessionEffects extends BaseEffect {
+
+  private actions$ = inject(Actions);
+  private store = inject(Store);
+  private audioService = inject(AudioService);
+  private practiceService = inject(PracticeService);
+  private notificationService = inject(NotificationService);
+
   startSession$ = createEffect(() =>
     this.actions$.pipe(
       ofType(PracticeSessionActions.startSession),
@@ -244,7 +251,7 @@ export class PracticeSessionEffects extends BaseEffect {
         this.store.select((state) => state.practiceSession.ui),
       ),
       map(([_, session, card, ui]) => {
-        if (!session || !card) return { type: 'NO_OP' };
+        if (!session || !card) return { type: 'NO_OP' } as any;
         if (!ui.currentCardFlipped) {
           return PracticeSessionActions.flipCard();
         }
@@ -258,7 +265,7 @@ export class PracticeSessionEffects extends BaseEffect {
         }
         return PracticeSessionActions.showNextCard();
       }),
-      filter((action) => action.type !== 'NO_OP'),
+      filter((action) => (action as any).type !== 'NO_OP'),
     ),
   );
 
@@ -280,12 +287,8 @@ export class PracticeSessionEffects extends BaseEffect {
   );
 
   constructor(
-    private actions$: Actions,
-    private store: Store<AppState>,
-    private practiceService: PracticeService,
-    private audioService: AudioService,
-    private notificationService: NotificationService,
   ) {
     super();
   }
 }
+
