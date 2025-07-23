@@ -13,9 +13,9 @@ import {
   filter,
 } from 'rxjs/operators';
 
-import { PracticeService } from '@app/app/core/services/practice.service';
-import { AudioService } from '@app/app/core/services/audio.service';
-import { NotificationService } from '@app/app/core/services/notification.service';
+import { PracticeService } from '@app/core/services/practice.service';
+import { AudioService } from '@app/core/services/audio.service';
+import { NotificationService } from '@app/core/services/notification.service';
 import {
   PracticeSessionActions,
   PracticeKeyboardActions,
@@ -103,13 +103,9 @@ export class PracticeSessionEffects extends BaseEffect {
                 >,
               ) => {
                 if (successAction.response.correct) {
-                  this.notificationService.success('Correct! 🎉', {
-                    duration: 1000,
-                  });
+                  this.notificationService.success('Correct! 🎉', 1000);
                 } else {
-                  this.notificationService.error('Try again next time', {
-                    duration: 1000,
-                  });
+                  this.notificationService.error('Try again next time', 1000);
                 }
               },
             ),
@@ -176,9 +172,7 @@ export class PracticeSessionEffects extends BaseEffect {
               action.summary.achievements.forEach((achievement: any) => {
                 this.notificationService.info(
                   `🏆 Achievement Unlocked: ${achievement.title}`,
-                  {
-                    duration: 5000,
-                  },
+                  5000,
                 );
               });
             },
