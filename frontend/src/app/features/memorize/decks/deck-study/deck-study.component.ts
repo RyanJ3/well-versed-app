@@ -148,6 +148,10 @@ export class DeckStudyComponent implements OnInit, OnDestroy {
   private responseStartTime = Date.now();
   private hintsUsed = 0;
 
+  private store = inject(Store<AppState>);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
   isSessionActive$ = this.store.select(selectIsSessionActive);
   currentCard$ = this.store.select(selectCurrentCard);
   isFlipped$ = this.store.select(selectIsCardFlipped);
@@ -159,9 +163,6 @@ export class DeckStudyComponent implements OnInit, OnDestroy {
   showingHint = false;
   deckId!: number;
 
-  private store = inject(Store<AppState>);
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
 
   ngOnInit(): void {
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe((params) => {

@@ -124,6 +124,8 @@ import { DeckCategory } from '@app/state/decks/models/deck.model';
   styleUrls: ['./deck-list.component.scss'],
 })
 export class DeckListComponent implements OnInit {
+  private store = inject(Store<AppState>);
+  private router = inject(Router);
   decks$ = this.store.select(selectFilteredDecks);
   loading$ = this.store.select(selectDecksLoading);
   statistics$ = this.store.select(selectDeckStatistics);
@@ -131,9 +133,6 @@ export class DeckListComponent implements OnInit {
   viewMode$ = this.store.select(selectViewMode);
 
   categories = Object.values(DeckCategory);
-
-  private store = inject(Store<AppState>);
-  private router = inject(Router);
 
   ngOnInit(): void {
     this.store.dispatch(DeckActions.init());

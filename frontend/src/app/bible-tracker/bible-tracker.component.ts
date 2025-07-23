@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
+import { BibleTrackerBookGridComponent } from './components/bible-tracker-book-grid/bible-tracker-book-grid.component';
 
 import { AppState } from '@app/state';
 import { BibleTrackerActions } from '@app/state/bible-tracker';
@@ -17,12 +18,12 @@ import {
 @Component({
   selector: 'app-bible-tracker',
   standalone: true,
-  imports: [CommonModule /* other component imports */],
+  imports: [CommonModule, BibleTrackerBookGridComponent],
   template: `
     <div class="bible-tracker">
       <!-- Loading State -->
       <div class="loading-overlay" *ngIf="isLoading$ | async">
-        <app-spinner></app-spinner>
+        <div class="loading-spinner"></div>
       </div>
 
       <!-- Header with Stats -->
@@ -73,34 +74,19 @@ import {
       </div>
 
       <!-- Book Grid/List -->
-      <div class="books-container" [ngSwitch]="viewMode$ | async">
+      <div class="books-container">
         <app-bible-tracker-book-grid
-          *ngSwitchCase="'grid'"
           [books]="books$ | async"
           (bookSelected)="selectBook($event)"
           (versesMarked)="markVersesRead($event)"
-        >
-        </app-bible-tracker-book-grid>
-
-        <app-bible-tracker-book-list
-          *ngSwitchCase="'list'"
-          [books]="books$ | async"
-          (bookSelected)="selectBook($event)"
-        >
-        </app-bible-tracker-book-list>
-
-        <app-bible-tracker-reading-view
-          *ngSwitchCase="'reading'"
-          [selectedBook]="selectedBook$ | async"
-          (versesRead)="markVersesRead($event)"
-        >
-        </app-bible-tracker-reading-view>
+        ></app-bible-tracker-book-grid>
       </div>
     </div>
   `,
   styleUrls: ['./bible-tracker.component.scss'],
 })
 export class BibleTrackerComponent implements OnInit, OnDestroy {
+  private store = inject(Store<AppState>);
   private destroy$ = new Subject<void>();
 
   // State Selectors
@@ -110,8 +96,6 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   selectedBook$ = this.store.select(selectSelectedBookDetails);
   todaysProgress$ = this.store.select(selectTodaysProgress);
   viewMode$ = this.store.select(selectViewMode);
-
-  private store = inject(Store<AppState>);
 
   ngOnInit(): void {
     this.store.dispatch(BibleTrackerActions.init());
