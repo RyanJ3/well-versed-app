@@ -1,8 +1,8 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { PracticeSessionState, StudyCard } from '../models/practice-session.model';
 
-export const selectPracticeSessionState =
-  createFeatureSelector<PracticeSessionState>('practiceSession');
+export const selectPracticeSessionState = createFeatureSelector<PracticeSessionState>('practiceSession');
+
 
 export const selectActiveSession = createSelector(
   selectPracticeSessionState,
@@ -40,7 +40,7 @@ export const selectSessionProgress = createSelector(
         remainingCards: 0,
         percentComplete: 0,
       };
-    }
+    } 
 
     const seenCards = session.cards.filter((card) => card.seen).length;
     const totalCards = session.cards.length;
