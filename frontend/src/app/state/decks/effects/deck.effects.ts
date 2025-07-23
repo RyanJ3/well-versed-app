@@ -72,7 +72,10 @@ export class DeckEffects extends BaseEffect {
         this.deckService.updateDeck(deckId, changes as any).pipe(
           map((deck) =>
             DeckActions.updateDeckSuccess({
-              deck: { id: (deck as any).id, changes: deck as any },
+              deck: {
+                id: deck.deck_id, // Fix: use deck_id from DeckResponse
+                changes: deck as any
+              },
             })
           ),
           tap(() => {
@@ -198,7 +201,7 @@ export class DeckEffects extends BaseEffect {
               this.notificationService.success('Great job! Streak maintained! 🔥');
             }
           }),
-          this.handleHttpError((error) => 
+          this.handleHttpError((error) =>
             DeckActions.completeStudySessionFailure({ error })
           )
         )
