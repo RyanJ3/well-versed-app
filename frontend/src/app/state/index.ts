@@ -17,3 +17,4 @@ export * from './core/reducers/router.reducer';
 // Bible Tracker feature exports
 export * from './bible-tracker';
 export * from './decks';
+export * from './practice-session';
