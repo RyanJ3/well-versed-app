@@ -1,209 +1,273 @@
-// frontend/src/app/features/memorize/decks/deck-study/deck-study.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DeckService } from '../../../../core/services/deck.service';
-import { BibleService } from '../../../../core/services/bible.service';
-import { UserService } from '../../../../core/services/user.service';
+import { Store } from '@ngrx/store';
+import { Subject } from 'rxjs';
+import { takeUntil, filter } from 'rxjs/operators';
 
-interface StudyVerse {
-  verse_id: number;
-  verse_code: string;
-  reference: string;
-  text: string;
-  confidence_score: number | null;
-  last_reviewed: string | null;
-  isRevealed: boolean;
-}
+import { AppState } from '@app/state';
+import { PracticeSessionActions, PracticeKeyboardActions } from '@app/state/practice-session';
+import {
+  selectCurrentCard,
+  selectIsCardFlipped,
+  selectSessionProgress,
+  selectSessionStats,
+  selectCurrentStreak,
+  selectIsSessionActive
+} from '@app/state/practice-session/selectors/practice-session.selectors';
+import { SessionType, ResponseQuality } from '@app/state/practice-session/models/practice-session.model';
 
 @Component({
-  selector: 'app-study',
-  templateUrl: './deck-study.component.html',
-  styleUrls: ['./deck-study.component.scss'],
+  selector: 'app-deck-study',
   standalone: true,
-  imports: [CommonModule, FormsModule]
+  imports: [CommonModule /* other imports */],
+  template: `
+    <div class="deck-study" *ngIf="isSessionActive$ | async">
+      <!-- Progress Bar -->
+      <div class="study-header">
+        <div class="progress-info" *ngIf="progress$ | async as progress">
+          <span>{{ progress.seenCards }} / {{ progress.totalCards }}</span>
+          <div class="progress-bar">
+            <div 
+              class="progress-fill" 
+              [style.width.%]="progress.percentComplete">
+            </div>
+          </div>
+        </div>
+        
+        <div class="study-actions">
+          <button (click)="toggleStats()">
+            <i class="icon-stats"></i>
+          </button>
+          <button (click)="pauseSession()">
+            <i class="icon-pause"></i>
+          </button>
+          <button (click)="endSession()">
+            <i class="icon-x"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Panel -->
+      <div class="stats-panel" *ngIf="showStats">
+        <div class="stat" *ngIf="stats$ | async as stats">
+          <span class="label">Accuracy</span>
+          <span class="value">{{ stats.accuracy | number:'1.0-0' }}%</span>
+        </div>
+        <div class="stat">
+          <span class="label">Streak</span>
+          <span class="value">{{ currentStreak$ | async }}</span>
+        </div>
+      </div>
+
+      <!-- Card Display -->
+      <div class="card-container" *ngIf="currentCard$ | async as card">
+        <div 
+          class="flashcard"
+          [class.flipped]="isFlipped$ | async"
+          (click)="flipCard()">
+          
+          <div class="card-front">
+            <div class="card-content">
+              {{ card.front }}
+            </div>
+            <div class="card-reference" *ngIf="card.verseReference">
+              {{ card.verseReference }}
+            </div>
+          </div>
+          
+          <div class="card-back">
+            <div class="card-content">
+              {{ card.back }}
+            </div>
+            <button 
+              class="hint-btn" 
+              *ngIf="card.hint && !showingHint"
+              (click)="showHint($event)">
+              Show Hint
+            </button>
+            <div class="hint" *ngIf="showingHint">
+              {{ card.hint }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Response Buttons -->
+        <div class="response-buttons" *ngIf="isFlipped$ | async">
+          <button 
+            class="response-btn again"
+            (click)="submitResponse(0)">
+            <span class="quality">Again</span>
+            <span class="interval">< 1 min</span>
+          </button>
+          <button 
+            class="response-btn hard"
+            (click)="submitResponse(1)">
+            <span class="quality">Hard</span>
+            <span class="interval">~5 min</span>
+          </button>
+          <button 
+            class="response-btn good"
+            (click)="submitResponse(2)">
+            <span class="quality">Good</span>
+            <span class="interval">~10 min</span>
+          </button>
+          <button 
+            class="response-btn easy"
+            (click)="submitResponse(3)">
+            <span class="quality">Easy</span>
+            <span class="interval">~4 days</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Keyboard Shortcuts Help -->
+      <div class="keyboard-help">
+        <span><kbd>Space</kbd> Flip Card</span>
+        <span><kbd>1-4</kbd> Rate Difficulty</span>
+        <span><kbd>H</kbd> Show Hint</span>
+        <span><kbd>S</kbd> Skip</span>
+      </div>
+    </div>
+
+    <!-- No Active Session -->
+    <div class="no-session" *ngIf="!(isSessionActive$ | async)">
+      <h2>No active study session</h2>
+      <button (click)="startNewSession()">Start Studying</button>
+    </div>
+  `,
+  styleUrls: ['./deck-study.component.scss']
 })
-export class DeckStudyComponent implements OnInit {
-  deckId: number = 0;
-  deckName: string = '';
-  verses: StudyVerse[] = [];
-  currentIndex: number = 0;
-  isLoading: boolean = true;
-  error: string = '';
-  userId: number = 1;
-  preferredBibleId: string = '';
-  sessionStartTime: Date = new Date();
+export class DeckStudyComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  private responseStartTime = Date.now();
+  private hintsUsed = 0;
+
+  isSessionActive$ = this.store.select(selectIsSessionActive);
+  currentCard$ = this.store.select(selectCurrentCard);
+  isFlipped$ = this.store.select(selectIsCardFlipped);
+  progress$ = this.store.select(selectSessionProgress);
+  stats$ = this.store.select(selectSessionStats);
+  currentStreak$ = this.store.select(selectCurrentStreak);
+
+  showStats = false;
+  showingHint = false;
+  deckId!: number;
 
   constructor(
+    private store: Store<AppState>,
     private route: ActivatedRoute,
-    private router: Router,
-    private deckService: DeckService,
-    private bibleService: BibleService,
-    private userService: UserService
+    private router: Router
   ) {}
 
-  ngOnInit() {
-    // Get user preferences first
-    this.userService.currentUser$.subscribe(user => {
-      if (user) {
-        this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
-        // Map preferred Bible to API Bible ID if needed
-        // For now, we'll use the default from the backend
-        this.preferredBibleId = ''; // Let backend use its default
-      }
+  ngOnInit(): void {
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      this.deckId = +params['id'];
+      this.startNewSession();
     });
 
-    this.route.params.subscribe(params => {
-      this.deckId = +params['deckId'];
-      this.loadDeckVerses();
+    this.currentCard$.pipe(
+      filter(card => card !== null),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.responseStartTime = Date.now();
+      this.hintsUsed = 0;
+      this.showingHint = false;
     });
   }
 
-  loadDeckVerses() {
-    this.isLoading = true;
-    this.error = '';
-    
-    this.deckService.getDeckCards(this.deckId, this.userId, this.preferredBibleId).subscribe({
-      next: (response: any) => {
-        this.deckName = response.deck_name;
-        
-        // Flatten cards to verses for study mode
-        this.verses = response.cards.flatMap((card: any) => 
-          card.verses.map((verse: any) => ({
-            ...verse,
-            confidence_score: card.confidence_score || 50,
-            isRevealed: false,
-            // Ensure we have text or a fallback
-            text: verse.text || `Unable to load text for ${verse.reference}`
-          }))
-        );
-        
-        // Check if any verses failed to load
-        const failedVerses = this.verses.filter(v => v.text.startsWith('Unable to load'));
-        if (failedVerses.length > 0) {
-          console.warn(`${failedVerses.length} verses failed to load properly`);
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent): void {
+    if (event.key === ' ') {
+      event.preventDefault();
+    }
+
+    switch (event.key) {
+      case ' ':
+        this.store.dispatch(PracticeKeyboardActions.pressSpace());
+        break;
+      case 'Enter':
+        this.store.dispatch(PracticeKeyboardActions.pressEnter());
+        break;
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+        this.store.dispatch(PracticeKeyboardActions.pressNumber({ key: parseInt(event.key) }));
+        break;
+      case 'h':
+      case 'H':
+        this.store.dispatch(PracticeKeyboardActions.pressH());
+        break;
+      case 's':
+      case 'S':
+        this.store.dispatch(PracticeKeyboardActions.pressS());
+        break;
+      case 'Escape':
+        this.store.dispatch(PracticeKeyboardActions.pressEscape());
+        break;
+    }
+  }
+
+  startNewSession(): void {
+    this.store.dispatch(PracticeSessionActions.startSession({
+      request: {
+        deckId: this.deckId,
+        settings: {
+          sessionType: SessionType.REVIEW,
+          cardLimit: 20,
+          showHints: true
         }
-        
-        this.orderVersesBySpacedRepetition();
-        this.isLoading = false;
-      },
-      error: (error: any) => {
-        console.error('Error loading deck cards:', error);
-        this.error = 'Failed to load deck cards. Please check your internet connection and try again.';
-        this.isLoading = false;
+      }
+    }));
+  }
+
+  flipCard(): void {
+    this.store.dispatch(PracticeSessionActions.flipCard());
+  }
+
+  showHint(event: Event): void {
+    event.stopPropagation();
+    this.showingHint = true;
+    this.hintsUsed++;
+    this.store.dispatch(PracticeSessionActions.showHint());
+  }
+
+  submitResponse(quality: ResponseQuality): void {
+    const responseTime = Date.now() - this.responseStartTime;
+    this.currentCard$.pipe(
+      filter(card => card !== null),
+      takeUntil(this.destroy$)
+    ).subscribe(card => {
+      if (card) {
+        this.store.dispatch(PracticeSessionActions.submitResponse({
+          cardId: card.id,
+          quality,
+          responseTime,
+          hintsUsed: this.hintsUsed
+        }));
       }
     });
   }
 
-  orderVersesBySpacedRepetition() {
-    // Simple spaced repetition ordering
-    // Prioritize: low confidence scores and older reviews
-    this.verses.sort((a, b) => {
-      const scoreA = a.confidence_score || 50;
-      const scoreB = b.confidence_score || 50;
-      
-      // If neither has been reviewed, sort by confidence
-      if (!a.last_reviewed && !b.last_reviewed) {
-        return scoreA - scoreB;
-      }
-      
-      // Prioritize unreviewed verses
-      if (!a.last_reviewed) return -1;
-      if (!b.last_reviewed) return 1;
-      
-      // Calculate days since last review
-      const daysA = this.daysSinceReview(a.last_reviewed);
-      const daysB = this.daysSinceReview(b.last_reviewed);
-      
-      // Priority score: lower confidence + more days = higher priority
-      const priorityA = (100 - scoreA) + (daysA * 2);
-      const priorityB = (100 - scoreB) + (daysB * 2);
-      
-      return priorityB - priorityA;
-    });
+  pauseSession(): void {
+    this.store.dispatch(PracticeSessionActions.pauseSession());
   }
 
-  daysSinceReview(lastReviewed: string): number {
-    const last = new Date(lastReviewed);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - last.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  }
-
-  get currentVerse(): StudyVerse | null {
-    return this.verses[this.currentIndex] || null;
-  }
-
-  get progress(): number {
-    return this.verses.length > 0 ? ((this.currentIndex + 1) / this.verses.length) * 100 : 0;
-  }
-
-  toggleReveal() {
-    if (this.currentVerse) {
-      this.currentVerse.isRevealed = !this.currentVerse.isRevealed;
+  endSession(): void {
+    if (confirm('End this study session?')) {
+      this.store.dispatch(PracticeSessionActions.endSession());
+      this.router.navigate(['/app/memorize/decks']);
     }
   }
 
-  previousVerse() {
-    if (this.currentIndex > 0) {
-      this.currentIndex--;
-      this.currentVerse!.isRevealed = false;
-    }
-  }
-
-  nextVerse() {
-    if (this.currentIndex < this.verses.length - 1) {
-      this.currentIndex++;
-      this.currentVerse!.isRevealed = false;
-    }
-  }
-
-  skipVerse() {
-    // Skip without saving confidence
-    this.nextVerse();
-  }
-
-  exitStudy() {
-    this.router.navigate(['/decks']);
-  }
-
-  onConfidenceChange() {
-    if (this.currentVerse) {
-      this.bibleService
-        .updateVerseConfidence(
-          this.userId,
-          this.currentVerse.verse_id,
-          this.currentVerse.confidence_score || 0,
-        )
-        .subscribe();
-    }
-  }
-
-  getSessionTime(): string {
-    const now = new Date();
-    const diff = now.getTime() - this.sessionStartTime.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const seconds = Math.floor((diff % 60000) / 1000);
-    
-    if (minutes === 0) {
-      return `${seconds}s`;
-    } else if (minutes < 60) {
-      return `${minutes}m ${seconds}s`;
-    } else {
-      const hours = Math.floor(minutes / 60);
-      const remainingMinutes = minutes % 60;
-      return `${hours}h ${remainingMinutes}m`;
-    }
-  }
-
-  getAverageConfidence(): number {
-    if (this.verses.length === 0) return 0;
-    
-    const totalConfidence = this.verses.reduce((sum, verse) => {
-      return sum + (verse.confidence_score || 50);
-    }, 0);
-    
-    return Math.round(totalConfidence / this.verses.length);
+  toggleStats(): void {
+    this.showStats = !this.showStats;
+    this.store.dispatch(PracticeSessionActions.toggleStats());
   }
 }
