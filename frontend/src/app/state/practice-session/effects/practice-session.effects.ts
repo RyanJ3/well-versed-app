@@ -13,9 +13,9 @@ import {
   filter,
 } from 'rxjs/operators';
 
-import { PracticeService } from '@app/core/services/practice.service';
-import { AudioService } from '@app/core/services/audio.service';
-import { NotificationService } from '@app/core/services/notification.service';
+import { PracticeService } from '@app/app/core/services/practice.service';
+import { AudioService } from '@app/app/core/services/audio.service';
+import { NotificationService } from '@app/app/core/services/notification.service';
 import {
   PracticeSessionActions,
   PracticeKeyboardActions,
