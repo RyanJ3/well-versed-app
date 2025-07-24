@@ -34,6 +34,9 @@ const BOOK_ID_MAP: Record<string, number> = {
 export class BibleBook {
     public readonly chapters: BibleChapter[];
     public readonly id: number; // Changed to number
+    
+    // Progress tracking property
+    public lastRead: string | null = null;
 
     constructor(
         public readonly name: string,
@@ -140,16 +143,24 @@ export class BibleBook {
         const chapter = this.getChapter(chapterNumber);
         if (chapter) {
             chapter.markVerseAsMemorized(verseNumber);
+            // Update lastRead when a verse is marked as memorized
+            this.lastRead = new Date().toISOString();
         }
     }
 
     toggleVerse(chapterNumber: number, verseNumber: number): boolean {
         const chapter = this.getChapter(chapterNumber);
-        return chapter ? chapter.toggleVerse(verseNumber) : false;
+        const result = chapter ? chapter.toggleVerse(verseNumber) : false;
+        if (result) {
+            // Update lastRead when a verse is toggled
+            this.lastRead = new Date().toISOString();
+        }
+        return result;
     }
 
     reset(): void {
         this.chapters.forEach(chapter => chapter.clearAllVerses());
+        // Don't reset lastRead - keep historical data
     }
 
     getProgressData(): Record<number, number[]> {
@@ -170,9 +181,12 @@ export class BibleBook {
     // Book-level operations
     selectAllVerses(): void {
         this.chapters.forEach(chapter => chapter.selectAllVerses());
+        // Update lastRead when all verses are selected
+        this.lastRead = new Date().toISOString();
     }
 
     clearAllVerses(): void {
         this.chapters.forEach(chapter => chapter.clearAllVerses());
+        // Don't update lastRead when clearing - keep historical data
     }
 }

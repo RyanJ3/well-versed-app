@@ -7,6 +7,10 @@ import { BibleBook } from './bible-book.model';
 export class BibleChapter {
   public readonly verses: BibleVerse[];
   private _isApocryphal: boolean = false;
+  
+  // Progress tracking properties
+  public completedDate: string | null = null;
+  public notes: string | null = null;
 
   constructor(
     public readonly chapterNumber: number,
@@ -62,16 +66,28 @@ export class BibleChapter {
     return this.memorizedVerses > 0 && !this.isComplete;
   }
 
+  // New getter to match ChapterProgress format
+  get versesRead(): number[] {
+    return this.verses
+      .filter(v => v.memorized)
+      .map(v => v.verseNumber);
+  }
+
   markVerseAsMemorized(verseNumber: number): void {
     const verse = this.verses.find(v => v.verseNumber === verseNumber);
     if (verse) {
       verse.memorized = true;
+      this.updateCompletionStatus();
     }
   }
 
   toggleVerse(verseNumber: number): boolean {
     const verse = this.verses.find(v => v.verseNumber === verseNumber);
-    return verse ? verse.toggle() : false;
+    const result = verse ? verse.toggle() : false;
+    if (result) {
+      this.updateCompletionStatus();
+    }
+    return result;
   }
 
   getMemorizedVerseNumbers(): number[] {
@@ -88,9 +104,25 @@ export class BibleChapter {
 
   selectAllVerses(): void {
     this.verses.forEach(verse => verse.memorized = true);
+    this.updateCompletionStatus();
   }
 
   clearAllVerses(): void {
     this.verses.forEach(verse => verse.memorized = false);
+    // Clear completion date when verses are cleared
+    this.completedDate = null;
+  }
+
+  /**
+   * Updates the completion status of the chapter
+   * Sets completedDate when chapter reaches 100% completion
+   */
+  private updateCompletionStatus(): void {
+    if (this.isComplete && !this.completedDate) {
+      this.completedDate = new Date().toISOString();
+    } else if (!this.isComplete && this.completedDate) {
+      // If chapter is no longer complete, clear the completion date
+      this.completedDate = null;
+    }
   }
 }
