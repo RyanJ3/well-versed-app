@@ -1,36 +1,13 @@
-import {
-  Component,
-  OnInit,
-  ChangeDetectorRef,
-  OnDestroy,
-  HostListener,
-} from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { DialogsModule } from '@progress/kendo-angular-dialog';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
-import { Subscription, combineLatest, Observable } from 'rxjs';
-import { Store } from '@ngrx/store';
-
-import {
-  BibleTrackerState,
-  BibleTrackerActions,
-  selectBibleTrackerLoading,
-  selectAllBooksArray,
-  selectSelectedBook,
-  selectSelectedChapter,
-  ReadingFilters,
-} from '../state/bible-tracker';
+import { Subscription } from 'rxjs';
 import Chart from 'chart.js/auto';
 
 // Import models
-import {
-  BibleBook,
-  BibleChapter,
-  BibleData,
-  BibleTestament,
-  UserVerseDetail,
-} from '../core/models/bible';
+import { BibleBook, BibleChapter, BibleData, BibleTestament, UserVerseDetail } from '../core/models/bible';
 import { BibleVerse } from '../core/models/bible/bible-verse.model';
 import { BibleGroup } from '../core/models/bible/bible-group.modle';
 
@@ -63,28 +40,25 @@ import { BibleTrackerVerseGridComponent } from './components/bible-tracker-verse
     BibleTrackerBookGroupsComponent,
     BibleTrackerBookGridComponent,
     BibleTrackerChapterHeatmapComponent,
-    BibleTrackerVerseGridComponent,
+    BibleTrackerVerseGridComponent
   ],
   styleUrls: ['./bible-tracker.component.scss'],
 })
 export class BibleTrackerComponent implements OnInit, OnDestroy {
   private bibleData: BibleData;
   private subscriptions: Subscription = new Subscription();
-
-  loading$!: Observable<BibleTrackerState['loading']>;
-  books$!: Observable<BibleBook[]>;
-
+  
   groupColors: { [key: string]: string } = {
-    Law: '#10b981',
-    History: '#3b82f6',
-    Wisdom: '#8b5cf6',
+    'Law': '#10b981',
+    'History': '#3b82f6',
+    'Wisdom': '#8b5cf6',
     'Major Prophets': '#f59e0b',
     'Minor Prophets': '#ef4444',
-    Gospels: '#10b981',
-    Acts: '#3b82f6',
+    'Gospels': '#10b981',
+    'Acts': '#3b82f6',
     'Pauline Epistles': '#8b5cf6',
     'General Epistles': '#f59e0b',
-    Revelation: '#ef4444',
+    'Revelation': '#ef4444'
   };
 
   selectedTestament: BibleTestament | null = null;
@@ -110,12 +84,9 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private modalService: ModalService,
     private cdr: ChangeDetectorRef,
-    private router: Router,
-    private store: Store<BibleTrackerState>,
+    private router: Router
   ) {
     this.bibleData = this.bibleService.getBibleData();
-    this.loading$ = this.store.select(selectBibleTrackerLoading);
-    this.books$ = this.store.select(selectAllBooksArray);
     this.selectedTestament = this.defaultTestament;
     if (this.selectedTestament?.groups.length > 0) {
       this.setGroup(this.defaultGroup);
@@ -123,19 +94,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.store.dispatch(BibleTrackerActions.init());
-    this.loadUserVerses();
-
-    const selectionSub = combineLatest([
-      this.store.select(selectSelectedBook),
-      this.store.select(selectSelectedChapter),
-    ]).subscribe(([book, chapter]) => {
-      this.selectedBook = book;
-      this.selectedChapter =
-        book && chapter ? book.chapters[chapter - 1] || null : null;
-    });
-
-    const userSub = this.userService.currentUser$.subscribe((user) => {
+    const userSub = this.userService.currentUser$.subscribe(user => {
       if (user) {
         const newSetting = user.includeApocrypha || false;
         if (this.includeApocrypha !== newSetting) {
@@ -152,7 +111,6 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     });
 
     this.subscriptions.add(userSub);
-    this.subscriptions.add(selectionSub);
     this.userService.fetchCurrentUser();
   }
 
@@ -163,31 +121,28 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   loadUserVerses() {
     this.isLoading = true;
 
-    this.bibleService
-      .getUserVerses(this.userId, this.includeApocrypha)
-      .subscribe({
-        next: (verses: any) => {
-          this.userVerses = verses;
-          this.isLoading = false;
-          this.computeProgressSegments();
-          this.cdr.detectChanges();
-        },
-        error: (error: any) => {
-          console.error('Error loading verses:', error);
-          this.isLoading = false;
-          this.modalService.alert(
-            'Error Loading Verses',
-            'Unable to load your saved verses. Please check your connection and try again.',
-            'danger',
-          );
-          this.cdr.detectChanges();
-        },
-      });
+    this.bibleService.getUserVerses(this.userId, this.includeApocrypha).subscribe({
+      next: (verses: any) => {
+        this.userVerses = verses;
+        this.isLoading = false;
+        this.computeProgressSegments();
+        this.cdr.detectChanges();
+      },
+      error: (error: any) => {
+        console.error('Error loading verses:', error);
+        this.isLoading = false;
+        this.modalService.alert(
+          'Error Loading Verses',
+          'Unable to load your saved verses. Please check your connection and try again.',
+          'danger'
+        );
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   toggleProgressView(): void {
-    this.progressViewMode =
-      this.progressViewMode === 'testament' ? 'groups' : 'testament';
+    this.progressViewMode = this.progressViewMode === 'testament' ? 'groups' : 'testament';
     this.computeProgressSegments();
     this.cdr.detectChanges();
   }
@@ -196,89 +151,54 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     if (this.progressViewMode === 'testament') {
       const otVerses = this.oldTestament.memorizedVerses;
       const ntVerses = this.newTestament.memorizedVerses;
-      const apoVerses = this.includeApocrypha
-        ? this.apocryphaTestament.memorizedVerses
-        : 0;
+      const apoVerses = this.includeApocrypha ? this.apocryphaTestament.memorizedVerses : 0;
       const totalVerses = this.totalVerses;
       const otPercent = Math.round((otVerses / totalVerses) * 100);
       const ntPercent = Math.round((ntVerses / totalVerses) * 100);
-      const apoPercent = this.includeApocrypha
-        ? Math.round((apoVerses / totalVerses) * 100)
-        : 0;
+      const apoPercent = this.includeApocrypha ? Math.round((apoVerses / totalVerses) * 100) : 0;
       const remainingPercent = 100 - otPercent - ntPercent - apoPercent;
 
       const segments = [
-        {
-          name: 'Old Testament',
-          shortName: 'OT',
-          percent: otPercent,
-          color: '#f59e0b',
-          verses: otVerses,
-        },
-        {
-          name: 'New Testament',
-          shortName: 'NT',
-          percent: ntPercent,
-          color: '#6366f1',
-          verses: ntVerses,
-        },
+        { name: 'Old Testament', shortName: 'OT', percent: otPercent, color: '#f59e0b', verses: otVerses },
+        { name: 'New Testament', shortName: 'NT', percent: ntPercent, color: '#6366f1', verses: ntVerses }
       ];
       if (this.includeApocrypha) {
-        segments.push({
-          name: 'Apocrypha',
-          shortName: 'Apoc.',
-          percent: apoPercent,
-          color: '#8b5cf6',
-          verses: apoVerses,
-        });
+        segments.push({ name: 'Apocrypha', shortName: 'Apoc.', percent: apoPercent, color: '#8b5cf6', verses: apoVerses });
       }
-      segments.push({
-        name: 'Remaining',
-        shortName: '',
-        percent: remainingPercent,
-        color: '#e5e7eb',
-        verses: totalVerses - otVerses - ntVerses - apoVerses,
-      });
+      segments.push({ name: 'Remaining', shortName: '', percent: remainingPercent, color: '#e5e7eb', verses: totalVerses - otVerses - ntVerses - apoVerses });
 
       this.progressSegments = segments;
     } else {
       const segments: any[] = [];
       const totalVerses = this.totalVerses;
-      const allGroups = [
-        ...this.oldTestament.groups,
-        ...this.newTestament.groups,
-      ];
+      const allGroups = [...this.oldTestament.groups, ...this.newTestament.groups];
       if (this.includeApocrypha) {
         allGroups.push(...this.apocryphaTestament.groups);
       }
       let totalMemorized = 0;
 
-      allGroups.forEach((group) => {
+      allGroups.forEach(group => {
         if (group.memorizedVerses > 0) {
-          const percent = Math.round(
-            (group.memorizedVerses / totalVerses) * 100,
-          );
+          const percent = Math.round((group.memorizedVerses / totalVerses) * 100);
           segments.push({
             name: group.name,
             shortName: this.getGroupShortName(group.name),
             percent,
             color: this.getGroupColor(group.name),
-            verses: group.memorizedVerses,
+            verses: group.memorizedVerses
           });
           totalMemorized += group.memorizedVerses;
         }
       });
 
-      const remainingPercent = Math.round(
-        ((totalVerses - totalMemorized) / totalVerses) * 100,
-      );
+      const remainingPercent = Math.round(((totalVerses - totalMemorized) / totalVerses) * 100);
       if (remainingPercent > 0) {
         segments.push({
           name: 'Remaining',
           shortName: '',
           percent: remainingPercent,
           color: '#e5e7eb',
-          verses: totalVerses - totalMemorized,
+          verses: totalVerses - totalMemorized
         });
       }
 
@@ -301,64 +221,60 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
 
     if (verse.memorized) {
       const practiceCount = 1;
-      this.bibleService
-        .saveVerse(
-          this.userId,
-          this.selectedBook.id,
-          this.selectedChapter.chapterNumber,
-          verse.verseNumber,
-          practiceCount,
-        )
-        .subscribe({
-          next: (response: any) => {
-            // Update verse properties if they exist
-            verse.practiceCount = practiceCount;
-            verse.lastPracticed = new Date();
-            this.computeProgressSegments();
-            this.cdr.detectChanges();
-          },
-          error: (error: any) => {
-            verse.memorized = !verse.memorized;
-            this.modalService.alert(
-              'Error Saving Verse',
-              'Unable to save this verse. Please try again.',
-              'danger',
-            );
-            this.cdr.detectChanges();
-          },
-        });
+      this.bibleService.saveVerse(
+        this.userId,
+        this.selectedBook.id,
+        this.selectedChapter.chapterNumber,
+        verse.verseNumber,
+        practiceCount
+      ).subscribe({
+        next: (response: any) => {
+          // Update verse properties if they exist
+          verse.practiceCount = practiceCount;
+          verse.lastPracticed = new Date();
+          this.computeProgressSegments();
+          this.cdr.detectChanges();
+        },
+        error: (error: any) => {
+          verse.memorized = !verse.memorized;
+          this.modalService.alert(
+            'Error Saving Verse',
+            'Unable to save this verse. Please try again.',
+            'danger'
+          );
+          this.cdr.detectChanges();
+        }
+      });
     } else {
-      this.bibleService
-        .deleteVerse(
-          this.userId,
-          this.selectedBook.id,
-          this.selectedChapter.chapterNumber,
-          verse.verseNumber,
-        )
-        .subscribe({
-          next: (response: any) => {
-            verse.practiceCount = 0;
-            verse.lastPracticed = undefined;
-            this.computeProgressSegments();
-            this.cdr.detectChanges();
-          },
-          error: (error: any) => {
-            verse.memorized = !verse.memorized;
-            this.modalService.alert(
-              'Error Removing Verse',
-              'Unable to remove this verse. Please try again.',
-              'danger',
-            );
-            this.cdr.detectChanges();
-          },
-        });
+      this.bibleService.deleteVerse(
+        this.userId,
+        this.selectedBook.id,
+        this.selectedChapter.chapterNumber,
+        verse.verseNumber
+      ).subscribe({
+        next: (response: any) => {
+          verse.practiceCount = 0;
+          verse.lastPracticed = undefined;
+          this.computeProgressSegments();
+          this.cdr.detectChanges();
+        },
+        error: (error: any) => {
+          verse.memorized = !verse.memorized;
+          this.modalService.alert(
+            'Error Removing Verse',
+            'Unable to remove this verse. Please try again.',
+            'danger'
+          );
+          this.cdr.detectChanges();
+        }
+      });
     }
   }
 
   private showSuccessPopup(message: string): void {
     this.successMessage = message;
     this.showSuccessMessage = true;
-
+    
     // Hide the popup after 3 seconds
     setTimeout(() => {
       this.showSuccessMessage = false;
@@ -381,32 +297,15 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   }
 
   setBook(book: BibleBook): void {
-    this.store.dispatch(
-      BibleTrackerActions.selectBook({ bookId: book.id.toString() }),
-    );
-
+    this.selectedBook = book;
     const visibleChapters = this.getVisibleChapters(book);
     if (visibleChapters.length > 0) {
-      this.store.dispatch(
-        BibleTrackerActions.selectChapter({
-          chapter: visibleChapters[0].chapterNumber,
-        }),
-      );
+      this.setChapter(visibleChapters[0]);
     }
   }
 
   setChapter(chapter: BibleChapter): void {
-    this.store.dispatch(
-      BibleTrackerActions.selectChapter({ chapter: chapter.chapterNumber }),
-    );
-  }
-
-  setViewMode(mode: 'grid' | 'list' | 'heatmap'): void {
-    this.store.dispatch(BibleTrackerActions.setViewMode({ viewMode: mode }));
-  }
-
-  applyFilters(filters: ReadingFilters): void {
-    this.store.dispatch(BibleTrackerActions.setFilters({ filters }));
+    this.selectedChapter = chapter;
   }
 
   selectAllVerses(): void {
@@ -414,36 +313,34 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
 
     this.isSavingBulk = true;
 
-    this.bibleService
-      .saveChapter(
-        this.userId,
-        this.selectedBook.id,
-        this.selectedChapter.chapterNumber,
-      )
-      .subscribe({
-        next: () => {
-          this.selectedChapter!.verses.forEach((verse) => {
-            verse.memorized = true;
-            verse.practiceCount = 1;
-            verse.lastPracticed = new Date();
-          });
-          this.isSavingBulk = false;
-          this.computeProgressSegments();
-          // Show success popup instead of modal
-          this.showSuccessPopup(
-            `All verses in ${this.selectedBook!.name} ${this.selectedChapter!.chapterNumber} have been marked as memorized.`,
-          );
-          this.cdr.detectChanges();
-        },
-        error: (error: any) => {
-          this.isSavingBulk = false;
-          this.modalService.alert(
-            'Error Saving Chapter',
-            'Unable to save all verses in this chapter. Please try again.',
-            'danger',
-          );
-        },
-      });
+    this.bibleService.saveChapter(
+      this.userId,
+      this.selectedBook.id,
+      this.selectedChapter.chapterNumber
+    ).subscribe({
+      next: () => {
+        this.selectedChapter!.verses.forEach(verse => {
+          verse.memorized = true;
+          verse.practiceCount = 1;
+          verse.lastPracticed = new Date();
+        });
+        this.isSavingBulk = false;
+        this.computeProgressSegments();
+        // Show success popup instead of modal
+        this.showSuccessPopup(
+          `All verses in ${this.selectedBook!.name} ${this.selectedChapter!.chapterNumber} have been marked as memorized.`
+        );
+        this.cdr.detectChanges();
+      },
+      error: (error: any) => {
+        this.isSavingBulk = false;
+        this.modalService.alert(
+          'Error Saving Chapter',
+          'Unable to save all verses in this chapter. Please try again.',
+          'danger'
+        );
+      }
+    });
   }
 
   async clearAllVerses(): Promise<void> {
@@ -452,100 +349,106 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     const confirmed = await this.modalService.danger(
       'Clear All Verses?',
       `Are you sure you want to clear all memorized verses in ${this.selectedBook.name} ${this.selectedChapter.chapterNumber}? This action cannot be undone.`,
-      'Clear Verses',
+      'Clear Verses'
     );
 
     if (!confirmed) return;
 
     this.isSavingBulk = true;
 
-    this.bibleService
-      .clearChapter(
-        this.userId,
-        this.selectedBook.id,
-        this.selectedChapter.chapterNumber,
-      )
-      .subscribe({
-        next: () => {
-          this.selectedChapter!.verses.forEach((verse) => {
-            verse.memorized = false;
-            verse.practiceCount = 0;
-            verse.lastPracticed = undefined;
-          });
-          this.isSavingBulk = false;
-          this.computeProgressSegments();
-          // Show success popup instead of modal
-          this.showSuccessPopup(
-            `All verses in ${this.selectedBook!.name} ${this.selectedChapter!.chapterNumber} have been cleared.`,
-          );
-          this.cdr.detectChanges();
-        },
-        error: (error: any) => {
-          this.isSavingBulk = false;
-          this.modalService.alert(
-            'Error Clearing Chapter',
-            'Unable to clear verses in this chapter. Please try again.',
-            'danger',
-          );
-        },
-      });
-  }
-
-  async selectAllChapters(): Promise<void> {
-    if (!this.selectedBook) return;
-
-    // Using danger modal for confirmation since modalService.confirm requires 4 parameters
-    const confirmed = await this.modalService.danger(
-      'Memorize All Chapters?',
-      `Are you sure you want to mark all chapters in ${this.selectedBook.name} as memorized?`,
-      'Memorize All',
-    );
-
-    if (!confirmed) return;
-
-    this.isSavingBulk = true;
-
-    this.bibleService.saveBook(this.userId, this.selectedBook.id).subscribe({
+    this.bibleService.clearChapter(
+      this.userId,
+      this.selectedBook.id,
+      this.selectedChapter.chapterNumber
+    ).subscribe({
       next: () => {
-        this.selectedBook!.chapters.forEach((ch) => ch.selectAllVerses());
+        this.selectedChapter!.verses.forEach(verse => {
+          verse.memorized = false;
+          verse.practiceCount = 0;
+          verse.lastPracticed = undefined;
+        });
         this.isSavingBulk = false;
         this.computeProgressSegments();
         // Show success popup instead of modal
         this.showSuccessPopup(
-          `${this.selectedBook!.name} has been marked as memorized.`,
+          `All verses in ${this.selectedBook!.name} ${this.selectedChapter!.chapterNumber} have been cleared.`
         );
         this.cdr.detectChanges();
       },
       error: (error: any) => {
         this.isSavingBulk = false;
         this.modalService.alert(
-          'Error Saving Book',
-          'Unable to save all chapters in this book. Please try again.',
-          'danger',
+          'Error Clearing Chapter',
+          'Unable to clear verses in this chapter. Please try again.',
+          'danger'
         );
-      },
+      }
     });
   }
+
+async selectAllChapters(): Promise<void> {
+  if (!this.selectedBook) return;
+
+  // Using danger modal for confirmation since modalService.confirm requires 4 parameters
+  const confirmed = await this.modalService.danger(
+    'Memorize All Chapters?',
+    `Are you sure you want to mark all chapters in ${this.selectedBook.name} as memorized?`,
+    'Memorize All'
+  );
+
+  if (!confirmed) return;
+
+  this.isSavingBulk = true;
+
+  this.bibleService.saveBook(
+    this.userId,
+    this.selectedBook.id
+  ).subscribe({
+    next: () => {
+      this.selectedBook!.chapters.forEach(ch => ch.selectAllVerses());
+      this.isSavingBulk = false;
+      this.computeProgressSegments();
+      // Show success popup instead of modal
+      this.showSuccessPopup(
+        `${this.selectedBook!.name} has been marked as memorized.`
+      );
+      this.cdr.detectChanges();
+    },
+    error: (error: any) => {
+      this.isSavingBulk = false;
+      this.modalService.alert(
+        'Error Saving Book',
+        'Unable to save all chapters in this book. Please try again.',
+        'danger'
+      );
+    }
+  });
+}
   async clearAllChapters(): Promise<void> {
     if (!this.selectedBook) return;
 
     const confirmed = await this.modalService.danger(
       'Clear All Chapters?',
       `Are you sure you want to clear all memorized verses in ${this.selectedBook.name}? This action cannot be undone.`,
-      'Clear Chapters',
+      'Clear Chapters'
     );
 
     if (!confirmed) return;
 
     this.isSavingBulk = true;
 
-    this.bibleService.clearBook(this.userId, this.selectedBook.id).subscribe({
+    this.bibleService.clearBook(
+      this.userId,
+      this.selectedBook.id
+    ).subscribe({
       next: () => {
-        this.selectedBook!.chapters.forEach((ch) => ch.clearAllVerses());
+        this.selectedBook!.chapters.forEach(ch => ch.clearAllVerses());
         this.isSavingBulk = false;
         this.computeProgressSegments();
         // Show success popup instead of modal
-        this.showSuccessPopup(`${this.selectedBook!.name} has been cleared.`);
+        this.showSuccessPopup(
+          `${this.selectedBook!.name} has been cleared.`
+        );
         this.cdr.detectChanges();
       },
       error: (error: any) => {
@@ -553,9 +456,9 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
         this.modalService.alert(
           'Error Clearing Book',
           'Unable to clear chapters in this book. Please try again.',
-          'danger',
+          'danger'
         );
-      },
+      }
     });
   }
 
@@ -564,21 +467,21 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   }
 
   getVisibleChapters(book: BibleBook): BibleChapter[] {
-    return book.chapters.filter((chapter) => this.isChapterVisible(chapter));
+    return book.chapters.filter(chapter => this.isChapterVisible(chapter));
   }
 
   getGroupShortName(groupName: string): string {
     const shortNames: { [key: string]: string } = {
-      Law: 'Law',
-      History: 'History',
-      Wisdom: 'Wisdom',
+      'Law': 'Law',
+      'History': 'History',
+      'Wisdom': 'Wisdom',
       'Major Prophets': 'Major',
       'Minor Prophets': 'Minor',
-      Gospels: 'Gospels',
-      Acts: 'Acts',
+      'Gospels': 'Gospels',
+      'Acts': 'Acts',
       'Pauline Epistles': 'Pauline',
       'General Epistles': 'General',
-      Revelation: 'Rev',
+      'Revelation': 'Rev'
     };
     return shortNames[groupName] || groupName;
   }
@@ -613,7 +516,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   }
 
   get defaultBook(): BibleBook {
-    return this.bibleData.getBookByName('Genesis');
+    return this.bibleData.getBookByName("Genesis");
   }
 
   get percentComplete(): number {
