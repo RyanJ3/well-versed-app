@@ -37,14 +37,13 @@ export const bibleTrackerReducer = createReducer(
   // Loading & error slices
   on(BibleTrackerActions.init, (state) => ({
     ...state,
-    loading: { ...state.loading, books: true },
+    // No async loading currently, just ensure previous errors are cleared
     errors: { ...state.errors, books: null }
   })),
   // Streak update
   on(BibleTrackerActions.updateStreak, (state, { streak }) => ({
     ...state,
-    dailyStreak: streak,
-    loading: { ...state.loading, books: false }
+    dailyStreak: streak
   })),
   // UI interactions
   on(BibleTrackerActions.selectBook, (state, { bookId }) => ({
