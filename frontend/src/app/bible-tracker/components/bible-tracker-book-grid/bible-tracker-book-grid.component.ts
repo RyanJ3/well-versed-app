@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BibleBook } from '../../../core/models/bible';
-import { BibleGroup } from '../../../core/models/bible/bible-group.modle';
+import { BibleGroup } from '../../../core/models/bible/bible-group.model';
 
 @Component({
   selector: 'app-bible-tracker-book-grid',

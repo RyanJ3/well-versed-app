@@ -4,7 +4,7 @@ import { BibleTestament } from './bible-testament.model';
 import { UserVerseDetail } from './interfaces';
 import { TestamentType } from './enums';
 import BIBLE_DATA from './../bible_base_data.json';
-import { BibleGroup } from './bible-group.modle';
+import { BibleGroup } from './bible-group.model';
 
 export class BibleData {
   private readonly testamentMap: Map<string, BibleTestament> = new Map();

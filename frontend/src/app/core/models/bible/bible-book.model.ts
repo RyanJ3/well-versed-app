@@ -1,6 +1,6 @@
 // frontend/src/app/models/bible/bible-book.model.ts
 import { BibleChapter } from './bible-chapter.model';
-import { BibleGroup } from './bible-group.modle';
+import { BibleGroup } from './bible-group.model';
 import { BibleTestament } from './bible-testament.model';
 
 // Book name to numerical ID mapping
