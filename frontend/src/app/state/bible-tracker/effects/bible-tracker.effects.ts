@@ -17,7 +17,7 @@ import { BaseEffects } from '../../core/effects/base.effect';
 @Injectable()
 export class BibleTrackerEffects extends BaseEffects {
   private actions$ = inject(Actions);
-  private store = inject(Store<BibleTrackerState>);
+  protected override store = inject(Store<BibleTrackerState>);
   private bibleService = inject(BibleService);
   init$ = createEffect(() =>
     this.actions$.pipe(
@@ -29,7 +29,7 @@ export class BibleTrackerEffects extends BaseEffects {
     )
   );
 
-  loadReadingProgress$ = createEffect((): Observable<Action> =>
+  loadReadingProgress$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BibleTrackerActions.loadReadingProgress),
       mergeMap(() =>
@@ -45,7 +45,7 @@ export class BibleTrackerEffects extends BaseEffects {
     )
   );
 
-  markVersesAsRead$ = createEffect((): Observable<Action> =>
+  markVersesAsRead$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BibleTrackerActions.markVersesAsRead),
       mergeMap(({ bookId, chapter, verses }) =>
@@ -64,7 +64,7 @@ export class BibleTrackerEffects extends BaseEffects {
     )
   );
 
-  markChapterAsComplete$ = createEffect((): Observable<Action> =>
+  markChapterAsComplete$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BibleTrackerActions.markChapterAsComplete),
       mergeMap(({ bookId, chapter }) =>
@@ -121,7 +121,7 @@ export class BibleTrackerEffects extends BaseEffects {
     )
   );
 
-  syncProgress$ = createEffect((): Observable<Action> =>
+  syncProgress$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BibleTrackerActions.syncProgress),
       withLatestFrom(this.store.select(selectBibleTrackerState)),

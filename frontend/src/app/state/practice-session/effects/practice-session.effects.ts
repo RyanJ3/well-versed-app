@@ -33,7 +33,7 @@ import { NotificationService } from '@app/app/core/services/notification.service
 export class PracticeSessionEffects extends BaseEffects {
 
   private actions$ = inject(Actions);
-  private store = inject(Store);
+  protected override store = inject(Store);
   private audioService = inject(AudioService);
   private practiceService = inject(PracticeService);
   private notificationService = inject(NotificationService);

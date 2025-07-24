@@ -12,7 +12,7 @@ import { BaseEffects } from '../../core/effects/base.effect';
 @Injectable()
 export class DeckEffects extends BaseEffects {
   private actions$ = inject(Actions);
-  private store = inject(Store);
+  protected override store = inject(Store);
   private deckService = inject(DeckService);
   private notificationService = inject(NotificationService);
 
