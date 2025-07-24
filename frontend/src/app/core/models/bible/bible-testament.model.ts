@@ -1,6 +1,6 @@
 // src/app/models/bible/bible-testament.model.ts
 import { BibleBook } from './bible-book.model';
-import { BibleGroup } from './bible-group.modle';
+import { BibleGroup } from './bible-group.model';
 import { TestamentType } from './enums';
 
 /**

@@ -4,7 +4,7 @@ import { BibleTestament } from './bible-testament.model';
 import { UserVerseDetail } from './interfaces';
 import { TestamentType } from './enums';
 import BIBLE_DATA from './../bible_base_data.json';
-import { BibleGroup } from './bible-group.modle';
+import { BibleGroup } from './bible-group.model';
 
 export class BibleData {
   private readonly testamentMap: Map<string, BibleTestament> = new Map();
@@ -153,10 +153,19 @@ export class BibleData {
   }
 
   getTestamentByName(name: string): BibleTestament {
+    // Try direct map lookup first (OLD, NEW, APOCRYPHA keys)
     let testament = this.testamentMap.get(name);
     if (testament) {
       return testament;
     }
+
+    // Fallback to searching by the display name property
+    for (const t of this.testamentMap.values()) {
+      if (t.name === name) {
+        return t;
+      }
+    }
+
     throw new Error(`Testament ${name} not found`);
   }
 
