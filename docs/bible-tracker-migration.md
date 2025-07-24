@@ -10,8 +10,8 @@ Import the selectors and actions from the index barrel:
 import {
   BibleTrackerActions,
   selectBibleTrackerLoading,
-  selectAllBooksArray
-} from '../state/bible-tracker';
+  selectAllBooksArray,
+} from "../state/bible-tracker";
 ```
 
 Use them in your components:
@@ -21,7 +21,12 @@ loading$ = this.store.select(selectBibleTrackerLoading);
 books$ = this.store.select(selectAllBooksArray);
 ```
 
-Dispatch updates using the new action names.
+Dispatch updates using the new action names:
+
+```typescript
+this.store.dispatch(BibleTrackerActions.selectBook({ bookId: "1" }));
+this.store.dispatch(BibleTrackerActions.selectChapter({ chapter: 1 }));
+```
 
 The state slice now includes `dailyStreak` along with a loading map for book data.
 
