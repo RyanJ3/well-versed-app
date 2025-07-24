@@ -20,7 +20,8 @@ import {
 } from '../state/bible-tracker/selectors/bible-memorization.selectors';
 
 // Import models
-import { BibleBook, BibleChapter, BibleTestament, BibleVerse, BibleGroup } from '../core/models/bible';
+import { BibleBook, BibleChapter, BibleTestament, BibleGroup, BibleData } from '../core/models/bible';
+import { BibleVerse } from '../core/models/bible/bible-verse.model';
 import { ProgressSegment } from '../state/bible-tracker/models/bible-memorization.model';
 
 // Import services (only for modal, no more data services!)
@@ -56,14 +57,14 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   
   // Observables from store
-  bibleData$ = this.store.select(selectBibleDataWithProgress);
-  testaments$ = this.store.select(selectTestaments);
-  memorizedVerses$ = this.store.select(selectMemorizedVersesCount);
-  percentComplete$ = this.store.select(selectOverallPercentComplete);
-  progressSegments$ = this.store.select(selectProgressSegments);
-  progressViewMode$ = this.store.select(selectProgressViewMode);
-  isLoading$ = this.store.select(selectIsLoading);
-  isSavingBulk$ = this.store.select(selectIsSavingBulk);
+  bibleData$!: Observable<BibleData>;
+  testaments$!: Observable<BibleTestament[]>;
+  memorizedVerses$!: Observable<number>;
+  percentComplete$!: Observable<number>;
+  progressSegments$!: Observable<ProgressSegment[]>;
+  progressViewMode$!: Observable<'testament' | 'groups'>;
+  isLoading$!: Observable<boolean>;
+  isSavingBulk$!: Observable<boolean>;
   
   // Local UI state for navigation (not persisted)
   selectedTestament: BibleTestament | null = null;
@@ -94,14 +95,23 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   
   // Cache for current bible data and apocrypha setting
   private currentBibleData: any = null;
-  private includeApocrypha = false;
+  includeApocrypha = false;
 
   constructor(
     private store: Store,
     private modalService: ModalService,
     private cdr: ChangeDetectorRef,
     private router: Router
-  ) {}
+  ) {
+    this.bibleData$ = this.store.select(selectBibleDataWithProgress);
+    this.testaments$ = this.store.select(selectTestaments);
+    this.memorizedVerses$ = this.store.select(selectMemorizedVersesCount);
+    this.percentComplete$ = this.store.select(selectOverallPercentComplete);
+    this.progressSegments$ = this.store.select(selectProgressSegments);
+    this.progressViewMode$ = this.store.select(selectProgressViewMode);
+    this.isLoading$ = this.store.select(selectIsLoading);
+    this.isSavingBulk$ = this.store.select(selectIsSavingBulk);
+  }
 
   ngOnInit() {
     // Initialize the feature
