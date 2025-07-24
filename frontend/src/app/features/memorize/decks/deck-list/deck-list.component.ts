@@ -13,11 +13,13 @@ import {
   selectViewMode,
 } from '@app/state/decks/selectors/deck.selectors';
 import { DeckCategory } from '@app/state/decks/models/deck.model';
+import { DeckCardComponent } from '../components/deck-card/deck-card.component';
+import { SpinnerComponent } from '../../../../shared/components/spinner/spinner.component';
 
 @Component({
   selector: 'app-deck-list',
   standalone: true,
-  imports: [CommonModule /* other imports */],
+  imports: [CommonModule, DeckCardComponent, SpinnerComponent],
   template: `
     <div class="deck-list">
       <!-- Header -->

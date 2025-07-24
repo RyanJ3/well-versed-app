@@ -1,76 +1,57 @@
-<div class="bible-selector-container">
-  <!-- Loading overlay -->
-  <div *ngIf="isLoading" class="global-loading-overlay">
-    <div class="loading-spinner"></div>
-    <p>Loading Bible data...</p>
+<div class="bible-tracker">
+  <div class="loading-overlay" *ngIf="isLoading$ | async">
+    <app-spinner></app-spinner>
   </div>
 
-  <!-- Success Popup -->
-  <div class="success-popup" [class.show]="showSuccessMessage">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="success-icon">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-    </svg>
-    <span>{{ successMessage }}</span>
+  <div class="tracker-header">
+    <h1>Bible Reading Tracker</h1>
+
+    <div class="stats-summary" *ngIf="statistics$ | async as stats">
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.overallPercentage | number: '1.1-1' }}%</div>
+        <div class="stat-label">Complete</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.versesRead | number }}</div>
+        <div class="stat-label">Verses Read</div>
+      </div>
+      <div class="stat-card" *ngIf="todaysProgress$ | async as today">
+        <div class="stat-value">{{ today.versesReadToday }}</div>
+        <div class="stat-label">Today</div>
+      </div>
+    </div>
   </div>
 
-  <!-- Header -->
-  <app-bible-tracker-header></app-bible-tracker-header>
-
-  <!-- Stats -->
-  <app-bible-tracker-stats
-    [memorizedVerses]="memorizedVerses"
-    [percentComplete]="percentComplete"
-    [progressViewMode]="progressViewMode"
-    [progressSegments]="progressSegments"
-    (toggleProgressView)="toggleProgressView()">
-  </app-bible-tracker-stats>
-
-  <!-- Testament Cards -->
-  <div class="chart-grid">
-    <app-bible-tracker-testament-card
-      *ngFor="let testament of testaments"
-      [testament]="testament"
-      [isActive]="testament === selectedTestament"
-      [groupColors]="groupColors"
-      (testamentSelected)="setTestament($event)">
-    </app-bible-tracker-testament-card>
+  <div class="view-controls">
+    <button
+      class="view-btn"
+      [class.active]="(viewMode$ | async) === 'grid'"
+      (click)="setViewMode('grid')"
+    >
+      Grid View
+    </button>
+    <button
+      class="view-btn"
+      [class.active]="(viewMode$ | async) === 'list'"
+      (click)="setViewMode('list')"
+    >
+      List View
+    </button>
+    <button
+      class="view-btn"
+      [class.active]="(viewMode$ | async) === 'reading'"
+      (click)="setViewMode('reading')"
+    >
+      Reading View
+    </button>
   </div>
 
-  <!-- Book Groups -->
-  <app-bible-tracker-book-groups
-    [selectedTestament]="selectedTestament"
-    [selectedGroup]="selectedGroup"
-    [groupColors]="groupColors"
-    (groupSelected)="setGroup($event)">
-  </app-bible-tracker-book-groups>
-
-  <!-- Book Grid -->
-  <app-bible-tracker-book-grid
-    [selectedGroup]="selectedGroup"
-    [selectedBook]="selectedBook"
-    (bookSelected)="setBook($event)">
-  </app-bible-tracker-book-grid>
-
-  <!-- Chapter Heatmap -->
-  <app-bible-tracker-chapter-heatmap
-    [selectedBook]="selectedBook"
-    [includeApocrypha]="includeApocrypha"
-    [isLoading]="isLoading"
-    [isSavingBulk]="isSavingBulk"
-    (chapterSelected)="setChapter($event)"
-    (selectAllChapters)="selectAllChapters()"
-    (clearAllChapters)="clearAllChapters()">
-  </app-bible-tracker-chapter-heatmap>
-
-  <!-- Verse Grid -->
-  <app-bible-tracker-verse-grid
-    [selectedBook]="selectedBook"
-    [selectedChapter]="selectedChapter"
-    [isLoading]="isLoading"
-    [isSavingBulk]="isSavingBulk"
-    (verseToggled)="toggleAndSaveVerse($event)"
-    (selectAllVerses)="selectAllVerses()"
-    (clearAllVerses)="clearAllVerses()">
-  </app-bible-tracker-verse-grid>
+  <div class="books-container">
+    <app-bible-tracker-book-grid
+      [books]="(books$ | async) || []"
+      [viewMode]="(viewMode$ | async) || 'grid'"
+      (bookSelected)="onBookSelected($event)"
+      (versesMarked)="onVersesMarked($event)"
+    ></app-bible-tracker-book-grid>
+  </div>
 </div>
