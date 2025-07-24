@@ -23,14 +23,14 @@ import {
   selectSettings,
   selectSessionProgress,
 } from '../selectors/practice-session.selectors';
-import { BaseEffect } from '../../core/effects/base.effect';
+import { BaseEffects } from '../../core/effects/base.effect';
 import { ResponseQuality } from '../models/practice-session.model';
 import { PracticeService } from '@app/app/core/services/practice.service';
 import { AudioService } from '@app/app/core/services/audio.service';
 import { NotificationService } from '@app/app/core/services/notification.service';
 
 @Injectable()
-export class PracticeSessionEffects extends BaseEffect {
+export class PracticeSessionEffects extends BaseEffects {
 
   private actions$ = inject(Actions);
   private store = inject(Store);

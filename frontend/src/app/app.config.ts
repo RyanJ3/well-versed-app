@@ -16,6 +16,7 @@ import { decksReducer } from './state/decks/reducers/deck.reducer';
 import { DeckEffects } from './state/decks/effects/deck.effects';
 import { practiceSessionReducer } from './state/practice-session/reducers/practice-session.reducer';
 import { PracticeSessionEffects } from './state/practice-session/effects/practice-session.effects';
+import { uiReducer } from './state/ui/ui.reducer';
 import { ConfigService } from './core/services/config.service';
 
 export const appConfig: ApplicationConfig = {
@@ -38,6 +39,7 @@ export const appConfig: ApplicationConfig = {
         bibleTracker: bibleTrackerReducer,
         decks: decksReducer,
         practiceSession: practiceSessionReducer,
+        ui: uiReducer,
       },
       {
         metaReducers: isDevMode() ? metaReducers : [],

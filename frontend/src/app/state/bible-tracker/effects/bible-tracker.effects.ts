@@ -12,10 +12,10 @@ import {
 } from '../models/bible-tracker.model';
 import { BibleBook } from '../../../core/models/bible';
 import { selectBibleTrackerState } from '../selectors/bible-tracker.selectors';
-import { BaseEffect } from '../../core/effects/base.effect';
+import { BaseEffects } from '../../core/effects/base.effect';
 
 @Injectable()
-export class BibleTrackerEffects extends BaseEffect {
+export class BibleTrackerEffects extends BaseEffects {
   private actions$ = inject(Actions);
   private store = inject(Store<BibleTrackerState>);
   private bibleService = inject(BibleService);

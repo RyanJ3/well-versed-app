@@ -7,10 +7,10 @@ import { DeckService } from '../../../core/services/deck.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { DeckActions, CardActions } from '../actions/deck.actions';
 import { Deck } from '../models/deck.model';
-import { BaseEffect } from '../../core/effects/base.effect';
+import { BaseEffects } from '../../core/effects/base.effect';
 
 @Injectable()
-export class DeckEffects extends BaseEffect {
+export class DeckEffects extends BaseEffects {
   private actions$ = inject(Actions);
   private store = inject(Store);
   private deckService = inject(DeckService);
