@@ -66,7 +66,7 @@ export class BibleChapter {
     return this.memorizedVerses > 0 && !this.isComplete;
   }
 
-  // New getter to match ChapterProgress format
+  // Getter returning read verses numbers
   get versesRead(): number[] {
     return this.verses
       .filter(v => v.memorized)

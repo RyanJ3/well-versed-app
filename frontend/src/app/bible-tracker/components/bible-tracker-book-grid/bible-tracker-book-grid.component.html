@@ -9,11 +9,11 @@
       <div class="book-progress">
         <div class="book-progress-bar"
              [style.width.%]="book.percentComplete"
-             [style.background]="getBookProgressColor(book)"></div>
+             [style.background]="getBookColor(book)"></div>
       </div>
       <div class="book-stats">
         <span>{{ book.totalChapters }} chapters</span>
-        <span [style.color]="getBookProgressColor(book)" style="font-weight: 600;">{{ book.percentComplete }}%</span>
+        <span [style.color]="getBookColor(book)" style="font-weight: 600;">{{ book.percentComplete }}%</span>
       </div>
     </div>
   </div>

@@ -1,13 +1,12 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import {
   BibleTrackerState,
-  BookProgress,
   ReadingProgressState,
   BibleStatisticsState,
   StreakStatistics,
   BibleTrackerUIState,
-  ChapterProgress,
 } from '../models/bible-tracker.model';
+import { BibleBook, BibleChapter } from '../../core/models/bible';
 
 // Feature selector
 export const selectBibleTrackerState = createFeatureSelector<BibleTrackerState>('bibleTracker');
@@ -29,14 +28,14 @@ export const selectBookById = (bookId: string) =>
     (progress: ReadingProgressState) => progress.books[bookId]
   );
 
-export const selectChapterProgress = (bookId: string, chapter: number) =>
+export const selectChapter = (bookId: string, chapter: number) =>
   createSelector(
     selectBookById(bookId),
-    (book: BookProgress | undefined) => book?.chapters[chapter] || null
+    (book: BibleBook | undefined) => book?.chapters[chapter - 1] || null
   );
 
 export const selectIsBookComplete = (bookId: string) =>
-  createSelector(selectBookById(bookId), (book: BookProgress | undefined) => {
+  createSelector(selectBookById(bookId), (book: BibleBook | undefined) => {
     if (!book) return false;
     return book.percentComplete === 100;
   });
@@ -97,7 +96,7 @@ export const selectSelectedBookDetails = createSelector(
 export const selectFilteredBooks = createSelector(
   selectAllBooks,
   selectUI,
-  (books: BookProgress[], ui: BibleTrackerUIState) => {
+  (books: BibleBook[], ui: BibleTrackerUIState) => {
     if (!ui.showCompletedOnly) {
       return books;
     }
@@ -146,13 +145,13 @@ export const selectLastSyncDate = createSelector(
 // Progress calculations
 export const selectTodaysProgress = createSelector(
   selectAllBooks,
-  (books: BookProgress[]) => {
+  (books: BibleBook[]) => {
     const today = new Date().toDateString();
     let versesReadToday = 0;
     let chaptersCompletedToday = 0;
 
-    books.forEach((book: BookProgress) => {
-      Object.values(book.chapters).forEach((chapter: ChapterProgress) => {
+    books.forEach((book: BibleBook) => {
+      book.chapters.forEach((chapter: BibleChapter) => {
         if (chapter.completedDate &&
             new Date(chapter.completedDate).toDateString() === today) {
           chaptersCompletedToday++;

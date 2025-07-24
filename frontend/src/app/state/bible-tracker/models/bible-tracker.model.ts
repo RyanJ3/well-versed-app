@@ -4,31 +4,14 @@ export interface BibleTrackerState {
   ui: BibleTrackerUIState;
 }
 
+import { BibleBook } from '../../../core/models/bible';
+
 export interface ReadingProgressState {
-  books: { [bookId: string]: BookProgress };
+  books: { [bookId: string]: BibleBook };
   loading: boolean;
   loaded: boolean;
   error: string | null;
   lastSync: string | null;
-}
-
-export interface BookProgress {
-  bookId: string;
-  bookName: string;
-  totalChapters: number;
-  totalVerses: number;
-  chapters: { [chapterNumber: string]: ChapterProgress };
-  percentComplete: number;
-  lastRead: string | null;
-}
-
-export interface ChapterProgress {
-  chapterNumber: number;
-  totalVerses: number;
-  versesRead: number[];
-  percentComplete: number;
-  completedDate: string | null;
-  notes: string | null;
 }
 
 export interface BibleStatisticsState {

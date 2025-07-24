@@ -1,11 +1,11 @@
 import { createActionGroup, emptyProps, props } from '@ngrx/store';
 import {
-  BookProgress,
   BibleStatisticsState,
   MarkVersesReadRequest,
   MarkChapterCompleteRequest,
   BulkUpdateRequest
 } from '../models/bible-tracker.model';
+import { BibleBook } from '../../core/models/bible';
 
 export const BibleTrackerActions = createActionGroup({
   source: 'Bible Tracker',
@@ -15,7 +15,7 @@ export const BibleTrackerActions = createActionGroup({
 
     // Loading Progress
     'Load Reading Progress': emptyProps(),
-    'Load Reading Progress Success': props<{ books: { [bookId: string]: BookProgress } }>(),
+    'Load Reading Progress Success': props<{ books: { [bookId: string]: BibleBook } }>(),
     'Load Reading Progress Failure': props<{ error: string }>(),
 
     // Mark Progress

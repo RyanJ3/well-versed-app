@@ -21,7 +21,7 @@ export class BibleTrackerBookGridComponent {
         book.canonicalAffiliation === 'Eastern Orthodox');
   }
   
-  getBookProgressColor(book: BibleBook): string {
+  getBookColor(book: BibleBook): string {
     const percent = book.percentComplete;
     if (percent >= 80) return '#10b981';
     if (percent >= 50) return '#3b82f6';
