@@ -3,6 +3,8 @@ import { ApplicationConfig, isDevMode, provideAppInitializer, inject } from '@an
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { bibleMemorizationReducer } from "./state/bible-tracker/reducers/bible-memorization.reducer";
+import { BibleMemorizationEffects } from "./state/bible-tracker/effects/bible-memorization.effects";
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
@@ -10,8 +12,6 @@ import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { provideRouterStore, routerReducer } from '@ngrx/router-store';
 import { routes } from './app.routes';
 import { metaReducers } from './state/core/helpers/dev.helpers';
-import { bibleTrackerReducer } from './state/bible-tracker/reducers/bible-tracker.reducer';
-import { BibleTrackerEffects } from './state/bible-tracker/effects/bible-tracker.effects';
 import { decksReducer } from './state/decks/reducers/deck.reducer';
 import { DeckEffects } from './state/decks/effects/deck.effects';
 import { practiceSessionReducer } from './state/practice-session/reducers/practice-session.reducer';
@@ -36,7 +36,7 @@ export const appConfig: ApplicationConfig = {
     provideStore(
       {
         router: routerReducer,
-        bibleTracker: bibleTrackerReducer,
+        bibleMemorization: bibleMemorizationReducer,
         decks: decksReducer,
         practiceSession: practiceSessionReducer,
         ui: uiReducer,
@@ -56,8 +56,8 @@ export const appConfig: ApplicationConfig = {
 
     // NgRx Effects
     provideEffects([
-      BibleTrackerEffects,
       DeckEffects,
+      BibleMemorizationEffects,
       PracticeSessionEffects,
     ]),
 

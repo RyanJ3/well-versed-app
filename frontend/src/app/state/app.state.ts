@@ -1,4 +1,5 @@
 import { RouterReducerState } from '@ngrx/router-store';
+import { BibleMemorizationState } from "./bible-tracker/models/bible-memorization.model";
 import { BibleTrackerState } from './bible-tracker/models/bible-tracker.model';
 import { DecksState as DeckState } from './decks/models/deck.model';
 import { PracticeSessionState } from './practice-session/models/practice-session.model';
@@ -8,7 +9,7 @@ import { UIState } from './ui/ui.state';
 export interface AppState {
   router: RouterReducerState;
   auth: AuthState;
-  bibleTracker: BibleTrackerState;
+  bibleMemorization: BibleMemorizationState;
   decks: DeckState;
   practiceSession: PracticeSessionState;
   courses: CourseState;
