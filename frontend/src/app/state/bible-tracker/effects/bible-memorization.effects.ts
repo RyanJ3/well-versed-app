@@ -12,7 +12,8 @@ import {
   debounceTime,
   switchMap,
   concatMap,
-  retry
+  retry,
+  take
 } from 'rxjs/operators';
 
 import { BibleMemorizationActions } from '../actions/bible-memorization.actions';
@@ -40,26 +41,27 @@ export class BibleMemorizationEffects extends BaseEffects {
   initialize$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BibleMemorizationActions.initialize),
-      withLatestFrom(this.userService.currentUser$),
-      mergeMap(([_, user]) => {
-        if (!user) {
-          return of(BibleMemorizationActions.initializeFailure({ 
-            error: 'No user found' 
-          }));
-        }
-        
-        // Update preferences from user
-        const actions = [
-          BibleMemorizationActions.updateApocryphaPreference({ 
-            includeApocrypha: user.includeApocrypha || false 
-          }),
-          BibleMemorizationActions.loadMemorizationProgress({ 
-            userId: user.id as number 
-          })
-        ];
-        
-        return actions;
-      })
+      switchMap(() =>
+        this.userService.currentUser$.pipe(
+          filter((u): u is any => !!u),
+          take(1),
+          mergeMap(user => [
+            BibleMemorizationActions.updateApocryphaPreference({
+              includeApocrypha: user.includeApocrypha || false
+            }),
+            BibleMemorizationActions.loadMemorizationProgress({
+              userId: user.id as number
+            })
+          ]),
+          catchError(error =>
+            of(
+              BibleMemorizationActions.initializeFailure({
+                error: error.message || 'No user found'
+              })
+            )
+          )
+        )
+      )
     )
   );
 

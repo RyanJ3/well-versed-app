@@ -42,6 +42,15 @@ export const bibleMemorizationReducer = createReducer(
       error: null
     }
   })),
+
+  on(BibleMemorizationActions.initializeFailure, (state, { error }) => ({
+    ...state,
+    memorization: {
+      ...state.memorization,
+      loading: false,
+      error
+    }
+  })),
   
   // Load memorization progress
   on(BibleMemorizationActions.loadMemorizationProgress, state => ({
