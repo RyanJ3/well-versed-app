@@ -7,10 +7,10 @@ import { map, mergeMap, withLatestFrom, debounceTime, tap } from 'rxjs/operators
 import { BibleService } from '../../../core/services/bible.service';
 import { BibleTrackerActions } from '../actions/bible-tracker.actions';
 import {
-  BookProgress,
   BibleStatisticsState,
   BibleTrackerState,
 } from '../models/bible-tracker.model';
+import { BibleBook } from '../../../core/models/bible';
 import { selectBibleTrackerState } from '../selectors/bible-tracker.selectors';
 import { BaseEffect } from '../../core/effects/base.effect';
 
@@ -34,7 +34,7 @@ export class BibleTrackerEffects extends BaseEffect {
       ofType(BibleTrackerActions.loadReadingProgress),
       mergeMap(() =>
         this.bibleService.getUserReadingProgress().pipe(
-          map((books: { [bookId: string]: BookProgress }) =>
+          map((books: { [bookId: string]: BibleBook }) =>
             BibleTrackerActions.loadReadingProgressSuccess({ books })
           ),
           this.handleHttpError((error) =>
@@ -155,7 +155,7 @@ export class BibleTrackerEffects extends BaseEffect {
     super();
   }
 
-  private calculateStatistics(books: { [bookId: string]: BookProgress }): BibleStatisticsState {
+  private calculateStatistics(books: { [bookId: string]: BibleBook }): BibleStatisticsState {
     // Implementation of statistics calculation
     let totalVersesRead = 0;
     let chaptersCompleted = 0;

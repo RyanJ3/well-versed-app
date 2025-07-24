@@ -6,7 +6,6 @@ import { isPlatformBrowser } from '@angular/common';
 import { BibleData, UserVerseDetail, BibleBook } from '../models/bible';
 import { NotificationService } from './notification.service';
 import { environment } from '../../../environments/environment';
-import { BookProgress } from '../../state/bible-tracker/models/bible-tracker.model';
 
 // Bible version tracking for citations
 export interface BibleVersion {
@@ -265,7 +264,7 @@ export class BibleService {
 
   // ----- Bible Tracker Progress Methods (stub implementations) -----
 
-  getUserReadingProgress(): Observable<{ [bookId: string]: BookProgress }> {
+  getUserReadingProgress(): Observable<{ [bookId: string]: BibleBook }> {
     // TODO: Replace with real HTTP call
     return of({});
   }
@@ -280,7 +279,7 @@ export class BibleService {
     return of(void 0);
   }
 
-  syncProgress(progress: { [bookId: string]: BookProgress }): Observable<void> {
+  syncProgress(progress: { [bookId: string]: BibleBook }): Observable<void> {
     // TODO: Replace with real HTTP call
     return of(void 0);
   }
