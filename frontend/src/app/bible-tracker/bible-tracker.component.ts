@@ -2,105 +2,120 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
-import { BibleTrackerBookGridComponent } from './components/bible-tracker-book-grid/bible-tracker-book-grid.component';
-import { BookProgress } from '@app/state/bible-tracker/models/bible-tracker.model';
+import { takeUntil } from 'rxjs/operators';
 
 import { AppState } from '@app/state';
 import { BibleTrackerActions } from '@app/state/bible-tracker';
 import {
-  selectFilteredBooks,
   selectStatisticsOverview,
-  selectIsLoadingProgress,
+  selectIsAnyLoading,
   selectSelectedBookDetails,
-  selectTodaysProgress,
-  selectViewMode,
+  selectSelectedChapter,
 } from '@app/state/bible-tracker/selectors/bible-tracker.selectors';
+
+import { BibleService } from '@app/core/services/bible.service';
+import { BibleTestament, BibleBook, BibleChapter } from '@app/core/models/bible';
+import { BibleGroup } from '@app/core/models/bible/bible-group.modle';
+
+import { BibleTrackerHeaderComponent } from './components/bible-tracker-header/bible-tracker-header.component';
+import { BibleTrackerStatsComponent } from './components/bible-tracker-stats/bible-tracker-stats.component';
+import { BibleTrackerTestamentCardComponent } from './components/bible-tracker-testament-card/bible-tracker-testament-card.component';
+import { BibleTrackerBookGroupsComponent } from './components/bible-tracker-book-groups/bible-tracker-book-groups.component';
+import { BibleTrackerBookGridComponent } from './components/bible-tracker-book-grid/bible-tracker-book-grid.component';
+import { BibleTrackerChapterHeatmapComponent } from './components/bible-tracker-chapter-heatmap/bible-tracker-chapter-heatmap.component';
+import { BibleTrackerVerseGridComponent } from './components/bible-tracker-verse-grid/bible-tracker-verse-grid.component';
 
 @Component({
   selector: 'app-bible-tracker',
   standalone: true,
-  imports: [CommonModule, BibleTrackerBookGridComponent],
-  template: `
-    <div class="bible-tracker">
-      <!-- Loading State -->
-      <div class="loading-overlay" *ngIf="isLoading$ | async">
-        <div class="loading-spinner"></div>
-      </div>
-
-      <!-- Header with Stats -->
-      <div class="tracker-header">
-        <h1>Bible Reading Tracker</h1>
-
-        <div class="stats-summary" *ngIf="statistics$ | async as stats">
-          <div class="stat-card">
-            <div class="stat-value">
-              {{ stats.overallPercentage | number: '1.1-1' }}%
-            </div>
-            <div class="stat-label">Complete</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value">{{ stats.versesRead | number }}</div>
-            <div class="stat-label">Verses Read</div>
-          </div>
-          <div class="stat-card" *ngIf="todaysProgress$ | async as today">
-            <div class="stat-value">{{ today.versesReadToday }}</div>
-            <div class="stat-label">Today</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- View Mode Toggle -->
-      <div class="view-controls">
-        <button
-          class="view-btn"
-          [class.active]="(viewMode$ | async) === 'grid'"
-          (click)="setViewMode('grid')"
-        >
-          Grid View
-        </button>
-        <button
-          class="view-btn"
-          [class.active]="(viewMode$ | async) === 'list'"
-          (click)="setViewMode('list')"
-        >
-          List View
-        </button>
-        <button
-          class="view-btn"
-          [class.active]="(viewMode$ | async) === 'reading'"
-          (click)="setViewMode('reading')"
-        >
-          Reading View
-        </button>
-      </div>
-
-      <!-- Book Grid/List -->
-      <div class="books-container">
-        <app-bible-tracker-book-grid
-          [books]="(books$ | async) || []"
-          [viewMode]="(viewMode$ | async) || 'grid'"
-          (bookSelected)="onBookSelected($event)"
-          (versesMarked)="onVersesMarked($event)"
-        ></app-bible-tracker-book-grid>
-      </div>
-    </div>
-  `,
+  imports: [
+    CommonModule,
+    BibleTrackerHeaderComponent,
+    BibleTrackerStatsComponent,
+    BibleTrackerTestamentCardComponent,
+    BibleTrackerBookGroupsComponent,
+    BibleTrackerBookGridComponent,
+    BibleTrackerChapterHeatmapComponent,
+    BibleTrackerVerseGridComponent,
+  ],
+  templateUrl: './bible-tracker.component.html',
   styleUrls: ['./bible-tracker.component.scss'],
 })
 export class BibleTrackerComponent implements OnInit, OnDestroy {
   private store = inject(Store<AppState>);
+  private bibleService = inject(BibleService);
   private destroy$ = new Subject<void>();
 
-  // State Selectors
-  books$ = this.store.select(selectFilteredBooks);
-  statistics$ = this.store.select(selectStatisticsOverview);
-  isLoading$ = this.store.select(selectIsLoadingProgress);
-  selectedBook$ = this.store.select(selectSelectedBookDetails);
-  todaysProgress$ = this.store.select(selectTodaysProgress);
-  viewMode$ = this.store.select(selectViewMode);
+  // State derived values
+  memorizedVerses = 0;
+  percentComplete = 0;
+  isLoading = false;
+
+  selectedBook: BibleBook | null = null;
+  selectedChapter: BibleChapter | null = null;
+
+  // Local bible data selections
+  testaments: BibleTestament[] = [];
+  selectedTestament: BibleTestament | null = null;
+  selectedGroup: BibleGroup | null = null;
+
+  includeApocrypha = false;
+  isSavingBulk = false;
+
+  progressViewMode: 'testament' | 'groups' = 'testament';
+  progressSegments: any[] = [];
+
+  groupColors: { [key: string]: string } = {
+    'Law': '#10b981',
+    'History': '#3b82f6',
+    'Wisdom': '#8b5cf6',
+    'Major Prophets': '#f59e0b',
+    'Minor Prophets': '#ef4444',
+    'Gospels': '#10b981',
+    'Acts': '#3b82f6',
+    'Pauline Epistles': '#8b5cf6',
+    'General Epistles': '#f59e0b',
+    'Revelation': '#ef4444',
+  };
+
+  // Success popup state
+  showSuccessMessage = false;
+  successMessage = '';
+
+  constructor() {
+    const data = this.bibleService.getBibleData();
+    this.testaments = data.testaments;
+    this.selectedTestament = this.testaments[0] || null;
+    if (this.selectedTestament && this.selectedTestament.groups.length) {
+      this.setGroup(this.selectedTestament.groups[0]);
+    }
+  }
 
   ngOnInit(): void {
     this.store.dispatch(BibleTrackerActions.init());
+
+    this.store
+      .select(selectIsAnyLoading)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((loading) => (this.isLoading = loading));
+
+    this.store
+      .select(selectStatisticsOverview)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((stats) => {
+        this.percentComplete = stats.overallPercentage;
+        this.memorizedVerses = stats.versesRead;
+      });
+
+    this.store
+      .select(selectSelectedBookDetails)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((book) => (this.selectedBook = book as BibleBook | null));
+
+    this.store
+      .select(selectSelectedChapter)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((ch) => (this.selectedChapter = ch as BibleChapter | null));
   }
 
   ngOnDestroy(): void {
@@ -108,42 +123,79 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  onBookSelected(book: BookProgress): void {
-    this.selectBook(book.bookId);
+  toggleProgressView(): void {
+    this.progressViewMode =
+      this.progressViewMode === 'testament' ? 'groups' : 'testament';
   }
 
-  onVersesMarked(event: { bookId: string; chapter: number; verses: number[] }): void {
-    this.markVersesRead(event);
+  setTestament(testament: BibleTestament): void {
+    this.selectedTestament = testament;
+    if (testament.groups.length) {
+      this.setGroup(testament.groups[0]);
+    }
   }
 
-  selectBook(bookId: string): void {
-    this.store.dispatch(BibleTrackerActions.selectBook({ bookId }));
+  setGroup(group: BibleGroup): void {
+    this.selectedGroup = group;
+    if (group.books.length) {
+      this.setBook(group.books[0]);
+    }
   }
 
-  markVersesRead(event: { bookId: string; chapter: number; verses: number[] }): void {
+  setBook(book: BibleBook): void {
+    this.selectedBook = book;
+    const chapters = book.getVisibleChapters(this.includeApocrypha);
+    if (chapters.length) {
+      this.setChapter(chapters[0]);
+    }
+    this.store.dispatch(BibleTrackerActions.selectBook({ bookId: book.id.toString() }));
+  }
+
+  setChapter(chapter: BibleChapter): void {
+    this.selectedChapter = chapter;
+    this.store.dispatch(BibleTrackerActions.selectChapter({ chapter: chapter.chapterNumber }));
+  }
+
+  selectAllChapters(): void {
+    if (!this.selectedBook) return;
+    this.store.dispatch(BibleTrackerActions.markBookAsComplete({ bookId: this.selectedBook.id.toString() }));
+  }
+
+  clearAllChapters(): void {
+    if (!this.selectedBook) return;
+    this.store.dispatch(BibleTrackerActions.resetBookProgress({ bookId: this.selectedBook.id.toString() }));
+  }
+
+  selectAllVerses(): void {
+    if (!this.selectedBook || !this.selectedChapter) return;
+    const verses = this.selectedChapter.verses.map(v => v.verseNumber);
     this.store.dispatch(
       BibleTrackerActions.markVersesAsRead({
-        bookId: event.bookId,
-        chapter: event.chapter,
-        verses: event.verses,
-      }),
+        bookId: this.selectedBook.id.toString(),
+        chapter: this.selectedChapter.chapterNumber,
+        verses,
+      })
     );
   }
 
-  markChapterComplete(bookId: string, chapter: number): void {
+  clearAllVerses(): void {
+    if (!this.selectedBook || !this.selectedChapter) return;
     this.store.dispatch(
-      BibleTrackerActions.markChapterAsComplete({
-        bookId,
-        chapter,
-      }),
+      BibleTrackerActions.resetChapterProgress({
+        bookId: this.selectedBook.id.toString(),
+        chapter: this.selectedChapter.chapterNumber,
+      })
     );
   }
 
-  setViewMode(viewMode: 'grid' | 'list' | 'reading'): void {
-    this.store.dispatch(BibleTrackerActions.setViewMode({ viewMode }));
-  }
-
-  toggleCompletedFilter(): void {
-    this.store.dispatch(BibleTrackerActions.toggleCompletedFilter());
+  toggleAndSaveVerse(verse: any): void {
+    if (!this.selectedBook || !this.selectedChapter) return;
+    this.store.dispatch(
+      BibleTrackerActions.markVersesAsRead({
+        bookId: this.selectedBook.id.toString(),
+        chapter: this.selectedChapter.chapterNumber,
+        verses: [verse.verseNumber],
+      })
+    );
   }
 }
