@@ -40,8 +40,10 @@ export const initialState: BibleTrackerState = {
     selectedBook: null,
     selectedChapter: null,
     viewMode: 'grid',
+    progressViewMode: 'testament',
     showCompletedOnly: false,
     highlightToday: true,
+    includeApocrypha: false,
   },
 };
 
@@ -126,6 +128,93 @@ export const bibleTrackerReducer = createReducer(
     }
   ),
   on(
+    BibleTrackerActions.resetProgress,
+    (
+      state: BibleTrackerState,
+      { bookId, chapter, verses }: { bookId: string; chapter: number; verses: number[] }
+    ) => {
+      const book = state.readingProgress.books[bookId];
+      if (!book) return state;
+
+      const chapterProgress = book.chapters[chapter];
+      if (!chapterProgress) return state;
+
+      const updatedVerses = chapterProgress.versesRead.filter(v => !verses.includes(v));
+      const percentComplete = (updatedVerses.length / chapterProgress.totalVerses) * 100;
+
+      return {
+        ...state,
+        readingProgress: {
+          ...state.readingProgress,
+          books: {
+            ...state.readingProgress.books,
+            [bookId]: {
+              ...book,
+              chapters: {
+                ...book.chapters,
+                [chapter]: {
+                  ...chapterProgress,
+                  versesRead: updatedVerses,
+                  percentComplete,
+                  completedDate: percentComplete === 100 ? chapterProgress.completedDate : null,
+                },
+              },
+            },
+          },
+        },
+      };
+    }
+  ),
+  on(BibleTrackerActions.clearChapter, (state: BibleTrackerState, { bookId, chapter }) => {
+    const book = state.readingProgress.books[bookId];
+    if (!book || !book.chapters[chapter]) return state;
+
+    return {
+      ...state,
+      readingProgress: {
+        ...state.readingProgress,
+        books: {
+          ...state.readingProgress.books,
+          [bookId]: {
+            ...book,
+            chapters: {
+              ...book.chapters,
+              [chapter]: {
+                ...book.chapters[chapter],
+                versesRead: [],
+                percentComplete: 0,
+                completedDate: null,
+              },
+            },
+          },
+        },
+      },
+    };
+  }),
+  on(BibleTrackerActions.clearBook, (state: BibleTrackerState, { bookId }) => {
+    const book = state.readingProgress.books[bookId];
+    if (!book) return state;
+    const cleared: any = {};
+    Object.keys(book.chapters).forEach((ch) => {
+      cleared[ch] = {
+        ...book.chapters[ch],
+        versesRead: [],
+        percentComplete: 0,
+        completedDate: null,
+      };
+    });
+    return {
+      ...state,
+      readingProgress: {
+        ...state.readingProgress,
+        books: {
+          ...state.readingProgress.books,
+          [bookId]: { ...book, chapters: cleared },
+        },
+      },
+    };
+  }),
+  on(
     BibleTrackerActions.selectBook,
     (state: BibleTrackerState, { bookId }: { bookId: string | null }) => ({
       ...state,
@@ -163,6 +252,23 @@ export const bibleTrackerReducer = createReducer(
       showCompletedOnly: !state.ui.showCompletedOnly,
     },
   })),
+  on(BibleTrackerActions.toggleApocrypha, (state: BibleTrackerState) => ({
+    ...state,
+    ui: {
+      ...state.ui,
+      includeApocrypha: !state.ui.includeApocrypha,
+    },
+  })),
+  on(
+    BibleTrackerActions.setProgressViewMode,
+    (state: BibleTrackerState, { viewMode }: { viewMode: 'testament' | 'groups' }) => ({
+      ...state,
+      ui: {
+        ...state.ui,
+        progressViewMode: viewMode,
+      },
+    })
+  ),
   on(
     BibleTrackerActions.loadStatisticsSuccess,
     (

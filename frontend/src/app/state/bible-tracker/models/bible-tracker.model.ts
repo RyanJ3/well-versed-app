@@ -49,8 +49,10 @@ export interface BibleTrackerUIState {
   selectedBook: string | null;
   selectedChapter: number | null;
   viewMode: 'grid' | 'list' | 'reading';
+  progressViewMode: 'testament' | 'groups';
   showCompletedOnly: boolean;
   highlightToday: boolean;
+  includeApocrypha: boolean;
 }
 
 // API Models
