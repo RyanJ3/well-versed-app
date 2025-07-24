@@ -5,8 +5,6 @@ export interface BibleTrackerState {
   books: EntityState<Book>;
   readingProgress: ReadingProgress;
 
-  readingPlans: EntityState<ReadingPlan>;
-  activeReadingPlanId: string | null;
   dailyStreak: StreakData;
   readingStatistics: ReadingStatistics;
 
@@ -15,27 +13,17 @@ export interface BibleTrackerState {
   loading: {
     books: boolean;
     progress: boolean;
-    plans: boolean;
     statistics: boolean;
   };
   errors: {
     books: string | null;
     progress: string | null;
-    plans: string | null;
     statistics: string | null;
   };
 }
 
 export interface ReadingProgress {
   lastSync: string | null;
-}
-
-export interface ReadingPlan {
-  id: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-  bookIds: string[];
 }
 
 export interface StreakData {

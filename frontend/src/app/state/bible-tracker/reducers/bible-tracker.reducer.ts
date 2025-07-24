@@ -2,7 +2,6 @@ import { EntityAdapter, EntityState, createEntityAdapter } from '@ngrx/entity';
 import { createReducer, on } from '@ngrx/store';
 import {
   BibleTrackerState,
-  ReadingPlan,
   StreakData,
   ReadingStatistics,
   BibleTrackerUIState,
@@ -17,10 +16,6 @@ const booksAdapter: EntityAdapter<Book> = createEntityAdapter<Book>({
   selectId: (book) => book.id
 });
 
-const plansAdapter: EntityAdapter<ReadingPlan> = createEntityAdapter<ReadingPlan>({
-  selectId: (plan) => plan.id
-});
-
 // Initial State
 const defaultUI: BibleTrackerUIState = {
   selectedBookId: null,
@@ -32,8 +27,6 @@ const defaultUI: BibleTrackerUIState = {
 export const initialState: BibleTrackerState = {
   books: booksAdapter.getInitialState(),
   readingProgress: { lastSync: null },
-  readingPlans: plansAdapter.getInitialState(),
-  activeReadingPlanId: null,
   dailyStreak: { current: 0, longest: 0, lastReadDate: null },
   readingStatistics: {
     totalVerses: 0,
@@ -43,8 +36,8 @@ export const initialState: BibleTrackerState = {
     lastUpdated: null
   },
   ui: defaultUI,
-  loading: { books: false, progress: false, plans: false, statistics: false },
-  errors: { books: null, progress: null, plans: null, statistics: null }
+  loading: { books: false, progress: false, statistics: false },
+  errors: { books: null, progress: null, statistics: null }
 };
 
 
@@ -67,35 +60,6 @@ export const bibleTrackerReducer = createReducer(
     ...state,
     loading: { ...state.loading, books: false },
     errors: { ...state.errors, books: error }
-  })),
-  // Plans
-  on(BibleTrackerActions.loadReadingPlans, (state) => ({
-    ...state,
-    loading: { ...state.loading, plans: true },
-    errors: { ...state.errors, plans: null }
-  })),
-  on(BibleTrackerActions.loadReadingPlansSuccess, (state, { plans }) => ({
-    ...state,
-    readingPlans: plansAdapter.setAll(plans, state.readingPlans),
-    loading: { ...state.loading, plans: false },
-    errors: { ...state.errors, plans: null }
-  })),
-  on(BibleTrackerActions.loadReadingPlansFailure, (state, { error }) => ({
-    ...state,
-    loading: { ...state.loading, plans: false },
-    errors: { ...state.errors, plans: error }
-  })),
-  on(BibleTrackerActions.saveReadingPlanSuccess, (state, { plan }) => ({
-    ...state,
-    readingPlans: plansAdapter.upsertOne(plan, state.readingPlans)
-  })),
-  on(BibleTrackerActions.deleteReadingPlanSuccess, (state, { id }) => ({
-    ...state,
-    readingPlans: plansAdapter.removeOne(id, state.readingPlans)
-  })),
-  on(BibleTrackerActions.setActiveReadingPlan, (state, { id }) => ({
-    ...state,
-    activeReadingPlanId: id
   })),
   // Statistics
   on(BibleTrackerActions.loadStatistics, (state) => ({
@@ -142,6 +106,3 @@ export const {
   selectAll: selectAllBooks
 } = booksAdapter.getSelectors();
 
-export const {
-  selectAll: selectAllPlans
-} = plansAdapter.getSelectors();

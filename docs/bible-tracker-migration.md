@@ -25,8 +25,8 @@ readingStats$ = this.store.select(selectReadingStatistics);
 
 Dispatch updates using the new action names, e.g. `BibleTrackerActions.markVersesAsRead`.
 
-The state slice now includes `readingPlans`, `dailyStreak`, and `readingStatistics` along with per-operation loading and error maps.
+The state slice now includes `dailyStreak` and `readingStatistics` along with per-operation loading and error maps.
 
 ## Redux DevTools
 
-After rebuilding, Redux DevTools will show actions with the `[Bible Tracker]` prefix and a nested state under `bibleTracker` containing `books`, `readingPlans`, `dailyStreak`, `readingStatistics`, `ui`, `loading`, and `errors`.
+After rebuilding, Redux DevTools will show actions with the `[Bible Tracker]` prefix and a nested state under `bibleTracker` containing `books`, `dailyStreak`, `readingStatistics`, `ui`, `loading`, and `errors`.

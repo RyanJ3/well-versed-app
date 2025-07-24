@@ -20,7 +20,6 @@ export class BibleTrackerEffects extends BaseEffects {
       ofType(BibleTrackerActions.init),
       mergeMap(() => [
         BibleTrackerActions.loadReadingProgress({}),
-        BibleTrackerActions.loadReadingPlans({}),
         BibleTrackerActions.loadStatistics({}),
       ])
     )
@@ -72,41 +71,6 @@ export class BibleTrackerEffects extends BaseEffects {
     )
   );
 
-  loadPlans$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BibleTrackerActions.loadReadingPlans),
-      mergeMap(() =>
-        this.bibleService.getReadingPlans().pipe(
-          map((plans) => BibleTrackerActions.loadReadingPlansSuccess({ plans })),
-          this.handleHttpError((error) => BibleTrackerActions.loadReadingPlansFailure({ error }))
-        )
-      )
-    )
-  );
-
-  savePlan$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BibleTrackerActions.saveReadingPlan),
-      mergeMap(({ plan }) =>
-        this.bibleService.saveReadingPlan(plan).pipe(
-          map((saved) => BibleTrackerActions.saveReadingPlanSuccess({ plan: saved })),
-          this.handleHttpError((error) => BibleTrackerActions.saveReadingPlanFailure({ error }))
-        )
-      )
-    )
-  );
-
-  deletePlan$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BibleTrackerActions.deleteReadingPlan),
-      mergeMap(({ id }) =>
-        this.bibleService.deleteReadingPlan(id).pipe(
-          map(() => BibleTrackerActions.deleteReadingPlanSuccess({ id })),
-          this.handleHttpError((error) => BibleTrackerActions.deleteReadingPlanFailure({ error }))
-        )
-      )
-    )
-  );
 
   loadStatistics$ = createEffect(() =>
     this.actions$.pipe(

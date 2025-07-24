@@ -7,7 +7,6 @@ import {
 } from '../models/bible-tracker.model';
 import {
   selectAllBooks as selectAllBooksAdapter,
-  selectAllPlans as selectAllPlansAdapter,
 } from '../reducers/bible-tracker.reducer';
 import { BibleBook } from '../../../core/models/bible';
 
@@ -18,7 +17,6 @@ export const selectReadingProgress = createSelector(selectBibleTrackerState, (st
 }));
 
 export const selectBooksState = createSelector(selectBibleTrackerState, (state) => state.books);
-export const selectReadingPlansState = createSelector(selectBibleTrackerState, (state) => state.readingPlans);
 export const selectStatistics = createSelector(selectBibleTrackerState, (state) => state.readingStatistics);
 export const selectStreak = createSelector(selectBibleTrackerState, (state) => state.dailyStreak);
 export const selectUI = createSelector(selectBibleTrackerState, (state) => state.ui);
@@ -26,10 +24,6 @@ export const selectUI = createSelector(selectBibleTrackerState, (state) => state
 export const selectAllBooksArray = createSelector(
   selectBooksState,
   selectAllBooksAdapter
-);
-export const selectAllPlansArray = createSelector(
-  selectReadingPlansState,
-  selectAllPlansAdapter
 );
 
 export const selectSelectedBookId = createSelector(selectUI, (ui: BibleTrackerUIState) => ui.selectedBookId);

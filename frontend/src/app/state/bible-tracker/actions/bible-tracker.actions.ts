@@ -4,7 +4,6 @@ import {
   BulkUpdateRequest,
   MarkChapterCompleteRequest,
   MarkVersesReadRequest,
-  ReadingPlan,
   ReadingStatistics,
   StreakData,
   ReadingFilters
@@ -35,22 +34,6 @@ const bulkUpdateActions = createAsyncActions<
   string
 >('Bible Tracker', 'Bulk Update Progress');
 
-const loadPlansActions = createAsyncActions<{}, { plans: ReadingPlan[] }, string>(
-  'Bible Tracker',
-  'Load Reading Plans'
-);
-
-const savePlanActions = createAsyncActions<
-  { plan: ReadingPlan },
-  { plan: ReadingPlan },
-  string
->('Bible Tracker', 'Save Reading Plan');
-
-const deletePlanActions = createAsyncActions<
-  { id: string },
-  { id: string },
-  string
->('Bible Tracker', 'Delete Reading Plan');
 
 const loadStatsActions = createAsyncActions<{}, { statistics: ReadingStatistics }, string>(
   'Bible Tracker',
@@ -81,18 +64,6 @@ export const BibleTrackerActions = {
   bulkUpdateProgressSuccess: bulkUpdateActions.success,
   bulkUpdateProgressFailure: bulkUpdateActions.failure,
 
-  loadReadingPlans: loadPlansActions.request,
-  loadReadingPlansSuccess: loadPlansActions.success,
-  loadReadingPlansFailure: loadPlansActions.failure,
-
-  saveReadingPlan: savePlanActions.request,
-  saveReadingPlanSuccess: savePlanActions.success,
-  saveReadingPlanFailure: savePlanActions.failure,
-
-  deleteReadingPlan: deletePlanActions.request,
-  deleteReadingPlanSuccess: deletePlanActions.success,
-  deleteReadingPlanFailure: deletePlanActions.failure,
-
   loadStatistics: loadStatsActions.request,
   loadStatisticsSuccess: loadStatsActions.success,
   loadStatisticsFailure: loadStatsActions.failure,
@@ -101,10 +72,6 @@ export const BibleTrackerActions = {
   syncProgressSuccess: syncActions.success,
   syncProgressFailure: syncActions.failure,
 
-  setActiveReadingPlan: createAction(
-    '[Bible Tracker] Set Active Plan',
-    props<{ id: string | null }>()
-  ),
 
   updateStreak: createAction(
     '[Bible Tracker] Update Streak',
