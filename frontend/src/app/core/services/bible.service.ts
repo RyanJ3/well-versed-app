@@ -3,10 +3,10 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Observable, of, throwError, BehaviorSubject, Subject } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
-import { BibleData, UserVerseDetail, BibleBook } from '../models/bible';
+import { BibleData, UserVerseDetail, BookProgress } from '../models/bible';
 import { NotificationService } from './notification.service';
 import { environment } from '../../../environments/environment';
-import { BookProgress } from '../../state/bible-tracker/models/bible-tracker.model';
+import { BookProgress as TrackerBookProgress } from '../../state/bible-tracker/models/bible-tracker.model';
 
 // Bible version tracking for citations
 export interface BibleVersion {
@@ -59,8 +59,8 @@ export class BibleService {
     return this.bibleData;
   }
 
-  getBooks(): Observable<BibleBook[]> {
-    return this.http.get<BibleBook[]>(`${this.apiUrl}/books`);
+  getBooks(): Observable<BookProgress[]> {
+    return this.http.get<BookProgress[]>(`${this.apiUrl}/books`);
   }
 
   updateUserPreferences(includeApocrypha: boolean): void {
@@ -265,7 +265,7 @@ export class BibleService {
 
   // ----- Bible Tracker Progress Methods (stub implementations) -----
 
-  getUserReadingProgress(): Observable<{ [bookId: string]: BookProgress }> {
+  getUserReadingProgress(): Observable<{ [bookId: string]: TrackerBookProgress }> {
     // TODO: Replace with real HTTP call
     return of({});
   }
@@ -280,7 +280,7 @@ export class BibleService {
     return of(void 0);
   }
 
-  syncProgress(progress: { [bookId: string]: BookProgress }): Observable<void> {
+  syncProgress(progress: { [bookId: string]: TrackerBookProgress }): Observable<void> {
     // TODO: Replace with real HTTP call
     return of(void 0);
   }

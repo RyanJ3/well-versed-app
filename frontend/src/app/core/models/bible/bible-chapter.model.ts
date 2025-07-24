@@ -1,5 +1,5 @@
 import { BibleVerse } from './bible-verse.model';
-import { BibleBook } from './bible-book.model';
+import { BookProgress } from './bible-book.model';
 
 /**
  * Model class representing a Bible chapter
@@ -12,7 +12,7 @@ export class BibleChapter {
     public readonly chapterNumber: number,
     totalVerses: number,
     memorizedVerses: number[] = [],
-    private readonly parentBook?: BibleBook,
+    private readonly parentBook?: BookProgress,
     versesApocryphalStatus: boolean[] = []
   ) {
     // Create verses with proper parent references
@@ -36,7 +36,7 @@ export class BibleChapter {
   }
 
   // Getter for parent book
-  get book(): BibleBook | undefined {
+  get book(): BookProgress | undefined {
     return this.parentBook;
   }
 

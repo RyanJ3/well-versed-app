@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { BibleBook, BibleChapter, BibleVerse } from '../../../core/models/bible';
+import { BookProgress, BibleChapter, BibleVerse } from '../../../core/models/bible';
 
 @Component({
   selector: 'app-bible-tracker-verse-grid',
@@ -11,7 +11,7 @@ import { BibleBook, BibleChapter, BibleVerse } from '../../../core/models/bible'
   styleUrls: ['./bible-tracker-verse-grid.component.scss']
 })
 export class BibleTrackerVerseGridComponent {
-  @Input() selectedBook: BibleBook | null = null;
+  @Input() selectedBook: BookProgress | null = null;
   @Input() selectedChapter: BibleChapter | null = null;
   @Input() isLoading: boolean = false;
   @Input() isSavingBulk: boolean = false;

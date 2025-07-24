@@ -31,7 +31,7 @@ const BOOK_ID_MAP: Record<string, number> = {
 /**
  * Model class representing a Bible book
  */
-export class BibleBook {
+export class BookProgress {
     public readonly chapters: BibleChapter[];
     public readonly id: number; // Changed to number
 

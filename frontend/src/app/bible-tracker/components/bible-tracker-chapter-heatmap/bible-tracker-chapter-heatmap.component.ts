@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BibleBook, BibleChapter } from '../../../core/models/bible';
+import { BookProgress, BibleChapter } from '../../../core/models/bible';
 
 @Component({
   selector: 'app-bible-tracker-chapter-heatmap',
@@ -10,7 +10,7 @@ import { BibleBook, BibleChapter } from '../../../core/models/bible';
   styleUrls: ['./bible-tracker-chapter-heatmap.component.scss']
 })
 export class BibleTrackerChapterHeatmapComponent {
-  @Input() selectedBook: BibleBook | null = null;
+  @Input() selectedBook: BookProgress | null = null;
   @Input() includeApocrypha: boolean = false;
   @Input() isLoading: boolean = false;
   @Input() isSavingBulk: boolean = false;

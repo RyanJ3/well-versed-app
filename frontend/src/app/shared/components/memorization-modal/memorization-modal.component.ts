@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
 import { BibleService } from '../../../core/services/bible.service';
 import { UserService } from '../../../core/services/user.service';
 import { RecordingService } from '../../../core/services/recording.service';
-import { BibleBook } from '../../../core/models/bible';
+import { BookProgress } from '../../../core/models/bible';
 import { Subject, takeUntil } from 'rxjs';
 import { trigger, style, transition, animate, keyframes, state } from '@angular/animations';
 
@@ -227,7 +227,7 @@ export class MemorizationModalComponent implements OnInit, OnDestroy {
   async detectSingleChapterBook() {
     try {
       const books = await this.bibleService.getBooks().toPromise();
-      const currentBookInfo = books?.find((book: BibleBook) =>
+      const currentBookInfo = books?.find((book: BookProgress) =>
         book.name === this.currentBook || book.name === this.chapterName
       );
       if (currentBookInfo) {
@@ -594,7 +594,7 @@ buildAllStages() {
         const chapterNum = parseInt(match[2], 10);
         const bibleData = this.bibleService.getBibleData();
         if (bibleData && bibleData.books) {
-          const nextBook = bibleData.books.find((b: BibleBook) => b.name === bookName);
+          const nextBook = bibleData.books.find((b: BookProgress) => b.name === bookName);
           if (nextBook) {
             queryParams = { bookId: nextBook.id, chapter: chapterNum };
           }

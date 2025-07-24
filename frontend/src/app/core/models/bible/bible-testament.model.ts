@@ -1,5 +1,5 @@
 // src/app/models/bible/bible-testament.model.ts
-import { BibleBook } from './bible-book.model';
+import { BookProgress } from './bible-book.model';
 import { BibleGroup } from './bible-group.modle';
 import { TestamentType } from './enums';
 
@@ -7,7 +7,7 @@ import { TestamentType } from './enums';
  * Model class representing a Bible testament (Old or New)
  */
 export class BibleTestament {
-  public readonly books: BibleBook[] = [];
+  public readonly books: BookProgress[] = [];
   private readonly _groupsMap: Map<string, BibleGroup> = new Map();
 
   constructor(
@@ -15,7 +15,7 @@ export class BibleTestament {
     books: any[] = []
   ) { }
 
-  addBook(book: BibleBook): void {
+  addBook(book: BookProgress): void {
     this.books.push(book);
 
     // Add to group map if not exists
@@ -68,7 +68,7 @@ export class BibleTestament {
     return this._groupsMap.get(name);
   }
 
-  getBook(name: string): BibleBook | undefined {
+  getBook(name: string): BookProgress | undefined {
     return this.books.find(book => book.name === name);
   }
 
