@@ -124,6 +124,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.store.dispatch(BibleTrackerActions.init());
+    this.loadUserVerses();
 
     const selectionSub = combineLatest([
       this.store.select(selectSelectedBook),

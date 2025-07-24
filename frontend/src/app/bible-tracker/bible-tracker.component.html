@@ -1,7 +1,7 @@
 <div class="bible-selector-container">
   <!-- Loading overlay -->
   <div
-    *ngIf="isLoading || (loading$ | async)?.books"
+    *ngIf="(loading$ | async)?.books || isLoading"
     class="global-loading-overlay"
   >
     <div class="loading-spinner"></div>
