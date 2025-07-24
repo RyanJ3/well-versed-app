@@ -10,7 +10,7 @@ import {
   BibleStatisticsState,
   BibleTrackerState,
 } from '../models/bible-tracker.model';
-import { BibleBook } from '../../core/models/bible';
+import { BibleBook } from '../../../core/models/bible';
 import { selectBibleTrackerState } from '../selectors/bible-tracker.selectors';
 import { BaseEffect } from '../../core/effects/base.effect';
 

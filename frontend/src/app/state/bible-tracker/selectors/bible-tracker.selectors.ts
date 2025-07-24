@@ -6,7 +6,7 @@ import {
   StreakStatistics,
   BibleTrackerUIState,
 } from '../models/bible-tracker.model';
-import { BibleBook, BibleChapter } from '../../core/models/bible';
+import { BibleBook, BibleChapter } from '../../../core/models/bible';
 
 // Feature selector
 export const selectBibleTrackerState = createFeatureSelector<BibleTrackerState>('bibleTracker');

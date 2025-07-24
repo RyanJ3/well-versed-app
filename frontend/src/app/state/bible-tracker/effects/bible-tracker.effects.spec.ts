@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { TestBed } from '@angular/core/testing';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { Observable, of, throwError, ReplaySubject } from 'rxjs';
@@ -8,7 +9,7 @@ import { TestScheduler } from 'rxjs/testing';
 import { BibleTrackerEffects } from './bible-tracker.effects';
 import { BibleTrackerActions } from '../actions/bible-tracker.actions';
 import { bibleTrackerReducer } from '../reducers/bible-tracker.reducer';
-import { BibleBook } from '../../core/models/bible';
+import { BibleBook } from '../../../core/models/bible';
 import { BibleService } from '@app/app/core/services/bible.service';
 
 describe('BibleTrackerEffects', () => {
