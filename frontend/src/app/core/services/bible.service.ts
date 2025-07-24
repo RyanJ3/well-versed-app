@@ -262,26 +262,6 @@ export class BibleService {
     this.currentBibleVersionSubject.next(version);
   }
 
-  // ----- Bible Tracker Progress Methods (stub implementations) -----
-
-  getUserReadingProgress(): Observable<{ [bookId: string]: BibleBook }> {
-    // TODO: Replace with real HTTP call
-    return of({});
-  }
-
-  markVersesAsRead(bookId: string, chapter: number, verses: number[]): Observable<void> {
-    // TODO: Replace with real HTTP call
-    return of(void 0);
-  }
-
-  markChapterAsComplete(bookId: string, chapter: number): Observable<void> {
-    // TODO: Replace with real HTTP call
-    return of(void 0);
-  }
-
-  syncProgress(progress: { [bookId: string]: BibleBook }): Observable<void> {
-    // TODO: Replace with real HTTP call
-    return of(void 0);
-  }
+  // ----- Bible Tracker stubs (no-op) -----
 
 }
