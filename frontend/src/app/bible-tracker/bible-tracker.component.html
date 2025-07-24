@@ -1,14 +1,16 @@
 <div class="bible-tracker">
+  <!-- Loading State -->
   <div class="loading-overlay" *ngIf="isLoading$ | async">
     <app-spinner></app-spinner>
   </div>
 
+  <!-- Header with Stats -->
   <div class="tracker-header">
     <h1>Bible Reading Tracker</h1>
 
     <div class="stats-summary" *ngIf="statistics$ | async as stats">
       <div class="stat-card">
-        <div class="stat-value">{{ stats.overallPercentage | number: '1.1-1' }}%</div>
+        <div class="stat-value">{{ stats.overallPercentage | number:'1.1-1' }}%</div>
         <div class="stat-label">Complete</div>
       </div>
       <div class="stat-card">
@@ -22,36 +24,47 @@
     </div>
   </div>
 
+  <!-- View Mode Toggle -->
   <div class="view-controls">
-    <button
+    <button 
       class="view-btn"
       [class.active]="(viewMode$ | async) === 'grid'"
-      (click)="setViewMode('grid')"
-    >
+      (click)="setViewMode('grid')">
       Grid View
     </button>
-    <button
+    <button 
       class="view-btn"
       [class.active]="(viewMode$ | async) === 'list'"
-      (click)="setViewMode('list')"
-    >
+      (click)="setViewMode('list')">
       List View
     </button>
-    <button
+    <button 
       class="view-btn"
       [class.active]="(viewMode$ | async) === 'reading'"
-      (click)="setViewMode('reading')"
-    >
+      (click)="setViewMode('reading')">
       Reading View
     </button>
   </div>
 
-  <div class="books-container">
+  <!-- Book Grid/List -->
+  <div class="books-container" [ngSwitch]="viewMode$ | async">
     <app-bible-tracker-book-grid
-      [books]="(books$ | async) || []"
-      [viewMode]="(viewMode$ | async) || 'grid'"
-      (bookSelected)="onBookSelected($event)"
-      (versesMarked)="onVersesMarked($event)"
-    ></app-bible-tracker-book-grid>
+      *ngSwitchCase="'grid'"
+      [books]="books$ | async"
+      (bookSelected)="selectBook($event)"
+      (versesMarked)="markVersesRead($event)">
+    </app-bible-tracker-book-grid>
+
+    <app-bible-tracker-book-list
+      *ngSwitchCase="'list'"
+      [books]="books$ | async"
+      (bookSelected)="selectBook($event)">
+    </app-bible-tracker-book-list>
+
+    <app-bible-tracker-reading-view
+      *ngSwitchCase="'reading'"
+      [selectedBook]="selectedBook$ | async"
+      (versesRead)="markVersesRead($event)">
+    </app-bible-tracker-reading-view>
   </div>
 </div>
