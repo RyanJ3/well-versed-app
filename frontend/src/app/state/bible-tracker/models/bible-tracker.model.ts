@@ -3,27 +3,17 @@ import { BibleBook as Book } from '../../../core/models/bible';
 
 export interface BibleTrackerState {
   books: EntityState<Book>;
-  readingProgress: ReadingProgress;
 
   dailyStreak: StreakData;
-  readingStatistics: ReadingStatistics;
 
   ui: BibleTrackerUIState;
 
   loading: {
     books: boolean;
-    progress: boolean;
-    statistics: boolean;
   };
   errors: {
     books: string | null;
-    progress: string | null;
-    statistics: string | null;
   };
-}
-
-export interface ReadingProgress {
-  lastSync: string | null;
 }
 
 export interface StreakData {
@@ -32,13 +22,6 @@ export interface StreakData {
   lastReadDate: string | null;
 }
 
-export interface ReadingStatistics {
-  totalVerses: number;
-  versesRead: number;
-  chaptersCompleted: number;
-  booksCompleted: number;
-  lastUpdated: string | null;
-}
 
 export interface ReadingFilters {
   showCompleted: boolean;

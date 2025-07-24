@@ -4,7 +4,6 @@ import { Observable, of, throwError, BehaviorSubject, Subject } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { BibleData, UserVerseDetail, BibleBook } from '../models/bible';
-import { ReadingStatistics } from '../../state/bible-tracker/models/bible-tracker.model';
 import { NotificationService } from './notification.service';
 import { environment } from '../../../environments/environment';
 
@@ -263,39 +262,6 @@ export class BibleService {
     this.currentBibleVersionSubject.next(version);
   }
 
-  // ----- Bible Tracker Progress Methods (stub implementations) -----
-
-  getUserReadingProgress(): Observable<{ [bookId: string]: BibleBook }> {
-    // TODO: Replace with real HTTP call
-    return of({});
-  }
-
-  markVersesAsRead(bookId: string, chapter: number, verses: number[]): Observable<void> {
-    // TODO: Replace with real HTTP call
-    return of(void 0);
-  }
-
-  markChapterAsComplete(bookId: string, chapter: number): Observable<void> {
-    // TODO: Replace with real HTTP call
-    return of(void 0);
-  }
-
-  syncProgress(progress: { [bookId: string]: BibleBook }): Observable<void> {
-    // TODO: Replace with real HTTP call
-    return of(void 0);
-  }
-
-  // ----- Statistics Methods (stub) -----
-
-  calculateStatistics(progress: { [bookId: string]: BibleBook }): Observable<ReadingStatistics> {
-    // TODO: Replace with real implementation
-    return of({
-      totalVerses: 0,
-      versesRead: 0,
-      chaptersCompleted: 0,
-      booksCompleted: 0,
-      lastUpdated: new Date().toISOString()
-    });
-  }
+  // ----- Bible Tracker stubs (no-op) -----
 
 }

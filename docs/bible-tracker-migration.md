@@ -10,8 +10,7 @@ Import the selectors and actions from the index barrel:
 import {
   BibleTrackerActions,
   selectBibleTrackerLoading,
-  selectAllBooksArray,
-  selectReadingStatistics
+  selectAllBooksArray
 } from '../state/bible-tracker';
 ```
 
@@ -20,13 +19,12 @@ Use them in your components:
 ```typescript
 loading$ = this.store.select(selectBibleTrackerLoading);
 books$ = this.store.select(selectAllBooksArray);
-readingStats$ = this.store.select(selectReadingStatistics);
 ```
 
-Dispatch updates using the new action names, e.g. `BibleTrackerActions.markVersesAsRead`.
+Dispatch updates using the new action names.
 
-The state slice now includes `dailyStreak` and `readingStatistics` along with per-operation loading and error maps.
+The state slice now includes `dailyStreak` along with a loading map for book data.
 
 ## Redux DevTools
 
-After rebuilding, Redux DevTools will show actions with the `[Bible Tracker]` prefix and a nested state under `bibleTracker` containing `books`, `dailyStreak`, `readingStatistics`, `ui`, `loading`, and `errors`.
+After rebuilding, Redux DevTools will show actions with the `[Bible Tracker]` prefix and a nested state under `bibleTracker` containing `books`, `dailyStreak`, `ui`, `loading`, and `errors`.
