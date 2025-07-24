@@ -1,13 +1,17 @@
 <div class="bible-selector-container">
-  <!-- Loading overlay -->
-  <div *ngIf="isLoading" class="global-loading-overlay">
-    <div class="loading-spinner"></div>
-    <p>Loading Bible data...</p>
-  </div>
 
   <!-- Success Popup -->
   <div class="success-popup" [class.show]="showSuccessMessage">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="success-icon">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="success-icon"
+    >
       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
       <polyline points="22 4 12 14.01 9 11.01"></polyline>
     </svg>
@@ -23,7 +27,8 @@
     [percentComplete]="percentComplete"
     [progressViewMode]="progressViewMode"
     [progressSegments]="progressSegments"
-    (toggleProgressView)="toggleProgressView()">
+    (toggleProgressView)="toggleProgressView()"
+  >
   </app-bible-tracker-stats>
 
   <!-- Testament Cards -->
@@ -33,7 +38,8 @@
       [testament]="testament"
       [isActive]="testament === selectedTestament"
       [groupColors]="groupColors"
-      (testamentSelected)="setTestament($event)">
+      (testamentSelected)="setTestament($event)"
+    >
     </app-bible-tracker-testament-card>
   </div>
 
@@ -42,14 +48,16 @@
     [selectedTestament]="selectedTestament"
     [selectedGroup]="selectedGroup"
     [groupColors]="groupColors"
-    (groupSelected)="setGroup($event)">
+    (groupSelected)="setGroup($event)"
+  >
   </app-bible-tracker-book-groups>
 
   <!-- Book Grid -->
   <app-bible-tracker-book-grid
     [selectedGroup]="selectedGroup"
     [selectedBook]="selectedBook"
-    (bookSelected)="setBook($event)">
+    (bookSelected)="setBook($event)"
+  >
   </app-bible-tracker-book-grid>
 
   <!-- Chapter Heatmap -->
@@ -60,7 +68,8 @@
     [isSavingBulk]="isSavingBulk"
     (chapterSelected)="setChapter($event)"
     (selectAllChapters)="selectAllChapters()"
-    (clearAllChapters)="clearAllChapters()">
+    (clearAllChapters)="clearAllChapters()"
+  >
   </app-bible-tracker-chapter-heatmap>
 
   <!-- Verse Grid -->
@@ -71,6 +80,7 @@
     [isSavingBulk]="isSavingBulk"
     (verseToggled)="toggleAndSaveVerse($event)"
     (selectAllVerses)="selectAllVerses()"
-    (clearAllVerses)="clearAllVerses()">
+    (clearAllVerses)="clearAllVerses()"
+  >
   </app-bible-tracker-verse-grid>
 </div>
