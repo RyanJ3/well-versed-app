@@ -58,7 +58,10 @@ export const practiceSessionReducer = createReducer(
   // Start Session
   on(PracticeSessionActions.startSessionSuccess, (state, { session }) => ({
     ...state,
-    activeSession: session,
+    activeSession: {
+      ...session,
+      startTime: new Date(session.startTime as any),
+    },
     ui: {
       ...initialState.ui,
     },

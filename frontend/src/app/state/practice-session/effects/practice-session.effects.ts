@@ -44,7 +44,12 @@ export class PracticeSessionEffects extends BaseEffect {
       mergeMap(({ request }) =>
         this.practiceService.startSession(request).pipe(
           map((session) =>
-            PracticeSessionActions.startSessionSuccess({ session }),
+            PracticeSessionActions.startSessionSuccess({
+              session: {
+                ...session,
+                startTime: session.startTime.toISOString(),
+              } as any,
+            }),
           ),
           tap(() => {
             this.notificationService.info('Session started! Good luck!');
