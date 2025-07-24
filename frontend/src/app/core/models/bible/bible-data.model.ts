@@ -1,5 +1,5 @@
 // frontend/src/app/models/bible/bible-data.model.ts (key changes only)
-import { BibleBook } from './bible-book.model';
+import { BookProgress } from './bible-book.model';
 import { BibleTestament } from './bible-testament.model';
 import { UserVerseDetail } from './interfaces';
 import { TestamentType } from './enums';
@@ -8,20 +8,20 @@ import { BibleGroup } from './bible-group.modle';
 
 export class BibleData {
   private readonly testamentMap: Map<string, BibleTestament> = new Map();
-  private readonly bookMap: Map<string, BibleBook> = new Map();
-  private readonly bookIdMap: Map<number, BibleBook> = new Map(); // Changed to number key
+  private readonly bookMap: Map<string, BookProgress> = new Map();
+  private readonly bookIdMap: Map<number, BookProgress> = new Map(); // Changed to number key
 
   // Store all books regardless of filter status
-  private readonly _allBooks: BibleBook[] = [];
+  private readonly _allBooks: BookProgress[] = [];
 
   // Visible books after filtering (when not showing apocrypha)
-  public readonly visibleBooks: BibleBook[] = [];
+  public readonly visibleBooks: BookProgress[] = [];
 
   // Property to track apocrypha preference 
   private _includeApocrypha: boolean = false;
 
   // Getter to provide the appropriate book list based on preferences
-  get books(): BibleBook[] {
+  get books(): BookProgress[] {
     if (this._includeApocrypha) {
       return this._allBooks;
     }
@@ -77,7 +77,7 @@ export class BibleData {
       const group = groupMap.get(bookData.bookGroup)!;
 
       // Create book
-      const book = new BibleBook(
+      const book = new BookProgress(
         bookData.name,
         testament,
         group,
@@ -182,7 +182,7 @@ export class BibleData {
       : 0;
   }
 
-  getBookByName(name: string): BibleBook {
+  getBookByName(name: string): BookProgress {
     const book = this.bookMap.get(name);
     if (!book) {
       throw new Error(`Book ${name} not found`);
@@ -190,7 +190,7 @@ export class BibleData {
     return book;
   }
 
-  getBookById(id: number): BibleBook | undefined {
+  getBookById(id: number): BookProgress | undefined {
     return this.bookIdMap.get(id);
   }
 

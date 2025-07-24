@@ -1,6 +1,6 @@
 // src/app/models/bible/bible-verse.model.ts
 import { BibleChapter } from './bible-chapter.model';
-import { BibleBook } from './bible-book.model';
+import { BookProgress } from './bible-book.model';
 
 /**
  * Model class representing a single Bible verse
@@ -34,7 +34,7 @@ export class BibleVerse {
   }
 
   // Getter for parent book through chapter
-  get book(): BibleBook | undefined {
+  get book(): BookProgress | undefined {
     return this.parentChapter?.book;
   }
 

@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BibleBook } from '../../../core/models/bible';
+import { BookProgress } from '../../../core/models/bible';
 import { BibleGroup } from '../../../core/models/bible/bible-group.modle';
 
 @Component({
@@ -12,16 +12,16 @@ import { BibleGroup } from '../../../core/models/bible/bible-group.modle';
 })
 export class BibleTrackerBookGridComponent {
   @Input() selectedGroup: BibleGroup | null = null;
-  @Input() selectedBook: BibleBook | null = null;
-  @Output() bookSelected = new EventEmitter<BibleBook>();
+  @Input() selectedBook: BookProgress | null = null;
+  @Output() bookSelected = new EventEmitter<BookProgress>();
   
-  isApocryphalBook(book: BibleBook): boolean {
+  isApocryphalBook(book: BookProgress): boolean {
     return book.canonicalAffiliation !== 'All' &&
       (book.canonicalAffiliation === 'Catholic' ||
         book.canonicalAffiliation === 'Eastern Orthodox');
   }
   
-  getBookProgressColor(book: BibleBook): string {
+  getBookProgressColor(book: BookProgress): string {
     const percent = book.percentComplete;
     if (percent >= 80) return '#10b981';
     if (percent >= 50) return '#3b82f6';
@@ -29,7 +29,7 @@ export class BibleTrackerBookGridComponent {
     return '#f59e0b';
   }
   
-  selectBook(book: BibleBook): void {
+  selectBook(book: BookProgress): void {
     this.bookSelected.emit(book);
   }
 }

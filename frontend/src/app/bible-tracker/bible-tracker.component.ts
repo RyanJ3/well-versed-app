@@ -7,7 +7,7 @@ import { Subscription } from 'rxjs';
 import Chart from 'chart.js/auto';
 
 // Import models
-import { BibleBook, BibleChapter, BibleData, BibleTestament, UserVerseDetail } from '../core/models/bible';
+import { BookProgress, BibleChapter, BibleData, BibleTestament, UserVerseDetail } from '../core/models/bible';
 import { BibleVerse } from '../core/models/bible/bible-verse.model';
 import { BibleGroup } from '../core/models/bible/bible-group.modle';
 
@@ -63,7 +63,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
 
   selectedTestament: BibleTestament | null = null;
   selectedGroup: BibleGroup | null = null;
-  selectedBook: BibleBook | null = null;
+  selectedBook: BookProgress | null = null;
   selectedChapter: BibleChapter | null = null;
 
   userVerses: UserVerseDetail[] = [];
@@ -296,7 +296,7 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     }
   }
 
-  setBook(book: BibleBook): void {
+  setBook(book: BookProgress): void {
     this.selectedBook = book;
     const visibleChapters = this.getVisibleChapters(book);
     if (visibleChapters.length > 0) {
@@ -466,7 +466,7 @@ async selectAllChapters(): Promise<void> {
     return this.includeApocrypha || !chapter.isApocryphal;
   }
 
-  getVisibleChapters(book: BibleBook): BibleChapter[] {
+  getVisibleChapters(book: BookProgress): BibleChapter[] {
     return book.chapters.filter(chapter => this.isChapterVisible(chapter));
   }
 
@@ -515,7 +515,7 @@ async selectAllChapters(): Promise<void> {
     return this.defaultBook.group;
   }
 
-  get defaultBook(): BibleBook {
+  get defaultBook(): BookProgress {
     return this.bibleData.getBookByName("Genesis");
   }
 
