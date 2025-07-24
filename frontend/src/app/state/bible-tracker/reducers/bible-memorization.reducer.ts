@@ -204,7 +204,9 @@ export const bibleMemorizationReducer = createReducer(
     ...state,
     preferences: {
       ...state.preferences,
-      progressViewMode: state.preferences.progressViewMode === 'testament' ? 'groups' : 'testament'
+      progressViewMode: state.preferences.progressViewMode === 'testament'
+        ? ('groups' as const)
+        : ('testament' as const)
     }
   })),
   
