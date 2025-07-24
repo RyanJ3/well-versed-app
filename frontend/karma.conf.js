@@ -1,5 +1,5 @@
 module.exports = function (config) {
-  // For WSL with Linux Chrome installed
+  // Chrome binary location - works for both WSL and Docker
   const chromeBin = process.env.CHROME_BIN || '/usr/bin/google-chrome-stable';
   
   config.set({
@@ -39,7 +39,20 @@ module.exports = function (config) {
           '--no-sandbox',
           '--disable-setuid-sandbox',
           '--disable-dev-shm-usage',
-          '--disable-gpu'
+          '--disable-gpu',
+          '--remote-debugging-port=9222'  // Added for better Docker compatibility
+        ],
+        executablePath: chromeBin
+      },
+      // Add the missing ChromeHeadlessCI launcher referenced in package.json
+      ChromeHeadlessCI: {
+        base: 'ChromeHeadless',
+        flags: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--remote-debugging-port=9222'
         ],
         executablePath: chromeBin
       }
