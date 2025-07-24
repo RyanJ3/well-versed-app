@@ -306,11 +306,10 @@ export class VersePickerComponent implements OnInit, OnChanges {
   loadVerses() {
     if (this.selectedBook && this.selectedChapter) {
       const chapterData = this.selectedBook.chapters[this.selectedChapter - 1];
-      if (!chapterData) {
-        this.verses = [];
-        return;
-      }
-      this.verses = Array.from({ length: chapterData.verses.length }, (_, i) => i + 1);
+      this.verses = Array.from(
+        { length: chapterData.verses.length },
+        (_, i) => i + 1,
+      );
 
       if (this.mode === 'range') {
         this.loadEndVerses();
@@ -341,12 +340,12 @@ export class VersePickerComponent implements OnInit, OnChanges {
 
   loadEndVerses() {
     if (this.selectedBook && this.selectedEndChapter) {
-      const chapterData = this.selectedBook.chapters[this.selectedEndChapter - 1];
-      if (!chapterData) {
-        this.endVerses = [];
-        return;
-      }
-      this.endVerses = Array.from({ length: chapterData.verses.length }, (_, i) => i + 1);
+      const chapterData =
+        this.selectedBook.chapters[this.selectedEndChapter - 1];
+      this.endVerses = Array.from(
+        { length: chapterData.verses.length },
+        (_, i) => i + 1,
+      );
 
       // If same chapter, ensure end verse is >= start verse
       if (this.selectedEndChapter === this.selectedChapter) {
@@ -588,14 +587,12 @@ export class VersePickerComponent implements OnInit, OnChanges {
       const chapterData = this.selectedBook.chapters[this.selectedChapter - 1];
       reference = `${this.selectedBook.name} ${this.selectedChapter}`;
 
-      if (chapterData) {
-        for (let v = 1; v <= chapterData.verses.length; v++) {
-          const verseCode = `${this.selectedBook.id}-${this.selectedChapter}-${v}`;
-          verseCodes.push(verseCode);
-        }
-
-        verseCount = verseCodes.length;
+      for (let v = 1; v <= chapterData.verses.length; v++) {
+        const verseCode = `${this.selectedBook.id}-${this.selectedChapter}-${v}`;
+        verseCodes.push(verseCode);
       }
+
+      verseCount = verseCodes.length;
     } else {
       // Range mode
       const endChapter = this.selectedEndChapter;
@@ -615,26 +612,19 @@ export class VersePickerComponent implements OnInit, OnChanges {
       }
 
       // Generate verse codes for range
-        verseCodes = [];
-        for (let ch = this.selectedChapter; ch <= endChapter; ch++) {
-          const startV = ch === this.selectedChapter ? this.selectedVerse : 1;
-          const chapterData = this.selectedBook.chapters[ch - 1];
-          const endV =
-            ch === endChapter && chapterData
-              ? endVerse
-              : chapterData
-              ? chapterData.verses.length
-              : 0;
+      verseCodes = [];
+      for (let ch = this.selectedChapter; ch <= endChapter; ch++) {
+        const startV = ch === this.selectedChapter ? this.selectedVerse : 1;
+        const chapterData = this.selectedBook.chapters[ch - 1];
+        const endV = ch === endChapter ? endVerse : chapterData.verses.length;
 
-          if (chapterData) {
-            for (let v = startV; v <= endV; v++) {
-              const verseCode = `${this.selectedBook.id}-${ch}-${v}`;
-              verseCodes.push(verseCode);
-            }
-          }
+        for (let v = startV; v <= endV; v++) {
+          const verseCode = `${this.selectedBook.id}-${ch}-${v}`;
+          verseCodes.push(verseCode);
         }
+      }
 
-        verseCount = verseCodes.length;
+      verseCount = verseCodes.length;
     }
 
     // Update validation

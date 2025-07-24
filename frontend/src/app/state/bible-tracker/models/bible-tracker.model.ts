@@ -1,38 +1,56 @@
-import { EntityState } from '@ngrx/entity';
-import { BibleBook as Book } from '../../../core/models/bible';
-
 export interface BibleTrackerState {
-  books: EntityState<Book>;
-
-  dailyStreak: StreakData;
-
+  readingProgress: ReadingProgressState;
+  statistics: BibleStatisticsState;
   ui: BibleTrackerUIState;
-
-  loading: {
-    books: boolean;
-  };
-  errors: {
-    books: string | null;
-  };
 }
 
-export interface StreakData {
-  current: number;
-  longest: number;
+import { BibleBook } from '../../../core/models/bible';
+
+export interface ReadingProgressState {
+  books: { [bookId: string]: BibleBook };
+  loading: boolean;
+  loaded: boolean;
+  error: string | null;
+  lastSync: string | null;
+}
+
+export interface BibleStatisticsState {
+  overview: StatisticsOverview;
+  streaks: StreakStatistics;
+  loading: boolean;
+  error: string | null;
+}
+
+export interface StatisticsOverview {
+  totalBooks: number;
+  booksCompleted: number;
+  totalChapters: number;
+  chaptersCompleted: number;
+  totalVerses: number;
+  versesRead: number;
+  overallPercentage: number;
+  lastUpdated: string | null;
+}
+
+export interface StreakStatistics {
+  currentStreak: number;
+  longestStreak: number;
   lastReadDate: string | null;
+  streakHistory: StreakEntry[];
 }
 
-
-export interface ReadingFilters {
-  showCompleted: boolean;
-  highlightToday: boolean;
+export interface StreakEntry {
+  date: string;
+  versesRead: number;
+  chaptersCompleted: number;
 }
 
 export interface BibleTrackerUIState {
-  selectedBookId: string | null;
+  selectedBook: string | null;
   selectedChapter: number | null;
-  viewMode: 'grid' | 'list' | 'heatmap';
-  filters: ReadingFilters;
+  viewMode: 'grid' | 'list' | 'reading';
+  showCompletedOnly: boolean;
+  highlightToday: boolean;
 }
 
 // API Models

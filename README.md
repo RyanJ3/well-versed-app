@@ -34,7 +34,6 @@ cd sql_setup && python3 setup_database.py
 
 ## 📚 Documentation
 
-- 📖 **[Application Overview](docs/OVERVIEW.md)** - Purpose and key features
 - 📋 **[Setup Guide](docs/SETUP.md)** - Detailed installation instructions
 - 🏗️ **[Architecture](docs/ARCHITECTURE.md)** - System design and structure
 - 🔌 **[API Reference](docs/API.md)** - REST API documentation
