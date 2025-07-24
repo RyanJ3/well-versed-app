@@ -9,7 +9,7 @@ import { BibleTrackerEffects } from './bible-tracker.effects';
 import { BibleTrackerActions } from '../actions/bible-tracker.actions';
 import { bibleTrackerReducer } from '../reducers/bible-tracker.reducer';
 import { BookProgress } from '../models/bible-tracker.model';
-import { BibleService } from '@app/app/core/services/bible.service';
+import { BibleService } from '@app/core/services/bible.service';
 
 describe('BibleTrackerEffects', () => {
     let actions$: ReplaySubject<any>;

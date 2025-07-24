@@ -15,6 +15,6 @@ export * from './core/helpers/store.helpers';
 export * from './core/reducers/router.reducer';
 
 // Bible Tracker feature exports
-export * from './bible-tracker';
-export * from './decks';
-export * from './practice-session';
+// Export feature modules individually to avoid name collisions
+// Feature exports are available via their own entry points to prevent
+// duplicate selector names when importing from '@app/state'.
