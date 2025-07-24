@@ -4,6 +4,7 @@ import { Observable, of, throwError, BehaviorSubject, Subject } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { BibleData, UserVerseDetail, BibleBook } from '../models/bible';
+import { ReadingPlan, ReadingStatistics } from '../../state/bible-tracker/models/bible-tracker.model';
 import { NotificationService } from './notification.service';
 import { environment } from '../../../environments/environment';
 
@@ -282,6 +283,34 @@ export class BibleService {
   syncProgress(progress: { [bookId: string]: BibleBook }): Observable<void> {
     // TODO: Replace with real HTTP call
     return of(void 0);
+  }
+
+  // ----- Reading Plan & Statistics Methods (stubs) -----
+
+  getReadingPlans(): Observable<ReadingPlan[]> {
+    // TODO: Replace with real HTTP call
+    return of([]);
+  }
+
+  saveReadingPlan(plan: ReadingPlan): Observable<ReadingPlan> {
+    // TODO: Replace with real HTTP call
+    return of(plan);
+  }
+
+  deleteReadingPlan(id: string): Observable<void> {
+    // TODO: Replace with real HTTP call
+    return of(void 0);
+  }
+
+  calculateStatistics(progress: { [bookId: string]: BibleBook }): Observable<ReadingStatistics> {
+    // TODO: Replace with real implementation
+    return of({
+      totalVerses: 0,
+      versesRead: 0,
+      chaptersCompleted: 0,
+      booksCompleted: 0,
+      lastUpdated: new Date().toISOString()
+    });
   }
 
 }

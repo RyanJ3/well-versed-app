@@ -19,10 +19,10 @@ export interface BibleTrackerState {
     statistics: boolean;
   };
   errors: {
-    books: Error | null;
-    progress: Error | null;
-    plans: Error | null;
-    statistics: Error | null;
+    books: string | null;
+    progress: string | null;
+    plans: string | null;
+    statistics: string | null;
   };
 }
 

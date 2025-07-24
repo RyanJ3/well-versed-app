@@ -8,11 +8,11 @@ export function createAsyncActions<TRequest extends object, TSuccess extends obj
   return {
     request: createAction(
       `[${source}] ${event} Request`,
-      props<TRequest>()
+      props<any>()
     ),
     success: createAction(
       `[${source}] ${event} Success`,
-      props<TSuccess>()
+      props<any>()
     ),
     failure: createAction(
       `[${source}] ${event} Failure`,

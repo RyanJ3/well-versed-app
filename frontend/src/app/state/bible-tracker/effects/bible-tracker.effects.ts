@@ -5,6 +5,7 @@ import { map, mergeMap, withLatestFrom, debounceTime } from 'rxjs/operators';
 import { BibleService } from '../../../core/services/bible.service';
 import { BibleTrackerActions } from '../actions/bible-tracker.actions';
 import { BibleTrackerState } from '../models/bible-tracker.model';
+import { BibleBook } from '../../../core/models/bible';
 import { selectBibleTrackerState } from '../selectors/bible-tracker.selectors';
 import { BaseEffects } from '../../core/effects/base.effect';
 
@@ -18,9 +19,9 @@ export class BibleTrackerEffects extends BaseEffects {
     this.actions$.pipe(
       ofType(BibleTrackerActions.init),
       mergeMap(() => [
-        BibleTrackerActions.loadReadingProgress(),
-        BibleTrackerActions.loadReadingPlans(),
-        BibleTrackerActions.loadStatistics(),
+        BibleTrackerActions.loadReadingProgress({}),
+        BibleTrackerActions.loadReadingPlans({}),
+        BibleTrackerActions.loadStatistics({}),
       ])
     )
   );
@@ -111,12 +112,15 @@ export class BibleTrackerEffects extends BaseEffects {
     this.actions$.pipe(
       ofType(BibleTrackerActions.loadStatistics),
       withLatestFrom(this.store.select(selectBibleTrackerState)),
-      mergeMap(([_, state]) =>
-        this.bibleService.calculateStatistics(state.books.entities).pipe(
+      mergeMap(([_, state]) => {
+        const books = Object.fromEntries(
+          Object.entries(state.books.entities).filter(([, b]) => !!b)
+        ) as { [bookId: string]: BibleBook };
+        return this.bibleService.calculateStatistics(books).pipe(
           map((statistics) => BibleTrackerActions.loadStatisticsSuccess({ statistics })),
           this.handleHttpError((error) => BibleTrackerActions.loadStatisticsFailure({ error }))
-        )
-      )
+        );
+      })
     )
   );
 
@@ -124,12 +128,15 @@ export class BibleTrackerEffects extends BaseEffects {
     this.actions$.pipe(
       ofType(BibleTrackerActions.syncProgress),
       withLatestFrom(this.store.select(selectBibleTrackerState)),
-      mergeMap(([_, state]) =>
-        this.bibleService.syncProgress(state.books.entities).pipe(
+      mergeMap(([_, state]) => {
+        const books = Object.fromEntries(
+          Object.entries(state.books.entities).filter(([, b]) => !!b)
+        ) as { [bookId: string]: BibleBook };
+        return this.bibleService.syncProgress(books).pipe(
           map(() => BibleTrackerActions.syncProgressSuccess({ timestamp: new Date().toISOString() })),
           this.handleHttpError((error) => BibleTrackerActions.syncProgressFailure({ error }))
-        )
-      )
+        );
+      })
     )
   );
 
@@ -141,7 +148,7 @@ export class BibleTrackerEffects extends BaseEffects {
         BibleTrackerActions.bulkUpdateProgressSuccess
       ),
       debounceTime(500),
-      map(() => BibleTrackerActions.loadStatistics())
+      map(() => BibleTrackerActions.loadStatistics({}))
     )
   );
 
