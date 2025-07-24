@@ -1,165 +1,34 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import {
-  BibleTrackerState,
-  ReadingProgressState,
-  BibleStatisticsState,
-  StreakStatistics,
-  BibleTrackerUIState,
-} from '../models/bible-tracker.model';
-import { BibleBook, BibleChapter } from '../../../core/models/bible';
+import { BibleTrackerState, BibleTrackerUIState, ReadingFilters } from '../models/bible-tracker.model';
+import { selectAllBooks, selectAllPlans } from '../reducers/bible-tracker.reducer';
+import { BibleBook } from '../../../core/models/bible';
 
-// Feature selector
 export const selectBibleTrackerState = createFeatureSelector<BibleTrackerState>('bibleTracker');
 
-// Reading Progress selectors
-export const selectReadingProgress = createSelector(
-  selectBibleTrackerState,
-  (state: BibleTrackerState) => state.readingProgress
-);
+export const selectBooksState = createSelector(selectBibleTrackerState, (state) => state.books);
+export const selectReadingPlansState = createSelector(selectBibleTrackerState, (state) => state.readingPlans);
+export const selectStatistics = createSelector(selectBibleTrackerState, (state) => state.readingStatistics);
+export const selectStreak = createSelector(selectBibleTrackerState, (state) => state.dailyStreak);
+export const selectUI = createSelector(selectBibleTrackerState, (state) => state.ui);
 
-export const selectAllBooks = createSelector(
-  selectReadingProgress,
-  (progress: ReadingProgressState) => Object.values(progress.books)
-);
+export const selectAllBooksArray = createSelector(selectBooksState, selectAllBooks);
+export const selectAllPlansArray = createSelector(selectReadingPlansState, selectAllPlans);
 
-export const selectBookById = (bookId: string) =>
-  createSelector(
-    selectReadingProgress,
-    (progress: ReadingProgressState) => progress.books[bookId]
-  );
-
-export const selectChapter = (bookId: string, chapter: number) =>
-  createSelector(
-    selectBookById(bookId),
-    (book: BibleBook | undefined) => book?.chapters[chapter - 1] || null
-  );
-
-export const selectIsBookComplete = (bookId: string) =>
-  createSelector(selectBookById(bookId), (book: BibleBook | undefined) => {
-    if (!book) return false;
-    return book.percentComplete === 100;
-  });
-
-// Statistics selectors
-export const selectStatistics = createSelector(
-  selectBibleTrackerState,
-  (state: BibleTrackerState) => state.statistics
-);
-
-export const selectStatisticsOverview = createSelector(
-  selectStatistics,
-  (stats: BibleStatisticsState) => stats.overview
-);
-
-export const selectStreaks = createSelector(
-  selectStatistics,
-  (stats: BibleStatisticsState) => stats.streaks
-);
-
-export const selectCurrentStreak = createSelector(
-  selectStreaks,
-  (streaks: StreakStatistics) => streaks.currentStreak
-);
-
-// UI selectors
-export const selectUI = createSelector(
-  selectBibleTrackerState,
-  (state: BibleTrackerState) => state.ui
-);
+export const selectSelectedBookId = createSelector(selectUI, (ui: BibleTrackerUIState) => ui.selectedBookId);
+export const selectSelectedChapter = createSelector(selectUI, (ui: BibleTrackerUIState) => ui.selectedChapter);
+export const selectViewMode = createSelector(selectUI, (ui: BibleTrackerUIState) => ui.viewMode);
+export const selectFilters = createSelector(selectUI, (ui: BibleTrackerUIState) => ui.filters);
 
 export const selectSelectedBook = createSelector(
-  selectUI,
-  (ui: BibleTrackerUIState) => ui.selectedBook
+  selectAllBooksArray,
+  selectSelectedBookId,
+  (books: BibleBook[], id: string | null) => books.find((b) => b.id === (id ? parseInt(id, 10) : -1)) || null
 );
 
-export const selectSelectedChapter = createSelector(
-  selectUI,
-  (ui: BibleTrackerUIState) => ui.selectedChapter
-);
-
-export const selectViewMode = createSelector(
-  selectUI,
-  (ui: BibleTrackerUIState) => ui.viewMode
-);
-
-// Combined selectors
-export const selectSelectedBookDetails = createSelector(
-  selectReadingProgress,
-  selectSelectedBook,
-  (
-    progress: ReadingProgressState,
-    selectedBookId: string | null
-  ) =>
-    selectedBookId ? progress.books[selectedBookId] : null
-);
-
-export const selectFilteredBooks = createSelector(
-  selectAllBooks,
-  selectUI,
-  (books: BibleBook[], ui: BibleTrackerUIState) => {
-    if (!ui.showCompletedOnly) {
-      return books;
-    }
-    return books.filter((book) => book.percentComplete === 100);
-  }
-);
-
-// Loading states
-export const selectIsLoadingProgress = createSelector(
-  selectReadingProgress,
-  (progress: ReadingProgressState) => progress.loading
-);
-
-export const selectIsLoadingStatistics = createSelector(
+export const selectCompletionPercentage = createSelector(
   selectStatistics,
-  (stats: BibleStatisticsState) => stats.loading
+  (stats) => (stats.totalVerses ? Math.round((stats.versesRead / stats.totalVerses) * 100) : 0)
 );
 
-export const selectIsAnyLoading = createSelector(
-  selectIsLoadingProgress,
-  selectIsLoadingStatistics,
-  (
-    progressLoading: boolean,
-    statsLoading: boolean
-  ) => progressLoading || statsLoading
-);
-
-// Error states
-export const selectProgressError = createSelector(
-  selectReadingProgress,
-  (progress: ReadingProgressState) => progress.error
-);
-
-export const selectStatisticsError = createSelector(
-  selectStatistics,
-  (stats: BibleStatisticsState) => stats.error
-);
-
-// Helper to convert lastSync string to Date
-export const selectLastSyncDate = createSelector(
-  selectReadingProgress,
-  (progress: ReadingProgressState) =>
-    progress.lastSync ? new Date(progress.lastSync) : null
-);
-
-// Progress calculations
-export const selectTodaysProgress = createSelector(
-  selectAllBooks,
-  (books: BibleBook[]) => {
-    const today = new Date().toDateString();
-    let versesReadToday = 0;
-    let chaptersCompletedToday = 0;
-
-    books.forEach((book: BibleBook) => {
-      book.chapters.forEach((chapter: BibleChapter) => {
-        if (chapter.completedDate &&
-            new Date(chapter.completedDate).toDateString() === today) {
-          chaptersCompletedToday++;
-          versesReadToday += chapter.versesRead.length;
-        }
-      });
-    });
-
-    return { versesReadToday, chaptersCompletedToday };
-  }
-);
+export const selectReadingStatistics = createSelector(selectStatistics, (s) => s);
+export const selectBibleTrackerLoading = createSelector(selectBibleTrackerState, (s) => s.loading);

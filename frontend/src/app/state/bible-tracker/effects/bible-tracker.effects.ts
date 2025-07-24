@@ -1,16 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { Store, Action } from '@ngrx/store';
-import { Observable } from 'rxjs';
-import { map, mergeMap, withLatestFrom, debounceTime, tap } from 'rxjs/operators';
-
+import { Store } from '@ngrx/store';
+import { map, mergeMap, withLatestFrom, debounceTime } from 'rxjs/operators';
 import { BibleService } from '../../../core/services/bible.service';
 import { BibleTrackerActions } from '../actions/bible-tracker.actions';
-import {
-  BibleStatisticsState,
-  BibleTrackerState,
-} from '../models/bible-tracker.model';
-import { BibleBook } from '../../../core/models/bible';
+import { BibleTrackerState } from '../models/bible-tracker.model';
 import { selectBibleTrackerState } from '../selectors/bible-tracker.selectors';
 import { BaseEffects } from '../../core/effects/base.effect';
 
@@ -19,33 +13,31 @@ export class BibleTrackerEffects extends BaseEffects {
   private actions$ = inject(Actions);
   protected override store = inject(Store<BibleTrackerState>);
   private bibleService = inject(BibleService);
+
   init$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BibleTrackerActions.init),
       mergeMap(() => [
         BibleTrackerActions.loadReadingProgress(),
+        BibleTrackerActions.loadReadingPlans(),
         BibleTrackerActions.loadStatistics(),
       ])
     )
   );
 
-  loadReadingProgress$ = createEffect(() =>
+  loadProgress$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BibleTrackerActions.loadReadingProgress),
       mergeMap(() =>
         this.bibleService.getUserReadingProgress().pipe(
-          map((books: { [bookId: string]: BibleBook }) =>
-            BibleTrackerActions.loadReadingProgressSuccess({ books })
-          ),
-          this.handleHttpError((error) =>
-            BibleTrackerActions.loadReadingProgressFailure({ error })
-          )
+          map((books) => BibleTrackerActions.loadReadingProgressSuccess({ books })),
+          this.handleHttpError((error) => BibleTrackerActions.loadReadingProgressFailure({ error }))
         )
       )
     )
   );
 
-  markVersesAsRead$ = createEffect(() =>
+  markVerses$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BibleTrackerActions.markVersesAsRead),
       mergeMap(({ bookId, chapter, verses }) =>
@@ -56,15 +48,13 @@ export class BibleTrackerEffects extends BaseEffects {
               timestamp: new Date().toISOString(),
             })
           ),
-          this.handleHttpError((error) =>
-            BibleTrackerActions.markVersesAsReadFailure({ error })
-          )
+          this.handleHttpError((error) => BibleTrackerActions.markVersesAsReadFailure({ error }))
         )
       )
     )
   );
 
-  markChapterAsComplete$ = createEffect(() =>
+  markChapter$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BibleTrackerActions.markChapterAsComplete),
       mergeMap(({ bookId, chapter }) =>
@@ -75,132 +65,85 @@ export class BibleTrackerEffects extends BaseEffects {
               timestamp: new Date().toISOString(),
             })
           ),
-          this.handleHttpError((error) =>
-            BibleTrackerActions.markChapterAsCompleteFailure({ error })
-          )
+          this.handleHttpError((error) => BibleTrackerActions.markChapterAsCompleteFailure({ error }))
         )
       )
     )
   );
 
-  // Update statistics after any progress change
+  loadPlans$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BibleTrackerActions.loadReadingPlans),
+      mergeMap(() =>
+        this.bibleService.getReadingPlans().pipe(
+          map((plans) => BibleTrackerActions.loadReadingPlansSuccess({ plans })),
+          this.handleHttpError((error) => BibleTrackerActions.loadReadingPlansFailure({ error }))
+        )
+      )
+    )
+  );
+
+  savePlan$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BibleTrackerActions.saveReadingPlan),
+      mergeMap(({ plan }) =>
+        this.bibleService.saveReadingPlan(plan).pipe(
+          map((saved) => BibleTrackerActions.saveReadingPlanSuccess({ plan: saved })),
+          this.handleHttpError((error) => BibleTrackerActions.saveReadingPlanFailure({ error }))
+        )
+      )
+    )
+  );
+
+  deletePlan$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BibleTrackerActions.deleteReadingPlan),
+      mergeMap(({ id }) =>
+        this.bibleService.deleteReadingPlan(id).pipe(
+          map(() => BibleTrackerActions.deleteReadingPlanSuccess({ id })),
+          this.handleHttpError((error) => BibleTrackerActions.deleteReadingPlanFailure({ error }))
+        )
+      )
+    )
+  );
+
+  loadStatistics$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BibleTrackerActions.loadStatistics),
+      withLatestFrom(this.store.select(selectBibleTrackerState)),
+      mergeMap(([_, state]) =>
+        this.bibleService.calculateStatistics(state.books.entities).pipe(
+          map((statistics) => BibleTrackerActions.loadStatisticsSuccess({ statistics })),
+          this.handleHttpError((error) => BibleTrackerActions.loadStatisticsFailure({ error }))
+        )
+      )
+    )
+  );
+
+  sync$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(BibleTrackerActions.syncProgress),
+      withLatestFrom(this.store.select(selectBibleTrackerState)),
+      mergeMap(([_, state]) =>
+        this.bibleService.syncProgress(state.books.entities).pipe(
+          map(() => BibleTrackerActions.syncProgressSuccess({ timestamp: new Date().toISOString() })),
+          this.handleHttpError((error) => BibleTrackerActions.syncProgressFailure({ error }))
+        )
+      )
+    )
+  );
+
   updateStatisticsAfterChange$ = createEffect(() =>
     this.actions$.pipe(
       ofType(
         BibleTrackerActions.markVersesAsReadSuccess,
         BibleTrackerActions.markChapterAsCompleteSuccess,
-        BibleTrackerActions.markBookAsCompleteSuccess,
         BibleTrackerActions.bulkUpdateProgressSuccess
       ),
-      debounceTime(500), // Debounce multiple rapid updates
-      map(() => BibleTrackerActions.updateStatistics())
+      debounceTime(500),
+      map(() => BibleTrackerActions.loadStatistics())
     )
   );
 
-  updateStatistics$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BibleTrackerActions.updateStatistics),
-      withLatestFrom(this.store.select(selectBibleTrackerState)),
-      map(([_, state]) => {
-        // Calculate statistics from current state
-        const statistics = this.calculateStatistics(state.readingProgress.books);
-        return BibleTrackerActions.loadStatisticsSuccess({ statistics });
-      })
-    )
-  );
-
-  // Auto-sync every 5 minutes when there are changes
-  autoSync$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(
-        BibleTrackerActions.markVersesAsReadSuccess,
-        BibleTrackerActions.markChapterAsCompleteSuccess
-      ),
-      debounceTime(5 * 60 * 1000), // 5 minutes
-      map(() => BibleTrackerActions.syncProgress())
-    )
-  );
-
-  syncProgress$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(BibleTrackerActions.syncProgress),
-      withLatestFrom(this.store.select(selectBibleTrackerState)),
-      mergeMap(([_, state]) =>
-        this.bibleService.syncProgress(state.readingProgress.books).pipe(
-          map(() =>
-            BibleTrackerActions.syncProgressSuccess({ timestamp: new Date().toISOString() })
-          ),
-          this.handleHttpError((error) =>
-            BibleTrackerActions.syncProgressFailure({ error })
-          )
-        )
-      )
-    )
-  );
-
-  // Show notification on sync success
-  syncSuccessNotification$ = createEffect(
-    () =>
-      this.actions$.pipe(
-        ofType(BibleTrackerActions.syncProgressSuccess),
-        tap(() => {
-          // You would inject a notification service here
-          console.log('Progress synced successfully');
-        })
-      ),
-    { dispatch: false }
-  );
-
-  constructor() {
-    super();
-  }
-
-  private calculateStatistics(books: { [bookId: string]: BibleBook }): BibleStatisticsState {
-    // Implementation of statistics calculation
-    let totalVersesRead = 0;
-    let chaptersCompleted = 0;
-    let booksCompleted = 0;
-
-    Object.values(books).forEach((book: any) => {
-      let bookComplete = true;
-      
-      Object.values(book.chapters).forEach((chapter: any) => {
-        totalVersesRead += chapter.versesRead.length;
-        
-        if (chapter.percentComplete === 100) {
-          chaptersCompleted++;
-        } else {
-          bookComplete = false;
-        }
-      });
-      
-      if (bookComplete && Object.keys(book.chapters).length === book.totalChapters) {
-        booksCompleted++;
-      }
-    });
-
-    const overallPercentage = (totalVersesRead / 31102) * 100;
-
-    return {
-      overview: {
-        totalBooks: 66,
-        booksCompleted,
-        totalChapters: 1189,
-        chaptersCompleted,
-        totalVerses: 31102,
-        versesRead: totalVersesRead,
-        overallPercentage,
-        lastUpdated: new Date().toISOString(),
-      },
-      streaks: {
-        // Streak calculation would go here
-        currentStreak: 0,
-        longestStreak: 0,
-        lastReadDate: new Date().toISOString(),
-        streakHistory: [],
-      },
-      loading: false,
-      error: null,
-    };
-  }
+  constructor() { super(); }
 }

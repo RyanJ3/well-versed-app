@@ -1,64 +1,133 @@
-import { createActionGroup, emptyProps, props } from '@ngrx/store';
+import { createAction, props } from '@ngrx/store';
+import { createAsyncActions } from '../../shared/utils/action-factory';
 import {
-  BibleStatisticsState,
-  MarkVersesReadRequest,
+  BulkUpdateRequest,
   MarkChapterCompleteRequest,
-  BulkUpdateRequest
+  MarkVersesReadRequest,
+  ReadingPlan,
+  ReadingStatistics,
+  StreakData,
+  ReadingFilters
 } from '../models/bible-tracker.model';
-import { BibleBook } from '../../../core/models/bible';
+import { BibleBook as Book } from '../../../core/models/bible';
 
-export const BibleTrackerActions = createActionGroup({
-  source: 'Bible Tracker',
-  events: {
-    // Initialize
-    'Init': emptyProps(),
+// Async action factories
+const loadProgressActions = createAsyncActions<{}, { books: Book[] }, string>(
+  'Bible Tracker',
+  'Load Reading Progress'
+);
 
-    // Loading Progress
-    'Load Reading Progress': emptyProps(),
-    'Load Reading Progress Success': props<{ books: { [bookId: string]: BibleBook } }>(),
-    'Load Reading Progress Failure': props<{ error: string }>(),
+const markVersesActions = createAsyncActions<
+  MarkVersesReadRequest,
+  { update: MarkVersesReadRequest; timestamp: string },
+  string
+>('Bible Tracker', 'Mark Verses As Read');
 
-    // Mark Progress
-    'Mark Verses As Read': props<MarkVersesReadRequest>(),
-    'Mark Verses As Read Success': props<{ update: MarkVersesReadRequest; timestamp: string }>(),
-    'Mark Verses As Read Failure': props<{ error: string }>(),
+const markChapterActions = createAsyncActions<
+  MarkChapterCompleteRequest,
+  { update: MarkChapterCompleteRequest; timestamp: string },
+  string
+>('Bible Tracker', 'Mark Chapter As Complete');
 
-    'Mark Chapter As Complete': props<MarkChapterCompleteRequest>(),
-    'Mark Chapter As Complete Success': props<{ update: MarkChapterCompleteRequest; timestamp: string }>(),
-    'Mark Chapter As Complete Failure': props<{ error: string }>(),
+const bulkUpdateActions = createAsyncActions<
+  BulkUpdateRequest,
+  { updates: BulkUpdateRequest; timestamp: string },
+  string
+>('Bible Tracker', 'Bulk Update Progress');
 
-    'Mark Book As Complete': props<{ bookId: string }>(),
-    'Mark Book As Complete Success': props<{ bookId: string; timestamp: string }>(),
-    'Mark Book As Complete Failure': props<{ error: string }>(),
+const loadPlansActions = createAsyncActions<{}, { plans: ReadingPlan[] }, string>(
+  'Bible Tracker',
+  'Load Reading Plans'
+);
 
-    // Bulk Operations
-    'Bulk Update Progress': props<BulkUpdateRequest>(),
-    'Bulk Update Progress Success': props<{ updates: BulkUpdateRequest; timestamp: string }>(),
-    'Bulk Update Progress Failure': props<{ error: string }>(),
+const savePlanActions = createAsyncActions<
+  { plan: ReadingPlan },
+  { plan: ReadingPlan },
+  string
+>('Bible Tracker', 'Save Reading Plan');
 
-    // Statistics
-    'Load Statistics': emptyProps(),
-    'Load Statistics Success': props<{ statistics: BibleStatisticsState }>(),
-    'Load Statistics Failure': props<{ error: string }>(),
-    'Update Statistics': emptyProps(),
+const deletePlanActions = createAsyncActions<
+  { id: string },
+  { id: string },
+  string
+>('Bible Tracker', 'Delete Reading Plan');
 
-    // Sync
-    'Sync Progress': emptyProps(),
-    'Sync Progress Success': props<{ timestamp: string }>(),
-    'Sync Progress Failure': props<{ error: string }>(),
+const loadStatsActions = createAsyncActions<{}, { statistics: ReadingStatistics }, string>(
+  'Bible Tracker',
+  'Load Statistics'
+);
 
-    // Reset
-    'Reset Chapter Progress': props<{ bookId: string; chapter: number }>(),
-    'Reset Book Progress': props<{ bookId: string }>(),
-    'Reset All Progress': emptyProps(),
-    'Reset Progress Success': emptyProps(),
-    'Reset Progress Failure': props<{ error: string }>(),
+const syncActions = createAsyncActions<{}, { timestamp: string }, string>(
+  'Bible Tracker',
+  'Sync Progress'
+);
 
-    // UI Actions
-    'Select Book': props<{ bookId: string | null }>(),
-    'Select Chapter': props<{ chapter: number | null }>(),
-    'Set View Mode': props<{ viewMode: 'grid' | 'list' | 'reading' }>(),
-    'Toggle Completed Filter': emptyProps(),
-    'Toggle Highlight Today': emptyProps(),
-  }
-});
+export const BibleTrackerActions = {
+  init: createAction('[Bible Tracker] Init'),
+
+  loadReadingProgress: loadProgressActions.request,
+  loadReadingProgressSuccess: loadProgressActions.success,
+  loadReadingProgressFailure: loadProgressActions.failure,
+
+  markVersesAsRead: markVersesActions.request,
+  markVersesAsReadSuccess: markVersesActions.success,
+  markVersesAsReadFailure: markVersesActions.failure,
+
+  markChapterAsComplete: markChapterActions.request,
+  markChapterAsCompleteSuccess: markChapterActions.success,
+  markChapterAsCompleteFailure: markChapterActions.failure,
+
+  bulkUpdateProgress: bulkUpdateActions.request,
+  bulkUpdateProgressSuccess: bulkUpdateActions.success,
+  bulkUpdateProgressFailure: bulkUpdateActions.failure,
+
+  loadReadingPlans: loadPlansActions.request,
+  loadReadingPlansSuccess: loadPlansActions.success,
+  loadReadingPlansFailure: loadPlansActions.failure,
+
+  saveReadingPlan: savePlanActions.request,
+  saveReadingPlanSuccess: savePlanActions.success,
+  saveReadingPlanFailure: savePlanActions.failure,
+
+  deleteReadingPlan: deletePlanActions.request,
+  deleteReadingPlanSuccess: deletePlanActions.success,
+  deleteReadingPlanFailure: deletePlanActions.failure,
+
+  loadStatistics: loadStatsActions.request,
+  loadStatisticsSuccess: loadStatsActions.success,
+  loadStatisticsFailure: loadStatsActions.failure,
+
+  syncProgress: syncActions.request,
+  syncProgressSuccess: syncActions.success,
+  syncProgressFailure: syncActions.failure,
+
+  setActiveReadingPlan: createAction(
+    '[Bible Tracker] Set Active Plan',
+    props<{ id: string | null }>()
+  ),
+
+  updateStreak: createAction(
+    '[Bible Tracker] Update Streak',
+    props<{ streak: StreakData }>()
+  ),
+
+  selectBook: createAction(
+    '[Bible Tracker] Select Book',
+    props<{ bookId: string | null }>()
+  ),
+
+  selectChapter: createAction(
+    '[Bible Tracker] Select Chapter',
+    props<{ chapter: number | null }>()
+  ),
+
+  setViewMode: createAction(
+    '[Bible Tracker] Set View Mode',
+    props<{ viewMode: 'grid' | 'list' | 'heatmap' }>()
+  ),
+
+  setFilters: createAction(
+    '[Bible Tracker] Set Filters',
+    props<{ filters: ReadingFilters }>()
+  )
+};
