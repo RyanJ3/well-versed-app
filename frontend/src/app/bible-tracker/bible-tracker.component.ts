@@ -117,14 +117,16 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     // Initialize the feature
     this.store.dispatch(BibleMemorizationActions.initialize());
     
-    // Subscribe to bible data to set initial selections
+    // Subscribe to bible data to set initial selections and update references
     this.bibleData$.pipe(takeUntil(this.destroy$)).subscribe(bibleData => {
       this.currentBibleData = bibleData;
       this.includeApocrypha = bibleData.includeApocrypha;
-      
+
       // Set default selections if not already set
       if (!this.selectedTestament && bibleData.testaments.length > 0) {
         this.setTestament(bibleData.testaments[0]);
+      } else {
+        this.updateSelectedReferences(bibleData);
       }
     });
     
@@ -267,6 +269,38 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   // UI methods
   toggleProgressView(): void {
     this.store.dispatch(BibleMemorizationActions.toggleProgressViewMode());
+  }
+
+  // Update selected references when bible data changes
+  private updateSelectedReferences(bibleData: BibleData): void {
+    if (this.selectedTestament) {
+      try {
+        this.selectedTestament = bibleData.getTestamentByName(this.selectedTestament.name);
+      } catch (_) {
+        this.selectedTestament = null;
+      }
+    }
+
+    if (this.selectedGroup) {
+      try {
+        this.selectedGroup = bibleData.getGroupByName(this.selectedGroup.name);
+      } catch (_) {
+        this.selectedGroup = null;
+      }
+    }
+
+    if (this.selectedBook) {
+      const newBook = bibleData.getBookById(this.selectedBook.id);
+      if (newBook) {
+        this.selectedBook = newBook;
+        if (this.selectedChapter) {
+          const newChapter = newBook.chapters[this.selectedChapter.chapterNumber - 1];
+          if (newChapter) {
+            this.selectedChapter = newChapter;
+          }
+        }
+      }
+    }
   }
 
   // Helper methods
