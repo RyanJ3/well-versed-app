@@ -13,7 +13,7 @@ class DeckService:
         return deck
 
     async def get_user_decks(self, user_id: int, skip: int = 0, limit: int = 100) -> List[schemas.DeckResponse]:
-        decks = await self.repo.get_user_decks(user_id, skip, limit)
+        decks = await self.repo.get_user_decks_optimized(user_id, skip, limit)
         return [schemas.DeckResponse(**{k: v for k, v in d.items() if k != "cards"}) for d in decks]
 
     async def get_public_decks(self, skip: int = 0, limit: int = 20) -> List[schemas.DeckResponse]:
@@ -24,7 +24,7 @@ class DeckService:
         ]
 
     async def get_deck_with_cards(self, deck_id: int, user_id: int) -> schemas.DeckCardsResponse:
-        deck = await self.repo.get_deck_by_id(deck_id, user_id)
+        deck = await self.repo.get_deck_with_cards_optimized(deck_id, user_id)
         if not deck:
             raise DeckNotFoundError(deck_id)
         return schemas.DeckCardsResponse(

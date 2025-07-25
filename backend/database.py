@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 class DatabaseConnection:
     def __init__(self, pool):
         self.pool = pool
+        self.query_count = 0
     
     @contextmanager
     def get_db(self):
@@ -35,6 +36,7 @@ class DatabaseConnection:
         with self.get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 logger.debug(f"Executing query: {query[:100]}...")
+                self.query_count += 1
                 cur.execute(query, params)
                 result = cur.fetchone()
                 logger.debug(f"Query returned {'1 row' if result else '0 rows'}")
@@ -45,6 +47,7 @@ class DatabaseConnection:
         with self.get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 logger.debug(f"Executing query: {query[:100]}...")
+                self.query_count += 1
                 cur.execute(query, params)
                 results = cur.fetchall()
                 logger.debug(f"Query returned {len(results)} rows")
@@ -55,6 +58,7 @@ class DatabaseConnection:
         with self.get_db() as conn:
             with conn.cursor() as cur:
                 logger.debug(f"Executing query: {query[:100]}...")
+                self.query_count += 1
                 cur.execute(query, params)
                 conn.commit()
                 logger.debug(f"Affected rows: {cur.rowcount}")
@@ -64,6 +68,7 @@ class DatabaseConnection:
         with self.get_db() as conn:
             with conn.cursor() as cur:
                 logger.debug(f"Executing batch query: {query[:100]}...")
+                self.query_count += len(params_list)
                 cur.executemany(query, params_list)
                 conn.commit()
                 logger.debug(f"Total affected rows: {cur.rowcount}")

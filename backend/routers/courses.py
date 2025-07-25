@@ -6,6 +6,7 @@ import json
 import logging
 from database import DatabaseConnection
 import db_pool
+from domain.courses.repository import CourseRepository
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +111,10 @@ class UserLessonProgress(BaseModel):
 
 def get_db():
     return DatabaseConnection(db_pool.db_pool)
+
+
+def get_course_repository(db: DatabaseConnection = Depends(get_db)) -> CourseRepository:
+    return CourseRepository(db)
 
 
 @router.post("", response_model=CourseResponse)
@@ -328,46 +333,16 @@ async def list_user_courses(user_id: int, db: DatabaseConnection = Depends(get_d
 
 
 @router.get("/enrolled/{user_id}", response_model=List[CourseResponse])
-async def list_enrolled_courses(user_id: int, db: DatabaseConnection = Depends(get_db)):
+async def list_enrolled_courses(
+    user_id: int,
+    repo: CourseRepository = Depends(get_course_repository),
+):
     logger.info(f"Listing courses enrolled by user {user_id}")
-    query = """
-        SELECT w.course_id, w.user_id, u.name AS creator_name, w.name, w.description,
-               w.thumbnail_url, w.is_public, w.created_at, w.updated_at,
-               e.enrolled_at,
-               COUNT(DISTINCT l.lesson_id) as lesson_count,
-               COUNT(DISTINCT e2.user_id) as enrolled_count,
-               ARRAY_REMOVE(ARRAY_AGG(DISTINCT t.tag_name), NULL) as tags
-        FROM course_enrollments e
-        JOIN courses w ON e.course_id = w.course_id
-        JOIN users u ON w.user_id = u.user_id
-        LEFT JOIN course_lessons l ON w.course_id = l.course_id
-        LEFT JOIN course_enrollments e2 ON w.course_id = e2.course_id
-        LEFT JOIN course_tag_map m ON w.course_id = m.course_id
-        LEFT JOIN course_tags t ON m.tag_id = t.tag_id
-        WHERE e.user_id = %s
-        GROUP BY w.course_id, w.user_id, u.name, w.name, w.description, w.thumbnail_url, w.is_public, w.created_at, w.updated_at, e.enrolled_at
-        ORDER BY e.enrolled_at DESC
-    """
-    rows = db.fetch_all(query, (user_id,))
-    courses = [
-        CourseResponse(
-            id=r["course_id"],
-            creator_id=r["user_id"],
-            creator_name=r["creator_name"],
-            title=r["name"],
-            description=r["description"],
-            thumbnail_url=r.get("thumbnail_url"),
-            is_public=r["is_public"],
-            created_at=r["created_at"].isoformat(),
-            updated_at=r["updated_at"].isoformat(),
-            lesson_count=r["lesson_count"],
-            enrolled_count=r.get("enrolled_count", 0),
-            tags=r.get("tags") or [],
-        )
-        for r in rows
-    ]
+
+    courses = repo.get_enrolled_courses_optimized(user_id)
+
     logger.info(f"User {user_id} enrolled courses count: {len(courses)}")
-    return courses
+    return [CourseResponse(**c) for c in courses]
 
 
 @router.get("/{course_id}", response_model=CourseResponse)
