@@ -2,6 +2,7 @@ from typing import List, Optional, Dict
 from database import DatabaseConnection
 from datetime import datetime
 from . import schemas
+from utils.performance import track_queries
 
 class DeckRepository:
     """Data access layer for decks using PostgreSQL"""
@@ -156,45 +157,6 @@ class DeckRepository:
             "cards": cards,
         }
 
-    async def get_user_decks(self, user_id: int, skip: int = 0, limit: int = 100) -> List[Dict]:
-        rows = self.db.fetch_all(
-            """
-            SELECT d.deck_id, d.user_id, u.name AS creator_name, d.name, d.description,
-                   d.is_public, d.created_at, d.updated_at,
-                   COUNT(DISTINCT dc.card_id) AS card_count,
-                   ARRAY_REMOVE(ARRAY_AGG(DISTINCT t.tag_name), NULL) AS tags
-            FROM decks d
-            JOIN users u ON d.user_id = u.user_id
-            LEFT JOIN deck_cards dc ON d.deck_id = dc.deck_id
-            LEFT JOIN deck_tag_map m ON d.deck_id = m.deck_id
-            LEFT JOIN deck_tags t ON m.tag_id = t.tag_id
-            WHERE d.user_id = %s
-            GROUP BY d.deck_id, d.user_id, u.name, d.name, d.description, d.is_public, d.created_at, d.updated_at
-            ORDER BY d.created_at DESC
-            OFFSET %s LIMIT %s
-            """,
-            (user_id, skip, limit),
-        )
-        decks = []
-        for r in rows:
-            decks.append(
-                {
-                    "deck_id": r["deck_id"],
-                    "creator_id": r["user_id"],
-                    "creator_name": r["creator_name"],
-                    "name": r["name"],
-                    "description": r["description"],
-                    "is_public": r["is_public"],
-                    "save_count": 0,
-                    "created_at": r["created_at"].isoformat(),
-                    "updated_at": r["updated_at"].isoformat(),
-                    "card_count": r.get("card_count", 0),
-                    "tags": r.get("tags") or [],
-                    "is_saved": False,
-                }
-            )
-        return decks
-
     async def get_public_decks(self, skip: int = 0, limit: int = 20) -> List[Dict]:
         rows = self.db.fetch_all(
             """
@@ -338,8 +300,9 @@ class DeckRepository:
             "added_at": added_at,
         }
 
-    async def get_user_decks_optimized(self, user_id: int, skip: int = 0, limit: int = 100) -> List[Dict]:
-        """Get user decks with tags in just 2 queries instead of N+1"""
+    @track_queries
+    async def get_user_decks(self, user_id: int, skip: int = 0, limit: int = 100) -> List[Dict]:
+        """Get user decks with tags in just 2 queries"""
 
         decks_query = """
             SELECT 
@@ -401,8 +364,9 @@ class DeckRepository:
 
         return result
 
-    async def get_deck_with_cards_optimized(self, deck_id: int, user_id: int) -> Optional[Dict]:
-        """Get a deck with all its cards and verses in just 3 queries instead of N+M+1"""
+    @track_queries
+    async def get_deck_with_cards(self, deck_id: int, user_id: int) -> Optional[Dict]:
+        """Get a deck with all its cards and verses in just 2 queries"""
 
         deck_query = """
             SELECT 

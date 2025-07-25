@@ -339,7 +339,7 @@ async def list_enrolled_courses(
 ):
     logger.info(f"Listing courses enrolled by user {user_id}")
 
-    courses = repo.get_enrolled_courses_optimized(user_id)
+    courses = repo.get_enrolled_courses(user_id)
 
     logger.info(f"User {user_id} enrolled courses count: {len(courses)}")
     return [CourseResponse(**c) for c in courses]

@@ -90,7 +90,7 @@ async def list_requests(
     if search:
         filters["search"] = search
 
-    requests, total = repo.get_requests_with_tags(limit=per_page, offset=offset, filters=filters)
+    requests, total = repo.get_requests(limit=per_page, offset=offset, filters=filters)
 
     request_responses = [FeatureRequestResponse(**r) for r in requests]
     return FeatureRequestListResponse(total=total, requests=request_responses, page=page, per_page=per_page)
@@ -273,7 +273,7 @@ async def get_trending(
     repo: FeatureRequestRepository = Depends(get_feature_request_repository),
 ):
     logger.info(f"Fetching top {limit} trending requests")
-    requests = repo.get_trending_requests_optimized(limit)
+    requests = repo.get_trending_requests(limit)
     logger.info(f"Trending requests returned: {len(requests)}")
     return [FeatureRequestResponse(**r) for r in requests]
 
