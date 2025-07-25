@@ -5,6 +5,7 @@ from typing import List, Optional
 import logging
 from database import DatabaseConnection
 import db_pool
+from domain.feature_requests.repository import FeatureRequestRepository
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +61,12 @@ def get_db():
     """Dependency to get database connection"""
     return DatabaseConnection(db_pool.db_pool)
 
+
+def get_feature_request_repository(
+    db: DatabaseConnection = Depends(get_db),
+) -> FeatureRequestRepository:
+    return FeatureRequestRepository(db)
+
 @router.get("", response_model=FeatureRequestListResponse)
 async def list_requests(
     page: int = 1,
@@ -68,74 +75,25 @@ async def list_requests(
     status: Optional[str] = None,
     sort_by: str = "upvotes",
     search: Optional[str] = None,
-    db: DatabaseConnection = Depends(get_db)
+    repo: FeatureRequestRepository = Depends(get_feature_request_repository),
 ):
     logger.info(
         f"Listing feature requests page={page} per_page={per_page} type={type} status={status}"
     )
+
     offset = (page - 1) * per_page
-    filters = []
-    params: List = []
+    filters = {}
     if type:
-        filters.append("fr.type = %s")
-        params.append(type)
+        filters["type"] = type
     if status:
-        filters.append("fr.status = %s")
-        params.append(status)
+        filters["status"] = status
     if search:
-        filters.append("(fr.title ILIKE %s OR fr.description ILIKE %s)")
-        params.extend([f"%{search}%", f"%{search}%"])
-    where_sql = " WHERE " + " AND ".join(filters) if filters else ""
+        filters["search"] = search
 
-    sort_map = {
-        "upvotes": "upvotes DESC",
-        "newest": "fr.created_at DESC",
-        "priority": "fr.priority DESC NULLS LAST"
-    }
-    order_clause = sort_map.get(sort_by, "upvotes DESC")
+    requests, total = repo.get_requests_with_tags(limit=per_page, offset=offset, filters=filters)
 
-    base_query = f"""
-        SELECT
-            fr.request_id AS id,
-            fr.title,
-            fr.description,
-            fr.type,
-            fr.status,
-            fr.priority,
-            fr.user_id,
-            u.name AS user_name,
-            fr.created_at::text,
-            fr.updated_at::text,
-            COALESCE(SUM(CASE WHEN frv.vote_type='up' THEN 1 ELSE 0 END),0) AS upvotes,
-            COALESCE(SUM(CASE WHEN frv.vote_type='down' THEN 1 ELSE 0 END),0) AS downvotes,
-            COUNT(DISTINCT frc.comment_id) AS comments_count
-        FROM feature_requests fr
-        JOIN users u ON fr.user_id = u.user_id
-        LEFT JOIN feature_request_votes frv ON fr.request_id = frv.request_id
-        LEFT JOIN feature_request_comments frc ON fr.request_id = frc.request_id
-        {where_sql}
-        GROUP BY fr.request_id, u.name
-        ORDER BY {order_clause}
-        LIMIT %s OFFSET %s
-    """
-    query_params = params + [per_page, offset]
-    rows = db.fetch_all(base_query, tuple(query_params))
-
-    logger.info(f"Retrieved {len(rows)} feature requests")
-
-    total_row = db.fetch_one(f"SELECT COUNT(*) AS count FROM feature_requests fr {where_sql}", tuple(params))
-    total = total_row["count"] if total_row else 0
-
-    # Fetch tags for each request
-    for r in rows:
-        tag_rows = db.fetch_all(
-            """SELECT t.tag_name FROM feature_request_tag_map m JOIN feature_request_tags t ON m.tag_id = t.tag_id WHERE m.request_id = %s""",
-            (r["id"],)
-        )
-        r["tags"] = [t["tag_name"] for t in tag_rows]
-
-    requests = [FeatureRequestResponse(**r) for r in rows]
-    return FeatureRequestListResponse(total=total, requests=requests, page=page, per_page=per_page)
+    request_responses = [FeatureRequestResponse(**r) for r in requests]
+    return FeatureRequestListResponse(total=total, requests=request_responses, page=page, per_page=per_page)
 
 @router.get("/{request_id}", response_model=FeatureRequestResponse)
 async def get_request(request_id: int, db: DatabaseConnection = Depends(get_db)):
@@ -310,37 +268,12 @@ async def get_user_requests(user_id: int, db: DatabaseConnection = Depends(get_d
     return [FeatureRequestResponse(**r) for r in rows]
 
 @router.get("/trending", response_model=List[FeatureRequestResponse])
-async def get_trending(limit: int = 5, db: DatabaseConnection = Depends(get_db)):
+async def get_trending(
+    limit: int = 5,
+    repo: FeatureRequestRepository = Depends(get_feature_request_repository),
+):
     logger.info(f"Fetching top {limit} trending requests")
-    query = """
-        SELECT
-            fr.request_id AS id,
-            fr.title,
-            fr.description,
-            fr.type,
-            fr.status,
-            fr.priority,
-            fr.user_id,
-            u.name AS user_name,
-            fr.created_at::text,
-            fr.updated_at::text,
-            COALESCE(SUM(CASE WHEN frv.vote_type='up' THEN 1 ELSE 0 END),0) AS upvotes,
-            COALESCE(SUM(CASE WHEN frv.vote_type='down' THEN 1 ELSE 0 END),0) AS downvotes,
-            COUNT(DISTINCT frc.comment_id) AS comments_count
-        FROM feature_requests fr
-        JOIN users u ON fr.user_id = u.user_id
-        LEFT JOIN feature_request_votes frv ON fr.request_id = frv.request_id AND frv.voted_at >= NOW() - INTERVAL '7 days'
-        LEFT JOIN feature_request_comments frc ON fr.request_id = frc.request_id
-        GROUP BY fr.request_id, u.name
-        ORDER BY upvotes DESC, fr.created_at DESC
-        LIMIT %s
-    """
-    rows = db.fetch_all(query, (limit,))
-    for r in rows:
-        tag_rows = db.fetch_all(
-            "SELECT t.tag_name FROM feature_request_tag_map m JOIN feature_request_tags t ON m.tag_id = t.tag_id WHERE m.request_id = %s",
-            (r["id"],)
-        )
-        r["tags"] = [t["tag_name"] for t in tag_rows]
-    logger.info(f"Trending requests returned: {len(rows)}")
-    return [FeatureRequestResponse(**r) for r in rows]
+    requests = repo.get_trending_requests_optimized(limit)
+    logger.info(f"Trending requests returned: {len(requests)}")
+    return [FeatureRequestResponse(**r) for r in requests]
+

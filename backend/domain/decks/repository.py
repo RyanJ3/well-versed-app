@@ -338,3 +338,156 @@ class DeckRepository:
             "added_at": added_at,
         }
 
+    async def get_user_decks_optimized(self, user_id: int, skip: int = 0, limit: int = 100) -> List[Dict]:
+        """Get user decks with tags in just 2 queries instead of N+1"""
+
+        decks_query = """
+            SELECT 
+                d.deck_id,
+                d.user_id,
+                u.name AS creator_name,
+                d.name,
+                d.description,
+                d.is_public,
+                d.created_at,
+                d.updated_at,
+                COUNT(DISTINCT dc.card_id) AS card_count
+            FROM decks d
+            JOIN users u ON d.user_id = u.user_id
+            LEFT JOIN deck_cards dc ON d.deck_id = dc.deck_id
+            WHERE d.user_id = %s
+            GROUP BY d.deck_id, d.user_id, u.name, d.name, d.description, d.is_public, d.created_at, d.updated_at
+            ORDER BY d.created_at DESC
+            OFFSET %s LIMIT %s
+        """
+
+        decks = self.db.fetch_all(decks_query, (user_id, skip, limit))
+        if not decks:
+            return []
+
+        deck_ids = [d["deck_id"] for d in decks]
+        tags_query = """
+            SELECT m.deck_id, t.tag_name
+            FROM deck_tag_map m
+            JOIN deck_tags t ON m.tag_id = t.tag_id
+            WHERE m.deck_id = ANY(%s)
+            ORDER BY m.deck_id, t.tag_name
+        """
+
+        tags_data = self.db.fetch_all(tags_query, (deck_ids,))
+
+        tags_by_deck: Dict[int, List[str]] = {}
+        for row in tags_data:
+            tags_by_deck.setdefault(row["deck_id"], []).append(row["tag_name"])
+
+        result = []
+        for deck in decks:
+            result.append(
+                {
+                    "deck_id": deck["deck_id"],
+                    "creator_id": deck["user_id"],
+                    "creator_name": deck["creator_name"],
+                    "name": deck["name"],
+                    "description": deck["description"],
+                    "is_public": deck["is_public"],
+                    "save_count": 0,
+                    "created_at": deck["created_at"].isoformat(),
+                    "updated_at": deck["updated_at"].isoformat(),
+                    "card_count": deck.get("card_count", 0),
+                    "tags": tags_by_deck.get(deck["deck_id"], []),
+                    "is_saved": False,
+                }
+            )
+
+        return result
+
+    async def get_deck_with_cards_optimized(self, deck_id: int, user_id: int) -> Optional[Dict]:
+        """Get a deck with all its cards and verses in just 3 queries instead of N+M+1"""
+
+        deck_query = """
+            SELECT 
+                d.deck_id, d.user_id, u.name AS creator_name, d.name, d.description,
+                d.is_public, d.created_at, d.updated_at,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT t.tag_name), NULL) AS tags
+            FROM decks d
+            JOIN users u ON d.user_id = u.user_id
+            LEFT JOIN deck_tag_map m ON d.deck_id = m.deck_id
+            LEFT JOIN deck_tags t ON m.tag_id = t.tag_id
+            WHERE d.deck_id = %s
+            GROUP BY d.deck_id, d.user_id, u.name, d.name, d.description, d.is_public, d.created_at, d.updated_at
+        """
+
+        deck = self.db.fetch_one(deck_query, (deck_id,))
+        if not deck:
+            return None
+
+        cards_query = """
+            SELECT 
+                c.card_id,
+                c.card_type,
+                c.reference,
+                c.position,
+                c.added_at,
+                bv.id AS verse_id,
+                bv.verse_code,
+                bv.book_id,
+                bb.book_name,
+                bv.chapter_number,
+                bv.verse_number,
+                bv.is_apocryphal,
+                cv.verse_order
+            FROM deck_cards c
+            JOIN card_verses cv ON c.card_id = cv.card_id
+            JOIN bible_verses bv ON cv.verse_id = bv.id
+            JOIN bible_books bb ON bv.book_id = bb.book_id
+            WHERE c.deck_id = %s
+            ORDER BY c.position, cv.verse_order
+        """
+
+        cards_data = self.db.fetch_all(cards_query, (deck_id,))
+
+        cards_map: Dict[int, Dict] = {}
+        for row in cards_data:
+            cid = row["card_id"]
+            if cid not in cards_map:
+                cards_map[cid] = {
+                    "card_id": cid,
+                    "card_type": row["card_type"],
+                    "reference": row["reference"],
+                    "position": row["position"],
+                    "added_at": row["added_at"].isoformat(),
+                    "verses": [],
+                }
+            cards_map[cid]["verses"].append(
+                {
+                    "verse_id": row["verse_id"],
+                    "verse_code": row["verse_code"],
+                    "book_id": row["book_id"],
+                    "book_name": row["book_name"],
+                    "chapter_number": row["chapter_number"],
+                    "verse_number": row["verse_number"],
+                    "reference": row["reference"],
+                    "text": "",
+                    "verse_order": row["verse_order"],
+                }
+            )
+
+        cards = list(cards_map.values())
+        cards.sort(key=lambda x: x["position"])
+
+        return {
+            "deck_id": deck["deck_id"],
+            "creator_id": deck["user_id"],
+            "creator_name": deck["creator_name"],
+            "name": deck["name"],
+            "description": deck["description"],
+            "is_public": deck["is_public"],
+            "save_count": 0,
+            "created_at": deck["created_at"].isoformat(),
+            "updated_at": deck["updated_at"].isoformat(),
+            "card_count": len(cards),
+            "tags": deck.get("tags") or [],
+            "is_saved": False,
+            "cards": cards,
+        }
+
