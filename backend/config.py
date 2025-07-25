@@ -51,7 +51,7 @@ class Config:
         raise ValueError("API_BIBLE_KEY not found in environment. Add to .bashrc or .env file")
 
     API_BIBLE_HOST = os.getenv('API_BIBLE_HOST')
-    if not API_BIBLE_KEY:
+    if not API_BIBLE_HOST:
         raise ValueError("API_BIBLE_HOST not found in environment. Add to .bashrc or .env file")
 
     DEFAULT_BIBLE_ID = os.getenv('DEFAULT_BIBLE_ID', 'de4e12af7f28f599-02')  # KJV
