@@ -53,3 +53,12 @@ async def add_deck_verses(
         return await deck_service.add_verses_to_deck(deck_id, user_id=1, request=request)
     except DeckNotFoundError:
         raise HTTPException(status_code=404, detail="Deck not found")
+
+
+@router.delete("/{deck_id}")
+async def delete_deck(deck_id: int, deck_service: DeckService = Depends(get_deck_service)):
+    """Delete a deck"""
+    try:
+        return await deck_service.delete_deck(deck_id)
+    except DeckNotFoundError:
+        raise HTTPException(status_code=404, detail="Deck not found")

@@ -41,3 +41,10 @@ class DeckService:
             raise DeckNotFoundError(deck_id)
 
         return schemas.CardWithVerses(**card)
+
+    async def delete_deck(self, deck_id: int) -> dict:
+        """Delete a deck by id"""
+        deleted = await self.repo.delete_deck(deck_id)
+        if not deleted:
+            raise DeckNotFoundError(deck_id)
+        return {"message": "Deck deleted successfully"}
