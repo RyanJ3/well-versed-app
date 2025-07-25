@@ -121,11 +121,8 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     this.bibleData$.pipe(takeUntil(this.destroy$)).subscribe(bibleData => {
       this.currentBibleData = bibleData;
       this.includeApocrypha = bibleData.includeApocrypha;
-      
-      // Set default selections if not already set
-      if (!this.selectedTestament && bibleData.testaments.length > 0) {
-        this.setTestament(bibleData.testaments[0]);
-      }
+
+      this.updateSelections(bibleData);
     });
     
     // Get current user ID
@@ -276,6 +273,41 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
 
   getVisibleChapters(book: BibleBook): BibleChapter[] {
     return book.chapters.filter(chapter => this.isChapterVisible(chapter));
+  }
+
+  private updateSelections(bibleData: BibleData): void {
+    if (!this.selectedTestament && bibleData.testaments.length > 0) {
+      this.setTestament(bibleData.testaments[0]);
+      return;
+    }
+
+    if (this.selectedTestament) {
+      const testament = bibleData.testaments.find(t => t.name === this.selectedTestament!.name);
+      if (testament) {
+        this.selectedTestament = testament;
+
+        if (this.selectedGroup) {
+          const group = testament.groups.find(g => g.name === this.selectedGroup!.name);
+          if (group) {
+            this.selectedGroup = group;
+
+            if (this.selectedBook) {
+              const book = group.books.find(b => b.id === this.selectedBook!.id);
+              if (book) {
+                this.selectedBook = book;
+
+                if (this.selectedChapter) {
+                  const chapter = book.chapters.find(c => c.chapterNumber === this.selectedChapter!.chapterNumber);
+                  if (chapter) {
+                    this.selectedChapter = chapter;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   // Local success popup (kept local as it's pure UI)
