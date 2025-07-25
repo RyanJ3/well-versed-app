@@ -133,58 +133,23 @@ async def get_request(request_id: int, db: DatabaseConnection = Depends(get_db))
     return FeatureRequestResponse(**row)
 
 @router.post("", response_model=FeatureRequestResponse)
-async def create_request(req: FeatureRequestCreate, db: DatabaseConnection = Depends(get_db)):
-    logger.info(f"Creating feature request titled '{req.title}' for user {req.user_id}")
-    with db.get_db() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO feature_requests (title, description, type, user_id)
-                VALUES (%s, %s, %s, %s)
-                RETURNING request_id, status, priority, created_at, updated_at
-                """,
-                (req.title, req.description, req.type, req.user_id)
-            )
-            r = cur.fetchone()
-            request_id = r[0]
-            # RETURNING request_id, status, priority, created_at, updated_at
-            created_at = r[3] if len(r) > 3 else None
-            updated_at = r[4] if len(r) > 4 else None
-            # Insert tags
-            if req.tags:
-                for tag in req.tags:
-                    cur.execute(
-                        "INSERT INTO feature_request_tags (tag_name) VALUES (%s) ON CONFLICT (tag_name) DO UPDATE SET tag_name=EXCLUDED.tag_name RETURNING tag_id",
-                        (tag,)
-                    )
-                    tag_id = cur.fetchone()[0]
-                    cur.execute(
-                        "INSERT INTO feature_request_tag_map (request_id, tag_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-                        (request_id, tag_id)
-                    )
-            cur.execute("SELECT name FROM users WHERE user_id = %s", (req.user_id,))
-            user_name_row = cur.fetchone()
-            user_name = user_name_row[0] if user_name_row else None
-            conn.commit()
-
-    logger.info(f"Feature request {request_id} created")
-
-    return FeatureRequestResponse(
-        id=request_id,
+async def create_request(
+    req: FeatureRequestCreate,
+    repo: FeatureRequestRepository = Depends(get_feature_request_repository),
+):
+    """Create a feature request using the repository helper."""
+    logger.info(
+        f"Creating feature request titled '{req.title}' for user {req.user_id}"
+    )
+    data = repo.create_request(
         title=req.title,
         description=req.description,
         type=req.type,
-        status=r[1],
-        priority=r[2] if len(r) > 2 else None,
         user_id=req.user_id,
-        user_name=user_name,
-        upvotes=0,
-        downvotes=0,
-        created_at=created_at.isoformat() if created_at else None,
-        updated_at=updated_at.isoformat() if updated_at else None,
         tags=req.tags or [],
-        comments_count=0
     )
+    logger.info(f"Feature request {data['id']} created")
+    return FeatureRequestResponse(**data)
 
 @router.post("/{request_id}/vote")
 async def vote_request(request_id: int, vote: VoteRequest, db: DatabaseConnection = Depends(get_db)):
