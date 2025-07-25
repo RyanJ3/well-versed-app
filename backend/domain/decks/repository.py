@@ -300,7 +300,7 @@ class DeckRepository:
             "added_at": added_at,
         }
 
-    @track_queries
+    @track_queries(max_queries=2)
     async def get_user_decks(self, user_id: int, skip: int = 0, limit: int = 100) -> List[Dict]:
         """Get user decks with tags in just 2 queries"""
 
@@ -364,7 +364,7 @@ class DeckRepository:
 
         return result
 
-    @track_queries
+    @track_queries(max_queries=2)
     async def get_deck_with_cards(self, deck_id: int, user_id: int) -> Optional[Dict]:
         """Get a deck with all its cards and verses in just 2 queries"""
 

@@ -89,11 +89,14 @@ export class BibleMemorizationEffects extends BaseEffects {
   toggleVerseMemorization$ = createEffect(() =>
     this.actions$.pipe(
       ofType(BibleMemorizationActions.toggleVerseMemorization),
-      concatMap(request => {
-        // Determine if we're adding or removing the verse
-        // This is handled optimistically in the reducer, so we just need to sync with server
-        const practiceCount = 1; // For now, always 1 when memorizing
-        
+      withLatestFrom(this.store.select(selectBibleDataWithProgress)),
+      concatMap(([request, bibleData]) => {
+        // Determine new memorization state from updated store
+        const book = bibleData.getBookById(request.bookId);
+        const chapter = book?.getChapter(request.chapterNumber);
+        const verse = chapter?.verses.find(v => v.verseNumber === request.verseNumber);
+        const practiceCount = verse && verse.memorized ? 1 : 0;
+
         return this.bibleService.saveVerse(
           request.userId,
           request.bookId,
@@ -102,9 +105,9 @@ export class BibleMemorizationEffects extends BaseEffects {
           practiceCount
         ).pipe(
           map(() => BibleMemorizationActions.toggleVerseMemorizationSuccess({ request })),
-          catchError(error => of(BibleMemorizationActions.toggleVerseMemorizationFailure({ 
+          catchError(error => of(BibleMemorizationActions.toggleVerseMemorizationFailure({
             request,
-            error: error.message || 'Failed to save verse' 
+            error: error.message || 'Failed to save verse'
           })))
         );
       })
