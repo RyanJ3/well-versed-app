@@ -5,13 +5,17 @@ from database import DatabaseConnection
 logger = logging.getLogger(__name__)
 
 
+from utils.performance import track_queries
+
+
 class FeatureRequestRepository:
-    """Handles all database operations for feature requests with optimized queries"""
+    """Handles all database operations for feature requests"""
 
     def __init__(self, db: DatabaseConnection):
         self.db = db
 
-    def get_requests_with_tags(
+    @track_queries
+    def get_requests(
         self,
         limit: int = 20,
         offset: int = 0,
@@ -91,13 +95,15 @@ class FeatureRequestRepository:
         for request in requests:
             request["tags"] = tags_by_request.get(request["id"], [])
 
+
         logger.info(
             f"Fetched {len(requests)} requests with tags using only 3 queries (previously would have been {len(requests) + 1} queries)"
         )
 
         return requests, total_count
 
-    def get_trending_requests_optimized(self, limit: int = 5) -> List[Dict]:
+    @track_queries
+    def get_trending_requests(self, limit: int = 5) -> List[Dict]:
         """Get trending requests with tags in just 2 queries"""
         requests_query = """
             SELECT

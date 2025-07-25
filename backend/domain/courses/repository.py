@@ -1,5 +1,6 @@
 from typing import List, Dict
 from database import DatabaseConnection
+from utils.performance import track_queries
 
 
 class CourseRepository:
@@ -8,7 +9,8 @@ class CourseRepository:
     def __init__(self, db: DatabaseConnection):
         self.db = db
 
-    def get_enrolled_courses_optimized(self, user_id: int) -> List[Dict]:
+    @track_queries
+    def get_enrolled_courses(self, user_id: int) -> List[Dict]:
         """Get all enrolled courses with tags and lesson counts in 2 queries"""
 
         courses_query = """

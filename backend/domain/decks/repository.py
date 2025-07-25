@@ -2,6 +2,7 @@ from typing import List, Optional, Dict
 from database import DatabaseConnection
 from datetime import datetime
 from . import schemas
+from utils.performance import track_queries
 
 class DeckRepository:
     """Data access layer for decks using PostgreSQL"""
@@ -156,7 +157,7 @@ class DeckRepository:
             "cards": cards,
         }
 
-    async def get_user_decks(self, user_id: int, skip: int = 0, limit: int = 100) -> List[Dict]:
+    async def get_user_decks_old(self, user_id: int, skip: int = 0, limit: int = 100) -> List[Dict]:
         rows = self.db.fetch_all(
             """
             SELECT d.deck_id, d.user_id, u.name AS creator_name, d.name, d.description,
@@ -338,8 +339,9 @@ class DeckRepository:
             "added_at": added_at,
         }
 
-    async def get_user_decks_optimized(self, user_id: int, skip: int = 0, limit: int = 100) -> List[Dict]:
-        """Get user decks with tags in just 2 queries instead of N+1"""
+    @track_queries
+    async def get_user_decks(self, user_id: int, skip: int = 0, limit: int = 100) -> List[Dict]:
+        """Get user decks with tags in just 2 queries"""
 
         decks_query = """
             SELECT 
@@ -401,8 +403,9 @@ class DeckRepository:
 
         return result
 
-    async def get_deck_with_cards_optimized(self, deck_id: int, user_id: int) -> Optional[Dict]:
-        """Get a deck with all its cards and verses in just 3 queries instead of N+M+1"""
+    @track_queries
+    async def get_deck_with_cards(self, deck_id: int, user_id: int) -> Optional[Dict]:
+        """Get a deck with all its cards and verses in just 2 queries"""
 
         deck_query = """
             SELECT 
