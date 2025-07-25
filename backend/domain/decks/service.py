@@ -16,6 +16,13 @@ class DeckService:
         decks = await self.repo.get_user_decks(user_id, skip, limit)
         return [schemas.DeckResponse(**{k: v for k, v in d.items() if k != "cards"}) for d in decks]
 
+    async def get_public_decks(self, skip: int = 0, limit: int = 20) -> List[schemas.DeckResponse]:
+        decks = await self.repo.get_public_decks(skip, limit)
+        return [
+            schemas.DeckResponse(**{k: v for k, v in d.items() if k != "cards"})
+            for d in decks
+        ]
+
     async def get_deck_with_cards(self, deck_id: int, user_id: int) -> schemas.DeckCardsResponse:
         deck = await self.repo.get_deck_by_id(deck_id, user_id)
         if not deck:
@@ -41,3 +48,10 @@ class DeckService:
             raise DeckNotFoundError(deck_id)
 
         return schemas.CardWithVerses(**card)
+
+    async def delete_deck(self, deck_id: int) -> dict:
+        """Delete a deck by id"""
+        deleted = await self.repo.delete_deck(deck_id)
+        if not deleted:
+            raise DeckNotFoundError(deck_id)
+        return {"message": "Deck deleted successfully"}

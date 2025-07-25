@@ -23,6 +23,12 @@ async def get_user_decks(user_id: int, deck_service: DeckService = Depends(get_d
     return schemas.DeckListResponse(total=len(decks), decks=decks)
 
 
+@router.get("/public", response_model=schemas.DeckListResponse)
+async def list_public_decks(skip: int = 0, limit: int = 20, deck_service: DeckService = Depends(get_deck_service)):
+    decks = await deck_service.get_public_decks(skip, limit)
+    return schemas.DeckListResponse(total=len(decks), decks=decks)
+
+
 @router.get("/{deck_id}", response_model=schemas.DeckCardsResponse)
 async def get_deck(deck_id: int, deck_service: DeckService = Depends(get_deck_service)):
     try:
@@ -51,5 +57,14 @@ async def add_deck_verses(
     """Add verses to a deck as a new card"""
     try:
         return await deck_service.add_verses_to_deck(deck_id, user_id=1, request=request)
+    except DeckNotFoundError:
+        raise HTTPException(status_code=404, detail="Deck not found")
+
+
+@router.delete("/{deck_id}")
+async def delete_deck(deck_id: int, deck_service: DeckService = Depends(get_deck_service)):
+    """Delete a deck"""
+    try:
+        return await deck_service.delete_deck(deck_id)
     except DeckNotFoundError:
         raise HTTPException(status_code=404, detail="Deck not found")
