@@ -89,7 +89,8 @@
               "buildTarget": "frontend:build:development"
             },
             "docker": {
-              "buildTarget": "frontend:build:docker"
+              "buildTarget": "frontend:build:docker",
+              "proxyConfig": "proxy.docker.conf.json"
             }
           },
           "defaultConfiguration": "development"
