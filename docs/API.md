@@ -177,7 +177,7 @@ DELETE /api/verses/books/{book_id}
 
 #### Get Verse Texts
 ```http
-POST /api/verses/verses/texts
+POST /api/verses/texts
 ```
 
 **Request Body**:
@@ -567,7 +567,7 @@ curl -X PUT "http://localhost:8000/api/verses/1/1/1" \
   -d '{"practice_count": 1}'
 
 # Get verse texts
-curl -X POST "http://localhost:8000/api/verses/verses/texts" \
+curl -X POST "http://localhost:8000/api/verses/texts" \
   -H "Content-Type: application/json" \
   -d '{"verse_codes": ["1-1-1", "1-1-2"]}'
 ```

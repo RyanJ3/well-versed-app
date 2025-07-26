@@ -140,3 +140,41 @@ class VerseService:
 
         logger.info(f"Memorization data cleared for user {user_id}")
         return {"message": "Memorization data cleared"}
+
+    async def get_verse_texts(
+        self, user_id: int, verse_codes: List[str], bible_id: Optional[str] = None
+    ) -> Dict[str, str]:
+        """Retrieve verse texts using user's preferred provider"""
+        from services.api_bible import APIBibleService
+        from services.esv_api import ESVService, ESVRateLimitError
+        from config import Config
+
+        prefs = self.repo.get_user_preferences(user_id) or {}
+        use_esv = prefs.get("use_esv_api")
+        esv_token = prefs.get("esv_api_token")
+        bible_id = bible_id or Config.DEFAULT_BIBLE_ID
+
+        try:
+            if use_esv and esv_token:
+                refs = self.repo.get_verse_references(verse_codes)
+                esv = ESVService(esv_token)
+                texts = esv.get_verses_batch(refs)
+            else:
+                api_bible = APIBibleService(Config.API_BIBLE_KEY, bible_id)
+                texts = api_bible.get_verses_batch(verse_codes, bible_id)
+
+            return {code: texts.get(code, "") for code in verse_codes}
+        except ESVRateLimitError as e:
+            logger.warning("ESV API rate limited for %s seconds", e.wait_seconds)
+            raise
+        except Exception as e:
+            logger.error("Error getting verse texts: %s", e)
+            return {code: "" for code in verse_codes}
+
+    async def update_confidence(
+        self, user_id: int, verse_id: int, score: int, last_reviewed: Optional[datetime] = None
+    ) -> Dict[str, str]:
+        """Update a user's confidence score for a verse"""
+        last_reviewed = last_reviewed or datetime.now()
+        self.repo.update_confidence(user_id, verse_id, score, last_reviewed)
+        return {"message": "Confidence updated"}

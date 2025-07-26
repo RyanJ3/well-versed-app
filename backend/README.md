@@ -69,7 +69,7 @@ Use with main docker-compose.yml in project root.
 
 ## Files
 - `backend/services/api_bible.py` - API Bible service
-- `backend/routers/user_verses.py` - Includes `/verses/texts` endpoint
+ - `backend/api/routes/verses.py` - Includes `/verses/texts` endpoint
 
 # ESV API Integration
 

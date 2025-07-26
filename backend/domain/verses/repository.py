@@ -130,6 +130,48 @@ class VerseRepository(BaseRepository):
         self.db.execute(query, (user_id, verse_ids))
         return {"message": "Chapter saved successfully", "verses_count": len(verses)}
 
+    def get_verses_in_chapter(self, book_id: int, chapter_num: int) -> List[Dict]:
+        query = "SELECT id FROM bible_verses WHERE book_id = %s AND chapter_number = %s"
+        return self.db.fetch_all(query, (book_id, chapter_num))
+
+    def get_verses_in_book(self, book_id: int) -> List[Dict]:
+        query = "SELECT id FROM bible_verses WHERE book_id = %s"
+        return self.db.fetch_all(query, (book_id,))
+
+    def upsert_user_verse(self, user_id: int, verse_id: int, practice_count: int, last_practiced: datetime) -> None:
+        query = """
+            INSERT INTO user_verses (user_id, verse_id, practice_count, last_practiced)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (user_id, verse_id) DO UPDATE SET
+                practice_count = EXCLUDED.practice_count,
+                last_practiced = EXCLUDED.last_practiced,
+                updated_at = CURRENT_TIMESTAMP
+        """
+        self.db.execute(query, (user_id, verse_id, practice_count, last_practiced))
+
+    def delete_user_verse(self, user_id: int, verse_id: int) -> None:
+        self.db.execute("DELETE FROM user_verses WHERE user_id = %s AND verse_id = %s", (user_id, verse_id))
+
+    def delete_verses_by_chapter(self, user_id: int, book_id: int, chapter_num: int) -> None:
+        query = """
+            DELETE FROM user_verses
+            WHERE user_id = %s
+              AND verse_id IN (
+                SELECT id FROM bible_verses WHERE book_id = %s AND chapter_number = %s
+            )
+        """
+        self.db.execute(query, (user_id, book_id, chapter_num))
+
+    def delete_verses_by_book(self, user_id: int, book_id: int) -> None:
+        query = """
+            DELETE FROM user_verses
+            WHERE user_id = %s
+              AND verse_id IN (
+                SELECT id FROM bible_verses WHERE book_id = %s
+            )
+        """
+        self.db.execute(query, (user_id, book_id))
+
     @track_queries(max_queries=2)
     def save_book(self, user_id: int, book_id: int) -> Dict[str, any]:
         """Save all verses in a book with just 2 queries"""
@@ -156,4 +198,44 @@ class VerseRepository(BaseRepository):
     def clear_cache(self):
         """Clear the verse cache"""
         self._verse_cache.clear()
+
+    # New helper methods for text retrieval and confidence tracking
+
+    def get_user_preferences(self, user_id: int) -> Optional[Dict]:
+        """Return user's verse text preferences"""
+        query = "SELECT use_esv_api, esv_api_token FROM users WHERE user_id = %s"
+        return self.db.fetch_one(query, (user_id,))
+
+    def get_verse_references(self, verse_codes: List[str]) -> Dict[str, str]:
+        """Map verse codes to references for ESV API"""
+        if not verse_codes:
+            return {}
+        query = """
+            SELECT bv.verse_code, bb.book_name, bv.chapter_number, bv.verse_number
+            FROM bible_verses bv
+            JOIN bible_books bb ON bv.book_id = bb.book_id
+            WHERE bv.verse_code = ANY(%s)
+        """
+        refs = self.db.fetch_all(query, (verse_codes,))
+        return {
+            r["verse_code"]: f"{r['book_name']} {r['chapter_number']}:{r['verse_number']}"
+            for r in refs
+        }
+
+    def update_confidence(self, user_id: int, verse_id: int, score: int, last_reviewed: datetime) -> None:
+        """Insert or update confidence score for a verse"""
+        query = """
+            INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, last_reviewed)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (user_id, verse_id) DO UPDATE SET
+                confidence_score = EXCLUDED.confidence_score,
+                last_reviewed = EXCLUDED.last_reviewed,
+                review_count = user_verse_confidence.review_count + 1
+        """
+        self.db.execute(query, (user_id, verse_id, score, last_reviewed))
+
+    def clear_all_user_verses(self, user_id: int) -> None:
+        """Delete all memorization records for a user"""
+        self.db.execute("DELETE FROM user_verse_confidence WHERE user_id = %s", (user_id,))
+        self.db.execute("DELETE FROM user_verses WHERE user_id = %s", (user_id,))
 
