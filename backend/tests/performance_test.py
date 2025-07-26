@@ -1,3 +1,6 @@
+import pytest
+pytest.skip("performance tests require running API server", allow_module_level=True)
+
 import time
 import requests
 

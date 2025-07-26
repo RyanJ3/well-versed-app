@@ -8,6 +8,7 @@ SET search_path TO wellversed01DEV;
 CREATE TABLE IF NOT EXISTS users (
     user_id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(200) NOT NULL,
     name VARCHAR(255) NOT NULL,
     first_name VARCHAR(100),
     last_name VARCHAR(100),
@@ -31,8 +32,8 @@ CREATE TRIGGER update_users_updated_at
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert default test user
-INSERT INTO users (email, name, first_name, last_name, include_apocrypha) 
-VALUES ('test@example.com', 'Test User', 'Test', 'User', false)
+INSERT INTO users (email, password_hash, name, first_name, last_name, include_apocrypha)
+VALUES ('test@example.com', 'testsalt1234567890abcd$48ad3ee8fdea554e8ac10838509590f53897a0f604be565cb2c444957772a25a', 'Test User', 'Test', 'User', false)
 ON CONFLICT (email) DO NOTHING;
 
 CREATE TABLE api_cache (

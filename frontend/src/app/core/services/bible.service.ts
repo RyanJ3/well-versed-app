@@ -22,19 +22,11 @@ export interface BibleVersion {
 })
 export class BibleService {
   private apiUrl = environment.apiUrl;
+  private versesUrl = `${environment.apiUrl}/verses`;
   private bibleData: BibleData;
   private isBrowser: boolean;
   private verseTextCache = new Map<string, string>();
 
-  /**
-   * Normalize the provided user id so API calls never include an undefined
-   * value. If the id is not a positive integer, fall back to `1` which matches
-   * the development seed user.
-   */
-  private normalizeUserId(id: any): number {
-    const parsed = Number(id);
-    return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
-  }
 
   private preferencesSubject = new BehaviorSubject<{ includeApocrypha: boolean }>({
     includeApocrypha: false
@@ -92,13 +84,13 @@ export class BibleService {
   }
 
   getUserVerses(userId: number, includeApocrypha?: boolean): Observable<UserVerseDetail[]> {
-    const uid = this.normalizeUserId(userId);
+    // userId parameter kept for backward compatibility but not required by new API
     let params = new HttpParams();
     if (includeApocrypha !== undefined) {
       params = params.set('include_apocrypha', includeApocrypha.toString());
     }
 
-    const endpoint = `${this.apiUrl}/user-verses/${uid}`;
+    const endpoint = `${this.versesUrl}`;
 
     return this.http.get<UserVerseDetail[]>(endpoint, { params }).pipe(
       tap(verses => {
@@ -117,7 +109,6 @@ export class BibleService {
    * Now handles both POST (create) and PUT (update) cases
    */
   saveVerse(userId: number, bookId: number, chapterNum: number, verseNum: number, practiceCount: number): Observable<any> {
-    const uid = this.normalizeUserId(userId);
     const verseId = `${bookId}-${chapterNum}-${verseNum}`;
     console.log(`Saving verse: ${verseId}, practice_count: ${practiceCount}`);
 
@@ -132,7 +123,7 @@ export class BibleService {
       last_practiced: new Date().toISOString()
     };
 
-    return this.http.put(`${this.apiUrl}/user-verses/${uid}/${bookId}/${chapterNum}/${verseNum}`, payload).pipe(
+    return this.http.put(`${this.versesUrl}/${bookId}/${chapterNum}/${verseNum}`, payload).pipe(
       tap(response => console.log('Verse updated:', response)),
       catchError((error: HttpErrorResponse) => {
         console.error('Error saving verse:', error);
@@ -143,13 +134,16 @@ export class BibleService {
 
   // Fixed deleteVerse method in bible.service.ts
   deleteVerse(userId: number, bookId: number, chapterNum: number, verseNum: number): Observable<any> {
-    const uid = this.normalizeUserId(userId);
     console.log(`Deleting verse: ${bookId}-${chapterNum}-${verseNum}`);
 
     // Use the correct URL format that matches your backend route
-    const deleteUrl = `${this.apiUrl}/user-verses/${uid}/${bookId}/${chapterNum}/${verseNum}`;
+    const deleteUrl = `${this.versesUrl}/${bookId}/${chapterNum}/${verseNum}`;
+    const payload = {
+      practice_count: 0,
+      last_practiced: new Date().toISOString(),
+    };
 
-    return this.http.delete(deleteUrl).pipe(
+    return this.http.put(deleteUrl, payload).pipe(
       tap(response => console.log('Verse deleted:', response)),
       catchError((error: HttpErrorResponse) => {
         console.error('Error deleting verse:', error);
@@ -162,10 +156,9 @@ export class BibleService {
    * Save all verses in a chapter as memorized
    */
   saveChapter(userId: number, bookId: number, chapterNum: number): Observable<any> {
-    const uid = this.normalizeUserId(userId);
     console.log(`Saving chapter: ${bookId} ${chapterNum}`);
 
-    return this.http.post(`${this.apiUrl}/user-verses/${uid}/chapters/${bookId}/${chapterNum}`, {}).pipe(
+    return this.http.post(`${this.versesUrl}/chapters/${bookId}/${chapterNum}`, {}).pipe(
       tap(response => console.log('Chapter saved:', response)),
       catchError((error: HttpErrorResponse) => {
         console.error('Error saving chapter:', error);
@@ -178,10 +171,9 @@ export class BibleService {
    * Save all verses in a book as memorized
    */
   saveBook(userId: number, bookId: number): Observable<any> {
-    const uid = this.normalizeUserId(userId);
     console.log(`Saving book: ${bookId}`);
 
-    return this.http.post(`${this.apiUrl}/user-verses/${uid}/books/${bookId}`, {}).pipe(
+    return this.http.post(`${this.versesUrl}/books/${bookId}`, {}).pipe(
       tap(response => console.log('Book saved:', response)),
       catchError((error: HttpErrorResponse) => {
         console.error('Error saving book:', error);
@@ -194,10 +186,9 @@ export class BibleService {
    * Clear all memorized verses in a chapter
    */
   clearChapter(userId: number, bookId: number, chapterNum: number): Observable<any> {
-    const uid = this.normalizeUserId(userId);
     console.log(`Clearing chapter: ${bookId} ${chapterNum}`);
 
-    return this.http.delete(`${this.apiUrl}/user-verses/${uid}/chapters/${bookId}/${chapterNum}`).pipe(
+    return this.http.delete(`${this.versesUrl}/chapters/${bookId}/${chapterNum}`).pipe(
       tap(response => console.log('Chapter cleared:', response)),
       catchError((error: HttpErrorResponse) => {
         console.error('Error clearing chapter:', error);
@@ -210,10 +201,9 @@ export class BibleService {
    * Clear all memorized verses in a book
    */
   clearBook(userId: number, bookId: number): Observable<any> {
-    const uid = this.normalizeUserId(userId);
     console.log(`Clearing book: ${bookId}`);
 
-    return this.http.delete(`${this.apiUrl}/user-verses/${uid}/books/${bookId}`).pipe(
+    return this.http.delete(`${this.versesUrl}/books/${bookId}`).pipe(
       tap(response => console.log('Book cleared:', response)),
       catchError((error: HttpErrorResponse) => {
         console.error('Error clearing book:', error);
@@ -226,7 +216,6 @@ export class BibleService {
    * Get verse texts from API.Bible through backend
    */
   getVerseTexts(userId: number, verseCodes: string[], bibleId?: string): Observable<Record<string, string>> {
-    const uid = this.normalizeUserId(userId);
     console.log(`Getting texts for ${verseCodes.length} verses`);
 
     const cached = this.getCachedVerseTexts(verseCodes);
@@ -239,7 +228,8 @@ export class BibleService {
       bible_id: bibleId,
     };
 
-    return this.http.post<Record<string, string>>(`${this.apiUrl}/user-verses/${uid}/verses/texts`, payload).pipe(
+    // New endpoint under /verses now exposes /texts directly
+    return this.http.post<Record<string, string>>(`${this.versesUrl}/texts`, payload).pipe(
       tap((texts) => {
         console.log(`Received texts for ${Object.keys(texts).length} verses`);
         Object.entries(texts).forEach(([code, text]) => {
@@ -263,13 +253,12 @@ export class BibleService {
   }
 
   updateVerseConfidence(userId: number, verseId: number, confidence: number) {
-    const uid = this.normalizeUserId(userId);
     const payload = {
       confidence_score: confidence,
       last_reviewed: new Date().toISOString(),
     };
     return this.http.put(
-      `${this.apiUrl}/user-verses/confidence/${uid}/${verseId}`,
+      `${this.versesUrl}/confidence/${verseId}`,
       payload,
     );
   }

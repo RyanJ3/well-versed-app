@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
-import { HttpClientModule, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
@@ -20,6 +20,7 @@ import { BibleTrackerModule } from './bible-tracker/bible-tracker.module';
 import { AppComponent } from './app.component';
 
 import { ConfigService } from './core/services/config.service';
+import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 
 // Factory function to load config
 export function initializeApp(configService: ConfigService) {
@@ -49,7 +50,8 @@ import 'hammerjs';
     ChartsModule
   ],
   providers: [
-    provideHttpClient(withInterceptorsFromDi())
+    provideHttpClient(withInterceptorsFromDi()),
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
   ]
 })
 export class AppModule { }

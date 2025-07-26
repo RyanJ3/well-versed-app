@@ -64,3 +64,13 @@ class Config:
     def log_config(cls):
         logger.info(f"WELLVERSED DB - successfully setup!")
         logger.info(f"API_BIBLE_KEY - successfully retrieved!")
+    # Authentication
+    AUTH_PROVIDER = os.getenv('AUTH_PROVIDER', 'local')  # 'local' or 'cognito'
+    JWT_SECRET = os.getenv('JWT_SECRET', 'your-super-secret-key-change-in-production')
+    ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', '60'))
+    REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv('REFRESH_TOKEN_EXPIRE_DAYS', '30'))
+
+    # Future Cognito settings
+    COGNITO_USER_POOL_ID = os.getenv('COGNITO_USER_POOL_ID', '')
+    COGNITO_CLIENT_ID = os.getenv('COGNITO_CLIENT_ID', '')
+    AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
