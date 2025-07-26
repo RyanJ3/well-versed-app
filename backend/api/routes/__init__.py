@@ -1,3 +1,5 @@
 """API routes - thin HTTP layer that delegates to domain services"""
 
-# This will be populated as we migrate routes
+from . import users
+
+__all__ = ["users"]
