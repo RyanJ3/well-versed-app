@@ -1,41 +1,56 @@
+"""Verse data access layer"""
+
 from typing import List, Optional, Dict
 from datetime import datetime
 import logging
 from database import DatabaseConnection
+from domain.core import BaseRepository
 from utils.performance import track_queries
 from utils.batch_loader import BatchLoader
-from . import schemas
 
 logger = logging.getLogger(__name__)
 
-class VerseRepository:
-    """Optimized repository for verse operations"""
+class VerseRepository(BaseRepository):
+    """Repository for verse operations"""
 
     def __init__(self, db: DatabaseConnection):
-        self.db = db
+        super().__init__(db)
         self._verse_cache: Dict[str, Dict] = {}
+        self._cache_max_size = 1000
+
+    def _add_to_cache(self, verse_code: str, verse: Dict):
+        """Add verse to cache with size limit"""
+        if len(self._verse_cache) >= self._cache_max_size:
+            self._verse_cache.pop(next(iter(self._verse_cache)))
+        self._verse_cache[verse_code] = verse
 
     @track_queries(max_queries=1)
     def get_user_verses(self, user_id: int, include_apocrypha: bool = False) -> List[Dict]:
-        """Get all user verses in a single optimized query"""
+        """Get all verses for a user"""
         query = """
             SELECT 
-                bv.verse_code as verse_id,
+                uv.verse_id,
+                bv.verse_code,
                 bv.book_id,
+                bb.book_name,
                 bv.chapter_number,
                 bv.verse_number,
                 bv.is_apocryphal,
                 uv.practice_count,
-                uv.last_practiced::text,
-                uv.created_at::text,
-                uv.updated_at::text
+                uv.confidence_score,
+                uv.last_practiced,
+                uv.last_reviewed,
+                uv.created_at,
+                uv.updated_at
             FROM user_verses uv
             JOIN bible_verses bv ON uv.verse_id = bv.id
+            JOIN bible_books bb ON bv.book_id = bb.book_id
             WHERE uv.user_id = %s
         """
         if not include_apocrypha:
             query += " AND bv.is_apocryphal = FALSE"
         query += " ORDER BY bv.book_id, bv.chapter_number, bv.verse_number"
+
         return self.db.fetch_all(query, (user_id,))
 
     def get_verse_by_code(self, verse_code: str) -> Optional[Dict]:
