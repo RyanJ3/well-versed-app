@@ -1,6 +1,8 @@
 from typing import List, Optional, Dict
 from datetime import datetime
 import logging
+import json
+from pathlib import Path
 from database import DatabaseConnection
 from domain.core import BaseRepository
 from utils.performance import track_queries
@@ -22,16 +24,20 @@ class VerseRepository(BaseRepository):
         if book_id in self._book_names_cache:
             return self._book_names_cache[book_id]
 
-        # TODO: Load from bible_base_data.json
-        # For now, return a placeholder
-        book_names = {
-            1: "Genesis", 2: "Exodus", 3: "Leviticus", 4: "Numbers", 5: "Deuteronomy",
-            # ... add more as needed
-            40: "Matthew", 41: "Mark", 42: "Luke", 43: "John", 44: "Acts",
-            45: "Romans", 46: "1 Corinthians", 47: "2 Corinthians", 48: "Galatians",
-            # ... etc
-        }
-        name = book_names.get(book_id, f"Book {book_id}")
+        # Lazy load book names from bible_base_data.json
+        try:
+            if not hasattr(self, "_book_names"):
+                path = Path(__file__).resolve().parents[2] / "sql_setup" / "bible_base_data.json"
+                with open(path) as f:
+                    data = json.load(f)
+                self._book_names = {
+                    idx + 1: book.get("name", f"Book {idx + 1}")
+                    for idx, book in enumerate(data.get("books", []))
+                }
+            name = self._book_names.get(book_id, f"Book {book_id}")
+        except Exception as e:
+            logger.error("Failed to load book names: %s", e)
+            name = f"Book {book_id}"
         self._book_names_cache[book_id] = name
         return name
 
