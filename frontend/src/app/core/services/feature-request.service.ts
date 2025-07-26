@@ -19,6 +19,11 @@ import {
 })
 export class FeatureRequestService {
   private apiUrl = `${environment.apiUrl}/feature-requests`;
+  /** Normalize provided user id, falling back to 1 if invalid */
+  private normalizeUserId(id: any): number {
+    const parsed = Number(id);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+  }
   
   // Subject to track when requests are updated
   private requestsUpdated = new BehaviorSubject<boolean>(false);
@@ -68,9 +73,10 @@ export class FeatureRequestService {
 
   // Create a new feature request
   createFeatureRequest(request: CreateFeatureRequest, userId: number): Observable<FeatureRequest> {
+    const uid = this.normalizeUserId(userId);
     const payload = {
       ...request,
-      user_id: userId
+      user_id: uid
     };
     console.log('Creating feature request', payload);
     return this.http.post<FeatureRequest>(this.apiUrl, payload).pipe(
@@ -84,9 +90,10 @@ export class FeatureRequestService {
 
   // Vote on a feature request
   voteOnRequest(requestId: number, voteType: 'up' | 'down', userId: number): Observable<any> {
+    const uid = this.normalizeUserId(userId);
     const payload: FeatureRequestVote = {
       request_id: requestId,
-      user_id: userId,
+      user_id: uid,
       vote_type: voteType
     };
 
@@ -102,8 +109,9 @@ export class FeatureRequestService {
 
   // Remove vote from a feature request
   removeVote(requestId: number, userId: number): Observable<any> {
-    console.log(`Removing vote for request ${requestId} by user ${userId}`);
-    return this.http.delete(`${this.apiUrl}/${requestId}/vote/${userId}`).pipe(
+    const uid = this.normalizeUserId(userId);
+    console.log(`Removing vote for request ${requestId} by user ${uid}`);
+    return this.http.delete(`${this.apiUrl}/${requestId}/vote/${uid}`).pipe(
       tap(() => this.requestsUpdated.next(true)),
       catchError(err => { console.error('Error removing vote', err); throw err; })
     );
@@ -120,9 +128,10 @@ export class FeatureRequestService {
 
   // Add a comment to a feature request
   addComment(requestId: number, comment: string, userId: number): Observable<FeatureRequestComment> {
+    const uid = this.normalizeUserId(userId);
     const payload = {
       comment,
-      user_id: userId
+      user_id: uid
     };
 
     console.log(`Adding comment to request ${requestId}`);
@@ -134,8 +143,9 @@ export class FeatureRequestService {
 
   // Get user's feature requests
   getUserRequests(userId: number): Observable<FeatureRequest[]> {
-    console.log(`Fetching requests for user ${userId}`);
-    return this.http.get<FeatureRequest[]>(`${this.apiUrl}/user/${userId}`).pipe(
+    const uid = this.normalizeUserId(userId);
+    console.log(`Fetching requests for user ${uid}`);
+    return this.http.get<FeatureRequest[]>(`${this.apiUrl}/user/${uid}`).pipe(
       tap(r => console.log(`Loaded ${r.length} user requests`)),
       catchError(err => { console.error('Error loading user requests', err); throw err; })
     );
