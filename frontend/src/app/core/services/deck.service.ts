@@ -77,6 +77,11 @@ export interface DeckCardsResponse {
 })
 export class DeckService {
   private apiUrl = `${environment.apiUrl}/decks`;
+  /** Normalize provided user id, falling back to 1 if invalid */
+  private normalizeUserId(id: any): number {
+    const parsed = Number(id);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+  }
 
   constructor(private http: HttpClient) {}
 
@@ -98,8 +103,9 @@ export class DeckService {
   }
 
   getUserDecks(userId: number): Observable<DeckListResponse> {
-    console.log(`Fetching decks for user ${userId}`);
-    return this.http.get<DeckListResponse>(`${this.apiUrl}/user/${userId}`).pipe(
+    const uid = this.normalizeUserId(userId);
+    console.log(`Fetching decks for user ${uid}`);
+    return this.http.get<DeckListResponse>(`${this.apiUrl}/user/${uid}`).pipe(
       tap(res => console.log(`Loaded ${res.decks.length} user decks`)),
       catchError(err => {
         console.error('Error loading user decks', err);
@@ -134,7 +140,8 @@ export class DeckService {
     userId: number,
     bibleId?: string,
   ): Observable<DeckCardsResponse> {
-    let url = `${this.apiUrl}/${deckId}/verses?user_id=${userId}`;
+    const uid = this.normalizeUserId(userId);
+    let url = `${this.apiUrl}/${deckId}/verses?user_id=${uid}`;
     if (bibleId) {
       url += `&bible_id=${bibleId}`;
     }
@@ -208,24 +215,27 @@ export class DeckService {
 
   // Saved deck methods
   getSavedDecks(userId: number): Observable<DeckListResponse> {
-    console.log(`Fetching saved decks for user ${userId}`);
-    return this.http.get<DeckListResponse>(`${this.apiUrl}/saved/${userId}`).pipe(
+    const uid = this.normalizeUserId(userId);
+    console.log(`Fetching saved decks for user ${uid}`);
+    return this.http.get<DeckListResponse>(`${this.apiUrl}/saved/${uid}`).pipe(
       tap(res => console.log(`Loaded ${res.decks.length} saved decks`)),
       catchError(err => { console.error('Error loading saved decks', err); throw err; })
     );
   }
 
   saveDeck(deckId: number, userId: number): Observable<any> {
-    console.log(`Saving deck ${deckId} for user ${userId}`);
-    return this.http.post(`${this.apiUrl}/${deckId}/save`, { user_id: userId }).pipe(
+    const uid = this.normalizeUserId(userId);
+    console.log(`Saving deck ${deckId} for user ${uid}`);
+    return this.http.post(`${this.apiUrl}/${deckId}/save`, { user_id: uid }).pipe(
       tap(() => console.log('Deck saved')),
       catchError(err => { console.error('Error saving deck', err); throw err; })
     );
   }
 
   unsaveDeck(deckId: number, userId: number): Observable<any> {
-    console.log(`Unsaving deck ${deckId} for user ${userId}`);
-    return this.http.delete(`${this.apiUrl}/${deckId}/save/${userId}`).pipe(
+    const uid = this.normalizeUserId(userId);
+    console.log(`Unsaving deck ${deckId} for user ${uid}`);
+    return this.http.delete(`${this.apiUrl}/${deckId}/save/${uid}`).pipe(
       tap(() => console.log('Deck unsaved')),
       catchError(err => { console.error('Error unsaving deck', err); throw err; })
     );
