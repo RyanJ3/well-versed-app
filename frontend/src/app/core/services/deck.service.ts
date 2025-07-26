@@ -103,9 +103,9 @@ export class DeckService {
   }
 
   getUserDecks(userId: number): Observable<DeckListResponse> {
-    const uid = this.normalizeUserId(userId);
-    console.log(`Fetching decks for user ${uid}`);
-    return this.http.get<DeckListResponse>(`${this.apiUrl}/user/${uid}`).pipe(
+    this.normalizeUserId(userId);
+    console.log(`Fetching decks for user ${userId}`);
+    return this.http.get<DeckListResponse>(`${this.apiUrl}`).pipe(
       tap(res => console.log(`Loaded ${res.decks.length} user decks`)),
       catchError(err => {
         console.error('Error loading user decks', err);
@@ -140,10 +140,10 @@ export class DeckService {
     userId: number,
     bibleId?: string,
   ): Observable<DeckCardsResponse> {
-    const uid = this.normalizeUserId(userId);
-    let url = `${this.apiUrl}/${deckId}/verses?user_id=${uid}`;
+    this.normalizeUserId(userId);
+    let url = `${this.apiUrl}/${deckId}`;
     if (bibleId) {
-      url += `&bible_id=${bibleId}`;
+      url += `?bible_id=${bibleId}`;
     }
     console.log(`Fetching cards for deck ${deckId}`);
     return this.http.get<DeckCardsResponse>(url).pipe(

@@ -239,7 +239,10 @@ export class FlowComponent implements OnInit, OnDestroy {
   }
 
   private applyVerseTexts(verseTexts: Record<string, string>) {
-    const hasContent = verseTexts && Object.values(verseTexts).some((t) => t.trim() !== '');
+    const hasContent = verseTexts && Object.values(verseTexts).some((t) => {
+      const text = typeof t === 'string' ? t : '';
+      return text.trim() !== '';
+    });
     
     if (!hasContent) {
       this.stateService.updateViewSettings({ showVerseNumbers: false });

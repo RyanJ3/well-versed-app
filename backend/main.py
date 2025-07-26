@@ -38,21 +38,23 @@ async def lifespan(app: FastAPI):
         logger.error(f"Failed to create database pool: {e}")
         raise
 
-    # Test API.Bible on startup
+    # Test API.Bible on startup. Errors should not prevent the app from running
     try:
         from services.api_bible import APIBibleService
         logger.info("Testing API.Bible connection...")
         service = APIBibleService(Config.API_BIBLE_KEY, Config.DEFAULT_BIBLE_ID)
         bibles = service.get_available_bibles()
-        
+
         if not bibles:
             raise Exception("API.Bible returned no Bibles. Check your API key.")
-        
-        logger.info(f"✓ API.Bible connection successful: {len(bibles)} Bibles available")
+
+        logger.info(
+            f"✓ API.Bible connection successful: {len(bibles)} Bibles available"
+        )
     except Exception as e:
-        logger.error(f"✗ API.Bible connection FAILED: {e}")
-        logger.error("Please check your API_BIBLE_KEY in .bashrc file")
-        raise Exception(f"API.Bible startup check failed: {e}")
+        logger.warning(
+            f"✗ API.Bible connection failed during startup: {e}. Continuing without verification."
+        )
 
     yield
 
@@ -76,17 +78,14 @@ app.add_middleware(
 )
 
 # Import routers after app creation to avoid circular imports
-from api.routes import users, books
-from routers import user_verses, feature_requests, courses, atlas, config, bibles, monitoring
-from api.endpoints import decks as decks_api
-from api.endpoints import verses as verses_api
+from api.routes import users, books, verses, decks
+from routers import feature_requests, courses, atlas, config, bibles, monitoring
 
 # Include routers
 app.include_router(users.router, prefix="/api", tags=["users"])
 app.include_router(books.router, prefix="/api", tags=["books"])
-app.include_router(user_verses.router, prefix="/api/user-verses", tags=["verses"])
-app.include_router(verses_api.router, prefix="/api/v2/user-verses", tags=["verses-v2"])
-app.include_router(decks_api.router, prefix="/api/decks", tags=["decks"])
+app.include_router(verses.router, prefix="/api", tags=["verses"])
+app.include_router(decks.router, prefix="/api", tags=["decks"])
 app.include_router(
     feature_requests.router, prefix="/api/feature-requests", tags=["feature_requests"]
 )
