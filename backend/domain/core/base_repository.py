@@ -38,7 +38,7 @@ class BaseRepository:
             VALUES ({', '.join(placeholders)})
             RETURNING *
         """
-        return self.db.fetch_one(query, tuple(values))
+        return self.db.fetch_one(query, tuple(values), commit=True)
 
     def update(self, table: str, id_column: str, id_value: Any, data: Dict) -> Optional[Dict]:
         """Generic update with RETURNING *"""
@@ -54,10 +54,10 @@ class BaseRepository:
             WHERE {id_column} = %s
             RETURNING *
         """
-        return self.db.fetch_one(query, tuple(values))
+        return self.db.fetch_one(query, tuple(values), commit=True)
 
     def delete(self, table: str, id_column: str, id_value: Any) -> bool:
         """Generic delete"""
         query = f"DELETE FROM {table} WHERE {id_column} = %s RETURNING 1"
-        result = self.db.fetch_one(query, (id_value,))
+        result = self.db.fetch_one(query, (id_value,), commit=True)
         return result is not None
