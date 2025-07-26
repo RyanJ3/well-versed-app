@@ -102,10 +102,15 @@ export class DeckService {
     return of({} as Deck);
   }
 
-  getUserDecks(userId: number): Observable<DeckListResponse> {
+  getUserDecks(
+    userId: number,
+    skip: number = 0,
+    limit: number = 100,
+  ): Observable<DeckListResponse> {
     const uid = this.normalizeUserId(userId);
     console.log(`Fetching decks for user ${uid}`);
-    return this.http.get<DeckListResponse>(`${this.apiUrl}/user/${uid}`).pipe(
+    const params = `?skip=${skip}&limit=${limit}`;
+    return this.http.get<DeckListResponse>(`${this.apiUrl}${params}`).pipe(
       tap(res => console.log(`Loaded ${res.decks.length} user decks`)),
       catchError(err => {
         console.error('Error loading user decks', err);
