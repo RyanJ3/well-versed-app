@@ -16,6 +16,7 @@ The SQL setup files have been reorganized for better clarity and maintainability
 - **06-create-feature-requests.sql** - Feature request and feedback system
 - **07-create-courses.sql** - Course and lesson system
 - **08-create-biblical-journeys.sql** - Biblical journey mapping
+- **08-add-authentication.sql** - Authentication fields and demo users
 
 ### Data Population (09-11)
 - **09-populate-bible-data.sql** - Placeholder (actual data loaded by Python)

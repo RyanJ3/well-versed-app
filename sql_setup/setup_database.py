@@ -103,6 +103,10 @@ SCHEMA_SQL_FILES = [
 # Data population SQL files (executed after Bible data is populated)
 DATA_SQL_FILES = [
     {
+        'file': '08-add-authentication.sql',
+        'description': 'Add authentication fields and demo users'
+    },
+    {
         'file': '10-populate-test-data.sql',
         'description': 'Insert test data',
         'skip_if_no_test_data': True
