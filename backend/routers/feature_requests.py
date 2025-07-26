@@ -14,10 +14,10 @@ router = APIRouter()
 # Pydantic models
 class FeatureRequestCreate(BaseModel):
     title: str
-    description: str
+    description: Optional[str] = None
     type: str
     user_id: int
-    tags: Optional[List[str]] = None
+    tags: Optional[List[str]] = []
 
 class VoteRequest(BaseModel):
     user_id: int
