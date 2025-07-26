@@ -24,8 +24,8 @@ export class UserService {
   }
 
   fetchCurrentUser(): void {
-    // For testing, we'll use user ID 1
-    this.http.get<UserApiResponse>(`${this.apiUrl}/users/1`).pipe(
+    // Fetch the currently authenticated user
+    this.http.get<UserApiResponse>(`${this.apiUrl}/users/me`).pipe(
       map(apiResponse => this.mapApiResponseToUser(apiResponse)),
       tap(user => {
         console.log('Fetched user from API:', user);
@@ -67,7 +67,7 @@ export class UserService {
     console.log('Converted to API format:', apiRequestData);
     console.log('include_apocrypha value after normalization:', apiRequestData.include_apocrypha);
 
-    return this.http.put<UserApiResponse>(`${this.apiUrl}/users/1`, apiRequestData).pipe(
+    return this.http.put<UserApiResponse>(`${this.apiUrl}/users/me`, apiRequestData).pipe(
       map(apiResponse => this.mapApiResponseToUser(apiResponse)),
       tap(updatedUser => {
         console.log('User updated successfully, mapped response:', updatedUser);

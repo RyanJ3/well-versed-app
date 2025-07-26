@@ -10,7 +10,47 @@ The Well Versed API is built with FastAPI and provides RESTful endpoints for all
 
 ## Authentication
 
-Currently, the API uses a hardcoded user (ID: 1) for development. Authentication system to be implemented.
+Authentication is handled via JSON Web Tokens (JWT). Obtain a token by calling
+`/api/auth/login` with a valid email and password. A seed user is available for
+local testing:
+
+```bash
+curl -X POST http://localhost:8000/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"test@example.com","password":"testpass"}'
+```
+
+Include the returned `access_token` in the `Authorization` header for subsequent
+requests:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+### Authentication Endpoints
+
+**Login**
+```http
+POST /api/auth/login
+```
+Body:
+```json
+{"email": "test@example.com", "password": "testpass"}
+```
+
+**Register**
+```http
+POST /api/auth/register
+```
+
+**Refresh Token**
+```http
+POST /api/auth/refresh
+```
+Body:
+```json
+{"refresh_token": "<token>"}
+```
 
 ## Common Response Formats
 

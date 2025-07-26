@@ -29,9 +29,28 @@ python3 main.py
 uvicorn main:app --reload
 ```
 
+## Authentication
+
+Use the `/api/auth` endpoints to obtain JWT tokens. A test user is created during
+database setup with email `test@example.com` and password `testpass`.
+
+Example login and token retrieval:
+
+```bash
+curl -X POST http://localhost:8000/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"test@example.com","password":"testpass"}'
+```
+
+Include the returned `access_token` in the `Authorization` header as a
+`Bearer` token for authenticated requests.
+
 ## API Endpoints
 
 - `GET /api/health` - Health check
+- `POST /api/auth/login` - Obtain JWT tokens
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/refresh` - Refresh an access token
 - `GET /api/users/{user_id}` - Get user info
 - `PUT /api/users/{user_id}` - Update user profile
 - `GET /api/verses` - Get memorized verses for the current user

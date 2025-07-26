@@ -167,6 +167,7 @@ DATABASE_PASSWORD=your_password
 
 ### Core Tables
 - **users** - User accounts and preferences
+  - includes a `password_hash` column for authentication
 - **bible_books** - Bible book metadata (73 books)
 - **bible_verses** - All verses (~31,000 verses)
 - **user_verses** - Tracks memorized verses
