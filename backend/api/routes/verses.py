@@ -22,6 +22,7 @@ router = APIRouter(prefix="/verses", tags=["verses"])
 
 # Get current user ID (placeholder - implement proper auth later)
 
+
 def get_current_user_id() -> int:
     return 1  # Replace with actual auth
 
@@ -155,8 +156,19 @@ def get_verse_texts(
     service: VerseService = Depends(get_verse_service),
 ):
     """Get verse texts from Bible API"""
-    texts = service.get_verse_texts(
-        user_id,
-        VerseTextsRequest(verse_codes=request.verse_codes, bible_id=request.bible_id),
-    )
-    return {t.verse_code: t.text for t in texts}
+    try:
+        texts = service.get_verse_texts(
+            user_id,
+            VerseTextsRequest(
+                verse_codes=request.verse_codes, bible_id=request.bible_id
+            ),
+        )
+        return {t.verse_code: t.text for t in texts}
+    except Exception as e:
+        from services.esv_api import ESVRateLimitError
+
+        if isinstance(e, ESVRateLimitError):
+            raise HTTPException(
+                status_code=429, detail={"wait_seconds": e.wait_seconds}
+            )
+        raise

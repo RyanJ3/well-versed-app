@@ -38,9 +38,13 @@ class VerseService(BaseService):
             raise InvalidVerseCodeError(f"Invalid verse: {verse}")
         return f"{book_id}-{chapter}-{verse}"
 
-    def get_user_verses(self, user_id: int, include_apocrypha: bool = False) -> List[UserVerseResponse]:
+    def get_user_verses(
+        self, user_id: int, include_apocrypha: bool = False
+    ) -> List[UserVerseResponse]:
         """Get all verses for a user"""
-        logger.info(f"Getting verses for user {user_id}, include_apocrypha={include_apocrypha}")
+        logger.info(
+            f"Getting verses for user {user_id}, include_apocrypha={include_apocrypha}"
+        )
 
         verses = self.repo.get_user_verses(user_id, include_apocrypha)
 
@@ -58,8 +62,14 @@ class VerseService(BaseService):
                     ),
                     practice_count=v["practice_count"],
                     confidence_score=v.get("confidence_score"),
-                    last_practiced=v["last_practiced"].isoformat() if v["last_practiced"] else None,
-                    last_reviewed=v["last_reviewed"].isoformat() if v.get("last_reviewed") else None,
+                    last_practiced=(
+                        v["last_practiced"].isoformat() if v["last_practiced"] else None
+                    ),
+                    last_reviewed=(
+                        v["last_reviewed"].isoformat()
+                        if v.get("last_reviewed")
+                        else None
+                    ),
                     created_at=v["created_at"].isoformat(),
                     updated_at=v["updated_at"].isoformat() if v["updated_at"] else None,
                 )
@@ -68,7 +78,14 @@ class VerseService(BaseService):
         logger.info(f"Found {len(result)} verses for user {user_id}")
         return result
 
-    def save_or_update_verse(self, user_id: int, book_id: int, chapter_num: int, verse_num: int, update: VerseUpdate) -> Dict[str, str]:
+    def save_or_update_verse(
+        self,
+        user_id: int,
+        book_id: int,
+        chapter_num: int,
+        verse_num: int,
+        update: VerseUpdate,
+    ) -> Dict[str, str]:
         """Save or update a single verse"""
         verse_code = self._validate_verse_code(book_id, chapter_num, verse_num)
         logger.info(f"Saving verse {verse_code} for user {user_id}")
@@ -90,7 +107,14 @@ class VerseService(BaseService):
         logger.info(f"Verse {verse_code} saved for user {user_id}")
         return {"message": "Verse saved successfully"}
 
-    def update_confidence(self, user_id: int, book_id: int, chapter_num: int, verse_num: int, update: ConfidenceUpdate) -> Dict[str, str]:
+    def update_confidence(
+        self,
+        user_id: int,
+        book_id: int,
+        chapter_num: int,
+        verse_num: int,
+        update: ConfidenceUpdate,
+    ) -> Dict[str, str]:
         """Update confidence score for a verse"""
         verse_code = self._validate_verse_code(book_id, chapter_num, verse_num)
         logger.info(f"Updating confidence for verse {verse_code}, user {user_id}")
@@ -106,7 +130,9 @@ class VerseService(BaseService):
         logger.info(f"Confidence updated for verse {verse_code}")
         return {"message": "Confidence updated successfully"}
 
-    def delete_verse(self, user_id: int, book_id: int, chapter_num: int, verse_num: int) -> Dict[str, str]:
+    def delete_verse(
+        self, user_id: int, book_id: int, chapter_num: int, verse_num: int
+    ) -> Dict[str, str]:
         """Delete a verse from user's memorization"""
         verse_code = self._validate_verse_code(book_id, chapter_num, verse_num)
         logger.info(f"Deleting verse {verse_code} for user {user_id}")
@@ -120,14 +146,18 @@ class VerseService(BaseService):
 
     def save_chapter(self, user_id: int, request: ChapterSaveRequest) -> Dict[str, any]:
         """Save all verses in a chapter"""
-        logger.info(f"Saving chapter {request.book_id}:{request.chapter} for user {user_id}")
+        logger.info(
+            f"Saving chapter {request.book_id}:{request.chapter} for user {user_id}"
+        )
 
         result = self.repo.save_chapter(user_id, request.book_id, request.chapter)
 
         logger.info(f"Chapter saved: {result['verses_count']} verses")
         return result
 
-    def clear_chapter(self, user_id: int, book_id: int, chapter_num: int) -> Dict[str, str]:
+    def clear_chapter(
+        self, user_id: int, book_id: int, chapter_num: int
+    ) -> Dict[str, str]:
         """Clear all verses in a chapter"""
         logger.info(f"Clearing chapter {book_id}:{chapter_num} for user {user_id}")
         return self.repo.clear_chapter(user_id, book_id, chapter_num)
@@ -151,21 +181,89 @@ class VerseService(BaseService):
         logger.info(f"Clearing all memorization data for user {user_id}")
         return self.repo.clear_all_verses(user_id)
 
-    def get_verse_texts(self, user_id: int, request: VerseTextsRequest, bible_id: str | None = None) -> List[VerseTextResponse]:
-        """Get verse texts from external API"""
+    def get_verse_texts(
+        self,
+        user_id: int,
+        request: VerseTextsRequest,
+        bible_id: str | None = None,
+    ) -> List[VerseTextResponse]:
+        """Get verse texts from external providers"""
         logger.info(f"Getting texts for {len(request.verse_codes)} verses")
 
-        result: List[VerseTextResponse] = []
-        verses = self.repo.get_verses_batch(request.verse_codes)
+        verse_codes = request.verse_codes
+        bible_id = request.bible_id or bible_id
 
-        for code, verse in verses.items():
+        # Determine user preference for ESV or API.Bible
+        pref = self.repo.db.fetch_one(
+            "SELECT use_esv_api, esv_api_token FROM users WHERE user_id = %s",
+            (user_id,),
+        )
+        use_esv = pref.get("use_esv_api") if pref else False
+        esv_token = pref.get("esv_api_token") if pref else None
+
+        texts: Dict[str, str] = {}
+
+        try:
+            if use_esv and esv_token:
+                from services.esv_api import ESVService, ESVRateLimitError
+
+                # Map verse codes to references "Book Chapter:Verse"
+                refs = self.repo.db.fetch_all(
+                    """
+                    SELECT bv.verse_code, bb.book_name, bv.chapter_number, bv.verse_number
+                    FROM bible_verses bv
+                    JOIN bible_books bb ON bv.book_id = bb.book_id
+                    WHERE bv.verse_code = ANY(%s)
+                    """,
+                    (verse_codes,),
+                )
+                ref_map = {
+                    r[
+                        "verse_code"
+                    ]: f"{r['book_name']} {r['chapter_number']}:{r['verse_number']}"
+                    for r in refs
+                }
+
+                esv = ESVService(esv_token)
+                texts = esv.get_verses_batch(ref_map)
+            else:
+                from services.api_bible import APIBibleService
+                from config import Config
+
+                api_bible = APIBibleService(
+                    Config.API_BIBLE_KEY, Config.DEFAULT_BIBLE_ID
+                )
+                texts = api_bible.get_verses_batch(verse_codes, bible_id)
+        except Exception as e:  # Including ESVRateLimitError
+            logger.error(f"Error getting verse texts: {e}")
+            # Propagate ESVRateLimitError for the route handler to convert
+            raise
+
+        # Build mapping of book_id -> book_name
+        verses = self.repo.get_verses_batch(verse_codes)
+        book_ids = list({v["book_id"] for v in verses.values()})
+        books = {}
+        if book_ids:
+            rows = self.repo.db.fetch_all(
+                "SELECT book_id, book_name FROM bible_books WHERE book_id = ANY(%s)",
+                (book_ids,),
+            )
+            books = {r["book_id"]: r["book_name"] for r in rows}
+
+        result: List[VerseTextResponse] = []
+        for code in verse_codes:
+            verse = verses.get(code)
+            if not verse:
+                continue
             result.append(
                 VerseTextResponse(
                     verse_code=code,
-                    text=f"Placeholder text for {code}",
-                    book_name="Book Name",
+                    text=texts.get(code, ""),
+                    book_name=books.get(verse["book_id"], ""),
                     chapter=verse["chapter_number"],
                     verse=verse["verse_number"],
                 )
             )
+
+        logger.info(f"Retrieved texts for {len(result)} verses")
         return result
