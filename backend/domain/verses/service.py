@@ -1,142 +1,188 @@
+"""Verse business logic - consolidated from all implementations"""
+
 from typing import List, Optional, Dict
 from datetime import datetime
 import logging
-from fastapi import HTTPException
-from . import schemas, repository
-from .exceptions import VerseNotFoundError
+from domain.core import BaseService
+from domain.core.exceptions import NotFoundError, ValidationError
+from .repository import VerseRepository
+from .schemas import (
+    VerseUpdate, UserVerseResponse, VerseDetail,
+    ConfidenceUpdate, ChapterSaveRequest, BookSaveRequest,
+    VerseTextsRequest, VerseTextResponse
+)
+from .exceptions import VerseNotFoundError, InvalidVerseCodeError
 
 logger = logging.getLogger(__name__)
 
 
-class VerseService:
-    """Business logic for verse operations"""
+class VerseService(BaseService):
+    """Service layer for verse operations"""
 
-    def __init__(self, repo: repository.VerseRepository):
-        self.repo = repo
+    def __init__(self, repository: VerseRepository):
+        super().__init__(repository)
+        self.repo: VerseRepository = repository
 
-    async def get_user_verses(
-        self,
-        user_id: int,
-        include_apocrypha: bool = False,
-    ) -> List[schemas.UserVerseResponse]:
+    def _validate_verse_code(self, book_id: int, chapter: int, verse: int) -> str:
+        """Validate and format verse code"""
+        if book_id < 1 or book_id > 73:
+            raise InvalidVerseCodeError(f"Invalid book ID: {book_id}")
+        if chapter < 1:
+            raise InvalidVerseCodeError(f"Invalid chapter: {chapter}")
+        if verse < 1:
+            raise InvalidVerseCodeError(f"Invalid verse: {verse}")
+
+        return f"{book_id}-{chapter}-{verse}"
+
+    def get_user_verses(self, user_id: int, include_apocrypha: bool = False) -> List[UserVerseResponse]:
+        """Get all verses for a user"""
         logger.info(f"Getting verses for user {user_id}, include_apocrypha={include_apocrypha}")
 
-        verses = await self.repo.get_user_verses(user_id, include_apocrypha)
+        verses = self.repo.get_user_verses(user_id, include_apocrypha)
 
         result = []
         for v in verses:
-            result.append(
-                schemas.UserVerseResponse(
-                    verse=schemas.VerseDetail(
-                        verse_id=v["verse_id"],
-                        book_id=v["book_id"],
-                        chapter_number=v["chapter_number"],
-                        verse_number=v["verse_number"],
-                        is_apocryphal=v.get("is_apocryphal", False),
-                    ),
-                    practice_count=v["practice_count"],
-                    last_practiced=v["last_practiced"],
-                    created_at=v["created_at"],
-                    updated_at=v["updated_at"],
-                )
-            )
+            result.append(UserVerseResponse(
+                verse=VerseDetail(
+                    verse_id=v["verse_code"],
+                    book_id=v["book_id"],
+                    book_name=v["book_name"],
+                    chapter_number=v["chapter_number"],
+                    verse_number=v["verse_number"],
+                    is_apocryphal=v.get("is_apocryphal", False)
+                ),
+                practice_count=v["practice_count"],
+                confidence_score=v.get("confidence_score"),
+                last_practiced=v["last_practiced"].isoformat() if v["last_practiced"] else None,
+                last_reviewed=v["last_reviewed"].isoformat() if v.get("last_reviewed") else None,
+                created_at=v["created_at"].isoformat(),
+                updated_at=v["updated_at"].isoformat() if v["updated_at"] else None
+            ))
 
         logger.info(f"Found {len(result)} verses for user {user_id}")
         return result
 
-    async def save_or_update_verse(
-        self,
-        user_id: int,
-        book_id: int,
-        chapter_num: int,
-        verse_num: int,
-        update: schemas.VerseUpdate,
-    ) -> Dict[str, str]:
-        verse_code = f"{book_id}-{chapter_num}-{verse_num}"
+    def save_or_update_verse(self, user_id: int, book_id: int, chapter_num: int,
+                           verse_num: int, update: VerseUpdate) -> Dict[str, str]:
+        """Save or update a single verse"""
+        verse_code = self._validate_verse_code(book_id, chapter_num, verse_num)
         logger.info(f"Saving verse {verse_code} for user {user_id}")
 
+        # If practice count is 0, delete the verse
         if update.practice_count == 0:
-            return await self.delete_verse(user_id, book_id, chapter_num, verse_num)
+            return self.delete_verse(user_id, book_id, chapter_num, verse_num)
 
-        verse = await self.repo.get_verse_by_code(verse_code)
+        # Get verse from database
+        verse = self.repo.get_verse_by_code(verse_code)
         if not verse:
             raise VerseNotFoundError(verse_code)
 
-        await self.repo.upsert_user_verse(
+        # Save or update
+        self.repo.save_verse(
             user_id=user_id,
             verse_id=verse["id"],
             practice_count=update.practice_count,
-            last_practiced=update.last_practiced or datetime.now(),
+            last_practiced=update.last_practiced or datetime.now()
         )
 
         logger.info(f"Verse {verse_code} saved for user {user_id}")
         return {"message": "Verse saved successfully"}
 
-    async def delete_verse(
-        self,
-        user_id: int,
-        book_id: int,
-        chapter_num: int,
-        verse_num: int,
-    ) -> Dict[str, str]:
-        verse_code = f"{book_id}-{chapter_num}-{verse_num}"
+    def update_confidence(self, user_id: int, book_id: int, chapter_num: int,
+                         verse_num: int, update: ConfidenceUpdate) -> Dict[str, str]:
+        """Update confidence score for a verse"""
+        verse_code = self._validate_verse_code(book_id, chapter_num, verse_num)
+        logger.info(f"Updating confidence for verse {verse_code}, user {user_id}")
+
+        # Validate confidence score
+        if not 0 <= update.confidence_score <= 100:
+            raise ValidationError("Confidence score must be between 0 and 100")
+
+        # Get verse
+        verse = self.repo.get_verse_by_code(verse_code)
+        if not verse:
+            raise VerseNotFoundError(verse_code)
+
+        # Update confidence
+        self.repo.update_confidence(user_id, verse["id"], update.confidence_score)
+
+        logger.info(f"Confidence updated for verse {verse_code}")
+        return {"message": "Confidence updated successfully"}
+
+    def delete_verse(self, user_id: int, book_id: int, chapter_num: int,
+                    verse_num: int) -> Dict[str, str]:
+        """Delete a verse from user's memorization"""
+        verse_code = self._validate_verse_code(book_id, chapter_num, verse_num)
         logger.info(f"Deleting verse {verse_code} for user {user_id}")
 
-        verse = await self.repo.get_verse_by_code(verse_code)
+        verse = self.repo.get_verse_by_code(verse_code)
         if verse:
-            await self.repo.delete_user_verse(user_id, verse["id"])
+            self.repo.delete_verse(user_id, verse["id"])
             logger.info(f"Verse {verse_code} deleted for user {user_id}")
 
         return {"message": "Verse deleted successfully"}
 
-    async def save_chapter(self, user_id: int, book_id: int, chapter_num: int) -> Dict[str, any]:
-        logger.info(f"Saving chapter {book_id} {chapter_num} for user {user_id}")
+    def save_chapter(self, user_id: int, request: ChapterSaveRequest) -> Dict[str, any]:
+        """Save all verses in a chapter"""
+        logger.info(f"Saving chapter {request.book_id}:{request.chapter} for user {user_id}")
 
-        verses = await self.repo.get_verses_in_chapter(book_id, chapter_num)
-        if not verses:
-            raise HTTPException(status_code=404, detail="Chapter not found")
+        result = self.repo.save_chapter(user_id, request.book_id, request.chapter)
 
-        verse_data = [(v["id"], 1, datetime.now()) for v in verses]
+        logger.info(f"Chapter saved: {result['verses_count']} verses")
+        return result
 
-        await self.repo.bulk_upsert_verses(user_id, verse_data)
+    def clear_chapter(self, user_id: int, book_id: int, chapter_num: int) -> Dict[str, str]:
+        """Clear all verses in a chapter"""
+        logger.info(f"Clearing chapter {book_id}:{chapter_num} for user {user_id}")
 
-        logger.info(f"Saved {len(verses)} verses for chapter {book_id} {chapter_num}")
-        return {"message": "Chapter saved successfully", "verses_count": len(verses)}
+        return self.repo.clear_chapter(user_id, book_id, chapter_num)
 
-    async def clear_chapter(self, user_id: int, book_id: int, chapter_num: int) -> Dict[str, str]:
-        logger.info(f"Clearing chapter {book_id} {chapter_num} for user {user_id}")
+    def save_book(self, user_id: int, request: BookSaveRequest) -> Dict[str, any]:
+        """Save all verses in a book"""
+        logger.info(f"Saving book {request.book_id} for user {user_id}")
 
-        await self.repo.delete_verses_by_chapter(user_id, book_id, chapter_num)
+        result = self.repo.save_book(user_id, request.book_id)
 
-        logger.info(f"Cleared chapter {book_id} {chapter_num} for user {user_id}")
-        return {"message": "Chapter cleared successfully"}
+        logger.info(f"Book saved: {result['verses_count']} verses")
+        return result
 
-    async def save_book(self, user_id: int, book_id: int) -> Dict[str, any]:
-        logger.info(f"Saving book {book_id} for user {user_id}")
-
-        verses = await self.repo.get_verses_in_book(book_id)
-        if not verses:
-            raise HTTPException(status_code=404, detail="Book not found")
-
-        verse_data = [(v["id"], 1, datetime.now()) for v in verses]
-
-        await self.repo.bulk_upsert_verses(user_id, verse_data)
-
-        logger.info(f"Saved {len(verses)} verses for book {book_id}")
-        return {"message": "Book saved successfully", "verses_count": len(verses)}
-
-    async def clear_book(self, user_id: int, book_id: int) -> Dict[str, str]:
+    def clear_book(self, user_id: int, book_id: int) -> Dict[str, str]:
+        """Clear all verses in a book"""
         logger.info(f"Clearing book {book_id} for user {user_id}")
 
-        await self.repo.delete_verses_by_book(user_id, book_id)
+        return self.repo.clear_book(user_id, book_id)
 
-        logger.info(f"Cleared book {book_id} for user {user_id}")
-        return {"message": "Book cleared successfully"}
+    def clear_all_memorization(self, user_id: int) -> Dict[str, str]:
+        """Clear all memorization data for user"""
+        logger.info(f"Clearing all memorization data for user {user_id}")
 
-    async def clear_all_memorization(self, user_id: int) -> Dict[str, str]:
-        logger.info(f"Clearing memorization data for user {user_id}")
+        return self.repo.clear_all_verses(user_id)
 
-        await self.repo.clear_all_user_verses(user_id)
+    def get_chapter_status(self, user_id: int, book_id: int, chapter_num: int) -> Dict:
+        """Get memorization status for a chapter"""
+        return self.repo.get_chapter_status(user_id, book_id, chapter_num)
 
-        logger.info(f"Memorization data cleared for user {user_id}")
-        return {"message": "Memorization data cleared"}
+    def get_verses_for_practice(self, user_id: int, limit: int = 10) -> List[Dict]:
+        """Get verses due for practice"""
+        return self.repo.get_verses_for_practice(user_id, limit)
+
+    def get_verse_texts(self, request: VerseTextsRequest, bible_id: str = None) -> List[VerseTextResponse]:
+        """Get verse texts from external API"""
+        # This would integrate with your Bible API service
+        # For now, returning a placeholder
+        logger.info(f"Getting texts for {len(request.verse_codes)} verses")
+
+        # TODO: Integrate with Bible API service
+        result = []
+        verses = self.repo.get_verses_batch(request.verse_codes)
+
+        for code, verse in verses.items():
+            result.append(VerseTextResponse(
+                verse_code=code,
+                text=f"Placeholder text for {code}",  # Replace with actual API call
+                book_name="Book Name",  # Replace with actual data
+                chapter=verse["chapter_number"],
+                verse=verse["verse_number"]
+            ))
+
+        return result
