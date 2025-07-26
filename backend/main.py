@@ -38,21 +38,23 @@ async def lifespan(app: FastAPI):
         logger.error(f"Failed to create database pool: {e}")
         raise
 
-    # Test API.Bible on startup
+    # Test API.Bible on startup. Errors should not prevent the app from running
     try:
         from services.api_bible import APIBibleService
         logger.info("Testing API.Bible connection...")
         service = APIBibleService(Config.API_BIBLE_KEY, Config.DEFAULT_BIBLE_ID)
         bibles = service.get_available_bibles()
-        
+
         if not bibles:
             raise Exception("API.Bible returned no Bibles. Check your API key.")
-        
-        logger.info(f"✓ API.Bible connection successful: {len(bibles)} Bibles available")
+
+        logger.info(
+            f"✓ API.Bible connection successful: {len(bibles)} Bibles available"
+        )
     except Exception as e:
-        logger.error(f"✗ API.Bible connection FAILED: {e}")
-        logger.error("Please check your API_BIBLE_KEY in .bashrc file")
-        raise Exception(f"API.Bible startup check failed: {e}")
+        logger.warning(
+            f"✗ API.Bible connection failed during startup: {e}. Continuing without verification."
+        )
 
     yield
 
