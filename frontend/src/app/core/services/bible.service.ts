@@ -16,6 +16,14 @@ export interface BibleVersion {
   copyright?: string;
   copyrightUrl?: string;
 }
+export interface VerseTextResponse {
+  verse_code: string;
+  text: string;
+  book_name: string;
+  chapter: number;
+  verse: number;
+}
+
 
 @Injectable({
   providedIn: 'root'
@@ -241,12 +249,15 @@ export class BibleService {
       bible_id: bibleId,
     };
 
-    return this.http.post<Record<string, string>>(`${this.apiUrl}/verses/texts`, payload).pipe(
-      tap((texts) => {
-        console.log(`Received texts for ${Object.keys(texts).length} verses`);
-        Object.entries(texts).forEach(([code, text]) => {
-          this.verseTextCache.set(code, text);
+    return this.http.post<VerseTextResponse[]>(`${this.apiUrl}/verses/texts`, payload).pipe(
+      map((responses) => {
+        const texts: Record<string, string> = {};
+        responses.forEach((r) => {
+          texts[r.verse_code] = r.text;
+          this.verseTextCache.set(r.verse_code, r.text);
         });
+        console.log(`Received texts for ${responses.length} verses`);
+        return texts;
       }),
       catchError((error: HttpErrorResponse) => {
         console.error('Error getting verse texts:', error);
