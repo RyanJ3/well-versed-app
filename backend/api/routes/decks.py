@@ -23,7 +23,7 @@ def get_current_user_id() -> int:
     return 1  # Replace with actual auth
 
 
-@router.post("/", response_model=DeckResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=DeckResponse, status_code=status.HTTP_201_CREATED)
 async def create_deck(
     deck_data: DeckCreate,
     user_id: int = Depends(get_current_user_id),
