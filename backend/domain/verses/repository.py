@@ -1,142 +1,286 @@
-from typing import List, Optional, Dict
+"""Verse data access layer - consolidated from all implementations"""
+
+from typing import List, Optional, Dict, Tuple
 from datetime import datetime
 import logging
 from database import DatabaseConnection
+from domain.core import BaseRepository
 from utils.performance import track_queries
 from utils.batch_loader import BatchLoader
-from . import schemas
 
 logger = logging.getLogger(__name__)
 
-class VerseRepository:
-    """Optimized repository for verse operations"""
+
+class VerseRepository(BaseRepository):
+    """Repository for verse operations"""
 
     def __init__(self, db: DatabaseConnection):
-        self.db = db
+        super().__init__(db)
         self._verse_cache: Dict[str, Dict] = {}
 
     @track_queries(max_queries=1)
     def get_user_verses(self, user_id: int, include_apocrypha: bool = False) -> List[Dict]:
-        """Get all user verses in a single optimized query"""
+        """Get all verses for a user"""
         query = """
             SELECT 
-                bv.verse_code as verse_id,
+                uv.verse_id,
+                bv.verse_code,
                 bv.book_id,
+                bb.book_name,
                 bv.chapter_number,
                 bv.verse_number,
                 bv.is_apocryphal,
                 uv.practice_count,
-                uv.last_practiced::text,
-                uv.created_at::text,
-                uv.updated_at::text
+                uv.confidence_score,
+                uv.last_practiced,
+                uv.last_reviewed,
+                uv.created_at,
+                uv.updated_at
             FROM user_verses uv
             JOIN bible_verses bv ON uv.verse_id = bv.id
+            JOIN bible_books bb ON bv.book_id = bb.book_id
             WHERE uv.user_id = %s
         """
         if not include_apocrypha:
             query += " AND bv.is_apocryphal = FALSE"
         query += " ORDER BY bv.book_id, bv.chapter_number, bv.verse_number"
+
         return self.db.fetch_all(query, (user_id,))
 
+    @track_queries(max_queries=1)
     def get_verse_by_code(self, verse_code: str) -> Optional[Dict]:
         """Get verse by code with caching"""
         if verse_code in self._verse_cache:
             return self._verse_cache[verse_code]
+
         verse = self.db.fetch_one(
-            "SELECT id, book_id, chapter_number, verse_number, is_apocryphal "
-            "FROM bible_verses WHERE verse_code = %s",
-            (verse_code,),
+            """
+            SELECT 
+                id, verse_code, book_id, chapter_number, 
+                verse_number, is_apocryphal
+            FROM bible_verses 
+            WHERE verse_code = %s
+            """,
+            (verse_code,)
         )
+
         if verse:
             self._verse_cache[verse_code] = verse
         return verse
 
     @track_queries(max_queries=2)
     def get_verses_batch(self, verse_codes: List[str]) -> Dict[str, Dict]:
-        """Get multiple verses in batch"""
+        """Get multiple verses efficiently"""
         if not verse_codes:
             return {}
+
+        # Check cache first
         uncached_codes = []
         cached_verses = {}
+
         for code in verse_codes:
             if code in self._verse_cache:
                 cached_verses[code] = self._verse_cache[code]
             else:
                 uncached_codes.append(code)
+
+        # Fetch uncached verses
         if uncached_codes:
             query = """
-                SELECT verse_code, id, book_id, chapter_number, verse_number, is_apocryphal
+                SELECT 
+                    verse_code, id, book_id, chapter_number, 
+                    verse_number, is_apocryphal
                 FROM bible_verses
                 WHERE verse_code = ANY(%s)
             """
             verses = self.db.fetch_all(query, (uncached_codes,))
+
             for verse in verses:
                 code = verse['verse_code']
                 self._verse_cache[code] = verse
                 cached_verses[code] = verse
+
         return cached_verses
 
     @track_queries(max_queries=1)
-    def bulk_upsert_verses(self, user_id: int, verse_data: List[tuple]) -> None:
-        """Bulk upsert verses using a single query with UNNEST"""
-        if not verse_data:
-            return
+    def save_verse(self, user_id: int, verse_id: int, practice_count: int = 1, 
+                   last_practiced: datetime = None) -> Dict:
+        """Save or update a user verse"""
+        if last_practiced is None:
+            last_practiced = datetime.now()
+
         query = """
             INSERT INTO user_verses (user_id, verse_id, practice_count, last_practiced)
-            SELECT %s, unnest(%s::int[]), unnest(%s::int[]), unnest(%s::timestamp[])
+            VALUES (%s, %s, %s, %s)
             ON CONFLICT (user_id, verse_id) DO UPDATE SET
                 practice_count = EXCLUDED.practice_count,
                 last_practiced = EXCLUDED.last_practiced,
                 updated_at = CURRENT_TIMESTAMP
+            RETURNING *
         """
-        verse_ids = [v[0] for v in verse_data]
-        practice_counts = [v[1] for v in verse_data]
-        last_practiced_dates = [v[2] for v in verse_data]
-        self.db.execute(query, (user_id, verse_ids, practice_counts, last_practiced_dates))
+        return self.db.fetch_one(query, (user_id, verse_id, practice_count, last_practiced))
+
+    @track_queries(max_queries=1)
+    def update_confidence(self, user_id: int, verse_id: int, confidence_score: int) -> Dict:
+        """Update verse confidence score"""
+        query = """
+            UPDATE user_verses
+            SET confidence_score = %s,
+                last_reviewed = CURRENT_TIMESTAMP,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = %s AND verse_id = %s
+            RETURNING *
+        """
+        return self.db.fetch_one(query, (confidence_score, user_id, verse_id))
+
+    @track_queries(max_queries=1)
+    def delete_verse(self, user_id: int, verse_id: int) -> bool:
+        """Delete a user verse"""
+        query = "DELETE FROM user_verses WHERE user_id = %s AND verse_id = %s RETURNING 1"
+        result = self.db.fetch_one(query, (user_id, verse_id))
+        return result is not None
 
     @track_queries(max_queries=2)
     def save_chapter(self, user_id: int, book_id: int, chapter_num: int) -> Dict[str, any]:
-        """Save all verses in a chapter with just 2 queries"""
+        """Save all verses in a chapter"""
+        # Get all verses in chapter
         verses = self.db.fetch_all(
             "SELECT id FROM bible_verses WHERE book_id = %s AND chapter_number = %s",
             (book_id, chapter_num)
         )
+
         if not verses:
             raise ValueError(f"Chapter {book_id}:{chapter_num} not found")
+
+        # Bulk insert
         verse_ids = [v['id'] for v in verses]
         query = """
             INSERT INTO user_verses (user_id, verse_id, practice_count, last_practiced)
             SELECT %s, unnest(%s::int[]), 1, NOW()
             ON CONFLICT (user_id, verse_id) DO UPDATE SET
-                practice_count = EXCLUDED.practice_count,
+                practice_count = user_verses.practice_count + 1,
                 last_practiced = EXCLUDED.last_practiced,
                 updated_at = CURRENT_TIMESTAMP
         """
         self.db.execute(query, (user_id, verse_ids))
+
         return {"message": "Chapter saved successfully", "verses_count": len(verses)}
 
     @track_queries(max_queries=2)
+    def clear_chapter(self, user_id: int, book_id: int, chapter_num: int) -> Dict[str, str]:
+        """Clear all verses in a chapter"""
+        query = """
+            DELETE FROM user_verses
+            WHERE user_id = %s AND verse_id IN (
+                SELECT id FROM bible_verses 
+                WHERE book_id = %s AND chapter_number = %s
+            )
+        """
+        self.db.execute(query, (user_id, book_id, chapter_num))
+        return {"message": "Chapter cleared successfully"}
+
+    @track_queries(max_queries=2)
     def save_book(self, user_id: int, book_id: int) -> Dict[str, any]:
-        """Save all verses in a book with just 2 queries"""
+        """Save all verses in a book"""
+        # Get all verses in book
         verses = self.db.fetch_all(
             "SELECT id FROM bible_verses WHERE book_id = %s",
             (book_id,)
         )
+
         if not verses:
             raise ValueError(f"Book {book_id} not found")
+
+        # Bulk insert in chunks to avoid query size limits
         verse_ids = [v['id'] for v in verses]
         chunks = BatchLoader.chunk_list(verse_ids, chunk_size=1000)
+
         for chunk in chunks:
             query = """
                 INSERT INTO user_verses (user_id, verse_id, practice_count, last_practiced)
                 SELECT %s, unnest(%s::int[]), 1, NOW()
                 ON CONFLICT (user_id, verse_id) DO UPDATE SET
-                    practice_count = EXCLUDED.practice_count,
+                    practice_count = user_verses.practice_count + 1,
                     last_practiced = EXCLUDED.last_practiced,
                     updated_at = CURRENT_TIMESTAMP
             """
             self.db.execute(query, (user_id, chunk))
+
         return {"message": "Book saved successfully", "verses_count": len(verses)}
+
+    @track_queries(max_queries=1)
+    def clear_book(self, user_id: int, book_id: int) -> Dict[str, str]:
+        """Clear all verses in a book"""
+        query = """
+            DELETE FROM user_verses
+            WHERE user_id = %s AND verse_id IN (
+                SELECT id FROM bible_verses WHERE book_id = %s
+            )
+        """
+        self.db.execute(query, (user_id, book_id))
+        return {"message": "Book cleared successfully"}
+
+    @track_queries(max_queries=1)
+    def clear_all_verses(self, user_id: int) -> Dict[str, str]:
+        """Clear all memorization data for user"""
+        query = "DELETE FROM user_verses WHERE user_id = %s"
+        self.db.execute(query, (user_id,))
+        return {"message": "All memorization data cleared"}
+
+    @track_queries(max_queries=1)
+    def get_chapter_status(self, user_id: int, book_id: int, chapter_num: int) -> Dict:
+        """Get memorization status for a chapter"""
+        query = """
+            WITH chapter_verses AS (
+                SELECT id, verse_number
+                FROM bible_verses
+                WHERE book_id = %s AND chapter_number = %s
+            )
+            SELECT 
+                COUNT(DISTINCT cv.id) as total_verses,
+                COUNT(DISTINCT uv.verse_id) as memorized_verses,
+                ARRAY_AGG(cv.verse_number ORDER BY cv.verse_number) FILTER (WHERE uv.verse_id IS NOT NULL) as memorized_verse_numbers
+            FROM chapter_verses cv
+            LEFT JOIN user_verses uv ON cv.id = uv.verse_id AND uv.user_id = %s
+        """
+        result = self.db.fetch_one(query, (book_id, chapter_num, user_id))
+
+        return {
+            "total_verses": result["total_verses"] or 0,
+            "memorized_verses": result["memorized_verses"] or 0,
+            "memorized_verse_numbers": result["memorized_verse_numbers"] or [],
+            "is_complete": result["total_verses"] == result["memorized_verses"]
+        }
+
+    @track_queries(max_queries=1)
+    def get_verses_for_practice(self, user_id: int, limit: int = 10) -> List[Dict]:
+        """Get verses due for practice based on spaced repetition"""
+        query = """
+            SELECT 
+                uv.*,
+                bv.verse_code,
+                bv.book_id,
+                bb.book_name,
+                bv.chapter_number,
+                bv.verse_number
+            FROM user_verses uv
+            JOIN bible_verses bv ON uv.verse_id = bv.id
+            JOIN bible_books bb ON bv.book_id = bb.book_id
+            WHERE uv.user_id = %s
+            AND (
+                uv.last_reviewed IS NULL OR
+                uv.last_reviewed < CURRENT_DATE - INTERVAL '1 day' * 
+                    CASE 
+                        WHEN uv.confidence_score >= 90 THEN 7
+                        WHEN uv.confidence_score >= 80 THEN 3
+                        WHEN uv.confidence_score >= 70 THEN 1
+                        ELSE 0
+                    END
+            )
+            ORDER BY uv.last_reviewed ASC NULLS FIRST
+            LIMIT %s
+        """
+        return self.db.fetch_all(query, (user_id, limit))
 
     def clear_cache(self):
         """Clear the verse cache"""
