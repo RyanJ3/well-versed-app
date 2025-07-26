@@ -27,7 +27,7 @@ def test_get_user():
 
 def test_get_verses():
     """Test get user verses"""
-    r = requests.get(f"{BASE_URL}/user-verses/{USER_ID}")
+    r = requests.get(f"{BASE_URL}/verses")
     logger.info(f"Get verses: {r.status_code}")
     verses = r.json()
     logger.info(f"Found {len(verses)} memorized verses")
@@ -42,21 +42,21 @@ def test_save_verse():
     chapter = 1
     verse = 1
     data = {"practice_count": 1}
-    r = requests.put(f"{BASE_URL}/user-verses/{USER_ID}/{book_id}/{chapter}/{verse}", json=data)
+    r = requests.put(f"{BASE_URL}/verses/{book_id}/{chapter}/{verse}", json=data)
     logger.info(f"Save verse Psalm 1:1: {r.status_code} - {r.json()}")
 
 def test_save_chapter():
     """Test saving entire chapter"""
     book_id = 19  # Psalms
     chapter = 23
-    r = requests.post(f"{BASE_URL}/user-verses/{USER_ID}/chapters/{book_id}/{chapter}")
+    r = requests.post(f"{BASE_URL}/verses/chapters", json={"book_id": book_id, "chapter": chapter})
     logger.info(f"Save Psalm 23: {r.status_code} - {r.json()}")
 
 def test_clear_chapter():
     """Test clearing a chapter"""
     book_id = 19  # Psalms
     chapter = 23
-    r = requests.delete(f"{BASE_URL}/user-verses/{USER_ID}/chapters/{book_id}/{chapter}")
+    r = requests.delete(f"{BASE_URL}/verses/chapters/{book_id}/{chapter}")
     logger.info(f"Clear Psalm 23: {r.status_code} - {r.json()}")
 
 def test_update_user_preferences():
