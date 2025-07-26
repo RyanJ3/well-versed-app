@@ -88,7 +88,7 @@ export class UserService {
 
   clearMemorizationData(): Observable<any> {
     const userId = this.getCurrentUser()?.id || 1;
-    return this.http.delete(`${this.apiUrl}/user-verses/${userId}`).pipe(
+    return this.http.delete(`${this.apiUrl}/verses/all`).pipe(
       catchError(error => {
         console.error('Error clearing data:', error);
         throw error;
