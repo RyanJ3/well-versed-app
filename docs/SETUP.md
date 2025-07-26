@@ -68,6 +68,20 @@ DEFAULT_BIBLE_ID=de4e12af7f28f599-02  # ASV Bible
 # Application URLs
 FRONTEND_URL=http://localhost:4200
 API_PORT=8000
+
+# Authentication Settings
+JWT_SECRET=your-super-secret-development-key-change-in-production
+JWT_ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+REFRESH_TOKEN_EXPIRE_DAYS=30
+AUTH_PROVIDER=local
+MAX_LOGIN_ATTEMPTS=5
+LOCKOUT_DURATION_MINUTES=30
+
+# Future Cognito Settings (leave empty for now)
+COGNITO_USER_POOL_ID=
+COGNITO_CLIENT_ID=
+AWS_REGION=us-east-1
 ```
 
 ### 4. Start Docker Services
