@@ -140,10 +140,10 @@ export class DeckService {
     userId: number,
     bibleId?: string,
   ): Observable<DeckCardsResponse> {
-    const uid = this.normalizeUserId(userId);
-    let url = `${this.apiUrl}/${deckId}/verses?user_id=${uid}`;
+    this.normalizeUserId(userId);
+    let url = `${this.apiUrl}/${deckId}/verses`;
     if (bibleId) {
-      url += `&bible_id=${bibleId}`;
+      url += `?bible_id=${bibleId}`;
     }
     console.log(`Fetching cards for deck ${deckId}`);
     return this.http.get<DeckCardsResponse>(url).pipe(
