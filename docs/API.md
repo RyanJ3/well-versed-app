@@ -97,9 +97,9 @@ PUT /api/users/{user_id}
 
 ### Verse Management
 
-#### Get User's Memorized Verses
+#### Get Current User's Memorized Verses
 ```http
-GET /api/user-verses/{user_id}?include_apocrypha=false
+GET /api/verses?include_apocrypha=false
 ```
 
 **Query Parameters**:
@@ -126,12 +126,12 @@ GET /api/user-verses/{user_id}?include_apocrypha=false
 
 #### Save/Update Single Verse
 ```http
-PUT /api/user-verses/{user_id}/{book_id}/{chapter}/{verse}
+PUT /api/verses/{book_id}/{chapter}/{verse}
 ```
 
 **Example**: Save John 3:16
 ```http
-PUT /api/user-verses/1/43/3/16
+PUT /api/verses/43/3/16
 ```
 
 **Request Body**:
@@ -144,12 +144,12 @@ PUT /api/user-verses/1/43/3/16
 
 #### Delete Single Verse
 ```http
-DELETE /api/user-verses/{user_id}/{book_id}/{chapter}/{verse}
+DELETE /api/verses/{book_id}/{chapter}/{verse}
 ```
 
 #### Save Entire Chapter
 ```http
-POST /api/user-verses/{user_id}/chapters/{book_id}/{chapter}
+POST /api/verses/chapters/{book_id}/{chapter}
 ```
 
 **Response**:
@@ -162,22 +162,22 @@ POST /api/user-verses/{user_id}/chapters/{book_id}/{chapter}
 
 #### Delete Entire Chapter
 ```http
-DELETE /api/user-verses/{user_id}/chapters/{book_id}/{chapter}
+DELETE /api/verses/chapters/{book_id}/{chapter}
 ```
 
 #### Save Entire Book
 ```http
-POST /api/user-verses/{user_id}/books/{book_id}
+POST /api/verses/books/{book_id}
 ```
 
 #### Delete Entire Book
 ```http
-DELETE /api/user-verses/{user_id}/books/{book_id}
+DELETE /api/verses/books/{book_id}
 ```
 
 #### Get Verse Texts
 ```http
-POST /api/user-verses/{user_id}/verses/texts
+POST /api/verses/verses/texts
 ```
 
 **Request Body**:
@@ -199,7 +199,7 @@ POST /api/user-verses/{user_id}/verses/texts
 
 #### Update Confidence Score
 ```http
-PUT /api/user-verses/confidence/{user_id}/{verse_id}
+PUT /api/verses/confidence/{verse_id}
 ```
 
 **Request Body**:
@@ -562,12 +562,12 @@ Use the interactive documentation at http://localhost:8000/docs to test all endp
 curl -X GET "http://localhost:8000/api/users/1"
 
 # Save a verse
-curl -X PUT "http://localhost:8000/api/user-verses/1/1/1/1" \
+curl -X PUT "http://localhost:8000/api/verses/1/1/1" \
   -H "Content-Type: application/json" \
   -d '{"practice_count": 1}'
 
 # Get verse texts
-curl -X POST "http://localhost:8000/api/user-verses/1/verses/texts" \
+curl -X POST "http://localhost:8000/api/verses/verses/texts" \
   -H "Content-Type: application/json" \
   -d '{"verse_codes": ["1-1-1", "1-1-2"]}'
 ```

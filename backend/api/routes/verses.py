@@ -50,35 +50,3 @@ async def save_or_update_verse(
             detail=str(e)
         )
 
-@router.get("/user-verses/{user_id}", response_model=List[UserVerseResponse], include_in_schema=False)
-async def get_user_verses_compat(
-    user_id: int,
-    include_apocrypha: bool = False,
-    current_user: Annotated[UserContext, Depends(get_current_user)] = None,
-    service: Annotated[VerseService, Depends(get_verse_service)] = None
-):
-    """Compatibility endpoint - user can only access their own verses"""
-    if current_user.user_id != user_id and not current_user.has_role("admin"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Cannot access other user's verses"
-        )
-    return await service.get_user_verses(user_id, include_apocrypha)
-
-@router.put("/user-verses/{user_id}/{book_id}/{chapter}/{verse}", include_in_schema=False)
-async def save_verse_compat(
-    user_id: int,
-    book_id: int,
-    chapter: int,
-    verse: int,
-    update: VerseUpdate,
-    current_user: Annotated[UserContext, Depends(get_current_user)] = None,
-    service: Annotated[VerseService, Depends(get_verse_service)] = None
-):
-    """Compatibility endpoint"""
-    if current_user.user_id != user_id and not current_user.has_role("admin"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Cannot modify other user's verses"
-        )
-    return await save_or_update_verse(book_id, chapter, verse, update, current_user, service)

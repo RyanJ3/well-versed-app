@@ -34,13 +34,12 @@ uvicorn main:app --reload
 - `GET /api/health` - Health check
 - `GET /api/users/{user_id}` - Get user info
 - `PUT /api/users/{user_id}` - Update user profile
-- `GET /api/user-verses/{user_id}` - Get memorized verses
-- `PUT /api/user-verses/{user_id}/{verse_code}` - Save/update verse
-- `DELETE /api/user-verses/{user_id}/{verse_code}` - Delete verse
-- `POST /api/user-verses/{user_id}/chapters/{book_id}/{chapter}` - Save chapter
-- `DELETE /api/user-verses/{user_id}/chapters/{book_id}/{chapter}` - Clear chapter
-- `POST /api/user-verses/{user_id}/books/{book_id}` - Save book
-- `DELETE /api/user-verses/{user_id}/books/{book_id}` - Clear book
+- `GET /api/verses` - Get memorized verses for the current user
+- `PUT /api/verses/{book_id}/{chapter}/{verse}` - Save or update a verse
+- `POST /api/verses/chapters/{book_id}/{chapter}` - Mark a chapter as memorized
+- `DELETE /api/verses/chapters/{book_id}/{chapter}` - Clear a memorized chapter
+- `POST /api/verses/books/{book_id}` - Mark an entire book as memorized
+- `DELETE /api/verses/books/{book_id}` - Clear a memorized book
 - `GET /api/feature-requests` - List feature requests
 - `GET /api/feature-requests/{id}` - Get a single request
 - `POST /api/feature-requests` - Create a new request

@@ -13,6 +13,3 @@ def test_get_verses_with_auth(client: TestClient, auth_headers: Dict[str, str]):
     response = client.get("/api/verses/", headers=auth_headers)
     assert response.status_code in {200, 404, 500}  # depending on db setup
 
-def test_compatibility_endpoint_requires_auth(client: TestClient):
-    response = client.get("/api/verses/user-verses/1")
-    assert response.status_code == 401
