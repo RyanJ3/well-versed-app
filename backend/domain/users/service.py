@@ -72,9 +72,13 @@ class UserService(BaseService):
         if "password" in update_dict:
             update_dict["password_hash"] = self._hash_password(update_dict.pop("password"))
 
+        if not update_dict:
+            logger.info("No changes supplied; returning existing user")
+            return UserResponse(**existing_user)
+
         updated_user = self.repo.update(user_id, update_dict)
         logger.info(f"User {user_id} updated successfully")
-        return UserResponse(**updated_user)
+        return UserResponse(**updated_user if updated_user else existing_user)
 
     def delete_user(self, user_id: int) -> Dict[str, str]:
         """Delete user (soft delete)"""
