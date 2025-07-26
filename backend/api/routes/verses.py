@@ -23,7 +23,7 @@ async def get_user_verses(
     service: Annotated[VerseService, Depends(get_verse_service)] = None
 ):
     """Get all verses for current user"""
-    return service.get_user_verses(current_user.user_id, include_apocrypha)
+    return await service.get_user_verses(current_user.user_id, include_apocrypha)
 
 @router.put("/{book_id}/{chapter}/{verse}", response_model=dict)
 async def save_or_update_verse(
@@ -36,7 +36,7 @@ async def save_or_update_verse(
 ):
     """Save or update a single verse"""
     try:
-        return service.save_or_update_verse(
+        return await service.save_or_update_verse(
             current_user.user_id, book_id, chapter, verse, update
         )
     except VerseNotFoundError as e:
@@ -63,7 +63,7 @@ async def get_user_verses_compat(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Cannot access other user's verses"
         )
-    return service.get_user_verses(user_id, include_apocrypha)
+    return await service.get_user_verses(user_id, include_apocrypha)
 
 @router.put("/user-verses/{user_id}/{book_id}/{chapter}/{verse}", include_in_schema=False)
 async def save_verse_compat(
