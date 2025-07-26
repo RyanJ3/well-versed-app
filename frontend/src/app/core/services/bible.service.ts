@@ -1,7 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError, BehaviorSubject, Subject } from 'rxjs';
-import { tap, catchError, switchMap } from 'rxjs/operators';
+import { tap, catchError, switchMap, map } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { BibleData, UserVerseDetail, BibleBook } from '../models/bible';
 import { NotificationService } from './notification.service';
