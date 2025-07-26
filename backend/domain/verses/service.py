@@ -195,21 +195,32 @@ class VerseService(BaseService):
     def get_verse_texts(
         self, request: VerseTextsRequest, bible_id: str = None
     ) -> List[VerseTextResponse]:
-        """Get verse texts from external API"""
-        # This would integrate with your Bible API service
-        # For now, returning a placeholder
-        logger.info(f"Getting texts for {len(request.verse_codes)} verses")
+        """Get verse texts from API.Bible"""
+        from services.api_bible import APIBibleService
+        from config import Config
 
-        # TODO: Integrate with Bible API service
-        result = []
-        verses = self.repo.get_verses_batch(request.verse_codes)
+        verse_codes = request.verse_codes
+        bible = request.bible_id or bible_id or Config.DEFAULT_BIBLE_ID
 
-        for code, verse in verses.items():
+        logger.info(
+            f"Getting texts for {len(verse_codes)} verses using Bible {bible}"
+        )
+
+        verses = self.repo.get_verses_batch(verse_codes)
+
+        api = APIBibleService(Config.API_BIBLE_KEY, bible)
+        texts = api.get_verses_batch(verse_codes, bible)
+
+        result: List[VerseTextResponse] = []
+        for code in verse_codes:
+            verse = verses.get(code)
+            if not verse:
+                continue
             result.append(
                 VerseTextResponse(
                     verse_code=code,
-                    text=f"Placeholder text for {code}",
-                    book_name="Book Name",
+                    text=texts.get(code, ""),
+                    book_name=verse.get("book_name", ""),
                     chapter=verse["chapter_number"],
                     verse=verse["verse_number"],
                 )

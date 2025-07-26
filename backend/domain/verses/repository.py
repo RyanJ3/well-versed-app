@@ -76,7 +76,7 @@ class VerseRepository(BaseRepository):
 
         # Check cache first
         uncached_codes = []
-        cached_verses = {}
+        cached_verses: Dict[str, Dict] = {}
 
         for code in verse_codes:
             if code in self._verse_cache:
@@ -84,19 +84,25 @@ class VerseRepository(BaseRepository):
             else:
                 uncached_codes.append(code)
 
-        # Fetch uncached verses
+        # Fetch uncached verses with book name
         if uncached_codes:
             query = """
-                SELECT 
-                    verse_code, id, book_id, chapter_number, 
-                    verse_number, is_apocryphal
-                FROM bible_verses
-                WHERE verse_code = ANY(%s)
+                SELECT
+                    bv.verse_code,
+                    bv.id,
+                    bv.book_id,
+                    bb.book_name,
+                    bv.chapter_number,
+                    bv.verse_number,
+                    bv.is_apocryphal
+                FROM bible_verses bv
+                JOIN bible_books bb ON bv.book_id = bb.book_id
+                WHERE bv.verse_code = ANY(%s)
             """
             verses = self.db.fetch_all(query, (uncached_codes,))
 
             for verse in verses:
-                code = verse['verse_code']
+                code = verse["verse_code"]
                 self._verse_cache[code] = verse
                 cached_verses[code] = verse
 
