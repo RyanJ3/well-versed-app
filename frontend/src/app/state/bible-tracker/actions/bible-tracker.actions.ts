@@ -54,6 +54,17 @@ export const BibleTrackerActions = createActionGroup({
     'Reset Progress Success': emptyProps(),
     'Reset Progress Failure': props<{ error: string }>(),
 
+    // Additional UI actions
+    'Toggle Apocrypha': emptyProps(),
+    'Set Progress View Mode': props<{ viewMode: 'testament' | 'groups' }>(),
+
+    // Additional clear actions
+    'Clear Chapter': props<{ bookId: string; chapter: number }>(),
+    'Clear Book': props<{ bookId: string }>(),
+
+    // Reset specific verses
+    'Reset Progress': props<{ bookId: string; chapter: number; verses: number[] }>(),
+  
     // UI Actions
     'Select Book': props<{ bookId: string | null }>(),
     'Select Chapter': props<{ chapter: number | null }>(),
