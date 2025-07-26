@@ -1,7 +1,7 @@
 // frontend/src/app/services/deck.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError, of } from 'rxjs';
+import { Observable, tap, catchError, map, of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Deck,
@@ -102,10 +102,16 @@ export class DeckService {
     return of({} as Deck);
   }
 
-  getUserDecks(userId: number): Observable<DeckListResponse> {
+  getUserDecks(
+    userId: number,
+    skip: number = 0,
+    limit: number = 100,
+  ): Observable<DeckListResponse> {
     const uid = this.normalizeUserId(userId);
     console.log(`Fetching decks for user ${uid}`);
-    return this.http.get<DeckListResponse>(`${this.apiUrl}/user/${uid}`).pipe(
+    const params = `?skip=${skip}&limit=${limit}`;
+    return this.http.get<DeckResponse[]>(`${this.apiUrl}${params}`).pipe(
+      map((decks) => ({ total: decks.length, decks })),
       tap(res => console.log(`Loaded ${res.decks.length} user decks`)),
       catchError(err => {
         console.error('Error loading user decks', err);
@@ -119,9 +125,10 @@ export class DeckService {
     limit: number = 20,
   ): Observable<DeckListResponse> {
     console.log(`Fetching public decks skip=${skip} limit=${limit}`);
-    return this.http.get<DeckListResponse>(
+    return this.http.get<DeckResponse[]>(
       `${this.apiUrl}/public?skip=${skip}&limit=${limit}`,
     ).pipe(
+      map(decks => ({ total: decks.length, decks })),
       tap(res => console.log(`Loaded ${res.decks.length} public decks`)),
       catchError(err => { console.error('Error loading public decks', err); throw err; })
     );
@@ -140,10 +147,10 @@ export class DeckService {
     userId: number,
     bibleId?: string,
   ): Observable<DeckCardsResponse> {
-    const uid = this.normalizeUserId(userId);
-    let url = `${this.apiUrl}/${deckId}/verses?user_id=${uid}`;
+    this.normalizeUserId(userId);
+    let url = `${this.apiUrl}/${deckId}/verses`;
     if (bibleId) {
-      url += `&bible_id=${bibleId}`;
+      url += `?bible_id=${bibleId}`;
     }
     console.log(`Fetching cards for deck ${deckId}`);
     return this.http.get<DeckCardsResponse>(url).pipe(
@@ -217,7 +224,8 @@ export class DeckService {
   getSavedDecks(userId: number): Observable<DeckListResponse> {
     const uid = this.normalizeUserId(userId);
     console.log(`Fetching saved decks for user ${uid}`);
-    return this.http.get<DeckListResponse>(`${this.apiUrl}/saved/${uid}`).pipe(
+    return this.http.get<DeckResponse[]>(`${this.apiUrl}/saved/${uid}`).pipe(
+      map(decks => ({ total: decks.length, decks })),
       tap(res => console.log(`Loaded ${res.decks.length} saved decks`)),
       catchError(err => { console.error('Error loading saved decks', err); throw err; })
     );

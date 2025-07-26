@@ -170,10 +170,14 @@ export class DeckStudyComponent implements OnInit {
 
   onConfidenceChange() {
     if (this.currentVerse) {
+      const [bookId, chapterNum, verseNum] = this.currentVerse.verse_code
+        .split('-')
+        .map((v) => parseInt(v, 10));
       this.bibleService
         .updateVerseConfidence(
-          this.userId,
-          this.currentVerse.verse_id,
+          bookId,
+          chapterNum,
+          verseNum,
           this.currentVerse.confidence_score || 0,
         )
         .subscribe();
