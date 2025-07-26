@@ -173,7 +173,7 @@ export class DeckStudyComponent implements OnInit {
       this.bibleService
         .updateVerseConfidence(
           this.userId,
-          this.currentVerse.verse_id,
+          this.currentVerse.verse_code,
           this.currentVerse.confidence_score || 0,
         )
         .subscribe();
