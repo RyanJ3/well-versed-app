@@ -155,9 +155,8 @@ def get_verse_texts(
     service: VerseService = Depends(get_verse_service),
 ):
     """Get verse texts from Bible API"""
-    from routers.user_verses import get_verse_texts as old_implementation
-    from database import DatabaseConnection
-    import db_pool
-
-    db = DatabaseConnection(db_pool.db_pool)
-    return old_implementation(user_id, request, db)
+    texts = service.get_verse_texts(
+        user_id,
+        VerseTextsRequest(verse_codes=request.verse_codes, bible_id=request.bible_id),
+    )
+    return {t.verse_code: t.text for t in texts}
