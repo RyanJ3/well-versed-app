@@ -16,5 +16,5 @@ def test_endpoint_performance(endpoint: str, name: str):
 if __name__ == "__main__":
     print("Testing API Performance\n" + "=" * 50 + "\n")
     test_endpoint_performance("/api/feature-requests", "Feature Requests")
-    test_endpoint_performance("/api/decks/user/1", "User Decks")
+    test_endpoint_performance("/api/decks?skip=0&limit=100", "User Decks")
     test_endpoint_performance("/api/courses/enrolled/1", "Enrolled Courses")
