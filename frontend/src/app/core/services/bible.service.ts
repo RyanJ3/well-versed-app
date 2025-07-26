@@ -244,7 +244,8 @@ export class BibleService {
       bible_id: bibleId,
     };
 
-    return this.http.post<Record<string, string>>(`${this.versesUrl}/verses/texts`, payload).pipe(
+    // New endpoint under /verses now exposes /texts directly
+    return this.http.post<Record<string, string>>(`${this.versesUrl}/texts`, payload).pipe(
       tap((texts) => {
         console.log(`Received texts for ${Object.keys(texts).length} verses`);
         Object.entries(texts).forEach(([code, text]) => {
