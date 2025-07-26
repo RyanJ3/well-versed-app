@@ -2,7 +2,6 @@
 """API routers"""
 
 # Import all routers to make them available
-from . import users
 from . import user_verses
 from . import feature_requests
 from . import courses
