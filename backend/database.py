@@ -49,14 +49,16 @@ class DatabaseConnection:
             query_preview = query[:200] + '...' if len(query) > 200 else query
             self.query_log.append(f"{query_preview} -- params: {params}")
     
-    def fetch_one(self, query: str, params: tuple = ()) -> Optional[Dict]:
-        """Execute query and fetch one result"""
+    def fetch_one(self, query: str, params: tuple = (), *, commit: bool = False) -> Optional[Dict]:
+        """Execute query and fetch one result. Optionally commit after execution."""
         with self.get_db() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 logger.debug(f"Executing query: {query[:100]}...")
                 self.query_count += 1
                 cur.execute(query, params)
                 result = cur.fetchone()
+                if commit:
+                    conn.commit()
                 logger.debug(f"Query returned {'1 row' if result else '0 rows'}")
                 return dict(result) if result else None
     

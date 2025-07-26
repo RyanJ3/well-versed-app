@@ -19,6 +19,7 @@ class DeckRepository:
             RETURNING deck_id, created_at, updated_at
             """,
             (user_id, deck_data.name, deck_data.description, deck_data.is_public),
+            commit=True,
         )
         deck_id = row["deck_id"]
         created_at = row["created_at"].isoformat()
@@ -30,6 +31,7 @@ class DeckRepository:
                 "INSERT INTO deck_tags (tag_name) VALUES (%s) "
                 "ON CONFLICT (tag_name) DO UPDATE SET tag_name = EXCLUDED.tag_name RETURNING tag_id",
                 (tag,),
+                commit=True,
             )
             self.db.execute(
                 "INSERT INTO deck_tag_map (deck_id, tag_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
@@ -52,6 +54,7 @@ class DeckRepository:
                 RETURNING card_id
                 """,
                 (deck_id, code, verse["id"], position),
+                commit=True,
             )
             self.db.execute(
                 "INSERT INTO card_verses (card_id, verse_id, verse_order) VALUES (%s, %s, 1)",
@@ -219,6 +222,7 @@ class DeckRepository:
         row = self.db.fetch_one(
             "DELETE FROM decks WHERE deck_id = %s RETURNING deck_id",
             (deck_id,),
+            commit=True,
         )
         return bool(row)
 
@@ -259,6 +263,7 @@ class DeckRepository:
                 end_verse_id if len(verse_codes) > 1 else None,
                 position,
             ),
+            commit=True,
         )
         card_id = card_row["card_id"]
         added_at = card_row["added_at"].isoformat()

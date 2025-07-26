@@ -76,12 +76,14 @@ app.add_middleware(
 )
 
 # Import routers after app creation to avoid circular imports
-from routers import users, user_verses, feature_requests, courses, atlas, config, bibles, monitoring
+from api.routes import users, books
+from routers import user_verses, feature_requests, courses, atlas, config, bibles, monitoring
 from api.endpoints import decks as decks_api
 from api.endpoints import verses as verses_api
 
 # Include routers
-app.include_router(users.router, prefix="/api/users", tags=["users"])
+app.include_router(users.router, prefix="/api", tags=["users"])
+app.include_router(books.router, prefix="/api", tags=["books"])
 app.include_router(user_verses.router, prefix="/api/user-verses", tags=["verses"])
 app.include_router(verses_api.router, prefix="/api/v2/user-verses", tags=["verses-v2"])
 app.include_router(decks_api.router, prefix="/api/decks", tags=["decks"])
