@@ -34,6 +34,12 @@ export interface CourseDetailResponse extends Course {
 })
 export class CourseService {
   private apiUrl = `${environment.apiUrl}/courses`;
+
+  /** Normalize provided user id so API calls never include undefined values. */
+  private normalizeUserId(id: any): number {
+    const parsed = Number(id);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
+  }
   
   // Track current course being viewed/edited
   private currentCourseSubject = new BehaviorSubject<CourseDetailResponse | null>(null);
@@ -67,8 +73,9 @@ export class CourseService {
 
   // Get courses created by a user
   getUserCourses(userId: number): Observable<CourseListResponse> {
-    console.log(`Fetching user courses for ${userId}`);
-    return this.http.get<CourseListResponse>(`${this.apiUrl}/user/${userId}`).pipe(
+    const uid = this.normalizeUserId(userId);
+    console.log(`Fetching user courses for ${uid}`);
+    return this.http.get<CourseListResponse>(`${this.apiUrl}/user/${uid}`).pipe(
       tap(r => console.log(`Loaded ${r.courses.length} user courses`)),
       catchError(err => { console.error('Error loading user courses', err); throw err; })
     );
@@ -76,8 +83,9 @@ export class CourseService {
 
   // Get enrolled courses for a user
   getEnrolledCourses(userId: number): Observable<Course[]> {
-    console.log(`Fetching enrolled courses for user ${userId}`);
-    return this.http.get<Course[]>(`${this.apiUrl}/enrolled/${userId}`).pipe(
+    const uid = this.normalizeUserId(userId);
+    console.log(`Fetching enrolled courses for user ${uid}`);
+    return this.http.get<Course[]>(`${this.apiUrl}/enrolled/${uid}`).pipe(
       tap(courses => {
         console.log(`Loaded ${courses.length} enrolled courses`);
         this.enrolledCoursesSubject.next(courses);
@@ -90,7 +98,10 @@ export class CourseService {
   getCourse(courseId: number, userId?: number): Observable<CourseDetailResponse> {
     console.log(`Fetching course ${courseId}`);
     let url = `${this.apiUrl}/${courseId}`;
-    if (userId) url += `?user_id=${userId}`;
+    if (userId) {
+      const uid = this.normalizeUserId(userId);
+      url += `?user_id=${uid}`;
+    }
 
     return this.http.get<CourseDetailResponse>(url).pipe(
       tap(course => {
@@ -104,9 +115,10 @@ export class CourseService {
   // Create a new course
   createCourse(course: CreateCourseRequest, userId: number): Observable<Course> {
     console.log('Creating course', course);
+    const uid = this.normalizeUserId(userId);
     return this.http.post<Course>(this.apiUrl, {
       ...course,
-      creator_id: userId
+      creator_id: uid
     }).pipe(
       tap(() => console.log('Course created')),
       catchError(err => { console.error('Error creating course', err); throw err; })
@@ -135,9 +147,10 @@ export class CourseService {
 
   // Enroll in a course
   enrollInCourse(courseId: number, userId: number): Observable<UserCourseProgress> {
-    console.log(`Enrolling user ${userId} in course ${courseId}`);
+    const uid = this.normalizeUserId(userId);
+    console.log(`Enrolling user ${uid} in course ${courseId}`);
     return this.http.post<UserCourseProgress>(`${this.apiUrl}/${courseId}/enroll`, {
-      user_id: userId
+      user_id: uid
     }).pipe(
       tap(() => console.log('Enrolled in course')),
       catchError(err => { console.error('Error enrolling in course', err); throw err; })
@@ -146,8 +159,9 @@ export class CourseService {
 
   // Unenroll from a course
   unenrollFromCourse(courseId: number, userId: number): Observable<any> {
-    console.log(`Unenrolling user ${userId} from course ${courseId}`);
-    return this.http.delete(`${this.apiUrl}/${courseId}/enroll/${userId}`).pipe(
+    const uid = this.normalizeUserId(userId);
+    console.log(`Unenrolling user ${uid} from course ${courseId}`);
+    return this.http.delete(`${this.apiUrl}/${courseId}/enroll/${uid}`).pipe(
       tap(() => console.log('Unenrolled from course')),
       catchError(err => { console.error('Error unenrolling from course', err); throw err; })
     );
@@ -155,8 +169,9 @@ export class CourseService {
 
   // Get user's progress in a course
   getUserCourseProgress(courseId: number, userId: number): Observable<UserCourseProgress> {
-    console.log(`Fetching course progress for course ${courseId} user ${userId}`);
-    return this.http.get<UserCourseProgress>(`${this.apiUrl}/${courseId}/progress/${userId}`).pipe(
+    const uid = this.normalizeUserId(userId);
+    console.log(`Fetching course progress for course ${courseId} user ${uid}`);
+    return this.http.get<UserCourseProgress>(`${this.apiUrl}/${courseId}/progress/${uid}`).pipe(
       tap(progress => console.log('Loaded progress', progress)),
       catchError(err => { console.error('Error loading progress', err); throw err; })
     );
@@ -168,7 +183,10 @@ export class CourseService {
   getLesson(lessonId: number, userId?: number): Observable<Lesson & { flashcards: LessonFlashcard[], user_progress?: UserLessonProgress }> {
     console.log(`Fetching lesson ${lessonId}`);
     let url = `${this.apiUrl}/lessons/${lessonId}`;
-    if (userId) url += `?user_id=${userId}`;
+    if (userId) {
+      const uid = this.normalizeUserId(userId);
+      url += `?user_id=${uid}`;
+    }
     return this.http.get<Lesson & { flashcards: LessonFlashcard[], user_progress?: UserLessonProgress }>(url).pipe(
       tap(l => console.log('Loaded lesson', l)),
       catchError(err => { console.error('Error loading lesson', err); throw err; })
@@ -217,9 +235,10 @@ export class CourseService {
 
   // Mark lesson as started
   startLesson(lessonId: number, userId: number): Observable<UserLessonProgress> {
-    console.log(`Starting lesson ${lessonId}`);
+    const uid = this.normalizeUserId(userId);
+    console.log(`Starting lesson ${lessonId} for user ${uid}`);
     return this.http.post<UserLessonProgress>(`${this.apiUrl}/lessons/${lessonId}/start`, {
-      user_id: userId
+      user_id: uid
     }).pipe(
       tap(() => console.log('Lesson started')),
       catchError(err => { console.error('Error starting lesson', err); throw err; })
@@ -228,9 +247,10 @@ export class CourseService {
 
   // Mark lesson as completed
   completeLesson(lessonId: number, userId: number): Observable<UserLessonProgress> {
-    console.log(`Completing lesson ${lessonId}`);
+    const uid = this.normalizeUserId(userId);
+    console.log(`Completing lesson ${lessonId} for user ${uid}`);
     return this.http.post<UserLessonProgress>(`${this.apiUrl}/lessons/${lessonId}/complete`, {
-      user_id: userId
+      user_id: uid
     }).pipe(
       tap(() => console.log('Lesson completed')),
       catchError(err => { console.error('Error completing lesson', err); throw err; })
@@ -239,8 +259,9 @@ export class CourseService {
 
   // Get user's lesson progress
   getUserLessonProgress(lessonId: number, userId: number): Observable<UserLessonProgress> {
-    console.log(`Fetching lesson progress for lesson ${lessonId} user ${userId}`);
-    return this.http.get<UserLessonProgress>(`${this.apiUrl}/lessons/${lessonId}/progress/${userId}`).pipe(
+    const uid = this.normalizeUserId(userId);
+    console.log(`Fetching lesson progress for lesson ${lessonId} user ${uid}`);
+    return this.http.get<UserLessonProgress>(`${this.apiUrl}/lessons/${lessonId}/progress/${uid}`).pipe(
       tap(p => console.log('Loaded lesson progress', p)),
       catchError(err => { console.error('Error loading lesson progress', err); throw err; })
     );
@@ -259,10 +280,11 @@ export class CourseService {
 
   // Add flashcards to user's queue
   addFlashcardsToQueue(request: AddFlashcardsToQueueRequest, userId: number): Observable<any> {
-    console.log(`Adding flashcards to queue for lesson ${request.lesson_id}`);
+    const uid = this.normalizeUserId(userId);
+    console.log(`Adding flashcards to queue for lesson ${request.lesson_id} user ${uid}`);
     return this.http.post(`${this.apiUrl}/lessons/${request.lesson_id}/flashcards/queue`, {
       ...request,
-      user_id: userId
+      user_id: uid
     }).pipe(
       tap(() => console.log('Flashcards added to queue')),
       catchError(err => { console.error('Error adding flashcards', err); throw err; })
