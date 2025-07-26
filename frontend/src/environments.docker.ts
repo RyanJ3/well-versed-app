@@ -1,5 +1,6 @@
 // src/environments.docker.ts
 export const environment = {
     production: false,
-    apiUrl: 'http://localhost:8000/api' // This connects to the exposed port
+    // Use relative API URL so dev server proxy works both locally and in Docker
+    apiUrl: '/api'
 };
