@@ -28,6 +28,20 @@ class VerseTextsRequest(BaseModel):
     verse_codes: List[str]
     bible_id: Optional[str] = None
 
+class ChapterSaveRequest(BaseModel):
+    book_id: int
+    chapter: int
+
+class BookSaveRequest(BaseModel):
+    book_id: int
+
+class VerseTextResponse(BaseModel):
+    verse_code: str
+    text: str
+    book_name: str
+    chapter: int
+    verse: int
+
 
 class ConfidenceUpdate(BaseModel):
     confidence_score: int
