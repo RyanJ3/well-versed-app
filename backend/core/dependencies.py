@@ -1,7 +1,6 @@
 from fastapi import Depends
-from typing import Generator
 from database import DatabaseConnection
-import db_pool as db_pool
+import db_pool
 from domain.users import UserRepository, UserService
 from domain.decks.repository import DeckRepository
 from domain.decks.service import DeckService
@@ -10,7 +9,8 @@ from domain.verses.service import VerseService
 from domain.books import BookRepository, BookService
 
 
-def get_db() -> Generator[DatabaseConnection, None, None]:
+def get_db() -> DatabaseConnection:
+    """Get database connection"""
     return DatabaseConnection(db_pool.db_pool)
 
 
