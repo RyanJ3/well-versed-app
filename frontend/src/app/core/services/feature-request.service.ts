@@ -73,10 +73,12 @@ export class FeatureRequestService {
 
   // Create a new feature request
   createFeatureRequest(request: CreateFeatureRequest, userId: number): Observable<FeatureRequest> {
-    const uid = this.normalizeUserId(userId);
+    // Remove user_id from the payload - backend will get it from auth/session
     const payload = {
-      ...request,
-      user_id: uid
+      title: request.title,
+      description: request.description,
+      type: request.type,
+      tags: request.tags || []
     };
     console.log('Creating feature request', payload);
     return this.http.post<FeatureRequest>(this.apiUrl, payload).pipe(
@@ -90,10 +92,7 @@ export class FeatureRequestService {
 
   // Vote on a feature request
   voteOnRequest(requestId: number, voteType: 'up' | 'down', userId: number): Observable<any> {
-    const uid = this.normalizeUserId(userId);
-    const payload: FeatureRequestVote = {
-      request_id: requestId,
-      user_id: uid,
+    const payload = {
       vote_type: voteType
     };
 
@@ -111,7 +110,7 @@ export class FeatureRequestService {
   removeVote(requestId: number, userId: number): Observable<any> {
     const uid = this.normalizeUserId(userId);
     console.log(`Removing vote for request ${requestId} by user ${uid}`);
-    return this.http.delete(`${this.apiUrl}/${requestId}/vote/${uid}`).pipe(
+    return this.http.delete(`${this.apiUrl}/${requestId}/vote`).pipe(
       tap(() => this.requestsUpdated.next(true)),
       catchError(err => { console.error('Error removing vote', err); throw err; })
     );
@@ -128,10 +127,8 @@ export class FeatureRequestService {
 
   // Add a comment to a feature request
   addComment(requestId: number, comment: string, userId: number): Observable<FeatureRequestComment> {
-    const uid = this.normalizeUserId(userId);
     const payload = {
-      comment,
-      user_id: uid
+      comment
     };
 
     console.log(`Adding comment to request ${requestId}`);
@@ -153,12 +150,8 @@ export class FeatureRequestService {
 
   // Get trending feature requests (most upvoted in last 7 days)
   getTrendingRequests(limit: number = 5): Observable<FeatureRequest[]> {
-    const params = new HttpParams()
-      .set('trending', 'true')
-      .set('limit', limit.toString());
-
     console.log(`Fetching trending requests limit=${limit}`);
-    return this.http.get<FeatureRequest[]>(`${this.apiUrl}/trending`, { params }).pipe(
+    return this.http.get<FeatureRequest[]>(`${this.apiUrl}/trending`).pipe(
       tap(r => console.log(`Loaded ${r.length} trending requests`)),
       catchError(err => { console.error('Error loading trending requests', err); throw err; })
     );

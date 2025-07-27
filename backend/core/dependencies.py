@@ -7,6 +7,7 @@ from domain.decks.service import DeckService
 from domain.verses.repository import VerseRepository
 from domain.verses.service import VerseService
 from domain.books import BookRepository, BookService
+from domain.feature_requests import FeatureRequestService, FeatureRequestRepository
 
 
 def get_db() -> DatabaseConnection:
@@ -48,3 +49,13 @@ def get_book_repository(db: DatabaseConnection = Depends(get_db)) -> BookReposit
 def get_book_service(repo: BookRepository = Depends(get_book_repository)) -> BookService:
     """Get book service"""
     return BookService(repo)
+
+
+def get_feature_request_repository(db: DatabaseConnection = Depends(get_db)) -> FeatureRequestRepository:
+    return FeatureRequestRepository(db)
+
+
+def get_feature_request_service(
+    repository: FeatureRequestRepository = Depends(get_feature_request_repository),
+) -> FeatureRequestService:
+    return FeatureRequestService(repository)
