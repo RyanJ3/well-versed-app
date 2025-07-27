@@ -58,9 +58,9 @@ class CourseService:
         """Convert repository dict to response model"""
         return CourseResponse(
             id=course_dict.get('id') or course_dict.get('course_id'),
-            creator_id=course_dict['creator_id'] or course_dict['user_id'],
+            creator_id=course_dict.get('creator_id') or course_dict.get('user_id'),
             creator_name=course_dict['creator_name'],
-            name=course_dict.get('name') or course_dict.get('title'),
+            name=course_dict.get('name') or course_dict.get('title'),  # Handle both field names
             description=course_dict['description'],
             thumbnail_url=course_dict['thumbnail_url'],
             is_public=course_dict['is_public'],

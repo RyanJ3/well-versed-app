@@ -16,9 +16,9 @@ class CourseRepository:
     def get_enrolled_courses(self, user_id: int) -> List[Dict]:
         """Get all enrolled courses with tags and lesson counts in exactly 3 queries"""
         courses_query = """
-            SELECT 
+            SELECT
                 w.course_id,
-                w.user_id,
+                w.user_id as creator_id,
                 u.name AS creator_name,
                 w.name,
                 w.description,
@@ -76,7 +76,7 @@ class CourseRepository:
             progress = progress_by_course.get(course_id, {})
             results.append({
                 "id": course_id,
-                "creator_id": course["user_id"],
+                "creator_id": course.get("creator_id") or course["user_id"],
                 "creator_name": course["creator_name"],
                 "title": course["name"],
                 "description": course["description"],
@@ -105,7 +105,7 @@ class CourseRepository:
     def get_course_with_lessons(self, course_id: int, user_id: Optional[int] = None) -> Optional[Dict]:
         """Get course details with lessons and user progress in 3 queries"""
         course_query = """
-            SELECT 
+            SELECT
                 c.course_id,
                 c.user_id,
                 u.name as creator_name,
@@ -279,7 +279,7 @@ class CourseRepository:
         query = """
             SELECT 
                 c.course_id,
-                c.user_id,
+                c.user_id as creator_id,
                 u.name as creator_name,
                 c.name,
                 c.description,
