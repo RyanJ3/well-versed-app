@@ -35,7 +35,7 @@ class VerseTextsRequestBody(BaseModel):
     bible_id: Optional[str] = None
 
 
-@router.get("/", response_model=List[UserVerseResponse])
+@router.get("", response_model=List[UserVerseResponse])
 def get_user_verses(
     include_apocrypha: bool = False,
     user_id: int = Depends(get_current_user_id),
