@@ -1,5 +1,8 @@
+import pytest
 import requests
 import json
+
+pytestmark = pytest.mark.skip("Legacy endpoint comparison no longer needed")
 
 
 def compare_endpoints(user_id=1):
