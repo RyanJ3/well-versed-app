@@ -196,3 +196,143 @@ class FeatureRequestRepository:
                     'comments_count': 0
                 }
 
+    def get_request_by_id(self, request_id: int) -> Optional[Dict]:
+        """Get single request with all details"""
+        query = """
+            SELECT
+                fr.request_id AS id,
+                fr.title,
+                fr.description,
+                fr.type,
+                fr.status,
+                fr.priority,
+                fr.user_id,
+                u.name AS user_name,
+                fr.created_at,
+                fr.updated_at,
+                COALESCE(SUM(CASE WHEN frv.vote_type='up' THEN 1 ELSE 0 END), 0) AS upvotes,
+                COALESCE(SUM(CASE WHEN frv.vote_type='down' THEN 1 ELSE 0 END), 0) AS downvotes,
+                COUNT(DISTINCT frc.comment_id) AS comments_count
+            FROM feature_requests fr
+            JOIN users u ON fr.user_id = u.user_id
+            LEFT JOIN feature_request_votes frv ON fr.request_id = frv.request_id
+            LEFT JOIN feature_request_comments frc ON fr.request_id = frc.request_id
+            WHERE fr.request_id = %s
+            GROUP BY fr.request_id, u.name
+        """
+        result = self.db.fetch_one(query, (request_id,))
+        if not result:
+            return None
+
+        tag_rows = self.db.fetch_all(
+            """
+            SELECT t.tag_name 
+            FROM feature_request_tag_map m 
+            JOIN feature_request_tags t ON m.tag_id = t.tag_id 
+            WHERE m.request_id = %s
+            """,
+            (request_id,)
+        )
+        result["tags"] = [t["tag_name"] for t in tag_rows]
+        return result
+
+    def add_vote(self, request_id: int, user_id: int, vote_type: str):
+        """Add or update vote"""
+        self.db.execute(
+            """
+            INSERT INTO feature_request_votes (request_id, user_id, vote_type)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (request_id, user_id)
+            DO UPDATE SET vote_type = EXCLUDED.vote_type, voted_at = CURRENT_TIMESTAMP
+            """,
+            (request_id, user_id, vote_type)
+        )
+
+    def remove_vote(self, request_id: int, user_id: int):
+        """Remove vote"""
+        self.db.execute(
+            "DELETE FROM feature_request_votes WHERE request_id = %s AND user_id = %s",
+            (request_id, user_id)
+        )
+
+    def add_comment(self, request_id: int, user_id: int, comment: str) -> Dict:
+        """Add comment"""
+        with self.db.get_db() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO feature_request_comments (request_id, user_id, comment)
+                    VALUES (%s, %s, %s)
+                    RETURNING comment_id, created_at
+                    """,
+                    (request_id, user_id, comment)
+                )
+                row = cur.fetchone()
+                cur.execute("SELECT name FROM users WHERE user_id = %s", (user_id,))
+                user_row = cur.fetchone()
+                conn.commit()
+
+        return {
+            "id": row[0],
+            "request_id": request_id,
+            "user_id": user_id,
+            "user_name": user_row[0] if user_row else "",
+            "comment": comment,
+            "created_at": row[1]
+        }
+
+    def get_comments(self, request_id: int) -> List[Dict]:
+        """Get comments for request"""
+        query = """
+            SELECT
+                c.comment_id AS id,
+                c.request_id,
+                c.user_id,
+                u.name AS user_name,
+                c.comment,
+                c.created_at
+            FROM feature_request_comments c
+            JOIN users u ON c.user_id = u.user_id
+            WHERE c.request_id = %s
+            ORDER BY c.created_at
+        """
+        return self.db.fetch_all(query, (request_id,))
+
+    def get_user_requests(self, user_id: int) -> List[Dict]:
+        """Get all requests by user"""
+        query = """
+            SELECT
+                fr.request_id AS id,
+                fr.title,
+                fr.description,
+                fr.type,
+                fr.status,
+                fr.priority,
+                fr.user_id,
+                u.name AS user_name,
+                fr.created_at,
+                fr.updated_at,
+                0 as upvotes,
+                0 as downvotes,
+                0 as comments_count
+            FROM feature_requests fr
+            JOIN users u ON fr.user_id = u.user_id
+            WHERE fr.user_id = %s
+            ORDER BY fr.created_at DESC
+        """
+        rows = self.db.fetch_all(query, (user_id,))
+
+        for row in rows:
+            tag_rows = self.db.fetch_all(
+                """
+                SELECT t.tag_name
+                FROM feature_request_tag_map m
+                JOIN feature_request_tags t ON m.tag_id = t.tag_id
+                WHERE m.request_id = %s
+                """,
+                (row["id"],)
+            )
+            row["tags"] = [t["tag_name"] for t in tag_rows]
+
+        return rows
+

@@ -9,7 +9,6 @@ be imported lazily as needed.
 
 __all__ = [
     "user_verses",
-    "feature_requests",
     "courses",
     "atlas",
     "config",
