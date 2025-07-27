@@ -274,3 +274,58 @@ class CourseRepository:
                     'tags': tags
                 }
 
+    def get_public_courses(self, skip: int = 0, limit: int = 20) -> List[Dict]:
+        """Get public courses with minimal queries"""
+        query = """
+            SELECT 
+                c.course_id,
+                c.user_id,
+                u.name as creator_name,
+                c.name,
+                c.description,
+                c.thumbnail_url,
+                c.is_public,
+                c.created_at,
+                c.updated_at,
+                COUNT(DISTINCT l.lesson_id) as lesson_count,
+                COUNT(DISTINCT e.user_id) as enrolled_count,
+                ARRAY_REMOVE(ARRAY_AGG(DISTINCT t.tag_name), NULL) as tags
+            FROM courses c
+            JOIN users u ON c.user_id = u.user_id
+            LEFT JOIN course_lessons l ON c.course_id = l.course_id
+            LEFT JOIN course_enrollments e ON c.course_id = e.course_id
+            LEFT JOIN course_tag_map m ON c.course_id = m.course_id
+            LEFT JOIN course_tags t ON m.tag_id = t.tag_id
+            WHERE c.is_public = TRUE
+            GROUP BY c.course_id, u.user_id, u.name
+            ORDER BY c.created_at DESC
+            OFFSET %s LIMIT %s
+        """
+        return self.db.fetch_all(query, (skip, limit))
+
+    def get_user_enrollment(self, course_id: int, user_id: int) -> Optional[Dict]:
+        """Check if user is enrolled in course"""
+        query = """
+            SELECT * FROM course_enrollments 
+            WHERE course_id = %s AND user_id = %s
+        """
+        return self.db.fetch_one(query, (course_id, user_id))
+
+    def enroll_user(self, course_id: int, user_id: int) -> Dict:
+        """Enroll user in course"""
+        query = """
+            INSERT INTO course_enrollments (user_id, course_id)
+            VALUES (%s, %s)
+            RETURNING *
+        """
+        result = self.db.fetch_one(query, (user_id, course_id), commit=True)
+        return {
+            'user_id': result['user_id'],
+            'course_id': result['course_id'],
+            'enrolled_at': result['enrolled_at'].isoformat(),
+            'current_lesson_position': result['current_lesson_position'],
+            'lessons_completed': result['lessons_completed'],
+            'last_accessed': result['last_accessed'].isoformat() if result['last_accessed'] else None,
+            'completed_at': result['completed_at'].isoformat() if result['completed_at'] else None
+        }
+
