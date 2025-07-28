@@ -1,0 +1,49 @@
+// Responsive
+@media (max-width: 1024px) {
+  .editor-container {
+    grid-template-columns: 350px 1fr;
+  }
+
+  .step-navigation {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .step-item {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .course-builder {
+    padding: 1rem;
+  }
+
+  .builder-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+
+    h1 {
+      font-size: 1.5rem;
+    }
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .lessons-panel {
+    max-height: 400px;
+  }
+
+  .content-type-selector {
+    grid-template-columns: 1fr;
+  }
+}
+

@@ -1,0 +1,39 @@
+// Navigation
+.nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.nav-btn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &.primary {
+    background: #8b5cf6;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #7c3aed;
+    }
+  }
+
+  &.secondary {
+    background: #f3f4f6;
+    color: #4b5563;
+
+    &:hover:not(:disabled) {
+      background: #e5e7eb;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+

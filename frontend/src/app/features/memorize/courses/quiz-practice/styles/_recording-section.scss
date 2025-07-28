@@ -1,0 +1,87 @@
+// Recording Section (same as lesson practice)
+.recording-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.record-btn {
+  position: relative;
+  padding: 1.5rem 3rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 9999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover:not(:disabled) {
+    background: #dc2626;
+    transform: scale(1.05);
+  }
+
+  &:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }
+
+  &.recording {
+    background: #dc2626;
+  }
+
+  &.has-audio {
+    background: #10b981;
+
+    &:hover {
+      background: #059669;
+    }
+  }
+}
+
+.record-icon {
+  position: relative;
+  display: inline-block;
+}
+
+.recording-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  background: rgba(239, 68, 68, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulse 1.5s infinite;
+}
+
+.audio-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.audio-btn {
+  padding: 0.75rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #f3f4f6;
+  }
+
+  &.delete {
+    color: #ef4444;
+
+    &:hover {
+      background: #fee2e2;
+      border-color: #fecaca;
+    }
+  }
+}
+
