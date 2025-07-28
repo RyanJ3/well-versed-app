@@ -709,7 +709,7 @@ export class CourseBuilderStateService {
         localStorage.removeItem('courseBuilderDraft');
       } else {
         const course = await this.courseService
-          .createCourse(courseData, this.userId)
+          .createCourse(courseData)
           .toPromise();
 
         for (const lesson of this.lessons) {

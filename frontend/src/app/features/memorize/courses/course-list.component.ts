@@ -584,7 +584,7 @@ export class CourseListComponent implements OnInit {
           ? parseInt(this.currentUser.id)
           : this.currentUser.id;
 
-      this.courseService.enrollInCourse(course.id, userId).subscribe({
+      this.courseService.enrollInCourse(course.id).subscribe({
         next: () => {
           this.enrolledCourses.set(course.id, {
             progress: 0,
