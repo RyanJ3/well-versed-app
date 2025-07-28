@@ -1,0 +1,21 @@
+<div class="quiz-container" *ngIf="currentQuestion$ | async as question">
+  <app-quiz-progress-bar
+    [currentIndex]="(quizProgress$ | async)?.currentIndex"
+    [totalQuestions]="(quizProgress$ | async)?.totalQuestions"
+    [correctAnswers]="(quizProgress$ | async)?.correctAnswers"
+  ></app-quiz-progress-bar>
+
+  <app-quiz-question
+    [question]="question"
+    [userAnswer]="(quizProgress$ | async)?.currentAnswer"
+    (answerChanged)="onAnswerChanged($event)"
+    (submitted)="onAnswerSubmitted($event)"
+  ></app-quiz-question>
+
+  <app-quiz-results
+    *ngIf="(quizProgress$ | async)?.isComplete"
+    [results]="quizResults$ | async"
+    (retryClicked)="onRetryQuiz()"
+    (nextLessonClicked)="onNextLesson()"
+  ></app-quiz-results>
+</div>

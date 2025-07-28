@@ -379,7 +379,7 @@ interface QuizVerse {
   `,
   styleUrls: ['./quiz-practice.component.scss'],
 })
-export class QuizPracticeComponent implements OnInit, OnDestroy {
+export class QuizPracticePresentationComponent implements OnInit, OnDestroy {
   @ViewChild('audioPlayer') audioPlayer!: ElementRef<HTMLAudioElement>;
 
   // Route params
