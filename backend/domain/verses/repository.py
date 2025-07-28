@@ -95,6 +95,12 @@ class VerseRepository(BaseRepository):
             self._verse_cache[verse_code] = verse
         return verse
 
+    @track_queries(max_queries=1)
+    def get_verse_by_reference(self, book_id: int, chapter: int, verse: int) -> Optional[Dict]:
+        """Get verse by book, chapter, verse reference"""
+        verse_code = f"{book_id}-{chapter}-{verse}"
+        return self.get_verse_by_code(verse_code)
+
     @track_queries(max_queries=2)
     def get_verses_batch(self, verse_codes: List[str]) -> Dict[str, Dict]:
         """Get multiple verses efficiently"""
@@ -161,11 +167,39 @@ class VerseRepository(BaseRepository):
         return self.db.fetch_one(query, (confidence_score, user_id, verse_id), commit=True)
 
     @track_queries(max_queries=1)
+    def update_verse_confidence_direct(self, user_id: int, verse_id: int,
+                                       confidence_score: int, last_reviewed: datetime = None) -> Dict:
+        """Update confidence score using user_verse_confidence table (legacy support)"""
+        if last_reviewed is None:
+            last_reviewed = datetime.now()
+
+        query = """
+            INSERT INTO user_verse_confidence (user_id, verse_id, confidence_score, last_reviewed)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (user_id, verse_id)
+            DO UPDATE SET
+                confidence_score = EXCLUDED.confidence_score,
+                last_reviewed = EXCLUDED.last_reviewed,
+                review_count = user_verse_confidence.review_count + 1
+            RETURNING *
+        """
+        return self.db.fetch_one(query, (user_id, verse_id, confidence_score, last_reviewed), commit=True)
+
+    @track_queries(max_queries=1)
     def delete_verse(self, user_id: int, verse_id: int) -> bool:
         """Delete a user verse"""
         query = "DELETE FROM user_verses WHERE user_id = %s AND verse_id = %s RETURNING 1"
         result = self.db.fetch_one(query, (user_id, verse_id), commit=True)
         return result is not None
+
+    @track_queries(max_queries=1)
+    def delete_verse_by_reference(self, user_id: int, book_id: int, chapter: int, verse: int) -> bool:
+        """Delete a verse by book/chapter/verse reference"""
+        verse_code = f"{book_id}-{chapter}-{verse}"
+        verse_data = self.get_verse_by_code(verse_code)
+        if verse_data:
+            return self.delete_verse(user_id, verse_data['id'])
+        return False
 
     @track_queries(max_queries=2)
     def save_chapter(self, user_id: int, book_id: int, chapter_num: int) -> Dict[str, any]:
@@ -250,6 +284,15 @@ class VerseRepository(BaseRepository):
     @track_queries(max_queries=1)
     def clear_all_verses(self, user_id: int) -> Dict[str, str]:
         """Clear all memorization data for user"""
-        query = "DELETE FROM user_verses WHERE user_id = %s"
-        self.db.execute(query, (user_id,))
+        # Clear from both tables for complete cleanup
+        self.db.execute("DELETE FROM user_verse_confidence WHERE user_id = %s", (user_id,))
+        self.db.execute("DELETE FROM user_verses WHERE user_id = %s", (user_id,))
         return {"message": "All memorization data cleared"}
+
+    @track_queries(max_queries=1)
+    def get_user_preference(self, user_id: int) -> Optional[Dict]:
+        """Get user's API preferences"""
+        return self.db.fetch_one(
+            "SELECT use_esv_api, esv_api_token FROM users WHERE user_id = %s",
+            (user_id,)
+        )

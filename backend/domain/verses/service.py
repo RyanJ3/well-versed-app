@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 from datetime import datetime
 import logging
 from domain.core import BaseService
@@ -9,11 +9,12 @@ from .schemas import (
     UserVerseResponse,
     VerseDetail,
     ConfidenceUpdate,
+    ConfidenceUpdateLegacy,
     ChapterSaveRequest,
     BookSaveRequest,
     VerseTextsRequest,
     VerseTextResponse,
-)
+    )
 from .exceptions import VerseNotFoundError, InvalidVerseCodeError
 
 logger = logging.getLogger(__name__)
@@ -86,6 +87,11 @@ class VerseService(BaseService):
         logger.info(f"Verse {verse_code} saved for user {user_id}")
         return {"message": "Verse saved successfully"}
 
+    def save_verse_by_reference(self, user_id: int, book_id: int, chapter: int,
+                                verse: int, update: VerseUpdate) -> Dict[str, str]:
+        """Save or update a verse by book/chapter/verse reference"""
+        return self.save_or_update_verse(user_id, book_id, chapter, verse, update)
+
     def update_confidence(self, user_id: int, book_id: int, chapter_num: int,
                           verse_num: int, update: ConfidenceUpdate) -> Dict[str, str]:
         """Update confidence score for a verse"""
@@ -100,6 +106,18 @@ class VerseService(BaseService):
         logger.info(f"Confidence updated for verse {verse_code}")
         return {"message": "Confidence updated successfully"}
 
+    def update_verse_confidence_by_id(self, user_id: int, verse_id: int,
+                                      confidence_score: int, last_reviewed: Optional[datetime] = None) -> Dict[str, str]:
+        """Update confidence score using verse ID directly (legacy support)"""
+        logger.info(f"Updating confidence for verse ID {verse_id}, user {user_id}")
+        if not 0 <= confidence_score <= 100:
+            raise ValidationError("Confidence score must be between 0 and 100")
+
+        # Use the legacy table for backward compatibility
+        self.repo.update_verse_confidence_direct(user_id, verse_id, confidence_score, last_reviewed)
+        logger.info(f"Confidence updated for verse ID {verse_id}")
+        return {"message": "Confidence updated"}
+
     def delete_verse(self, user_id: int, book_id: int, chapter_num: int,
                      verse_num: int) -> Dict[str, str]:
         """Delete a verse from user's memorization"""
@@ -111,10 +129,22 @@ class VerseService(BaseService):
             logger.info(f"Verse {verse_code} deleted for user {user_id}")
         return {"message": "Verse deleted successfully"}
 
+    def delete_verse_by_reference(self, user_id: int, book_id: int, chapter: int,
+                                  verse: int) -> Dict[str, str]:
+        """Delete a verse by book/chapter/verse reference"""
+        return self.delete_verse(user_id, book_id, chapter, verse)
+
     def save_chapter(self, user_id: int, request: ChapterSaveRequest) -> Dict[str, any]:
         """Save all verses in a chapter"""
         logger.info(f"Saving chapter {request.book_id}:{request.chapter} for user {user_id}")
         result = self.repo.save_chapter(user_id, request.book_id, request.chapter)
+        logger.info(f"Chapter saved: {result['verses_count']} verses")
+        return result
+
+    def save_chapter_direct(self, user_id: int, book_id: int, chapter_num: int) -> Dict[str, any]:
+        """Save all verses in a chapter (direct parameters)"""
+        logger.info(f"Saving chapter {book_id}:{chapter_num} for user {user_id}")
+        result = self.repo.save_chapter(user_id, book_id, chapter_num)
         logger.info(f"Chapter saved: {result['verses_count']} verses")
         return result
 
@@ -130,6 +160,13 @@ class VerseService(BaseService):
         logger.info(f"Book saved: {result['verses_count']} verses")
         return result
 
+    def save_book_direct(self, user_id: int, book_id: int) -> Dict[str, any]:
+        """Save all verses in a book (direct parameters)"""
+        logger.info(f"Saving book {book_id} for user {user_id}")
+        result = self.repo.save_book(user_id, book_id)
+        logger.info(f"Book saved: {result['verses_count']} verses")
+        return result
+
     def clear_book(self, user_id: int, book_id: int) -> Dict[str, str]:
         """Clear all verses in a book"""
         logger.info(f"Clearing book {book_id} for user {user_id}")
@@ -139,6 +176,10 @@ class VerseService(BaseService):
         """Clear all memorization data for user"""
         logger.info(f"Clearing all memorization data for user {user_id}")
         return self.repo.clear_all_verses(user_id)
+
+    def clear_all_user_verses(self, user_id: int) -> Dict[str, str]:
+        """Clear all memorization data for user (alias for consistency)"""
+        return self.clear_all_memorization(user_id)
 
     def get_verse_texts(self, user_id: int, request: VerseTextsRequest) -> Dict[str, str]:
         """Get verse texts from external API - delegates to routers for now"""

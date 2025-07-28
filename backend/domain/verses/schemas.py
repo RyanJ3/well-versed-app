@@ -10,6 +10,16 @@ class VerseDetail(BaseModel):
     chapter_number: int
     verse_number: int
     is_apocryphal: bool = False
+    # Legacy field support
+    isApocryphal: Optional[bool] = None
+
+    class Config:
+        populate_by_name = True
+
+    @validator('isApocryphal', always=True)
+    def sync_apocryphal_fields(cls, v, values):
+        """Sync the legacy isApocryphal field with is_apocryphal"""
+        return values.get('is_apocryphal', False)
 
 
 class UserVerseResponse(BaseModel):
@@ -32,6 +42,12 @@ class ConfidenceUpdate(BaseModel):
     last_reviewed: Optional[datetime] = None
 
 
+class ConfidenceUpdateLegacy(BaseModel):
+    """Legacy confidence update that accepts string date"""
+    confidence_score: int = Field(..., ge=0, le=100)
+    last_reviewed: Optional[str] = None
+
+
 class ChapterSaveRequest(BaseModel):
     book_id: int
     chapter: int
@@ -52,4 +68,9 @@ class VerseTextResponse(BaseModel):
     book_name: str
     chapter: int
     verse: int
+
+
+class BatchOperationResponse(BaseModel):
+    message: str
+    verses_count: Optional[int] = None
 
