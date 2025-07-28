@@ -1,0 +1,51 @@
+// Header
+.quiz-header {
+  background: white;
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+  .quiz-title {
+    max-width: 800px;
+    margin: 0 auto 1.5rem;
+    text-align: center;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #6b7280;
+      font-size: 1.125rem;
+    }
+  }
+}
+
+.quiz-progress {
+  max-width: 600px;
+  margin: 0 auto;
+
+  .progress-bar {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, #8b5cf6, #ec4899);
+    transition: width 0.3s ease;
+  }
+
+  .progress-text {
+    display: block;
+    text-align: center;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+}
+
