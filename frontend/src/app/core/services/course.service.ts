@@ -40,16 +40,16 @@ export class CourseService {
     const parsed = Number(id);
     return Number.isInteger(parsed) && parsed > 0 ? parsed : 1;
   }
-  
+
   // Track current course being viewed/edited
   private currentCourseSubject = new BehaviorSubject<CourseDetailResponse | null>(null);
   public currentCourse$ = this.currentCourseSubject.asObservable();
-  
+
   // Track user's enrolled courses
   private enrolledCoursesSubject = new BehaviorSubject<Course[]>([]);
   public enrolledCourses$ = this.enrolledCoursesSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // ========== Course Management ==========
 
@@ -64,12 +64,13 @@ export class CourseService {
     let url = `${this.apiUrl}/public?page=${page}&per_page=${perPage}`;
     if (search) url += `&search=${encodeURIComponent(search)}`;
     if (tags?.length) url += `&tags=${tags.join(',')}`;
-    
+
     return this.http.get<CourseListResponse>(url).pipe(
       tap(r => console.log(`Loaded ${r.courses.length} courses`)),
       catchError(err => { console.error('Error loading courses', err); throw err; })
     );
   }
+
 
   // Get courses created by a user
   getUserCourses(userId: number): Observable<CourseListResponse> {
@@ -113,13 +114,9 @@ export class CourseService {
   }
 
   // Create a new course
-  createCourse(course: CreateCourseRequest, userId: number): Observable<Course> {
+  createCourse(course: CreateCourseRequest): Observable<Course> {
     console.log('Creating course', course);
-    const uid = this.normalizeUserId(userId);
-    return this.http.post<Course>(this.apiUrl, {
-      ...course,
-      creator_id: uid
-    }).pipe(
+    return this.http.post<Course>(this.apiUrl, course).pipe(
       tap(() => console.log('Course created')),
       catchError(err => { console.error('Error creating course', err); throw err; })
     );
@@ -146,12 +143,9 @@ export class CourseService {
   // ========== Enrollment & Progress ==========
 
   // Enroll in a course
-  enrollInCourse(courseId: number, userId: number): Observable<UserCourseProgress> {
-    const uid = this.normalizeUserId(userId);
-    console.log(`Enrolling user ${uid} in course ${courseId}`);
-    return this.http.post<UserCourseProgress>(`${this.apiUrl}/${courseId}/enroll`, {
-      user_id: uid
-    }).pipe(
+  enrollInCourse(courseId: number): Observable<UserCourseProgress> {
+    console.log(`Enrolling in course ${courseId}`);
+    return this.http.post<UserCourseProgress>(`${this.apiUrl}/${courseId}/enroll`, {}).pipe(
       tap(() => console.log('Enrolled in course')),
       catchError(err => { console.error('Error enrolling in course', err); throw err; })
     );
@@ -313,12 +307,13 @@ export class CourseService {
     );
   }
 
+
   // ========== Suggested Tags ==========
 
   getSuggestedTags(): string[] {
     return [
       'beginner',
-      'intermediate', 
+      'intermediate',
       'advanced',
       'bible-study',
       'theology',

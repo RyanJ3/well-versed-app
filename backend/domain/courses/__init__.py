@@ -1,27 +1,52 @@
-"""Courses domain module"""
+# backend/domain/courses/__init__.py
 
-from .repository import CourseRepository
-from .service import CourseService
-from .schemas import (
+from .models import (
     CourseCreate,
     CourseUpdate,
     CourseResponse,
-    CourseEnrollment
-)
-from .exceptions import (
+    CourseListResponse,
+    CourseDetailResponse,
+    CourseEnrollment,
+    UserCourseProgress,
+    LessonCreate,
+    LessonUpdate,
+    LessonResponse,
+    LessonListResponse,
+    UserLessonProgress,
+    LessonFlashcard,
+    AddFlashcardsToQueueRequest,
     CourseNotFoundError,
-    CourseAccessDeniedError,
-    AlreadyEnrolledError
+    LessonNotFoundError,
+    AlreadyEnrolledError,
+    UnauthorizedError,
+    CourseValidationError
 )
+from .repository import CourseRepository
+from .service import CourseService
 
 __all__ = [
-    "CourseRepository",
-    "CourseService",
+    # Models
     "CourseCreate",
     "CourseUpdate",
     "CourseResponse",
+    "CourseListResponse",
+    "CourseDetailResponse",
     "CourseEnrollment",
+    "UserCourseProgress",
+    "LessonCreate",
+    "LessonUpdate",
+    "LessonResponse",
+    "LessonListResponse",
+    "UserLessonProgress",
+    "LessonFlashcard",
+    "AddFlashcardsToQueueRequest",
+    # Exceptions
     "CourseNotFoundError",
-    "CourseAccessDeniedError",
-    "AlreadyEnrolledError"
+    "LessonNotFoundError",
+    "AlreadyEnrolledError",
+    "UnauthorizedError",
+    "CourseValidationError",
+    # Core classes
+    "CourseRepository",
+    "CourseService",
 ]
