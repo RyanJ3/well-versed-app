@@ -1,3 +1,4 @@
+@use '../../shared/styles/variables' as *;
 
 // Empty State
 .empty-state {
@@ -45,8 +46,9 @@
     cursor: pointer;
     transition: all 0.2s ease;
 
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-    }
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
   }
+  }
+}
