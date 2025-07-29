@@ -1,0 +1,90 @@
+
+// Actions Section
+.actions-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  animation: fadeIn 0.6s ease-out 0.6s both;
+}
+
+// Create Button with Animation
+.create-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 0.625rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+
+  .button-icon-wrapper {
+    width: 1rem;
+    height: 1rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  // Card animation elements
+  .card {
+    position: absolute;
+    width: 12px;
+    height: 16px;
+    background: white;
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s ease;
+    top: 0;
+    left: 2px;
+  }
+
+  .plus-icon {
+    width: 16px;
+    height: 16px;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+
+    .plus-icon {
+      opacity: 0;
+      transform: scale(0);
+    }
+
+    .card-1 {
+      opacity: 1;
+      transform: rotate(-20deg) translateX(-4px) translateY(-3px) scale(1);
+      transition-delay: 0.1s;
+    }
+
+    .card-2 {
+      opacity: 1;
+      transform: rotate(0deg) translateY(-5px) scale(1);
+      transition-delay: 0.15s;
+    }
+
+    .card-3 {
+      opacity: 1;
+      transform: rotate(20deg) translateX(4px) translateY(-3px) scale(1);
+      transition-delay: 0.2s;
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+  }

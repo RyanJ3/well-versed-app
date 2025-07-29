@@ -20,7 +20,16 @@ interface StudyVerse {
 @Component({
   selector: 'app-study',
   templateUrl: './deck-study.component.html',
-  styleUrls: ['./deck-study.component.scss'],
+  styleUrls: [
+    './deck-study.base.scss',
+    './deck-study.progress.scss',
+    './deck-study.loading.scss',
+    './deck-study.card.scss',
+    './deck-study.confidence.scss',
+    './deck-study.navigation.scss',
+    './deck-study.complete.scss',
+    './deck-study.buttons.scss'
+  ],
   standalone: true,
   imports: [CommonModule, FormsModule]
 })

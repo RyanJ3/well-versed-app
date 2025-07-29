@@ -37,7 +37,13 @@ interface Tab {
   ],
   templateUrl: './deck-list-page.component.html',
   styleUrls: [
-    './deck-list-page.component.scss'
+    './deck-list-page.base.scss',
+    './deck-list-page.tabs.scss',
+    './deck-list-page.actions.scss',
+    './deck-list-page.loading.scss',
+    './deck-list-page.grid.scss',
+    './deck-list-page.empty.scss',
+    './deck-list-page.responsive.scss'
   ]
 })
 export class DeckListPageComponent implements OnInit {

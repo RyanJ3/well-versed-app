@@ -21,7 +21,15 @@ import { CardEditorComponent } from '../../components/card-editor/card-editor.co
   standalone: true,
   imports: [CommonModule, FormsModule, DeckFormComponent, CardEditorComponent],
   templateUrl: './deck-editor-page.component.html',
-  styleUrls: ['./deck-editor-page.component.scss'],
+  styleUrls: [
+    './deck-editor-page.base.scss',
+    './deck-editor-page.tabs.scss',
+    './deck-editor-page.loading.scss',
+    './deck-editor-page.form.scss',
+    './deck-editor-page.table.scss',
+    './deck-editor-page.actions.scss',
+    './deck-editor-page.responsive.scss'
+  ],
 })
 export class DeckEditorPageComponent implements OnInit {
   deckId: number = 0;

@@ -1,0 +1,66 @@
+// Common button styles
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+
+  &.btn-primary {
+    background: $gradient-primary;
+    color: white;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+  }
+
+  &.large {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// Responsive
+@media (max-width: 640px) {
+  .study-stats {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .flash-card {
+    min-height: 350px;
+  }
+
+  .card-face {
+    padding: 2rem;
+  }
+
+  .verse-reference {
+    font-size: 2rem;
+  }
+
+  .verse-text {
+    font-size: 1.125rem;
+  }
+
+  .navigation-controls {
+    gap: 0.5rem;
+  }
+
+  .nav-button {
+    padding: 0.75rem 1rem;
+  }
+}
