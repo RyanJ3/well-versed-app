@@ -54,14 +54,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
   isInitialLoad = true;
   private userDataLoaded = false;
   private destroy$ = new Subject<void>();
-  private originalFormData: any = {};
 
   profileForm: any = {
     firstName: '',
     lastName: '',
     denomination: '',
-    preferredBible: '', // Empty by default - user must select
-    preferredLanguage: 'eng', // Keep English as default language
+    preferredBible: '',
+    preferredLanguage: 'eng',
     includeApocrypha: false,
     useEsvApi: false,
     esvApiToken: ''
@@ -70,12 +69,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
   // Language and Bible data
   languages: LanguageOption[] = [];
   availableBibles: BibleVersion[] = [];
-  allBiblesForLanguage: BibleVersion[] = []; // Store original list before adding ESV
+  allBiblesForLanguage: BibleVersion[] = [];
   selectedBibleId: string = '';
 
-  // Store initial values to preserve during loading
-  private initialPreferredBible: string = '';
-  private initialPreferredLanguage: string = '';
+  // Store initial values
+  private originalFormData: any = {};
 
   // ESV Bible option
   private readonly ESV_BIBLE: BibleVersion = {
@@ -121,16 +119,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   get isFormValid(): boolean {
-    // Required fields: firstName, lastName, preferredLanguage, preferredBible, and esvApiToken (if ESV selected)
-    return !!(
-      this.profileForm.firstName &&
-      this.profileForm.firstName.trim() &&
-      this.profileForm.lastName &&
-      this.profileForm.lastName.trim() &&
-      this.profileForm.preferredLanguage &&
-      this.profileForm.preferredBible &&
-      (!this.isEsvSelected || (this.profileForm.esvApiToken && this.profileForm.esvApiToken.trim()))
-    );
+    const hasFirstName = this.profileForm.firstName && this.profileForm.firstName.trim();
+    const hasLanguage = this.profileForm.preferredLanguage;
+    const hasBible = this.profileForm.preferredBible;
+
+    const esvRequirementsMet = !this.isEsvSelected ||
+      (this.profileForm.esvApiToken && this.profileForm.esvApiToken.trim());
+
+    return !!(hasFirstName && hasLanguage && hasBible && esvRequirementsMet);
   }
 
   get isEsvSelected(): boolean {
@@ -144,23 +140,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (user: any) => {
-          // Only process user data once
-          if (this.userDataLoaded || !user) return;
+          if (!user) {
+            console.log('No user data yet, waiting...');
+            return;
+          }
 
+          // Only process user data once
+          if (this.userDataLoaded) return;
+
+          console.log('Received user data:', user);
           this.userDataLoaded = true;
           this.user = user;
 
           // Initialize the form fields with user data
           this.initializeForm(user);
-
-          // Store initial values
-          this.initialPreferredBible = this.profileForm.preferredBible;
-          this.initialPreferredLanguage = this.profileForm.preferredLanguage;
-
-          console.log('User profile loaded with preferences:', {
-            language: this.initialPreferredLanguage,
-            bible: this.initialPreferredBible
-          });
 
           // Load available Bibles after user is loaded
           this.loadInitialBibleData();
@@ -173,12 +166,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
         }
       });
 
+    // Ensure we fetch the current user
     this.userService.fetchCurrentUser();
   }
 
   initializeForm(user: any): void {
     console.log('Initializing form with user:', user);
-    
+
     this.profileForm = {
       firstName: user.firstName || '',
       lastName: user.lastName || '',
@@ -199,17 +193,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   loadInitialBibleData(): void {
-    // First load all languages
     this.loadingBibles = true;
 
-    // Store current form values to preserve them
-    const currentLanguage = this.profileForm.preferredLanguage;
-    const currentBible = this.profileForm.preferredBible;
-
-    console.log('Loading initial Bible data. Current values:', {
-      language: currentLanguage,
-      bible: currentBible
-    });
+    console.log('Loading initial Bible data...');
 
     this.http.get<AvailableBiblesResponse>(`${environment.apiUrl}/bibles/available`).subscribe({
       next: (response) => {
@@ -219,34 +205,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
         if (response.languages && Array.isArray(response.languages)) {
           this.languages = response.languages;
           console.log(`Loaded ${this.languages.length} languages`);
-
-          // Use setTimeout to ensure the value is set after options are rendered
-          setTimeout(() => {
-            if (currentLanguage && this.languages.some(l => l.id === currentLanguage)) {
-              this.profileForm.preferredLanguage = currentLanguage;
-              console.log('Restored language selection:', currentLanguage);
-            }
-          }, 0);
         }
 
-        // If user has a preferred language, load Bibles for that language
-        if (this.initialPreferredLanguage && this.initialPreferredLanguage !== '') {
-          setTimeout(() => {
-            this.loadBiblesForLanguage(this.initialPreferredLanguage, true);
-          }, 100); // Small delay to ensure language dropdown is set
+        // Load Bibles for the user's preferred language
+        if (this.profileForm.preferredLanguage) {
+          this.loadBiblesForLanguage(this.profileForm.preferredLanguage, true);
         } else {
-          // No preferred language, just show all Bibles
-          if (response.bibles && Array.isArray(response.bibles)) {
-            this.allBiblesForLanguage = response.bibles;
-            this.updateAvailableBibles();
-
-            // Restore Bible selection after options are set
-            setTimeout(() => {
-              if (currentBible) {
-                this.restoreBibleSelection(currentBible);
-              }
-            }, 0);
-          }
           this.loadingBibles = false;
           this.isInitialLoad = false;
         }
@@ -272,10 +236,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.loadingBibles = true;
     const url = `${environment.apiUrl}/bibles/available?language=${language}`;
 
-    // Store current Bible selection
-    const currentBible = preserveSelection ? (this.initialPreferredBible || this.profileForm.preferredBible) : '';
-
-    console.log(`Loading Bibles for language: ${language}, preserving: ${currentBible}`);
+    const currentBible = this.profileForm.preferredBible;
+    console.log(`Loading Bibles for language: ${language}, current selection: ${currentBible}`);
 
     this.http.get<AvailableBiblesResponse>(url).subscribe({
       next: (response) => {
@@ -285,14 +247,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
           this.updateAvailableBibles();
 
-          // Use setTimeout to ensure values are set after options are rendered
+          // Restore selection after Bibles are loaded
           setTimeout(() => {
             if (preserveSelection && currentBible) {
               this.restoreBibleSelection(currentBible);
-            } else if (this.availableBibles.length === 1 && !this.profileForm.preferredBible) {
-              // Auto-select if only one Bible available
-              this.profileForm.preferredBible = this.availableBibles[0].abbreviation;
-              this.selectedBibleId = this.availableBibles[0].id;
             }
           }, 0);
         } else {
@@ -311,84 +269,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.isInitialLoad = false;
       }
     });
-  }
-
-  updateAvailableBibles(): void {
-    // Start with all Bibles for the language
-    let bibles = [...this.allBiblesForLanguage];
-
-    // Add ESV option if English is selected
-    if (this.profileForm.preferredLanguage === 'eng') {
-      // Check if ESV already exists (shouldn't happen with API.Bible, but just in case)
-      const esvExists = bibles.some(b => b.abbreviation === 'ESV');
-      if (!esvExists) {
-        bibles.push(this.ESV_BIBLE);
-      }
-    }
-
-    // Sort alphabetically by name
-    bibles.sort((a, b) => a.name.localeCompare(b.name));
-
-    this.availableBibles = bibles;
-  }
-
-  onLanguageChange(): void {
-    console.log('Language changed to:', this.profileForm.preferredLanguage);
-
-    // Only reset Bible selection if this is a user-initiated change (not initial load)
-    if (!this.isInitialLoad && !this.loadingBibles) {
-      this.profileForm.preferredBible = '';
-      this.selectedBibleId = '';
-      this.loadBiblesForLanguage(this.profileForm.preferredLanguage, false);
-    }
-    // During initial load, language change is triggered by form initialization
-    // so we don't want to clear the Bible selection
-  }
-
-  onBibleChange(): void {
-    // Find the selected Bible and store its ID
-    const selectedBible = this.availableBibles.find(
-      b => b.abbreviation === this.profileForm.preferredBible
-    );
-
-    if (selectedBible) {
-      this.selectedBibleId = selectedBible.id;
-      console.log('Bible selected:', selectedBible.abbreviation, 'ID:', selectedBible.id);
-
-      // If ESV is deselected, clear the token
-      if (!this.isEsvSelected) {
-        this.profileForm.esvApiToken = '';
-      }
-
-      // REMOVED: Don't update BibleService here - wait until save
-      // This was causing the footer to update immediately
-    }
-  }
-
-  matchCurrentBible(): void {
-    if (!this.profileForm.preferredBible) return;
-
-    // Try to find the Bible by abbreviation
-    const matchingBible = this.availableBibles.find(
-      b => b.abbreviation === this.profileForm.preferredBible ||
-        b.abbreviationLocal === this.profileForm.preferredBible
-    );
-
-    if (matchingBible) {
-      this.selectedBibleId = matchingBible.id;
-      // Use setTimeout to ensure the value is set after change detection
-      setTimeout(() => {
-        this.profileForm.preferredBible = matchingBible.abbreviation;
-        console.log('Matched existing Bible:', matchingBible.abbreviation);
-      }, 0);
-    } else {
-      console.log('Could not match Bible:', this.profileForm.preferredBible);
-      // Clear the selection if no match found
-      setTimeout(() => {
-        this.profileForm.preferredBible = '';
-        this.selectedBibleId = '';
-      }, 0);
-    }
   }
 
   private restoreBibleSelection(bibleName: string): void {
@@ -416,11 +296,54 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
   }
 
+  updateAvailableBibles(): void {
+    let bibles = [...this.allBiblesForLanguage];
+
+    // Add ESV option if English is selected
+    if (this.profileForm.preferredLanguage === 'eng') {
+      const esvExists = bibles.some(b => b.abbreviation === 'ESV');
+      if (!esvExists) {
+        bibles.push(this.ESV_BIBLE);
+      }
+    }
+
+    // Sort alphabetically by name
+    bibles.sort((a, b) => a.name.localeCompare(b.name));
+
+    this.availableBibles = bibles;
+    console.log('Available Bibles updated:', this.availableBibles.length);
+  }
+
+  onLanguageChange(): void {
+    console.log('Language changed to:', this.profileForm.preferredLanguage);
+
+    if (!this.isInitialLoad && !this.loadingBibles) {
+      this.profileForm.preferredBible = '';
+      this.selectedBibleId = '';
+      this.loadBiblesForLanguage(this.profileForm.preferredLanguage, false);
+    }
+  }
+
+  onBibleChange(): void {
+    const selectedBible = this.availableBibles.find(
+      b => b.abbreviation === this.profileForm.preferredBible
+    );
+
+    if (selectedBible) {
+      this.selectedBibleId = selectedBible.id;
+      console.log('Bible selected:', selectedBible.abbreviation, 'ID:', selectedBible.id);
+
+      // Clear token if not ESV
+      if (!this.isEsvSelected) {
+        this.profileForm.esvApiToken = '';
+      }
+    }
+  }
+
   saveProfile(): void {
     if (!this.profileForm || this.isSaving || !this.isFormValid) return;
 
     console.log('Saving profile with data:', this.profileForm);
-    console.log('Selected Bible ID:', this.selectedBibleId);
     this.isSaving = true;
 
     const profileUpdate = {
@@ -430,6 +353,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       preferredBible: this.profileForm.preferredBible,
       preferredLanguage: this.profileForm.preferredLanguage,
       includeApocrypha: this.profileForm.includeApocrypha,
+      useEsvApi: this.isEsvSelected,
       esvApiToken: this.isEsvSelected ? this.profileForm.esvApiToken : null
     };
 
@@ -439,46 +363,36 @@ export class ProfileComponent implements OnInit, OnDestroy {
       next: (updatedUser: any) => {
         console.log('Profile updated successfully:', updatedUser);
 
-        // Update Bible service with new apocrypha setting
+        // Update local user reference
+        this.user = updatedUser;
+
+        // Update original form data
+        this.originalFormData = { ...this.profileForm };
+
+        // Update Bible service preferences
         if (updatedUser && updatedUser.includeApocrypha !== undefined) {
-          console.log(`Updating BibleService with includeApocrypha=${updatedUser.includeApocrypha}`);
           this.bibleService.updateUserPreferences(updatedUser.includeApocrypha);
         }
 
-        // NOW update the Bible version in the service (after successful save)
+        // Update Bible version in service
         if (this.profileForm.preferredBible) {
           const selectedBible = this.availableBibles.find(
             b => b.abbreviation === this.profileForm.preferredBible
           );
 
-          if (selectedBible) {
+          if (selectedBible || this.isEsvSelected) {
             this.bibleService.setCurrentBibleVersion({
-              id: selectedBible.id,
-              name: selectedBible.name,
-              abbreviation: selectedBible.abbreviation,
-              isPublicDomain: true, // You may want to get this from the Bible data
-              copyright: selectedBible.description
-            });
-          } else if (this.isEsvSelected) {
-            // Handle ESV special case
-            this.bibleService.setCurrentBibleVersion({
-              id: 'esv',
-              name: 'English Standard Version',
-              abbreviation: 'ESV',
-              isPublicDomain: false,
-              copyright: '© 2016 Crossway Bibles.'
+              id: selectedBible?.id || 'esv',
+              name: selectedBible?.name || 'English Standard Version',
+              abbreviation: this.profileForm.preferredBible,
+              isPublicDomain: !this.isEsvSelected,
+              copyright: selectedBible?.description || '© 2016 Crossway Bibles.'
             });
           }
         }
 
-        // Update stored initial values
-        this.initialPreferredBible = this.profileForm.preferredBible;
-        this.initialPreferredLanguage = this.profileForm.preferredLanguage;
-
         // Show success message
         this.showSuccess = true;
-
-        // Auto-dismiss after 5 seconds
         setTimeout(() => {
           this.dismissSuccess();
         }, 5000);
@@ -520,14 +434,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   hasUnsavedChanges(): boolean {
     if (!this.user || !this.originalFormData) return false;
+
     return JSON.stringify(this.profileForm) !== JSON.stringify(this.originalFormData);
   }
 
   cancelChanges(): void {
-    if (this.user) {
-      this.initializeForm(this.user);
-      this.profileForm.preferredBible = this.initialPreferredBible;
-      this.profileForm.preferredLanguage = this.initialPreferredLanguage;
+    if (this.originalFormData) {
+      this.profileForm = { ...this.originalFormData };
 
       // Reload Bible data if language was changed
       if (this.profileForm.preferredLanguage) {
@@ -539,12 +452,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
   getDisplayName(): string {
     if (!this.user) return '';
 
-    // Use firstName and lastName if available
     if (this.user.firstName || this.user.lastName) {
       return `${this.user.firstName || ''} ${this.user.lastName || ''}`.trim();
     }
 
-    // Fall back to full name
     return this.user.name || 'User';
   }
 

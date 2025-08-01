@@ -7,7 +7,7 @@ export class FlowParsingService {
   
   /**
    * Extracts the first letters of each word from the given text.
-   * Handles apostrophes, contractions, and punctuation properly.
+   * Handles apostrophes, contractions, hyphenated words, and punctuation properly.
    * 
    * @param text The text to process
    * @returns The text with only first letters preserved
@@ -26,9 +26,26 @@ export class FlowParsingService {
    * Preserves leading and trailing punctuation and handles apostrophes/contractions.
    * 
    * @param word The word to process
-   * @returns The word with only its first letter preserved
+   * @returns The word with only its first letter(s) preserved
    */
   private extractFirstLetterFromWord(word: string): string {
+    // Handle hyphenated words first (like "twenty-fourth" -> "t-f")
+    if (word.includes('-') && !word.startsWith('-') && !word.endsWith('-')) {
+      const parts = word.split('-');
+      const processedParts = parts.map(part => {
+        if (part.length === 0) return '';
+        
+        // Extract first letter of each hyphenated part
+        const firstLetterMatch = part.match(/[a-zA-Z]/);
+        if (firstLetterMatch) {
+          return part[0];
+        }
+        return part;
+      });
+      
+      return processedParts.join('-');
+    }
+
     // Separate leading punctuation, word content, and trailing punctuation
     const fullMatch = word.match(/^([^a-zA-Z0-9]*)([a-zA-Z0-9']+)([^a-zA-Z0-9]*)$/);
     
