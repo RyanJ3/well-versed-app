@@ -53,6 +53,15 @@ class UserService(BaseService):
         user = self.repo.get_by_id(user_id)
         if not user:
             raise UserNotFoundError(user_id)
+
+        # Add computed statistics (these would normally come from other tables)
+        user['verses_memorized'] = 0  # TODO: Calculate from user_verses table
+        user['streak_days'] = 0  # TODO: Calculate from activity
+        user['books_started'] = 0  # TODO: Calculate from progress
+
+        # Map user_id to id for response
+        user['id'] = user['user_id']
+
         return UserResponse(**user)
 
     def update_user(self, user_id: int, update_data: UserUpdate) -> UserResponse:
@@ -72,13 +81,34 @@ class UserService(BaseService):
         if "password" in update_dict:
             update_dict["password_hash"] = self._hash_password(update_dict.pop("password"))
 
+        # If first_name or last_name are updated, also update the name field
+        if "first_name" in update_dict or "last_name" in update_dict:
+            first = update_dict.get("first_name", existing_user.get("first_name", ""))
+            last = update_dict.get("last_name", existing_user.get("last_name", ""))
+            if first or last:
+                update_dict["name"] = f"{first} {last}".strip()
+
+        # Handle ESV selection - if preferred_bible is ESV, set use_esv_api to True
+        if "preferred_bible" in update_dict:
+            if update_dict["preferred_bible"] == "ESV":
+                update_dict["use_esv_api"] = True
+            elif "use_esv_api" not in update_dict:
+                # If bible changed from ESV to something else, disable use_esv_api
+                update_dict["use_esv_api"] = False
+
+        # Clear ESV token if not using ESV
+        if update_dict.get("use_esv_api") is False:
+            update_dict["esv_api_token"] = None
+
         if not update_dict:
             logger.info("No changes supplied; returning existing user")
-            return UserResponse(**existing_user)
+            return self.get_user(user_id)
 
         updated_user = self.repo.update(user_id, update_dict)
         logger.info(f"User {user_id} updated successfully")
-        return UserResponse(**updated_user if updated_user else existing_user)
+
+        # Return the complete user data with all fields
+        return self.get_user(user_id)
 
     def delete_user(self, user_id: int) -> Dict[str, str]:
         """Delete user (soft delete)"""

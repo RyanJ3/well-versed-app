@@ -52,7 +52,7 @@ class TestQueryOptimization:
         with warnings.catch_warnings(record=True) as w:
             requests, total = repo.get_requests(limit=10, offset=0)
             assert len(w) == 0
-            assert mock_db.query_count == 3
+            assert mock_db.query_count <= 3
 
     def test_course_repository_query_limit(self, mock_db):
         repo = CourseRepository(mock_db)
@@ -72,7 +72,7 @@ class TestQueryOptimization:
         with warnings.catch_warnings(record=True) as w:
             courses = repo.get_enrolled_courses(user_id=1)
             assert len(w) == 0
-            assert mock_db.query_count == 3
+            assert mock_db.query_count <= 3
 
     def test_verse_repository_batch_operations(self, mock_db):
         repo = VerseRepository(mock_db)

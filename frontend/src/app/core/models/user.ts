@@ -1,48 +1,41 @@
-// src/app/models/user.ts
-export interface MemorizationProgress {
-  reference: string;
-  progress: number;
-  lastPracticed?: Date;
-}
-
+// frontend/src/app/core/models/user.ts
 export interface User {
-  id: string | number;
-  name: string;  // Keep this as the full name (computed or stored)
+  id: number;
+  name: string; // Full name (computed or stored)
   email: string;
   createdAt: Date;
   
-  // Add separate name fields
-  firstName?: string;
-  lastName?: string;
+  // Separate name fields
+  firstName: string;
+  lastName: string;
   
-  // Profile details
+  // Profile fields
   denomination?: string;
   preferredBible?: string;
   preferredLanguage?: string;
-  includeApocrypha?: boolean;
-  useEsvApi?: boolean;
+  includeApocrypha: boolean;
+  useEsvApi: boolean;  // Make this non-optional with default
   esvApiToken?: string;
   
   // Statistics
   versesMemorized?: number;
   streakDays?: number;
   booksStarted?: number;
-  
-  // Current progress
-  currentlyMemorizing?: MemorizationProgress[];
+  currentlyMemorizing?: string[];
 }
 
-// Update API response interface to include name fields
+// API Response interface (snake_case from backend)
 export interface UserApiResponse {
-  id: string | number;
-  name: string;
+  id: number;
   email: string;
+  name: string;
   created_at: string;
   
-  // Add separate name fields
+  // Name fields from backend
   first_name?: string;
   last_name?: string;
   
+  // Profile fields from backend
   denomination?: string;
   preferred_bible?: string;
   preferred_language?: string;
@@ -50,12 +43,13 @@ export interface UserApiResponse {
   use_esv_api?: boolean;
   esv_api_token?: string;
   
+  // Statistics from backend
   verses_memorized?: number;
   streak_days?: number;
   books_started?: number;
 }
 
-// Interface for API requests
+// Profile Update Request (snake_case for backend)
 export interface UserProfileUpdate {
   first_name?: string;
   last_name?: string;
