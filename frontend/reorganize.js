@@ -80,7 +80,7 @@ const directories = [
   'core/services',
   'core/utils',
   'features/home',
-  'features/tracker',
+  'features/bible-tracker',
   'features/memorize/flow',
   'features/memorize/flashcard',
   'features/memorize/study',
@@ -112,7 +112,7 @@ const moves = [
   
   // Features
   ['home', 'features/home'],
-  ['bible-tracker', 'features/tracker'],
+  ['bible-tracker', 'features/bible-tracker'],
   ['flow', 'features/memorize/flow'],
   ['flashcard', 'features/memorize/flashcard'],
   ['study', 'features/memorize/study'],

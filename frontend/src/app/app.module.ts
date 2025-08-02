@@ -16,7 +16,6 @@ import { ChartsModule } from '@progress/kendo-angular-charts';
 import { IntlModule } from '@progress/kendo-angular-intl';
 
 // App components
-import { BibleTrackerModule } from './bible-tracker/bible-tracker.module';
 import { AppComponent } from './app.component';
 
 import { ConfigService } from './core/services/config.service';
@@ -36,7 +35,6 @@ import 'hammerjs';
     FormsModule,
     HttpClientModule,
     RouterModule,
-    BibleTrackerModule,
 
     // Kendo UI modules
     ButtonsModule,

@@ -6,7 +6,7 @@ import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 // Import NgRx elements
-import { BibleMemorizationActions } from '../state/bible-tracker/actions/bible-memorization.actions';
+import { BibleMemorizationActions } from '../../state/bible-tracker/actions/bible-memorization.actions';
 import {
   selectBibleDataWithProgress,
   selectTestaments,
@@ -17,15 +17,15 @@ import {
   selectIsLoading,
   selectIsSavingBulk,
   selectUserId
-} from '../state/bible-tracker/selectors/bible-memorization.selectors';
+} from '../../state/bible-tracker/selectors/bible-memorization.selectors';
 
 // Import models
-import { BibleBook, BibleChapter, BibleTestament, BibleGroup, BibleData } from '../core/models/bible';
-import { BibleVerse } from '../core/models/bible/bible-verse.model';
-import { ProgressSegment } from '../state/bible-tracker/models/bible-memorization.model';
+import { BibleBook, BibleChapter, BibleTestament, BibleGroup, BibleData } from '../../core/models/bible';
+import { BibleVerse } from '../../core/models/bible/bible-verse.model';
+import { ProgressSegment } from '../../state/bible-tracker/models/bible-memorization.model';
 
 // Import services (only for modal, no more data services!)
-import { ModalService } from '../core/services/modal.service';
+import { ModalService } from '../../core/services/modal.service';
 
 // Import sub-components
 import { BibleTrackerHeaderComponent } from './components/bible-tracker-header/bible-tracker-header.component';
