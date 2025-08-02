@@ -6,9 +6,9 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
   CourseDetailResponse,
   CourseService,
-} from '../../../../core/services/course.service';
-import { UserService } from '../../../../core/services/user.service';
-import { ModalService } from '../../../../core/services/modal.service';
+} from '../../../../core/services/api/course.service';
+import { UserService } from '../../../../core/services/api/user.service';
+import { ModalService } from '../../../../core/services/utils/modal.service';
 import { User } from '../../../../core/models/user';
 import { Lesson } from '../../../../core/models/course.model';
 

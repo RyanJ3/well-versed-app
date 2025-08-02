@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Subject, debounceTime } from 'rxjs';
-import { BibleService } from '../../../../core/services/bible.service';
+import { BibleService } from '../../../../core/services/api/bible.service';
 import { FlowVerse } from '../models/flow.models';
 
 @Injectable()
