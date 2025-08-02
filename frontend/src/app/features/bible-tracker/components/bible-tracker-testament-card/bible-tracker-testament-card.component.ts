@@ -9,8 +9,8 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BibleTestament } from '../../../core/models/bible';
-import { BibleGroup } from '../../../core/models/bible/bible-group.modle';
+import { BibleTestament } from '../../../../core/models/bible';
+import { BibleGroup } from '../../../../core/models/bible/bible-group.modle';
 import Chart from 'chart.js/auto';
 
 @Component({
