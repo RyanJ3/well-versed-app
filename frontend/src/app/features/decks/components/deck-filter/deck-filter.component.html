@@ -1,0 +1,15 @@
+<!-- frontend/src/app/features/decks/components/deck-filter/deck-filter.component.html -->
+<div class="filter-section" *ngIf="allTags.length > 0">
+  <h3 class="filter-title">Filter by Tags</h3>
+  <div class="tag-filter-container">
+    <button class="tag-filter-pill" [class.active]="selectedTags.length === 0" (click)="onClearFilters()">
+      All Decks
+    </button>
+    <button *ngFor="let tag of allTags" class="tag-filter-pill" [class.active]="isTagSelected(tag)"
+      (click)="onTagClick(tag)">
+      <span class="tag-icon">#</span>
+      {{ formatTag(tag) }}
+      <span class="tag-count">{{ getTagCount(tag) }}</span>
+    </button>
+  </div>
+</div>
