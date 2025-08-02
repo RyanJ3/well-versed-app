@@ -10,7 +10,7 @@ import {
   DeckCardsResponse,
   VerseInCard,
 } from '../../../../../core/services/deck.service';
-import { VerseSelection } from '../../../../../shared/components/verse-range-picker/verse-range-picker.component';
+import { VerseSelection } from '../../../../../components/bible/verse-range-picker/verse-range-picker.component';
 import { BibleService } from '../../../../../core/services/bible.service';
 import { ModalService } from '../../../../../core/services/modal.service';
 import { DeckFormComponent } from '../../components/deck-form/deck-form.component';

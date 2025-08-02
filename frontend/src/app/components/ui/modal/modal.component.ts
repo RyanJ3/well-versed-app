@@ -1,4 +1,4 @@
-// frontend/src/app/shared/components/modal/modal.component.ts
+// frontend/src/app/components/ui/modal/modal.component.ts
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
