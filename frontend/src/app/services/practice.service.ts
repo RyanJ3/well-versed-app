@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ActiveSession, CardResponse, SessionSummary, StartSessionRequest } from '@app/state/practice-session';
+import { ActiveSession, CardResponse, SessionSummary, StartSessionRequest } from '@state/practice-session';
 import { Observable, of } from 'rxjs';
 
 
