@@ -7,7 +7,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { DeckEffects } from './deck.effects';
 import { DeckActions, CardActions } from '../actions/deck.actions';
 import { decksReducer } from '../reducers/deck.reducer';
-import { Deck, Card, DeckCategory } from '../models/deck.model';
+import { Deck, Card, DeckCategory } from '@models/deck.model';
 import { DeckResponse, DeckService } from '@app/services/deck.service';
 import { NotificationService } from '@app/services/notification.service';
 

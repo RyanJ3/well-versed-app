@@ -2,10 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { CourseService } from '../../services/course.service';
-import { UserService } from '../../services/user.service';
-import { Course } from '../../models/course.model';
-import { User } from '../../models/user';
+import { CourseService } from '@services/course.service';
+import { UserService } from '@services/user.service';
+import { Course } from '@models/course.model';
+import { User } from '@models/user';
 
 @Component({
   selector: 'app-course-list',

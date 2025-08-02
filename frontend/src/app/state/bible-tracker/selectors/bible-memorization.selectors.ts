@@ -1,8 +1,8 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { BibleMemorizationState } from '../models/bible-memorization.model';
-import { BibleData, BibleTestament, BibleGroup, BibleBook } from '../../../models/bible';
+import { BibleMemorizationState } from '@models/bible-memorization.model';
+import { BibleData, BibleTestament, BibleGroup, BibleBook } from '@models/bible';
 
-import { ProgressSegment } from "../models/bible-memorization.model";
+import { ProgressSegment } from "@models/bible-memorization.model";
 // Feature selector
 export const selectBibleMemorizationState = 
   createFeatureSelector<BibleMemorizationState>('bibleMemorization');

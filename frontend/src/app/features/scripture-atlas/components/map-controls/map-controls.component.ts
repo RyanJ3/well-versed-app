@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MapView } from '../../models/journey.models';
+import { MapView } from '@models/journey.models';
 
 @Component({
   selector: 'app-map-controls',

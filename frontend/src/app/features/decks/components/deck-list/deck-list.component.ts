@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DeckCardComponent } from '../deck-card/deck-card.component';
-import { DeckWithCounts } from '../../models/deck.types';
+import { DeckWithCounts } from '@models/deck.types';
 
 @Component({
   selector: 'app-deck-list',

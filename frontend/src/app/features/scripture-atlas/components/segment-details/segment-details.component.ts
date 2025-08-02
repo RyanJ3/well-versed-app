@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { JourneySegment, JourneyEvent } from '../../models/journey.models';
+import { JourneySegment, JourneyEvent } from '@models/journey.models';
 
 @Component({
   selector: 'app-segment-details',

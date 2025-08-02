@@ -3,10 +3,10 @@ import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { map, mergeMap, tap, filter, debounceTime } from 'rxjs/operators';
 
-import { DeckService } from '../../../services/deck.service';
-import { NotificationService } from '../../../services/notification.service';
+import { DeckService } from '@services/deck.service';
+import { NotificationService } from '@services/notification.service';
 import { DeckActions, CardActions } from '../actions/deck.actions';
-import { Deck } from '../models/deck.model';
+import { Deck } from '@models/deck.model';
 import { BaseEffects } from '../../core/effects/base.effect';
 
 @Injectable()

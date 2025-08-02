@@ -3,12 +3,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { DeckListComponent as DeckListPresentationalComponent } from '../../components/deck-list/deck-list.component';
-import { DeckWithCounts } from '../../components/deck-card/deck-card.component';
-import { CreateDeckModalComponent } from '../../components/create-deck-modal/create-deck-modal.component';
-import { DeckFilterComponent } from '../../components/deck-filter/deck-filter.component';
-import { UserService } from '../../../../services/user.service';
-import { ModalService } from '../../../../services/modal.service';
+import { DeckListComponent as DeckListPresentationalComponent } from '@components/deck-list/deck-list.component';
+import { DeckWithCounts } from '@components/deck-card/deck-card.component';
+import { CreateDeckModalComponent } from '@components/create-deck-modal/create-deck-modal.component';
+import { DeckFilterComponent } from '@components/deck-filter/deck-filter.component';
+import { UserService } from '@services/user.service';
+import { ModalService } from '@services/modal.service';
 import {
   DeckCreate,
   DeckService,
@@ -16,7 +16,7 @@ import {
   DeckListResponse,
   CardWithVerses,
   DeckCardsResponse,
-} from '../../../../services/deck.service';
+} from '@services/deck.service';
 
 interface Tab {
   id: 'my-decks' | 'public' | 'saved';

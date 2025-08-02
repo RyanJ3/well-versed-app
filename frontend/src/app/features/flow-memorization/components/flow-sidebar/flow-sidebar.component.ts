@@ -1,9 +1,9 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { VersePickerComponent, VerseSelection } from '../../../../components/bible/verse-range-picker/verse-range-picker.component';
+import { VersePickerComponent, VerseSelection } from '@components/bible/verse-range-picker/verse-range-picker.component';
 import { FlowProgressComponent } from '../flow-progress/flow-progress.component';
-import { FlowVerse, FlowViewSettings } from '../../models/flow.models';
+import { FlowVerse, FlowViewSettings } from '@models/flow.models';
 
 @Component({
   selector: 'app-flow-sidebar',

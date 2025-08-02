@@ -1,5 +1,5 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { DecksState, Deck, Card, DeckCategory } from '../models/deck.model';
+import { DecksState, Deck, Card, DeckCategory } from '@models/deck.model';
 import { deckAdapter, cardAdapter } from '../reducers/deck.reducer';
 
 // Feature Selector

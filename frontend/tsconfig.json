@@ -19,8 +19,16 @@
     "importHelpers": true,
     "target": "ES2022",
     "module": "ES2022",
+    "baseUrl": "./src",
     "paths": {
-      "@app/*": ["./src/app/*"]
+      "@app/*": ["app/*"],
+      "@services/*": ["app/services/*"],
+      "@models/*": ["app/models/*"],
+      "@components/*": ["app/components/*"],
+      "@features/*": ["app/features/*"],
+      "@layouts/*": ["app/layouts/*"],
+      "@state/*": ["app/state/*"],
+      "@utils/*": ["app/utils/*"]
     }
   },
   "angularCompilerOptions": {

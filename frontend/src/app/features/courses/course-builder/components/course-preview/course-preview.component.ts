@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Lesson } from '../../models/course-builder.types';
+import { Lesson } from '@models/course-builder.types';
 
 @Component({
   selector: 'app-course-preview',

@@ -1,5 +1,5 @@
 import { createAction, props } from '@ngrx/store';
-import { NotificationMessage } from '../../services/notification.service';
+import { NotificationMessage } from '@services/notification.service';
 
 export const UIActions = {
   setLoading: createAction(

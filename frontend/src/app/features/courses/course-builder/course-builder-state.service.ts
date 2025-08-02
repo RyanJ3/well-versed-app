@@ -3,13 +3,13 @@
 import { Injectable } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CourseService } from '../../../services/course.service';
-import { UserService } from '../../../services/user.service';
-import { ModalService } from '../../../services/modal.service';
+import { CourseService } from '@services/course.service';
+import { UserService } from '@services/user.service';
+import { ModalService } from '@services/modal.service';
 
-import { LessonContent } from '../../../models/course.model';
-import { VerseSelection } from '../../../components/bible/verse-range-picker/verse-range-picker.component';
-import { Lesson } from './models/course-builder.types';
+import { LessonContent } from '@models/course.model';
+import { VerseSelection } from '@components/bible/verse-range-picker/verse-range-picker.component';
+import { Lesson } from '@features/courses/course-builder/models/course-builder.types';
 
 
 @Injectable({ providedIn: 'root' })

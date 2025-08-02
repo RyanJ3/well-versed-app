@@ -5,7 +5,7 @@ import {
   SessionType,
   ReviewOrder,
   ResponseQuality,
-} from '../models/practice-session.model';
+} from '@models/practice-session.model';
 import { PracticeSessionActions, PracticeKeyboardActions } from '../actions/practice-session.actions';
 
 export const initialState: PracticeSessionState = {

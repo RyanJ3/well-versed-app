@@ -1,4 +1,4 @@
-import { Lesson } from '../models/course-builder.types';
+import { Lesson } from '@models/course-builder.types';
 
 export function isLessonComplete(lesson: Lesson): boolean {
   if (!lesson.title || !lesson.content_type) return false;

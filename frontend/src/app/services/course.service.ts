@@ -14,7 +14,7 @@ import {
   CreateCourseRequest,
   CreateLessonRequest,
   AddFlashcardsToQueueRequest
-} from '../models/course.model';
+} from '@models/course.model';
 
 export interface CourseListResponse {
   total: number;

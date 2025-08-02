@@ -9,7 +9,7 @@ import {
   selectFilteredDecks,
   selectDeckStatistics
 } from './deck.selectors';
-import { DecksState, Deck, DeckCategory } from '../models/deck.model';
+import { DecksState, Deck, DeckCategory } from '@models/deck.model';
 
 describe('DeckSelectors', () => {
   const mockDecks: Deck[] = [

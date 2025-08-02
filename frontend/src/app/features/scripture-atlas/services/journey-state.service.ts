@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest, map } from 'rxjs';
-import { BiblicalJourney, JourneySegment, Testament } from '../models/journey.models';
+import { BiblicalJourney, JourneySegment, Testament } from '@models/journey.models';
 
 @Injectable({
   providedIn: 'root'

@@ -5,22 +5,22 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 
-import { FeatureRequestService } from '../../services/feature-request.service';
-import { UserService } from '../../services/user.service';
-import { ModalService } from '../../services/modal.service';
+import { FeatureRequestService } from '@services/feature-request.service';
+import { UserService } from '@services/user.service';
+import { ModalService } from '@services/modal.service';
 import { 
   FeatureRequest, 
   CreateFeatureRequest, 
   RequestType, 
   RequestStatus 
-} from '../../models/feature-request.model';
-import { User } from '../../models/user';
+} from '@models/feature-request.model';
+import { User } from '@models/user';
 
 // Import new components
-import { RequestStatsComponent } from './components/request-stats/request-stats.component';
-import { RequestFiltersComponent } from './components/request-filters/request-filters.component';
-import { RequestCardComponent } from './components/request-card/request-card.component';
-import { RequestModalComponent } from './components/request-modal/request-modal.component';
+import { RequestStatsComponent } from '@features/feature-request/components/request-stats/request-stats.component';
+import { RequestFiltersComponent } from '@features/feature-request/components/request-filters/request-filters.component';
+import { RequestCardComponent } from '@features/feature-request/components/request-card/request-card.component';
+import { RequestModalComponent } from '@features/feature-request/components/request-modal/request-modal.component';
 
 @Component({
   selector: 'app-feature-request',

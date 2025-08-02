@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { FlowState, FlowViewSettings } from '../models/flow.models';
+import { FlowState, FlowViewSettings } from '@models/flow.models';
 
 @Injectable()
 export class FlowStateService {

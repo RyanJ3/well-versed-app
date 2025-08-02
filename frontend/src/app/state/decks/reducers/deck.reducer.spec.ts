@@ -1,6 +1,6 @@
 import { decksReducer, initialState } from './deck.reducer';
 import { DeckActions, CardActions } from '../actions/deck.actions';
-import { DecksState, Deck, DeckCategory } from '../models/deck.model';
+import { DecksState, Deck, DeckCategory } from '@models/deck.model';
 
 describe('DecksReducer', () => {
     describe('unknown action', () => {

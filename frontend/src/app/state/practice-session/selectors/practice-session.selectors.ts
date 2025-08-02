@@ -1,5 +1,5 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { PracticeSessionState, StudyCard } from '../models/practice-session.model';
+import { PracticeSessionState, StudyCard } from '@models/practice-session.model';
 
 export const selectPracticeSessionState = createFeatureSelector<PracticeSessionState>('practiceSession');
 

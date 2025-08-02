@@ -4,13 +4,13 @@ import { Store, Action } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { map, mergeMap, withLatestFrom, debounceTime, tap } from 'rxjs/operators';
 
-import { BibleService } from '../../../services/bible.service';
+import { BibleService } from '@services/bible.service';
 import { BibleTrackerActions } from '../actions/bible-tracker.actions';
 import {
   BibleStatisticsState,
   BibleTrackerState,
-} from '../models/bible-tracker.model';
-import { BibleBook } from '../../../models/bible';
+} from '@models/bible-tracker.model';
+import { BibleBook } from '@models/bible';
 import { selectBibleTrackerState } from '../selectors/bible-tracker.selectors';
 import { BaseEffects } from '../../core/effects/base.effect';
 

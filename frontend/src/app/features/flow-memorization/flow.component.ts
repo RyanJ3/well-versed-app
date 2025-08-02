@@ -2,22 +2,22 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
-import { VerseSelection } from '../../components/bible/verse-range-picker/verse-range-picker.component';
-import { BibleService } from '../../services/bible.service';
-import { UserService } from '../../services/user.service';
-import { FlowParsingService } from '../../services/flow-parsing.service';
-import { MemorizationModalComponent } from '../../components/memorization/memorization-modal/memorization-modal.component';
-import { User } from '../../models/user';
-import { UserVerseDetail } from '../../models/bible';
+import { VerseSelection } from '@components/bible/verse-range-picker/verse-range-picker.component';
+import { BibleService } from '@services/bible.service';
+import { UserService } from '@services/user.service';
+import { FlowParsingService } from '@services/flow-parsing.service';
+import { MemorizationModalComponent } from '@components/memorization/memorization-modal/memorization-modal.component';
+import { User } from '@models/user';
+import { UserVerseDetail } from '@models/bible';
 
 // New imports
-import { FlowHeaderComponent } from './components/flow-header/flow-header.component';
-import { FlowSidebarComponent } from './components/flow-sidebar/flow-sidebar.component';
-import { FlowGridViewComponent } from './components/flow-grid-view/flow-grid-view.component';
-import { FlowTextViewComponent } from './components/flow-text-view/flow-text-view.component';
-import { FlowStateService } from './services/flow-state.service';
-import { FlowMemorizationService } from './services/flow-memorization.service';
-import { FlowVerse, ModalVerse, FlowViewSettings } from './models/flow.models';
+import { FlowHeaderComponent } from '@features/flow-memorization/components/flow-header/flow-header.component';
+import { FlowSidebarComponent } from '@features/flow-memorization/components/flow-sidebar/flow-sidebar.component';
+import { FlowGridViewComponent } from '@features/flow-memorization/components/flow-grid-view/flow-grid-view.component';
+import { FlowTextViewComponent } from '@features/flow-memorization/components/flow-text-view/flow-text-view.component';
+import { FlowStateService } from '@features/flow-memorization/services/flow-state.service';
+import { FlowMemorizationService } from '@features/flow-memorization/services/flow-memorization.service';
+import { FlowVerse, ModalVerse, FlowViewSettings } from '@features/flow-memorization/models/flow.models';
 
 @Component({
   selector: 'app-flow',

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { DeckWithCounts } from '../models/deck.types';
+import { DeckWithCounts } from '@models/deck.types';
 
 @Injectable({ providedIn: 'root' })
 export class DeckStateService {

@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { BiblicalJourney, Testament } from '../../models/journey.models';
+import { BiblicalJourney, Testament } from '@models/journey.models';
 
 @Component({
   selector: 'app-journey-panel',

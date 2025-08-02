@@ -7,7 +7,7 @@ import {
   PracticeSettings,
   SessionSummary,
   CompletedSession,
-} from '../models/practice-session.model';
+} from '@models/practice-session.model';
 
 export const PracticeSessionActions = createActionGroup({
   source: 'Practice Session',

@@ -9,22 +9,22 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { BibleService } from '../../../services/bible.service';
-import { UserService } from '../../../services/user.service';
-import { RecordingService } from '../../../services/recording.service';
-import { BibleBook } from '../../../models/bible';
+import { BibleService } from '@services/bible.service';
+import { UserService } from '@services/user.service';
+import { RecordingService } from '@services/recording.service';
+import { BibleBook } from '@models/bible';
 import { Subject, takeUntil } from 'rxjs';
 import { trigger, style, transition, animate, keyframes, state } from '@angular/animations';
 
 // Import all child components
-import { SetupStageComponent } from './components/setup-stage/setup-stage.component';
-import { ProgressJourneyComponent, ProgressMarker } from './components/progress-journey/progress-journey.component';
-import { VerseBubblesComponent, Verse } from './components/verse-bubbles/verse-bubbles.component';
-import { PracticeStageComponent, PracticeSettings } from './components/practice-stage/practice-stage.component';
-import { CompletionStageComponent } from './components/completion-stage/completion-stage.component';
-import { SettingsMenuComponent } from './components/settings-menu/settings-menu.component';
-import { NavigationControlsComponent } from './components/navigation-controls/navigation-controls.component';
-import { ConfirmationModalComponent } from './components/confirmation-modal/confirmation-modal.component';
+import { SetupStageComponent } from '@components/memorization/memorization-modal/components/setup-stage/setup-stage.component';
+import { ProgressJourneyComponent, ProgressMarker } from '@components/memorization/memorization-modal/components/progress-journey/progress-journey.component';
+import { VerseBubblesComponent, Verse } from '@components/memorization/memorization-modal/components/verse-bubbles/verse-bubbles.component';
+import { PracticeStageComponent, PracticeSettings } from '@components/memorization/memorization-modal/components/practice-stage/practice-stage.component';
+import { CompletionStageComponent } from '@components/memorization/memorization-modal/components/completion-stage/completion-stage.component';
+import { SettingsMenuComponent } from '@components/memorization/memorization-modal/components/settings-menu/settings-menu.component';
+import { NavigationControlsComponent } from '@components/memorization/memorization-modal/components/navigation-controls/navigation-controls.component';
+import { ConfirmationModalComponent } from '@components/memorization/memorization-modal/components/confirmation-modal/confirmation-modal.component';
 
 // Import types
 import { ReviewStage, StarPopup, AnimatedStar } from './memorization-modal.types';

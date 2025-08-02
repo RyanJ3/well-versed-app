@@ -4,7 +4,7 @@ export interface BibleTrackerState {
   ui: BibleTrackerUIState;
 }
 
-import { BibleBook } from '../../../models/bible';
+import { BibleBook } from '@models/bible';
 
 export interface ReadingProgressState {
   books: { [bookId: string]: BibleBook };
