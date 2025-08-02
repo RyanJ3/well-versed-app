@@ -2,11 +2,11 @@ import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
-import { VerseSelection } from '../../../shared/components/verse-range-picker/verse-range-picker.component';
+import { VerseSelection } from '../../../components/bible/verse-range-picker/verse-range-picker.component';
 import { BibleService } from '../../../core/services/bible.service';
 import { UserService } from '../../../core/services/user.service';
 import { FlowParsingService } from '../../../core/services/flow-parsing.service';
-import { MemorizationModalComponent } from '../../../shared/components/memorization-modal/memorization-modal.component';
+import { MemorizationModalComponent } from '../../../components/memorization/memorization-modal/memorization-modal.component';
 import { User } from '../../../core/models/user';
 import { UserVerseDetail } from '../../../core/models/bible';
 
