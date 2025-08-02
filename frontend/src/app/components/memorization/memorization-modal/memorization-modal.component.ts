@@ -9,10 +9,10 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { BibleService } from '../../../core/services/bible.service';
-import { UserService } from '../../../core/services/user.service';
-import { RecordingService } from '../../../core/services/recording.service';
-import { BibleBook } from '../../../core/models/bible';
+import { BibleService } from '../../../services/bible.service';
+import { UserService } from '../../../services/user.service';
+import { RecordingService } from '../../../services/recording.service';
+import { BibleBook } from '../../../models/bible';
 import { Subject, takeUntil } from 'rxjs';
 import { trigger, style, transition, animate, keyframes, state } from '@angular/animations';
 

@@ -3,12 +3,12 @@ import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
 import { VerseSelection } from '../../../components/bible/verse-range-picker/verse-range-picker.component';
-import { BibleService } from '../../../core/services/bible.service';
-import { UserService } from '../../../core/services/user.service';
-import { FlowParsingService } from '../../../core/services/flow-parsing.service';
+import { BibleService } from '../../../services/bible.service';
+import { UserService } from '../../../services/user.service';
+import { FlowParsingService } from '../../../services/flow-parsing.service';
 import { MemorizationModalComponent } from '../../../components/memorization/memorization-modal/memorization-modal.component';
-import { User } from '../../../core/models/user';
-import { UserVerseDetail } from '../../../core/models/bible';
+import { User } from '../../../models/user';
+import { UserVerseDetail } from '../../../models/bible';
 
 // New imports
 import { FlowHeaderComponent } from './components/flow-header/flow-header.component';

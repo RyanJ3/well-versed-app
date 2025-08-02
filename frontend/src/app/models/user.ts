@@ -1,4 +1,4 @@
-// frontend/src/app/core/models/user.ts
+// frontend/src/app/models/user.ts
 export interface User {
   id: number;
   name: string; // Full name (computed or stored)

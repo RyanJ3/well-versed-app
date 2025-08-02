@@ -1,9 +1,9 @@
-// frontend/src/app/components/ui/navigation/navigation.component.ts
+// frontend/src/app/layouts/components/navigation/navigation.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { UserService } from '../../../core/services/user.service';
-import { User } from '../../../core/models/user';
+import { UserService } from '../../../services/user.service';
+import { User } from '../../../models/user';
 
 @Component({
   selector: 'app-navigation',
@@ -25,7 +25,7 @@ export class NavigationComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.userService.currentUser$.subscribe(user => {
+    this.userService.currentUser$.subscribe((user: User | null) => {
       this.currentUser = user;
     });
   }

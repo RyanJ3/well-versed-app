@@ -1,8 +1,8 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { BibleBook, BibleChapter } from '../../../../core/models/bible';
-import { BibleVerse } from '../../../../core/models/bible/bible-verse.model';
+import { BibleBook, BibleChapter } from '../../../../models/bible';
+import { BibleVerse } from '../../../../models/bible/bible-verse.model';
 
 @Component({
   selector: 'app-bible-tracker-verse-grid',

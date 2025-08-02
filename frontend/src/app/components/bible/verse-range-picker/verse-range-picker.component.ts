@@ -11,8 +11,8 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { UserService } from '../../../core/services/user.service';
-import { BibleService } from '../../../core/services/bible.service';
+import { UserService } from '../../../services/user.service';
+import { BibleService } from '../../../services/bible.service';
 
 export interface VerseSelection {
   mode: 'single' | 'range' | 'chapter';

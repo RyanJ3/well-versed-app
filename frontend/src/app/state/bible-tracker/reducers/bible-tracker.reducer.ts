@@ -4,7 +4,7 @@ import {
   BibleTrackerState,
   BibleStatisticsState,
 } from '../models/bible-tracker.model';
-import { BibleBook } from '../../../core/models/bible';
+import { BibleBook } from '../../../models/bible';
 import { BibleTrackerActions } from '../actions/bible-tracker.actions';
 
 // Here's the complete correct initialState:

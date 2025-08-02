@@ -10,10 +10,10 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { BibleService } from '../../../../core/services/bible.service';
-import { CourseService } from '../../../../core/services/course.service';
-import { UserService } from '../../../../core/services/user.service';
-import { ModalService } from '../../../../core/services/modal.service';
+import { BibleService } from '../../../../services/bible.service';
+import { CourseService } from '../../../../services/course.service';
+import { UserService } from '../../../../services/user.service';
+import { ModalService } from '../../../../services/modal.service';
 
 interface QuizVerse {
   code: string;

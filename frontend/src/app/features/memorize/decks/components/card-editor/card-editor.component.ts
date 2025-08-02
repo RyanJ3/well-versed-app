@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { VersePickerComponent, VerseSelection } from '../../../../../components/bible/verse-range-picker/verse-range-picker.component';
-import { CardWithVerses, VerseInCard } from '../../../../../core/services/deck.service';
+import { CardWithVerses, VerseInCard } from '../../../../../services/deck.service';
 
 @Component({
   selector: 'app-card-editor',

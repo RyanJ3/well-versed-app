@@ -1,6 +1,6 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
 import { BibleMemorizationState } from '../models/bible-memorization.model';
-import { BibleData, BibleTestament, BibleGroup, BibleBook } from '../../../core/models/bible';
+import { BibleData, BibleTestament, BibleGroup, BibleBook } from '../../../models/bible';
 
 import { ProgressSegment } from "../models/bible-memorization.model";
 // Feature selector

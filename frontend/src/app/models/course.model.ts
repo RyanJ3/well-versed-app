@@ -1,4 +1,4 @@
-// frontend/src/app/core/models/course.model.ts
+// frontend/src/app/models/course.model.ts
 
 export interface Course {
   id: number;

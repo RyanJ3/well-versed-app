@@ -1,4 +1,4 @@
-import { LessonContent } from '../../../../../core/models/course.model';
+import { LessonContent } from '../../../../../models/course.model';
 
 export interface Lesson {
   id?: number;

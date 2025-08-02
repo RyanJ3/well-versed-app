@@ -17,9 +17,9 @@ import {
 } from 'rxjs/operators';
 
 import { BibleMemorizationActions } from '../actions/bible-memorization.actions';
-import { BibleService } from '../../../core/services/bible.service';
-import { UserService } from '../../../core/services/user.service';
-import { NotificationService } from '../../../core/services/notification.service';
+import { BibleService } from '../../../services/bible.service';
+import { UserService } from '../../../services/user.service';
+import { NotificationService } from '../../../services/notification.service';
 import { 
   selectUserId, 
   selectIncludeApocrypha,

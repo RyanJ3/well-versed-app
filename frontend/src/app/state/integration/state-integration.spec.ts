@@ -24,7 +24,7 @@ import {
   selectFilteredDecks, 
   selectDeckStatistics 
 } from '../decks/selectors/deck.selectors';
-import { BibleBook } from '../../core/models/bible';
+import { BibleBook } from '../../models/bible';
 
 describe('State Integration Tests', () => {
   let store: Store<AppState>;

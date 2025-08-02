@@ -1,4 +1,4 @@
-// frontend/src/app/core/services/modal.service.ts
+// frontend/src/app/services/modal.service.ts
 import { Injectable } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 
