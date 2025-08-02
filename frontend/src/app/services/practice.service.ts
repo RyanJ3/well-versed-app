@@ -1,11 +1,7 @@
 import { Injectable } from '@angular/core';
+import { ActiveSession, CardResponse, SessionSummary, StartSessionRequest } from '@app/state/practice-session';
 import { Observable, of } from 'rxjs';
-import {
-  StartSessionRequest,
-  ActiveSession,
-  CardResponse,
-  SessionSummary,
-} from '../../state/practice-session/models/practice-session.model';
+
 
 @Injectable({ providedIn: 'root' })
 export class PracticeService {
