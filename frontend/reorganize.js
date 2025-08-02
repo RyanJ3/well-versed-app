@@ -81,7 +81,7 @@ const directories = [
   'core/utils',
   'features/home',
   'features/bible-tracker',
-  'features/memorize/flow',
+  'features/flow-memorization',
   'features/memorize/flashcard',
   'features/memorize/study',
   'features/memorize/deck-editor',
@@ -113,7 +113,7 @@ const moves = [
   // Features
   ['home', 'features/home'],
   ['bible-tracker', 'features/bible-tracker'],
-  ['flow', 'features/memorize/flow'],
+  ['flow', 'features/flow-memorization'],
   ['flashcard', 'features/memorize/flashcard'],
   ['study', 'features/memorize/study'],
   ['deck-editor', 'features/memorize/deck-editor'],

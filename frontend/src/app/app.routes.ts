@@ -3,15 +3,15 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './pages/home/home.component';
 import { ProfileComponent } from './features/profile/profile.component';
 
-import { FlowComponent } from './features/memorize/flow/flow.component';
+import { FlowComponent } from './features/flow-memorization/flow.component';
 import { StatsComponent } from './features/stats/stats.component';
-import { DeckEditorPageComponent } from './features/memorize/decks/pages/deck-editor-page/deck-editor-page.component';
-import { DeckStudyComponent } from './features/memorize/decks/deck-study/deck-study.component';
-import { DeckListPageComponent } from './features/memorize/decks/pages/deck-list-page/deck-list-page.component';
+import { DeckEditorPageComponent } from './features/decks/pages/deck-editor-page/deck-editor-page.component';
+import { DeckStudyComponent } from './features/decks/deck-study/deck-study.component';
+import { DeckListPageComponent } from './features/decks/pages/deck-list-page/deck-list-page.component';
 import { FeatureRequestComponent } from './features/feature-request/feature-request.component';
-import { CourseListComponent } from './features/memorize/courses/course-list.component';
-import { CourseBuilderComponent } from './features/memorize/courses/course-builder/course-builder.component';
-import { LessonPracticeComponent } from './features/memorize/courses/lesson-practice/lesson-practice.component';
+import { CourseListComponent } from './features/courses/course-list.component';
+import { CourseBuilderComponent } from './features/courses/course-builder/course-builder.component';
+import { LessonPracticeComponent } from './features/courses/lesson-practice/lesson-practice.component';
 import { ScriptureAtlasComponent } from './features/scripture-atlas/scripture-atlas.component';
 import { BibleTrackerComponent } from './features/bible-tracker/bible-tracker.component';
 
@@ -38,10 +38,13 @@ export const routes: Routes = [
   },
   { path: 'courses/create', component: CourseBuilderComponent },
   { path: 'courses', component: CourseListComponent },
-{
-  path: 'atlas',
-  loadChildren: () => import('./features/scripture-atlas/scripture-atlas.routes')
-    .then(m => m.SCRIPTURE_ATLAS_ROUTES)
-},  { path: 'flow', component: FlowComponent },
+  {
+    path: 'atlas',
+    loadChildren: () =>
+      import('./features/scripture-atlas/scripture-atlas.routes').then(
+        m => m.SCRIPTURE_ATLAS_ROUTES
+      ),
+  },
+  { path: 'flow', component: FlowComponent },
   { path: '**', redirectTo: '' },
 ];
