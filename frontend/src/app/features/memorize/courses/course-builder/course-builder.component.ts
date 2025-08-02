@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CourseBuilderStateService } from './course-builder-state.service';
-import { VersePickerComponent } from '../../../../shared/components/verse-range-picker/verse-range-picker.component';
+import { VersePickerComponent } from '../../../../components/bible/verse-range-picker/verse-range-picker.component';
 
 @Component({
   selector: 'app-course-builder',

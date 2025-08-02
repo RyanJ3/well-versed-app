@@ -8,7 +8,7 @@ import { UserService } from '../../../../core/services/user.service';
 import { ModalService } from '../../../../core/services/modal.service';
 
 import { LessonContent } from '../../../../core/models/course.model';
-import { VerseSelection } from '../../../../shared/components/verse-range-picker/verse-range-picker.component';
+import { VerseSelection } from '../../../../components/bible/verse-range-picker/verse-range-picker.component';
 import { Lesson } from './models/course-builder.types';
 
 

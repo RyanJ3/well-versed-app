@@ -12,7 +12,7 @@ import {
   LessonFlashcard,
   UserLessonProgress,
 } from '../../../../core/models/course.model';
-import { VersePickerComponent } from '../../../../shared/components/verse-range-picker/verse-range-picker.component';
+import { VersePickerComponent } from '../../../../components/bible/verse-range-picker/verse-range-picker.component';
 
 @Component({
   selector: 'app-lesson-view',

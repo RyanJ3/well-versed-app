@@ -1,4 +1,4 @@
-// frontend/src/app/shared/components/verse-range-picker/verse-picker.component.ts
+// frontend/src/app/components/bible/verse-range-picker/verse-range-picker.component.ts
 import {
   Component,
   OnInit,

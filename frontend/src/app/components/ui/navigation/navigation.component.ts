@@ -1,4 +1,4 @@
-// frontend/src/app/shared/components/navigation/navigation.component.ts
+// frontend/src/app/components/ui/navigation/navigation.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
