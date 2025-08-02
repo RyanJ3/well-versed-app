@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CreateFeatureRequest, RequestType } from '../../../../core/models/feature-request.model';
-import { FeatureRequestService } from '../../../../core/services/api/feature-request.service';
+import { FeatureRequestService } from '../../../../core/services/feature-request.service';
 
 @Component({
   selector: 'app-request-modal',

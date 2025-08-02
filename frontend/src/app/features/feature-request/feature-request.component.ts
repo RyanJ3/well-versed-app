@@ -5,9 +5,9 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 
-import { FeatureRequestService } from '../../core/services/api/feature-request.service';
-import { UserService } from '../../core/services/api/user.service';
-import { ModalService } from '../../core/services/utils/modal.service';
+import { FeatureRequestService } from '../../core/services/feature-request.service';
+import { UserService } from '../../core/services/user.service';
+import { ModalService } from '../../core/services/modal.service';
 import { 
   FeatureRequest, 
   CreateFeatureRequest, 

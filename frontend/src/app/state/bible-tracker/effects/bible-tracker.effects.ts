@@ -4,7 +4,7 @@ import { Store, Action } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { map, mergeMap, withLatestFrom, debounceTime, tap } from 'rxjs/operators';
 
-import { BibleService } from '../../../core/services/api/bible.service';
+import { BibleService } from '../../../core/services/bible.service';
 import { BibleTrackerActions } from '../actions/bible-tracker.actions';
 import {
   BibleStatisticsState,
