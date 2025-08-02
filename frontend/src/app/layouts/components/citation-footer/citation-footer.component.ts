@@ -1,8 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { BibleService } from '../../../core/services/bible.service';
-import { UserService } from '../../../core/services/user.service';
+import { BibleService } from '../../../services/bible.service';
+import { User } from '../../../models/user';
+import { UserService } from '../../../services/user.service';
 import { Subject, takeUntil } from 'rxjs';
 
 interface BibleVersion {
@@ -55,7 +56,7 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
     // Subscribe to current Bible version changes
     this.bibleService.currentBibleVersion$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(version => {
+      .subscribe((version: BibleVersion | null) => {
         if (version) {
           this.currentBibleVersion = version;
         }
@@ -64,7 +65,7 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
     // Watch user preference for ESV API usage
     this.userService.currentUser$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(user => {
+      .subscribe((user: User | null) => {
         this.useEsvApi = user?.useEsvApi ?? false;
       });
   }

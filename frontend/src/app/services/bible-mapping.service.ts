@@ -1,9 +1,9 @@
-// frontend/src/app/core/services/bible-mapping.service.ts
+// frontend/src/app/services/bible-mapping.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, BehaviorSubject } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../environments/environment';
 
 interface BibleVersion {
   id: string;

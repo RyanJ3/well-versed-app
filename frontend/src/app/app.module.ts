@@ -18,7 +18,7 @@ import { IntlModule } from '@progress/kendo-angular-intl';
 // App components
 import { AppComponent } from './app.component';
 
-import { ConfigService } from './core/services/config.service';
+import { ConfigService } from './services/config.service';
 
 // Factory function to load config
 export function initializeApp(configService: ConfigService) {

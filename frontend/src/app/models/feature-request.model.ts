@@ -1,4 +1,4 @@
-// frontend/src/app/core/models/feature-request.model.ts
+// frontend/src/app/models/feature-request.model.ts
 
 export enum RequestType {
   BUG = 'bug',

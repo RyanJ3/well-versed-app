@@ -5,7 +5,7 @@ import { tap, catchError, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { BibleData, UserVerseDetail, BibleBook } from '../models/bible';
 import { NotificationService } from './notification.service';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../environments/environment';
 
 // Bible version tracking for citations
 export interface BibleVersion {

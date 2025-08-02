@@ -1,6 +1,6 @@
 // frontend/src/app/app.routes.ts
 import { Routes } from '@angular/router';
-import { HomeComponent } from './features/home/home.component';
+import { HomeComponent } from './pages/home/home.component';
 import { ProfileComponent } from './features/profile/profile.component';
 
 import { FlowComponent } from './features/memorize/flow/flow.component';
@@ -20,7 +20,7 @@ export const routes: Routes = [
   { path: '', component: HomeComponent },
   {
     path: 'copyright',
-    loadComponent: () => import('./features/copyright/copyright.component').then(m => m.CopyrightComponent),
+    loadComponent: () => import('./pages/copyright/copyright.component').then(m => m.CopyrightComponent),
     title: 'Bible Copyright Information'
   },
   { path: 'tracker', component: BibleTrackerComponent },

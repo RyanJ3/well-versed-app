@@ -26,10 +26,10 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('Well Versed');  // Changed from 'bible-app'
   });
 
-  it('should render title', () => {
+  it('should render main layout', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Well Versed');  // Changed from 'bible-app'
+    expect(compiled.querySelector('app-main-layout')).toBeTruthy();
   });
 });

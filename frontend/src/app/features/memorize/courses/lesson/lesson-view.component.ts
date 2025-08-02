@@ -5,13 +5,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { CourseService } from '../../../../core/services/course.service';
-import { UserService } from '../../../../core/services/user.service';
+import { CourseService } from '../../../../services/course.service';
+import { UserService } from '../../../../services/user.service';
 import {
   Lesson,
   LessonFlashcard,
   UserLessonProgress,
-} from '../../../../core/models/course.model';
+} from '../../../../models/course.model';
 import { VersePickerComponent } from '../../../../components/bible/verse-range-picker/verse-range-picker.component';
 
 @Component({

@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
-import { FlowParsingService } from '../../../../../core/services/flow-parsing.service';
+import { FlowParsingService } from '../../../../../services/flow-parsing.service';
 
 export interface Verse {
   code: string;

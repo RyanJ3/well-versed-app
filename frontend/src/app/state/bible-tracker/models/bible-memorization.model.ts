@@ -1,4 +1,4 @@
-import { BibleBook, BibleTestament, BibleGroup } from '../../../core/models/bible';
+import { BibleBook, BibleTestament, BibleGroup } from '../../../models/bible';
 
 // Main state structure
 export interface BibleMemorizationState {

@@ -4,7 +4,7 @@ import { BehaviorSubject, Observable, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, map, tap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
-import { environment } from './../../../environments/environment';
+import { environment } from '../../environments/environment';
 import { User, UserApiResponse, UserProfileUpdate } from '../models/user';
 
 @Injectable({

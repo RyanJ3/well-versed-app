@@ -25,9 +25,9 @@ import {
 } from '../selectors/practice-session.selectors';
 import { BaseEffects } from '../../core/effects/base.effect';
 import { ResponseQuality } from '../models/practice-session.model';
-import { PracticeService } from '@app/app/core/services/practice.service';
-import { AudioService } from '@app/app/core/services/audio.service';
-import { NotificationService } from '@app/app/core/services/notification.service';
+import { PracticeService } from '@app/services/practice.service';
+import { AudioService } from '@app/services/audio.service';
+import { NotificationService } from '@app/services/notification.service';
 
 @Injectable()
 export class PracticeSessionEffects extends BaseEffects {
