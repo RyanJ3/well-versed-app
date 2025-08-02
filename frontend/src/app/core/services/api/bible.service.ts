@@ -1,11 +1,11 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError, BehaviorSubject, Subject } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { BibleData, UserVerseDetail, BibleBook } from '@app/core/models/bible';
-import { NotificationService } from '@app/core/services/utils/notification.service';
 import { environment } from '@environments/environment';
+import { NotificationService } from '../utils/notification.service';
 
 // Bible version tracking for citations
 export interface BibleVersion {
@@ -21,6 +21,8 @@ export interface BibleVersion {
   providedIn: 'root'
 })
 export class BibleService {
+  private notifications = inject(NotificationService);
+
   private apiUrl = environment.apiUrl;
   private bibleData: BibleData;
   private isBrowser: boolean;
@@ -58,7 +60,6 @@ export class BibleService {
   constructor(
     private http: HttpClient,
     @Inject(PLATFORM_ID) platformId: Object,
-    private notifications: NotificationService
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
     this.bibleData = new BibleData();
