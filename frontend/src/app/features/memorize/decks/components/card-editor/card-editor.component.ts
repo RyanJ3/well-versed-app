@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { VersePickerComponent, VerseSelection } from '../../../../../shared/components/verse-range-picker/verse-range-picker.component';
+import { VersePickerComponent, VerseSelection } from '../../../../../components/bible/verse-range-picker/verse-range-picker.component';
 import { CardWithVerses, VerseInCard } from '../../../../../core/services/deck.service';
 
 @Component({
