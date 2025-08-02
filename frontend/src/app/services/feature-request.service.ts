@@ -12,7 +12,7 @@ import {
   FeatureRequestComment,
   RequestType,
   RequestStatus
-} from '../models/feature-request.model';
+} from '@models/feature-request.model';
 
 @Injectable({
   providedIn: 'root'

@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FeatureRequest, RequestType, RequestStatus } from '../../../../models/feature-request.model';
-import { User } from '../../../../models/user';
+import { FeatureRequest, RequestType, RequestStatus } from '@models/feature-request.model';
+import { User } from '@models/user';
 
 @Component({
   selector: 'app-request-card',

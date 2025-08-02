@@ -11,7 +11,7 @@ import {
   UpdateDeckRequest,
   StudySessionResult,
   ImportDeckRequest,
-} from '../state/decks/models/deck.model';
+} from '@state/decks/models/deck.model';
 
 export interface DeckCreate {
   name: string;

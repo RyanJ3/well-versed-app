@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DeckWithCounts } from '../../models/deck.types';
+import { DeckWithCounts } from '@models/deck.types';
 
 @Component({
   selector: 'app-deck-statistics',

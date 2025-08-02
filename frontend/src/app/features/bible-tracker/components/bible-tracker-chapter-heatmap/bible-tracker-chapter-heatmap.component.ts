@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BibleBook, BibleChapter } from '../../../../models/bible';
+import { BibleBook, BibleChapter } from '@models/bible';
 
 @Component({
   selector: 'app-bible-tracker-chapter-heatmap',

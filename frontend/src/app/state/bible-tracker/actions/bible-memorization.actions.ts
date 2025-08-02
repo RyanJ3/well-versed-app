@@ -4,7 +4,7 @@ import {
   BulkVerseOperation,
   UserVerseDetail,
   ProgressSegment
-} from '../models/bible-memorization.model';
+} from '@models/bible-memorization.model';
 
 export const BibleMemorizationActions = createActionGroup({
   source: 'Bible Memorization',

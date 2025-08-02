@@ -5,9 +5,9 @@ import { JourneyPanelComponent } from '../journey-panel/journey-panel.component'
 import { MapViewComponent } from '../map-view/map-view.component';
 import { MapControlsComponent } from '../map-controls/map-controls.component';
 import { SegmentDetailsComponent } from '../segment-details/segment-details.component';
-import { JourneyService } from '../../services/journey.service';
-import { JourneyStateService } from '../../services/journey-state.service';
-import { BiblicalJourney, JourneySegment, MapView, Testament } from '../../models/journey.models';
+import { JourneyService } from '@services/journey.service';
+import { JourneyStateService } from '@services/journey-state.service';
+import { BiblicalJourney, JourneySegment, MapView, Testament } from '@models/journey.models';
 
 @Component({
   selector: 'app-atlas-explorer',

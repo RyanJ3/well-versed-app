@@ -6,7 +6,7 @@ import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 // Import NgRx elements
-import { BibleMemorizationActions } from '../../state/bible-tracker/actions/bible-memorization.actions';
+import { BibleMemorizationActions } from '@state/bible-tracker/actions/bible-memorization.actions';
 import {
   selectBibleDataWithProgress,
   selectTestaments,
@@ -17,24 +17,24 @@ import {
   selectIsLoading,
   selectIsSavingBulk,
   selectUserId
-} from '../../state/bible-tracker/selectors/bible-memorization.selectors';
+} from '@state/bible-tracker/selectors/bible-memorization.selectors';
 
 // Import models
-import { BibleBook, BibleChapter, BibleTestament, BibleGroup, BibleData } from '../../models/bible';
-import { BibleVerse } from '../../models/bible/bible-verse.model';
-import { ProgressSegment } from '../../state/bible-tracker/models/bible-memorization.model';
+import { BibleBook, BibleChapter, BibleTestament, BibleGroup, BibleData } from '@models/bible';
+import { BibleVerse } from '@models/bible/bible-verse.model';
+import { ProgressSegment } from '@state/bible-tracker/models/bible-memorization.model';
 
 // Import services (only for modal, no more data services!)
-import { ModalService } from '../../services/modal.service';
+import { ModalService } from '@services/modal.service';
 
 // Import sub-components
-import { BibleTrackerHeaderComponent } from './components/bible-tracker-header/bible-tracker-header.component';
-import { BibleTrackerStatsComponent } from './components/bible-tracker-stats/bible-tracker-stats.component';
-import { BibleTrackerTestamentCardComponent } from './components/bible-tracker-testament-card/bible-tracker-testament-card.component';
-import { BibleTrackerBookGroupsComponent } from './components/bible-tracker-book-groups/bible-tracker-book-groups.component';
-import { BibleTrackerBookGridComponent } from './components/bible-tracker-book-grid/bible-tracker-book-grid.component';
-import { BibleTrackerChapterHeatmapComponent } from './components/bible-tracker-chapter-heatmap/bible-tracker-chapter-heatmap.component';
-import { BibleTrackerVerseGridComponent } from './components/bible-tracker-verse-grid/bible-tracker-verse-grid.component';
+import { BibleTrackerHeaderComponent } from '@features/bible-tracker/components/bible-tracker-header/bible-tracker-header.component';
+import { BibleTrackerStatsComponent } from '@features/bible-tracker/components/bible-tracker-stats/bible-tracker-stats.component';
+import { BibleTrackerTestamentCardComponent } from '@features/bible-tracker/components/bible-tracker-testament-card/bible-tracker-testament-card.component';
+import { BibleTrackerBookGroupsComponent } from '@features/bible-tracker/components/bible-tracker-book-groups/bible-tracker-book-groups.component';
+import { BibleTrackerBookGridComponent } from '@features/bible-tracker/components/bible-tracker-book-grid/bible-tracker-book-grid.component';
+import { BibleTrackerChapterHeatmapComponent } from '@features/bible-tracker/components/bible-tracker-chapter-heatmap/bible-tracker-chapter-heatmap.component';
+import { BibleTrackerVerseGridComponent } from '@features/bible-tracker/components/bible-tracker-verse-grid/bible-tracker-verse-grid.component';
 
 @Component({
   selector: 'app-bible-tracker',

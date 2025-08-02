@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { FlowVerse } from '../../models/flow.models';
+import { FlowVerse } from '@models/flow.models';
 
 @Component({
   selector: 'app-flow-text-view',

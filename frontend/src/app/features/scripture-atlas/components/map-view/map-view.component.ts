@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Input, Output, EventEmitter, OnChanges, SimpleChanges, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { BiblicalJourney, JourneyWaypoint, MapView } from '../../models/journey.models';
-import { MapService } from '../../services/map.service';
+import { BiblicalJourney, JourneyWaypoint, MapView } from '@models/journey.models';
+import { MapService } from '@services/map.service';
 import { MapLandmarksComponent, Landmark } from '../map-landmarks/map-landmarks.component';
 
 @Component({

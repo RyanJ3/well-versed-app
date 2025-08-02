@@ -1,5 +1,5 @@
 import { createReducer, on } from '@ngrx/store';
-import { BibleMemorizationState } from '../models/bible-memorization.model';
+import { BibleMemorizationState } from '@models/bible-memorization.model';
 import { BibleMemorizationActions } from '../actions/bible-memorization.actions';
 
 export const initialState: BibleMemorizationState = {

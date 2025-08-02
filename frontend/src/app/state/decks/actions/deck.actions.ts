@@ -9,7 +9,7 @@ import {
   DeckSort,
   StudySessionResult,
   ImportDeckRequest
-} from '../models/deck.model';
+} from '@models/deck.model';
 import { Update } from '@ngrx/entity';
 
 export const DeckActions = createActionGroup({

@@ -1,6 +1,6 @@
 import { createReducer, on } from '@ngrx/store';
 import { createEntityAdapter, EntityAdapter, Update } from '@ngrx/entity';
-import { DecksState, Deck, Card } from '../models/deck.model';
+import { DecksState, Deck, Card } from '@models/deck.model';
 import { DeckActions, CardActions } from '../actions/deck.actions';
 
 // Entity Adapters

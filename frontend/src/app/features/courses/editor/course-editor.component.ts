@@ -11,14 +11,14 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CourseService } from '../../../services/course.service';
-import { UserService } from '../../../services/user.service';
-import { ModalService } from '../../../services/modal.service';
+import { CourseService } from '@services/course.service';
+import { UserService } from '@services/user.service';
+import { ModalService } from '@services/modal.service';
 import {
   CreateCourseRequest,
   CreateLessonRequest,
   Lesson,
-} from '../../../models/course.model';
+} from '@models/course.model';
 
 @Component({
   selector: 'app-course-editor',

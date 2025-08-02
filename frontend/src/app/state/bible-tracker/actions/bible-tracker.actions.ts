@@ -4,8 +4,8 @@ import {
   MarkVersesReadRequest,
   MarkChapterCompleteRequest,
   BulkUpdateRequest
-} from '../models/bible-tracker.model';
-import { BibleBook } from '../../../models/bible';
+} from '@models/bible-tracker.model';
+import { BibleBook } from '@models/bible';
 
 export const BibleTrackerActions = createActionGroup({
   source: 'Bible Tracker',

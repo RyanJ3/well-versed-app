@@ -2,7 +2,7 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject, takeUntil } from 'rxjs';
-import { ModalService, ModalConfig, ModalResult } from '../../../services/modal.service';
+import { ModalService, ModalConfig, ModalResult } from '@services/modal.service';
 
 @Component({
   selector: 'app-modal',

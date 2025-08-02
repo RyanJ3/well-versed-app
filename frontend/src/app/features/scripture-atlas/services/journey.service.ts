@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map, switchMap, of } from 'rxjs';
-import { BiblicalJourney, JourneyWaypoint, JourneySegment } from '../models/journey.models';
+import { BiblicalJourney, JourneyWaypoint, JourneySegment } from '@models/journey.models';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({
