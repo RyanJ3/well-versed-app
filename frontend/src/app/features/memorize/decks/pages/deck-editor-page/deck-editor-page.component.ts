@@ -9,10 +9,10 @@ import {
   DeckService,
   DeckCardsResponse,
   VerseInCard,
-} from '../../../../../core/services/api/deck.service';
+} from '../../../../../core/services/deck.service';
 import { VerseSelection } from '../../../../../shared/components/verse-range-picker/verse-range-picker.component';
-import { BibleService } from '../../../../../core/services/api/bible.service';
-import { ModalService } from '../../../../../core/services/utils/modal.service';
+import { BibleService } from '../../../../../core/services/bible.service';
+import { ModalService } from '../../../../../core/services/modal.service';
 import { DeckFormComponent } from '../../components/deck-form/deck-form.component';
 import { CardEditorComponent } from '../../components/card-editor/card-editor.component';
 

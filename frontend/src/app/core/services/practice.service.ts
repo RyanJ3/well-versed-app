@@ -5,7 +5,7 @@ import {
   ActiveSession,
   CardResponse,
   SessionSummary,
-} from '@app/state/practice-session/models/practice-session.model';
+} from '../../state/practice-session/models/practice-session.model';
 
 @Injectable({ providedIn: 'root' })
 export class PracticeService {

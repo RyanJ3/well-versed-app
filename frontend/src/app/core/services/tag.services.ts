@@ -1,4 +1,4 @@
-// frontend/src/app/core/services/utils/tag.service.ts
+// frontend/src/app/core/services/tag.service.ts
 // NOTE: This file is optional. The components have been updated to work without it.
 // You can add this service later when you want to centralize tag management.
 import { Injectable } from '@angular/core';

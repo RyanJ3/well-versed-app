@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { BibleService } from '../../../core/services/api/bible.service';
-import { UserService } from '../../../core/services/api/user.service';
+import { BibleService } from '../../../core/services/bible.service';
+import { UserService } from '../../../core/services/user.service';
 import { Subject, takeUntil } from 'rxjs';
 
 interface BibleVersion {

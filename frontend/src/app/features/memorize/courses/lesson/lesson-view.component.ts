@@ -5,8 +5,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { CourseService } from '../../../../core/services/api/course.service';
-import { UserService } from '../../../../core/services/api/user.service';
+import { CourseService } from '../../../../core/services/course.service';
+import { UserService } from '../../../../core/services/user.service';
 import {
   Lesson,
   LessonFlashcard,
