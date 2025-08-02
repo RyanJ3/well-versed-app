@@ -21,6 +21,7 @@ export interface BibleVersion {
   providedIn: 'root'
 })
 export class BibleService {
+
   private notifications = inject(NotificationService);
 
   private apiUrl = environment.apiUrl;
