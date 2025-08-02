@@ -45,6 +45,7 @@ class FeatureRequestRepository:
         count_result = self.db.fetch_one(count_query, tuple(params))
         total_count = count_result["total"] if count_result else 0
 
+        # Remove ::text casting to let psycopg2 handle datetime conversion properly
         requests_query = f"""
             SELECT
                 fr.request_id AS id,
@@ -55,8 +56,8 @@ class FeatureRequestRepository:
                 fr.priority,
                 fr.user_id,
                 u.name AS user_name,
-                fr.created_at::text,
-                fr.updated_at::text,
+                fr.created_at,
+                fr.updated_at,
                 COALESCE(SUM(CASE WHEN frv.vote_type='up' THEN 1 ELSE 0 END), 0) AS upvotes,
                 COALESCE(SUM(CASE WHEN frv.vote_type='down' THEN 1 ELSE 0 END), 0) AS downvotes,
                 COUNT(DISTINCT frc.comment_id) AS comments_count
@@ -99,6 +100,7 @@ class FeatureRequestRepository:
     @track_queries(max_queries=2)
     def get_trending_requests(self, limit: int = 5) -> List[Dict]:
         """Get trending requests with tags in exactly 2 queries"""
+        # Remove ::text casting here too
         requests_query = """
             SELECT
                 fr.request_id AS id,
@@ -109,8 +111,8 @@ class FeatureRequestRepository:
                 fr.priority,
                 fr.user_id,
                 u.name AS user_name,
-                fr.created_at::text,
-                fr.updated_at::text,
+                fr.created_at,
+                fr.updated_at,
                 COALESCE(SUM(CASE WHEN frv.vote_type='up' THEN 1 ELSE 0 END), 0) AS upvotes,
                 COALESCE(SUM(CASE WHEN frv.vote_type='down' THEN 1 ELSE 0 END), 0) AS downvotes,
                 COUNT(DISTINCT frc.comment_id) AS comments_count
@@ -188,8 +190,8 @@ class FeatureRequestRepository:
                     'priority': result[2],
                     'user_id': user_id,
                     'user_name': user_name,
-                    'created_at': result[3].isoformat(),
-                    'updated_at': result[4].isoformat() if result[4] else None,
+                    'created_at': result[3],  # Return datetime object directly
+                    'updated_at': result[4],  # Return datetime object directly
                     'tags': tags,
                     'upvotes': 0,
                     'downvotes': 0,
@@ -278,7 +280,7 @@ class FeatureRequestRepository:
             "user_id": user_id,
             "user_name": user_row[0] if user_row else "",
             "comment": comment,
-            "created_at": row[1]
+            "created_at": row[1]  # Return datetime object directly
         }
 
     def get_comments(self, request_id: int) -> List[Dict]:
@@ -335,4 +337,3 @@ class FeatureRequestRepository:
             row["tags"] = [t["tag_name"] for t in tag_rows]
 
         return rows
-
