@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { CourseService } from '../../../core/services/course.service';
-import { UserService } from '../../../core/services/user.service';
+import { CourseService } from '../../../core/services/api/course.service';
+import { UserService } from '../../../core/services/api/user.service';
 import { Course } from '../../../core/models/course.model';
 import { User } from '../../../core/models/user';
 

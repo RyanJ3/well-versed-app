@@ -2,7 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { UserService } from '../../../core/services/user.service';
+import { UserService } from '../../../core/services/api/user.service';
 import { User } from '../../../core/models/user';
 
 @Component({

@@ -3,9 +3,9 @@
 import { Injectable } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CourseService } from '../../../../core/services/course.service';
-import { UserService } from '../../../../core/services/user.service';
-import { ModalService } from '../../../../core/services/modal.service';
+import { CourseService } from '../../../../core/services/api/course.service';
+import { UserService } from '../../../../core/services/api/user.service';
+import { ModalService } from '../../../../core/services/utils/modal.service';
 
 import { LessonContent } from '../../../../core/models/course.model';
 import { VerseSelection } from '../../../../shared/components/verse-range-picker/verse-range-picker.component';

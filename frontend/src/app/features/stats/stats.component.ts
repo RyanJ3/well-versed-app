@@ -1,8 +1,8 @@
 // src/app/stats/stats.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UserService } from '../../core/services/user.service';
-import { BibleService } from '../../core/services/bible.service';
+import { UserService } from '../../core/services/api/user.service';
+import { BibleService } from '../../core/services/api/bible.service';
 import { BibleBook, BibleData, BibleTestament, UserVerseDetail } from '../../core/models/bible';
 import { BibleGroup } from '../../core/models/bible/bible-group.modle';
 import Chart from 'chart.js/auto';

@@ -11,9 +11,9 @@ import {
   Validators,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CourseService } from '../../../../core/services/course.service';
-import { UserService } from '../../../../core/services/user.service';
-import { ModalService } from '../../../../core/services/modal.service';
+import { CourseService } from '../../../../core/services/api/course.service';
+import { UserService } from '../../../../core/services/api/user.service';
+import { ModalService } from '../../../../core/services/utils/modal.service';
 import {
   CreateCourseRequest,
   CreateLessonRequest,

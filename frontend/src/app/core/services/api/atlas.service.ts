@@ -1,9 +1,9 @@
-// frontend/src/app/core/services/atlas.service.ts
+// frontend/src/app/core/services/api/atlas.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
+import { environment } from '@environments/environment';
 
 export interface Journey {
   id: number;

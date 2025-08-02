@@ -103,9 +103,9 @@ const moves = [
   ['models/bible_base_data.json', 'core/models/bible_base_data.json'],
   
   // Services
-  ['services/bible.service.ts', 'core/services/bible.service.ts'],
-  ['services/deck.service.ts', 'core/services/deck.service.ts'],
-  ['services/user.service.ts', 'core/services/user.service.ts'],
+  ['services/bible.service.ts', 'core/services/api/bible.service.ts'],
+  ['services/deck.service.ts', 'core/services/api/deck.service.ts'],
+  ['services/user.service.ts', 'core/services/api/user.service.ts'],
   
   // Utils
   ['utils/bible-data-utils.ts', 'core/utils/bible-data-utils.ts'],
@@ -162,20 +162,20 @@ function updateImports(filePath) {
     // Define import replacements
     const replacements = [
       // Service imports
-      [/from ['"]\.\.\/services\/bible\.service['"]/g, "from '@app/core/services/bible.service'"],
-      [/from ['"]\.\.\/\.\.\/services\/bible\.service['"]/g, "from '@app/core/services/bible.service'"],
-      [/from ['"]\.\.\/\.\.\/\.\.\/services\/bible\.service['"]/g, "from '@app/core/services/bible.service'"],
-      [/from ['"]\.\/services\/bible\.service['"]/g, "from '@app/core/services/bible.service'"],
+      [/from ['"]\.\.\/services\/bible\.service['"]/g, "from '@app/core/services/api/bible.service'"],
+      [/from ['"]\.\.\/\.\.\/services\/bible\.service['"]/g, "from '@app/core/services/api/bible.service'"],
+      [/from ['"]\.\.\/\.\.\/\.\.\/services\/bible\.service['"]/g, "from '@app/core/services/api/bible.service'"],
+      [/from ['"]\.\/services\/bible\.service['"]/g, "from '@app/core/services/api/bible.service'"],
       
-      [/from ['"]\.\.\/services\/user\.service['"]/g, "from '@app/core/services/user.service'"],
-      [/from ['"]\.\.\/\.\.\/services\/user\.service['"]/g, "from '@app/core/services/user.service'"],
-      [/from ['"]\.\.\/\.\.\/\.\.\/services\/user\.service['"]/g, "from '@app/core/services/user.service'"],
-      [/from ['"]\.\/services\/user\.service['"]/g, "from '@app/core/services/user.service'"],
+      [/from ['"]\.\.\/services\/user\.service['"]/g, "from '@app/core/services/api/user.service'"],
+      [/from ['"]\.\.\/\.\.\/services\/user\.service['"]/g, "from '@app/core/services/api/user.service'"],
+      [/from ['"]\.\.\/\.\.\/\.\.\/services\/user\.service['"]/g, "from '@app/core/services/api/user.service'"],
+      [/from ['"]\.\/services\/user\.service['"]/g, "from '@app/core/services/api/user.service'"],
       
-      [/from ['"]\.\.\/services\/deck\.service['"]/g, "from '@app/core/services/deck.service'"],
-      [/from ['"]\.\.\/\.\.\/services\/deck\.service['"]/g, "from '@app/core/services/deck.service'"],
-      [/from ['"]\.\.\/\.\.\/\.\.\/services\/deck\.service['"]/g, "from '@app/core/services/deck.service'"],
-      [/from ['"]\.\/services\/deck\.service['"]/g, "from '@app/core/services/deck.service'"],
+      [/from ['"]\.\.\/services\/deck\.service['"]/g, "from '@app/core/services/api/deck.service'"],
+      [/from ['"]\.\.\/\.\.\/services\/deck\.service['"]/g, "from '@app/core/services/api/deck.service'"],
+      [/from ['"]\.\.\/\.\.\/\.\.\/services\/deck\.service['"]/g, "from '@app/core/services/api/deck.service'"],
+      [/from ['"]\.\/services\/deck\.service['"]/g, "from '@app/core/services/api/deck.service'"],
       
       // Model imports
       [/from ['"]\.\.\/models\/bible['"]/g, "from '@app/core/models/bible'"],
