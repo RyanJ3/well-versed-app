@@ -3,9 +3,9 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Observable, of, throwError, BehaviorSubject, Subject } from 'rxjs';
 import { tap, catchError, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
-import { BibleData, UserVerseDetail, BibleBook } from '../models/bible';
-import { NotificationService } from './notification.service';
-import { environment } from '../../../environments/environment';
+import { BibleData, UserVerseDetail, BibleBook } from '@app/core/models/bible';
+import { NotificationService } from '@app/core/services/utils/notification.service';
+import { environment } from '@environments/environment';
 
 // Bible version tracking for citations
 export interface BibleVersion {

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HistoricalBuildingsService } from './historical-buildings.service';
-import { ConfigService } from '../../../core/services/config.service';
+import { ConfigService } from '../../../core/services/config/config.service';
 
 @Injectable({
   providedIn: 'root'
