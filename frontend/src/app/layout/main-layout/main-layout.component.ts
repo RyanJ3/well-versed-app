@@ -2,8 +2,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { NavigationComponent } from './components/navigation/navigation.component';
-import { CitationFooterComponent } from './components/citation-footer/citation-footer.component';
+import { NavigationComponent } from './navigation/navigation.component';
+import { CitationFooterComponent } from './citation-footer/citation-footer.component';
 
 @Component({
   selector: 'app-main-layout',

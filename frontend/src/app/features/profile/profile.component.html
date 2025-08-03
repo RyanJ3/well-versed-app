@@ -129,12 +129,12 @@
           </div>
 
           <div class="form-actions">
-            <button type="button" class="btn btn-secondary" (click)="cancelChanges()" [disabled]="!hasUnsavedChanges() || isSaving">
-              <span>❌ Cancel</span>
-            </button>
             <button type="submit" class="btn btn-primary" [disabled]="isSaving || !isFormValid">
               <span *ngIf="!isSaving">💾 Save Changes</span>
               <span *ngIf="isSaving">⏳ Saving...</span>
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="cancelChanges()" [disabled]="!hasUnsavedChanges() || isSaving">
+              <span>❌ Cancel</span>
             </button>
           </div>
         </form>
