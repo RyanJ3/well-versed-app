@@ -6,7 +6,7 @@ import { VerseSelection } from '../../components/bible/verse-range-picker/verse-
 import { BibleService } from '@services/api/bible.service';
 import { UserService } from '@services/api/user.service';
 import { FlowParsingService } from '@services/utils/flow-parsing.service';
-import { MemorizationModalComponent } from '../../components/memorization/memorization-modal/memorization-modal.component';
+import { MemorizationModalComponent } from './memorization-modal/memorization-modal.component';
 import { User } from '@models/user';
 import { UserVerseDetail } from '@models/bible';
 
