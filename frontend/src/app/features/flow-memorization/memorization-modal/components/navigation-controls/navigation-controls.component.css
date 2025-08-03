@@ -76,9 +76,26 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+
 .play-btn {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
+  position: relative;
+  overflow: visible;
+}
+
+.play-btn.playing {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  animation: playPulse 2s ease-in-out infinite;
+}
+
+@keyframes playPulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px -2px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 8px 20px -4px rgba(139, 92, 246, 0.5);
+  }
 }
 
 .play-btn:hover:not(:disabled) {
@@ -90,6 +107,66 @@
   opacity: 0.5;
   cursor: not-allowed;
   background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+}
+
+.progress-ring {
+  position: absolute;
+  top: -7px;
+  left: -7px;
+  pointer-events: none;
+  transform: rotate(-90deg);
+}
+
+.progress-ring-circle {
+  transition: stroke-dashoffset 0.1s linear;
+}
+
+.playback-timer {
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #3b82f6;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 8px;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.playback-timer.ending {
+  color: #ef4444;
+  animation: timerPulse 0.5s ease-in-out infinite;
+}
+
+@keyframes timerPulse {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.05);
+  }
+}
+
+.play-btn.completion-flash {
+  animation: completionFlash 0.5s ease-out;
+}
+
+@keyframes completionFlash {
+  0% {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    transform: scale(1);
+  }
 }
 
 .prev-btn,

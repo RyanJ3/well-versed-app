@@ -27,9 +27,10 @@
     <!-- Play Button -->
     <button 
       class="play-btn"
-      [disabled]="!recordingState.audioUrl || isPlaying"
+      [disabled]="!recordingState.audioUrl || recordingState.isRecording"
+      [class.playing]="isPlaying"
       (click)="onPlayClick()"
-      title="Play recording"
+      [title]="getPlayTooltip()"
     >
       <svg *ngIf="!isPlaying" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
         <path d="M8 5v14l11-7z"/>
@@ -38,6 +39,31 @@
         <rect x="6" y="4" width="4" height="16"/>
         <rect x="14" y="4" width="4" height="16"/>
       </svg>
+      
+      <!-- Circular Progress Indicator -->
+      <svg class="progress-ring" *ngIf="isPlaying" width="56" height="56">
+        <circle
+          class="progress-ring-circle"
+          stroke="#3b82f6"
+          stroke-width="3"
+          fill="transparent"
+          r="25"
+          cx="28"
+          cy="28"
+          [style.stroke-dasharray]="'157 157'"
+          [style.stroke-dashoffset]="157 - (157 * (playbackDuration / audioDuration))"
+        />
+      </svg>
+      
+      <!-- Playback Timer -->
+      <span class="playback-timer" *ngIf="recordingState.audioUrl">
+        <span *ngIf="!isPlaying && recordingState.duration > 0">
+          {{ formatDuration(recordingState.duration) }}
+        </span>
+        <span *ngIf="isPlaying" [class.ending]="playbackRemaining < 3">
+          {{ formatRemaining(playbackRemaining) }}
+        </span>
+      </span>
     </button>
   </div>
 

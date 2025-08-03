@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { RecordingService, RecordingState } from '@services/utils/recording.service';
@@ -45,6 +45,11 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
   private currentAudio: HTMLAudioElement | null = null;
   private destroy$ = new Subject<void>();
 
+  playbackDuration = 0;
+  playbackRemaining = 0;
+  private playbackInterval: any;
+  private audioDuration = 0;
+
   constructor(
     private recordingService: RecordingService,
     private notificationService: NotificationService
@@ -61,10 +66,7 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    if (this.currentAudio) {
-      this.currentAudio.pause();
-      this.currentAudio = null;
-    }
+    this.stopPlaybackTracking();
   }
 
   async onRecordClick() {
@@ -124,16 +126,99 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
   onPlayClick() {
     if (this.isPlaying && this.currentAudio) {
       this.currentAudio.pause();
-      this.isPlaying = false;
-      this.currentAudio = null;
+      this.stopPlaybackTracking();
     } else if (this.recordingState.audioUrl) {
       this.currentAudio = this.recordingService.playRecording();
       if (this.currentAudio) {
         this.isPlaying = true;
-        this.currentAudio.onended = () => {
-          this.isPlaying = false;
-          this.currentAudio = null;
+
+        // Get total duration when metadata loads
+        this.currentAudio.onloadedmetadata = () => {
+          if (this.currentAudio) {
+            this.audioDuration = this.currentAudio.duration;
+            this.playbackRemaining = this.audioDuration;
+          }
         };
+
+        // Start tracking playback
+        this.startPlaybackTracking();
+
+        // Handle playback end
+        this.currentAudio.onended = () => {
+          this.stopPlaybackTracking();
+        };
+
+        // Handle manual pause
+        this.currentAudio.onpause = () => {
+          if (this.isPlaying) {
+            this.stopPlaybackTracking();
+          }
+        };
+      }
+    }
+  }
+
+  private startPlaybackTracking() {
+    this.playbackInterval = setInterval(() => {
+      if (this.currentAudio && !this.currentAudio.paused) {
+        const currentTime = this.currentAudio.currentTime;
+        this.playbackDuration = currentTime;
+        this.playbackRemaining = Math.max(0, this.audioDuration - currentTime);
+
+        // Check if nearly complete (within 100ms of end)
+        if (this.playbackRemaining < 0.1) {
+          this.stopPlaybackTracking();
+        }
+      }
+    }, 100);
+  }
+
+  private stopPlaybackTracking() {
+    const wasComplete = this.playbackRemaining < 0.1 && this.isPlaying;
+
+    this.isPlaying = false;
+    this.currentAudio = null;
+    this.playbackDuration = 0;
+    this.playbackRemaining = 0;
+
+    if (this.playbackInterval) {
+      clearInterval(this.playbackInterval);
+      this.playbackInterval = null;
+    }
+
+    // Show completion feedback
+    if (wasComplete) {
+      const playBtn = document.querySelector('.play-btn');
+      if (playBtn) {
+        playBtn.classList.add('completion-flash');
+        setTimeout(() => {
+          playBtn.classList.remove('completion-flash');
+        }, 500);
+      }
+    }
+  }
+
+  formatRemaining(seconds: number): string {
+    return this.recordingService.formatDuration(Math.ceil(seconds));
+  }
+
+  getPlayTooltip(): string {
+    if (this.recordingState.isRecording) {
+      return 'Cannot play while recording';
+    } else if (this.isPlaying) {
+      return 'Pause playback (Space)';
+    } else if (this.recordingState.audioUrl) {
+      return 'Play recording (Space)';
+    }
+    return 'No recording to play';
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyPress(event: KeyboardEvent) {
+    if (event.code === 'Space' && !event.target?.matches('input, textarea, button')) {
+      event.preventDefault();
+      if (this.recordingState.audioUrl && !this.recordingState.isRecording) {
+        this.onPlayClick();
       }
     }
   }
