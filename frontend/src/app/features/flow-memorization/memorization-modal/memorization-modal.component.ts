@@ -342,7 +342,7 @@ buildAllStages() {
       const stage = this.allStages[stageIdx];
       const isLastStage = stageIdx === this.allStages.length - 1;
       for (let groupIdx = 0; groupIdx < stage.groups.length; groupIdx++) {
-        stepCount += 3;
+        stepCount += 4;
         const position = (stepCount / this.totalSteps) * 100;
         const isFinalMarker = isLastStage && groupIdx === stage.groups.length - 1;
         if (isFinalMarker) {
@@ -383,7 +383,7 @@ buildAllStages() {
       const stage = this.allStages[stageIdx];
       const isLastStage = stageIdx === this.allStages.length - 1;
       for (let groupIdx = 0; groupIdx < stage.groups.length; groupIdx++) {
-        stepCount += 3;
+        stepCount += 4;
         const markerId = isLastStage && groupIdx === stage.groups.length - 1
           ? 'finish-goal'
           : `star-${stageIdx}-${groupIdx}`;
