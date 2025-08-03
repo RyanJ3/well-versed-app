@@ -1,0 +1,188 @@
+// frontend/src/app/features/profile/styles/_components.scss
+@use 'variables' as *;
+
+// Alert Component
+.alert {
+  padding: $spacing-md $spacing-base;
+  border-radius: $radius-base;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  flex-shrink: 0;
+  
+  &.alert-success {
+    background: $success-bg;
+    border: 1px solid $success-border;
+    color: $success-text;
+  }
+}
+
+.alert-content {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+}
+
+.alert-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: $success-icon;
+}
+
+.alert-text {
+  flex: 1;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  
+  strong {
+    display: block;
+  }
+}
+
+.alert-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: $success-text;
+  padding: 0;
+  margin-left: $spacing-sm;
+  
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+// Apocrypha Toggle Card
+.apocrypha-card {
+  background: $gray-50;
+  border: 1px solid $gray-200;
+  border-radius: $radius-base;
+  padding: $spacing-base;
+  margin-bottom: $spacing-lg;
+}
+
+.apocrypha-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
+}
+
+.apocrypha-title {
+  flex: 1;
+  font-weight: 500;
+  color: $gray-800;
+  font-size: 0.875rem;
+}
+
+.apocrypha-description {
+  margin: 0;
+  font-size: 0.8rem;
+  color: $gray-500;
+  line-height: 1.4;
+}
+
+// Toggle Switch
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    
+    &:checked + .slider {
+      background-color: $primary-blue;
+      
+      &:before {
+        transform: translateX(20px);
+      }
+    }
+    
+    &:focus + .slider {
+      box-shadow: 0 0 1px $primary-blue;
+    }
+  }
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: $transition-base;
+  border-radius: 34px;
+  
+  &:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: $transition-base;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Danger Zone
+.danger-zone {
+  margin-top: $spacing-xl;
+  padding: $spacing-base;
+  border: 1px solid $danger-border;
+  border-radius: $radius-base;
+  background: $danger-bg;
+
+  h3 {
+    color: $danger-text;
+    font-size: 1rem;
+    margin: 0 0 $spacing-sm 0;
+  }
+
+  p {
+    color: $danger-text-dark;
+    font-size: 0.875rem;
+    margin: 0 0 $spacing-base 0;
+  }
+}
+
+// Loading State
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  background: white;
+  position: relative;
+  
+  .loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba($primary-blue, 0.1);
+    border-radius: 50%;
+    border-top-color: $primary-blue;
+    animation: spin 1s ease-in-out infinite;
+  }
+  
+  p {
+    margin-top: $spacing-base;
+    color: $gray-500;
+    font-size: 1rem;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

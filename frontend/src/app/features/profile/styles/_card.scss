@@ -1,0 +1,131 @@
+// frontend/src/app/features/profile/styles/_card.scss
+@use 'variables' as *;
+
+// Settings container
+.settings-container {
+  flex: 1;
+  overflow: hidden;
+  padding: $spacing-lg;
+  padding-bottom: calc(#{$spacing-lg} + #{$footer-height});
+  background: white;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 0;
+}
+
+// Settings wrapper - ensure children are not centered
+.settings-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  max-width: 800px;
+  width: 100%;
+  gap: $spacing-base;
+  align-items: stretch; // Ensure children take full width
+}
+
+// Card container
+.settings-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  max-width: 800px;
+  width: 100%;
+}
+
+// Card header - ensure full width and left alignment
+.card-header {
+  background: $gray-50;
+  padding: $spacing-base 1.25rem;
+  border: 1px solid $gray-200;
+  border-radius: $radius-lg $radius-lg 0 0;
+  flex-shrink: 0;
+  width: 100%; // Ensure full width
+  box-sizing: border-box; // Include padding and border in width
+  display: block; // Reset display
+  text-align: left !important; // Force left alignment
+  
+  h2.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: $gray-800;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    justify-content: flex-start !important; // Force left alignment
+    text-align: left !important; // Ensure text is left aligned
+    width: 100%; // Take full width of parent
+  }
+  
+  // Ensure emoji and text are left aligned
+  h2.card-title > * {
+    text-align: left !important;
+  }
+}
+
+// Pending indicator
+.pending-indicator {
+  font-size: 0.75rem;
+  color: $warning;
+  font-weight: 400;
+  margin-left: auto; // Push to the right
+}
+
+// Card body - match header styling
+.card-body {
+  flex: 1;
+  min-height: 0;
+  padding: 1.25rem;
+  background: white;
+  border: 1px solid $gray-200;
+  border-top: none;
+  border-radius: 0 0 $radius-lg $radius-lg;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%; // Ensure full width
+  box-sizing: border-box; // Include padding and border in width
+  
+  // Custom scrollbar
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+  }
+}
+
+// Responsive
+@media (max-width: $mobile-breakpoint) {
+  .settings-container {
+    padding: $spacing-base;
+    padding-bottom: $spacing-base;
+  }
+  
+  .settings-wrapper,
+  .settings-card {
+    flex: none;
+  }
+  
+  .card-body {
+    max-height: none;
+    overflow-y: visible;
+  }
+}
