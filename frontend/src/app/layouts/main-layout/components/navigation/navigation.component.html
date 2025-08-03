@@ -28,7 +28,7 @@
       >
 
       <!-- Memorize dropdown menu -->
-      <div 
+      <div
         class="nav-dropdown memorize"
         (mouseenter)="openMemorizeMenu()"
         (mouseleave)="closeMemorizeMenu()"
@@ -36,7 +36,6 @@
         <button
           class="nav-link dropdown-toggle"
           [class.active]="memorizeMenuActive"
-          (click)="isMobile && toggleMemorizeMenu()"
         >
           Memorize
           <svg
@@ -100,7 +99,7 @@
         </div>
       </div>
 
-      <div 
+      <div
         class="nav-dropdown learning"
         (mouseenter)="openLearningMenu()"
         (mouseleave)="closeLearningMenu()"
@@ -108,7 +107,6 @@
         <button
           class="nav-link dropdown-toggle"
           [class.active]="learningMenuActive"
-          (click)="isMobile && toggleLearningMenu()"
         >
           Learning
           <svg
@@ -147,7 +145,7 @@
       </div>
 
       <!-- Profile dropdown menu -->
-      <div 
+      <div
         class="nav-dropdown profile"
         (mouseenter)="openProfileMenu()"
         (mouseleave)="closeProfileMenu()"
@@ -155,7 +153,6 @@
         <button
           class="nav-link profile-button dropdown-toggle"
           [class.active]="profileMenuActive"
-          (click)="isMobile && toggleProfileMenu()"
         >
           <div class="user-avatar-small">
             {{ getUserInitial() }}

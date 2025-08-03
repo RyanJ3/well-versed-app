@@ -1,5 +1,5 @@
 // frontend/src/app/layouts/main-layout/components/navigation/navigation.component.ts
-import { Component, OnInit, HostListener } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { UserService } from '@services/api/user.service';
@@ -17,7 +17,6 @@ export class NavigationComponent implements OnInit {
   memorizeMenuActive = false;
   learningMenuActive = false;
   profileMenuActive = false;
-  isMobile = window.innerWidth <= 768;
   currentUser: User | null = null;
 
   constructor(
@@ -47,17 +46,10 @@ export class NavigationComponent implements OnInit {
     this.profileMenuActive = false;
   }
 
-  @HostListener('window:resize', ['$event'])
-  onResize(event: any) {
-    this.isMobile = event.target.innerWidth <= 768;
-  }
-
   openMemorizeMenu() {
-    if (!this.isMobile) {
-      this.memorizeMenuActive = true;
-      this.learningMenuActive = false;
-      this.profileMenuActive = false;
-    }
+    this.memorizeMenuActive = true;
+    this.learningMenuActive = false;
+    this.profileMenuActive = false;
   }
 
   closeMemorizeMenu() {
@@ -65,11 +57,9 @@ export class NavigationComponent implements OnInit {
   }
 
   openLearningMenu() {
-    if (!this.isMobile) {
-      this.learningMenuActive = true;
-      this.memorizeMenuActive = false;
-      this.profileMenuActive = false;
-    }
+    this.learningMenuActive = true;
+    this.memorizeMenuActive = false;
+    this.profileMenuActive = false;
   }
 
   closeLearningMenu() {
@@ -77,39 +67,13 @@ export class NavigationComponent implements OnInit {
   }
 
   openProfileMenu() {
-    if (!this.isMobile) {
-      this.profileMenuActive = true;
-      this.memorizeMenuActive = false;
-      this.learningMenuActive = false;
-    }
+    this.profileMenuActive = true;
+    this.memorizeMenuActive = false;
+    this.learningMenuActive = false;
   }
 
   closeProfileMenu() {
     this.profileMenuActive = false;
-  }
-
-  toggleMemorizeMenu() {
-    if (this.isMobile) {
-      this.memorizeMenuActive = !this.memorizeMenuActive;
-      this.learningMenuActive = false;
-      this.profileMenuActive = false;
-    }
-  }
-
-  toggleLearningMenu() {
-    if (this.isMobile) {
-      this.learningMenuActive = !this.learningMenuActive;
-      this.memorizeMenuActive = false;
-      this.profileMenuActive = false;
-    }
-  }
-
-  toggleProfileMenu() {
-    if (this.isMobile) {
-      this.profileMenuActive = !this.profileMenuActive;
-      this.memorizeMenuActive = false;
-      this.learningMenuActive = false;
-    }
   }
 
   getUserInitial(): string {
