@@ -3,9 +3,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DeckService } from '../../../services/deck.service';
-import { BibleService } from '../../../services/bible.service';
-import { UserService } from '../../../services/user.service';
+import { DeckService } from '@services/api/deck.service';
+import { BibleService } from '@services/api/bible.service';
+import { UserService } from '@services/api/user.service';
 
 interface StudyVerse {
   verse_id: number;

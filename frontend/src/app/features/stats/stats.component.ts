@@ -1,12 +1,12 @@
 // src/app/stats/stats.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UserService } from '../../services/user.service';
-import { BibleService } from '../../services/bible.service';
-import { BibleBook, BibleData, BibleTestament, UserVerseDetail } from '../../models/bible';
-import { BibleGroup } from '../../models/bible/bible-group.modle';
+import { UserService } from '@services/api/user.service';
+import { BibleService } from '@services/api/bible.service';
+import { BibleBook, BibleData, BibleTestament, UserVerseDetail } from '@models/bible';
+import { BibleGroup } from '@models/bible/bible-group.modle';
 import Chart from 'chart.js/auto';
-import { User } from '../../models/user';
+import { User } from '@models/user';
 
 interface TimeSeriesPoint {
   date: string;

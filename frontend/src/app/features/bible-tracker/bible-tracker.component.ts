@@ -25,7 +25,7 @@ import { BibleVerse } from '../../models/bible/bible-verse.model';
 import { ProgressSegment } from '../../state/bible-tracker/models/bible-memorization.model';
 
 // Import services (only for modal, no more data services!)
-import { ModalService } from '../../services/modal.service';
+import { ModalService } from '@services/utils/modal.service';
 
 // Import sub-components
 import { BibleTrackerHeaderComponent } from './components/bible-tracker-header/bible-tracker-header.component';

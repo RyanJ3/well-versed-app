@@ -6,11 +6,11 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
   CourseDetailResponse,
   CourseService,
-} from '../../../services/course.service';
-import { UserService } from '../../../services/user.service';
-import { ModalService } from '../../../services/modal.service';
-import { User } from '../../../models/user';
-import { Lesson } from '../../../models/course.model';
+} from '@services/api/course.service';
+import { UserService } from '@services/api/user.service';
+import { ModalService } from '@services/utils/modal.service';
+import { User } from '@models/user';
+import { Lesson } from '@models/course.model';
 
 @Component({
   selector: 'app-course-detail',

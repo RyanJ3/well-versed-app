@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { BibleService } from '../../services/bible.service';
+import { BibleService } from '@services/api/bible.service';
 
 interface BibleVersionInfo {
   id: string;

@@ -9,8 +9,8 @@ import { TestScheduler } from 'rxjs/testing';
 import { BibleTrackerEffects } from './bible-tracker.effects';
 import { BibleTrackerActions } from '../actions/bible-tracker.actions';
 import { bibleTrackerReducer } from '../reducers/bible-tracker.reducer';
-import { BibleBook } from '../../../models/bible';
-import { BibleService } from '@app/services/bible.service';
+import { BibleBook } from '@models/bible';
+import { BibleService } from '@services/api/bible.service';
 
 describe('BibleTrackerEffects', () => {
     let actions$: ReplaySubject<any>;

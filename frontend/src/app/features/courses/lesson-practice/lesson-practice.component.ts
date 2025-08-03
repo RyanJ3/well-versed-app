@@ -10,9 +10,9 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { BibleService } from '../../../services/bible.service';
-import { CourseService } from '../../../services/course.service';
-import { UserService } from '../../../services/user.service';
+import { BibleService } from '@services/api/bible.service';
+import { CourseService } from '@services/api/course.service';
+import { UserService } from '@services/api/user.service';
 
 interface VerseSet {
   verses: {
