@@ -16,11 +16,13 @@
         fill="none"
         [style.stroke-dasharray]="'100'"
         [style.stroke-dashoffset]="100 - progressPercentage"
+        [style.opacity]="progressPercentage > 0 ? 1 : 0"
         @progressPath
       />
     </svg>
     <div
       class="progress-shimmer"
+      *ngIf="progressPercentage > 0"
       [style.width.%]="progressPercentage"
     ></div>
   </div>
