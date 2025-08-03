@@ -1,4 +1,4 @@
-// frontend/src/app/layouts/components/navigation/navigation.component.scss
+// frontend/src/app/layouts/main-layout/components/navigation/navigation.component.scss
 
 // Glassmorphism Header
 .app-header {
@@ -84,11 +84,15 @@
 // Dropdown Styles
 .nav-dropdown {
   position: relative;
-}
 
-.dropdown-toggle {
-  &:hover .dropdown-icon {
-    transform: rotate(180deg);
+  &::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 8px; // matches the gap
+    display: block;
   }
 }
 
@@ -117,7 +121,8 @@
   opacity: 0;
   visibility: hidden;
   transform: translateY(-10px) scale(0.95);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: 0.1s;
   border: 1px solid rgba(229, 231, 235, 0.5);
   z-index: 1100; // Ensure dropdowns appear above other content
 
@@ -125,6 +130,7 @@
     opacity: 1;
     visibility: visible;
     transform: translateY(0) scale(1);
+    transition-delay: 0s;
   }
 }
 
