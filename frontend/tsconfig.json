@@ -26,7 +26,7 @@
       "@models/*": ["app/models/*"],
       "@components/*": ["app/components/*"],
       "@features/*": ["app/features/*"],
-      "@layouts/*": ["app/layouts/*"],
+      "@layout/*": ["app/layout/*"],
       "@state/*": ["app/state/*"],
       "@utils/*": ["app/utils/*"]
     }
