@@ -45,10 +45,10 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
   private currentAudio: HTMLAudioElement | null = null;
   private destroy$ = new Subject<void>();
 
-  playbackDuration = 0;
-  playbackRemaining = 0;
+  public playbackDuration = 0;
+  public playbackRemaining = 0;
   private playbackInterval: any;
-  private audioDuration = 0;
+  public audioDuration = 0;
 
   constructor(
     private recordingService: RecordingService,
@@ -215,10 +215,13 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
 
   @HostListener('window:keydown', ['$event'])
   handleKeyPress(event: KeyboardEvent) {
-    if (event.code === 'Space' && !event.target?.matches('input, textarea, button')) {
-      event.preventDefault();
-      if (this.recordingState.audioUrl && !this.recordingState.isRecording) {
-        this.onPlayClick();
+    if (event.code === 'Space') {
+      const target = event.target as HTMLElement;
+      if (!target?.matches('input, textarea, button')) {
+        event.preventDefault();
+        if (this.recordingState.audioUrl && !this.recordingState.isRecording) {
+          this.onPlayClick();
+        }
       }
     }
   }
