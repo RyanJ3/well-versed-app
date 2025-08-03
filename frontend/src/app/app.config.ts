@@ -17,7 +17,7 @@ import { DeckEffects } from './state/decks/effects/deck.effects';
 import { practiceSessionReducer } from './state/practice-session/reducers/practice-session.reducer';
 import { PracticeSessionEffects } from './state/practice-session/effects/practice-session.effects';
 import { uiReducer } from './state/ui/ui.reducer';
-import { ConfigService } from './services/config.service';
+import { ConfigService } from '@services/config/config.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [

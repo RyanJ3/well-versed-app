@@ -1,9 +1,9 @@
-// frontend/src/app/services/feature-request.service.ts
+// src/app/services/api/feature-request.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 import {
   FeatureRequest,
   CreateFeatureRequest,
@@ -12,7 +12,7 @@ import {
   FeatureRequestComment,
   RequestType,
   RequestStatus
-} from '../models/feature-request.model';
+} from '@models/feature-request.model';
 
 @Injectable({
   providedIn: 'root'

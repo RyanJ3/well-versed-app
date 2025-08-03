@@ -1,11 +1,11 @@
-// src/app/services/user.service.ts
+// src/app/services/api/user.service.ts
 import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, map, tap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
-import { environment } from '../../environments/environment';
-import { User, UserApiResponse, UserProfileUpdate } from '../models/user';
+import { environment } from '../../../environments/environment';
+import { User, UserApiResponse, UserProfileUpdate } from '@models/user';
 
 @Injectable({
   providedIn: 'root'

@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { FlowParsingService } from './flow-parsing.service';
+import { FlowParsingService } from '@services/utils/flow-parsing.service';
 
 describe('FlowParsingService', () => {
   let service: FlowParsingService;

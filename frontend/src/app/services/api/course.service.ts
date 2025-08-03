@@ -1,10 +1,10 @@
-// frontend/src/app/services/course.service.ts
+// src/app/services/api/course.service.ts
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { environment } from '../../../environments/environment';
 import {
   Course,
   Lesson,
@@ -14,7 +14,7 @@ import {
   CreateCourseRequest,
   CreateLessonRequest,
   AddFlashcardsToQueueRequest
-} from '../models/course.model';
+} from '@models/course.model';
 
 export interface CourseListResponse {
   total: number;

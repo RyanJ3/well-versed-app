@@ -1,4 +1,4 @@
-import { NotificationMessage } from '../../services/notification.service';
+import { NotificationMessage } from '@services/utils/notification.service';
 
 export interface UIState {
   loading: Record<string, boolean>;
