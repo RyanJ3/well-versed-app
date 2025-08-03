@@ -1,4 +1,4 @@
-// frontend/src/app/layouts/components/navigation/navigation.component.ts
+// frontend/src/app/layouts/main-layout/components/navigation/navigation.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
@@ -46,25 +46,34 @@ export class NavigationComponent implements OnInit {
     this.profileMenuActive = false;
   }
 
-  toggleMemorizeMenu(event: Event) {
-    event.stopPropagation();
-    this.memorizeMenuActive = !this.memorizeMenuActive;
+  openMemorizeMenu() {
+    this.memorizeMenuActive = true;
     this.learningMenuActive = false;
     this.profileMenuActive = false;
   }
 
-  toggleLearningMenu(event: Event) {
-    event.stopPropagation();
-    this.learningMenuActive = !this.learningMenuActive;
+  closeMemorizeMenu() {
+    this.memorizeMenuActive = false;
+  }
+
+  openLearningMenu() {
+    this.learningMenuActive = true;
     this.memorizeMenuActive = false;
     this.profileMenuActive = false;
   }
 
-  toggleProfileMenu(event: Event) {
-    event.stopPropagation();
-    this.profileMenuActive = !this.profileMenuActive;
+  closeLearningMenu() {
+    this.learningMenuActive = false;
+  }
+
+  openProfileMenu() {
+    this.profileMenuActive = true;
     this.memorizeMenuActive = false;
     this.learningMenuActive = false;
+  }
+
+  closeProfileMenu() {
+    this.profileMenuActive = false;
   }
 
   getUserInitial(): string {

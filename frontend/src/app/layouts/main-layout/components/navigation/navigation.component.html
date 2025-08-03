@@ -1,4 +1,4 @@
-<!-- frontend/src/app/layouts/components/navigation/navigation.component.html -->
+<!-- frontend/src/app/layouts/main-layout/components/navigation/navigation.component.html -->
 <header class="app-header">
   <div class="header-container">
     <div class="logo-container">
@@ -28,11 +28,14 @@
       >
 
       <!-- Memorize dropdown menu -->
-      <div class="nav-dropdown memorize">
+      <div
+        class="nav-dropdown memorize"
+        (mouseenter)="openMemorizeMenu()"
+        (mouseleave)="closeMemorizeMenu()"
+      >
         <button
           class="nav-link dropdown-toggle"
           [class.active]="memorizeMenuActive"
-          (click)="toggleMemorizeMenu($event)"
         >
           Memorize
           <svg
@@ -96,11 +99,14 @@
         </div>
       </div>
 
-      <div class="nav-dropdown learning">
+      <div
+        class="nav-dropdown learning"
+        (mouseenter)="openLearningMenu()"
+        (mouseleave)="closeLearningMenu()"
+      >
         <button
           class="nav-link dropdown-toggle"
           [class.active]="learningMenuActive"
-          (click)="toggleLearningMenu($event)"
         >
           Learning
           <svg
@@ -139,11 +145,14 @@
       </div>
 
       <!-- Profile dropdown menu -->
-      <div class="nav-dropdown profile">
+      <div
+        class="nav-dropdown profile"
+        (mouseenter)="openProfileMenu()"
+        (mouseleave)="closeProfileMenu()"
+      >
         <button
           class="nav-link profile-button dropdown-toggle"
           [class.active]="profileMenuActive"
-          (click)="toggleProfileMenu($event)"
         >
           <div class="user-avatar-small">
             {{ getUserInitial() }}
