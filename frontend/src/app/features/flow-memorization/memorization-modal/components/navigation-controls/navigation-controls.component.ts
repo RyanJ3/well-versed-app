@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { RecordingService, RecordingState } from '@services/utils/recording.service';
@@ -42,8 +42,13 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
   isPlaying = false;
   showMicPermissionMessage = false;
   micPermissionMessage = 'Please allow microphone access to record';
-  private currentAudio: HTMLAudioElement | null = null;
+  currentAudio: HTMLAudioElement | null = null;
   private destroy$ = new Subject<void>();
+
+  public playbackDuration = 0;
+  public playbackRemaining = 0;
+  private playbackInterval: any;
+  public audioDuration = 0;
 
   constructor(
     private recordingService: RecordingService,
@@ -65,6 +70,7 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
       this.currentAudio.pause();
       this.currentAudio = null;
     }
+    this.stopPlaybackTracking();
   }
 
   async onRecordClick() {
@@ -122,18 +128,122 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
   }
 
   onPlayClick() {
+    if (!this.recordingState.audioUrl || this.recordingState.isRecording) return;
+
     if (this.isPlaying && this.currentAudio) {
+      // Pause the current audio
       this.currentAudio.pause();
       this.isPlaying = false;
-      this.currentAudio = null;
-    } else if (this.recordingState.audioUrl) {
+      this.stopPlaybackTracking();
+    } else if (this.currentAudio && this.currentAudio.paused) {
+      // Resume from paused position
+      this.currentAudio.play();
+      this.isPlaying = true;
+      this.startPlaybackTracking();
+    } else {
+      // Start new playback
+      // First, clean up any existing audio
+      if (this.currentAudio) {
+        this.currentAudio.pause();
+        this.currentAudio = null;
+      }
+
       this.currentAudio = this.recordingService.playRecording();
       if (this.currentAudio) {
         this.isPlaying = true;
-        this.currentAudio.onended = () => {
-          this.isPlaying = false;
-          this.currentAudio = null;
+
+        // Get total duration when metadata loads
+        this.currentAudio.onloadedmetadata = () => {
+          if (this.currentAudio) {
+            this.audioDuration = this.currentAudio.duration;
+            this.playbackRemaining = this.audioDuration;
+          }
         };
+
+        // Start tracking playback
+        this.startPlaybackTracking();
+
+        // Handle playback end
+        this.currentAudio.onended = () => {
+          this.stopPlaybackTracking();
+          this.currentAudio = null; // Clear reference when ended
+        };
+      }
+    }
+  }
+
+  private startPlaybackTracking() {
+    this.playbackInterval = setInterval(() => {
+      if (this.currentAudio && !this.currentAudio.paused) {
+        const currentTime = this.currentAudio.currentTime;
+        this.playbackDuration = currentTime;
+        this.playbackRemaining = Math.max(0, this.audioDuration - currentTime);
+
+        // Check if nearly complete (within 100ms of end)
+        if (this.playbackRemaining < 0.1) {
+          this.stopPlaybackTracking();
+        }
+      }
+    }, 100);
+  }
+
+  private stopPlaybackTracking() {
+    const wasComplete = this.playbackRemaining < 0.1 && this.isPlaying;
+
+    this.isPlaying = false;
+    // Don't null out currentAudio here - keep it for resume
+
+    if (this.playbackInterval) {
+      clearInterval(this.playbackInterval);
+      this.playbackInterval = null;
+    }
+
+    // Show completion feedback only if playback completed naturally
+    if (wasComplete) {
+      this.playbackDuration = 0;
+      this.playbackRemaining = 0;
+      this.currentAudio = null; // Only null out on completion
+
+      const playBtn = document.querySelector('.play-btn');
+      if (playBtn) {
+        playBtn.classList.add('completion-flash');
+        setTimeout(() => {
+          playBtn.classList.remove('completion-flash');
+        }, 500);
+      }
+    }
+  }
+
+  formatRemaining(seconds: number): string {
+    return this.recordingService.formatDuration(Math.ceil(seconds));
+  }
+
+  formatPlaybackPosition(): string {
+    const current = this.recordingService.formatDuration(Math.floor(this.playbackDuration));
+    const total = this.recordingService.formatDuration(this.recordingState.duration);
+    return `${current} / ${total}`;
+  }
+
+  getPlayTooltip(): string {
+    if (this.recordingState.isRecording) {
+      return 'Cannot play while recording';
+    } else if (this.isPlaying) {
+      return 'Pause playback (Space)';
+    } else if (this.recordingState.audioUrl) {
+      return 'Play recording (Space)';
+    }
+    return 'No recording to play';
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  handleKeyPress(event: KeyboardEvent) {
+    if (event.code === 'Space') {
+      const target = event.target as HTMLElement;
+      if (!target?.matches('input, textarea, button')) {
+        event.preventDefault();
+        if (this.recordingState.audioUrl && !this.recordingState.isRecording) {
+          this.onPlayClick();
+        }
       }
     }
   }
