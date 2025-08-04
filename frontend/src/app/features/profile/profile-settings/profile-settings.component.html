@@ -1,0 +1,101 @@
+<div class="settings-container">
+  <div class="alert alert-success" *ngIf="showSuccess">
+    <div class="alert-content">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="alert-icon">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div class="alert-text">
+        <strong>Success!</strong> Profile updated successfully.
+        <span *ngIf="profileForm.includeApocrypha"> Apocryphal books are now visible.</span>
+        <span *ngIf="!profileForm.includeApocrypha"> Apocryphal books are now hidden.</span>
+      </div>
+      <button class="alert-close" (click)="dismissSuccess()">×</button>
+    </div>
+  </div>
+
+  <div class="card-header">
+    <h2 class="card-title">
+      ⚙️ Profile Settings
+      <span class="pending-indicator" *ngIf="hasUnsavedChanges()">• Unsaved Changes</span>
+    </h2>
+  </div>
+
+  <div class="card-body">
+    <form (ngSubmit)="saveProfile()" class="settings-form">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="firstName">First Name <span class="required">*</span></label>
+          <input type="text" id="firstName" class="form-control" [(ngModel)]="profileForm.firstName" name="firstName" required>
+        </div>
+        <div class="form-group">
+          <label for="lastName">Last Name</label>
+          <input type="text" id="lastName" class="form-control" [(ngModel)]="profileForm.lastName" name="lastName">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="denomination">Denomination</label>
+        <select id="denomination" class="form-control" [(ngModel)]="profileForm.denomination" name="denomination">
+          <option *ngFor="let option of denominationOptions" [value]="option.value">{{ option.text }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="preferredLanguage">Bible Language <span class="required">*</span></label>
+        <select id="preferredLanguage" class="form-control" [(ngModel)]="profileForm.preferredLanguage"
+          name="preferredLanguage" (change)="onLanguageChange()" [disabled]="loadingBibles" required>
+          <option value="">Select Language</option>
+          <option *ngFor="let lang of languages" [value]="lang.id">
+            {{ lang.name }}<span *ngIf="lang.nameLocal && lang.nameLocal !== lang.name"> ({{ lang.nameLocal }})</span>
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="preferredBible">Preferred Bible Translation <span class="required">*</span></label>
+        <select id="preferredBible" class="form-control" [(ngModel)]="profileForm.preferredBible" name="preferredBible"
+          (change)="onBibleChange()" [disabled]="loadingBibles || availableBibles.length === 0" required>
+          <option value="">{{ loadingBibles ? 'Loading...' : availableBibles.length === 0 ? 'No Bibles available' : 'Select Bible Translation (Required)' }}</option>
+          <option *ngFor="let bible of availableBibles" [value]="bible.abbreviation">{{ bible.name }} ({{ bible.abbreviation }})</option>
+        </select>
+        <small class="form-text" *ngIf="selectedBibleId && !isEsvSelected">Bible ID: {{ selectedBibleId }}</small>
+      </div>
+
+      <div class="form-group" *ngIf="isEsvSelected">
+        <label for="esvApiToken">ESV API Token <span class="required">*</span></label>
+        <input type="text" id="esvApiToken" class="form-control" [(ngModel)]="profileForm.esvApiToken" name="esvApiToken" placeholder="Enter your ESV API token" required>
+        <small class="form-text">Get your token from <a href="https://api.esv.org/" target="_blank" rel="noopener">api.esv.org</a></small>
+      </div>
+
+      <div class="apocrypha-card">
+        <div class="apocrypha-header">
+          <span class="apocrypha-title">Include Apocrypha</span>
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="profileForm.includeApocrypha" name="includeApocrypha">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <p class="apocrypha-description">
+          Show apocryphal books and chapters in the Bible tracker. This includes books like Tobit, Judith, Wisdom, and others.
+        </p>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="isSaving || !isFormValid">
+          <span *ngIf="!isSaving">💾 Save Changes</span>
+          <span *ngIf="isSaving">⏳ Saving...</span>
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="cancelChanges()" [disabled]="!hasUnsavedChanges() || isSaving">
+          <span>❌ Cancel</span>
+        </button>
+      </div>
+    </form>
+
+    <div class="danger-zone">
+      <h3>🚨 Danger Zone</h3>
+      <p>Clear your memorization data and start fresh.</p>
+      <button type="button" class="btn btn-danger" (click)="clearAllData()">Clear All Data</button>
+    </div>
+  </div>
+</div>
