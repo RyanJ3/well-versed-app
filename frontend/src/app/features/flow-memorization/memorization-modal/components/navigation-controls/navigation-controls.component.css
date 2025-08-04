@@ -121,6 +121,11 @@
   transition: stroke-dashoffset 0.1s linear;
 }
 
+.progress-ring-circle.paused {
+  stroke: #9ca3af;
+  opacity: 0.7;
+}
+
 .playback-timer {
   position: absolute;
   bottom: -24px;
@@ -135,6 +140,11 @@
   border-radius: 0.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
+  min-width: 80px; /* Add minimum width for "X:XX / X:XX" format */
+}
+
+.play-btn:not(.playing) .playback-timer {
+  color: #6b7280;
 }
 
 .playback-timer.ending {

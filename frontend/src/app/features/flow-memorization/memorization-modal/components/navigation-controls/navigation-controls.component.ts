@@ -42,7 +42,7 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
   isPlaying = false;
   showMicPermissionMessage = false;
   micPermissionMessage = 'Please allow microphone access to record';
-  private currentAudio: HTMLAudioElement | null = null;
+  currentAudio: HTMLAudioElement | null = null;
   private destroy$ = new Subject<void>();
 
   public playbackDuration = 0;
@@ -66,6 +66,10 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    if (this.currentAudio) {
+      this.currentAudio.pause();
+      this.currentAudio = null;
+    }
     this.stopPlaybackTracking();
   }
 
@@ -124,10 +128,26 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
   }
 
   onPlayClick() {
+    if (!this.recordingState.audioUrl || this.recordingState.isRecording) return;
+
     if (this.isPlaying && this.currentAudio) {
+      // Pause the current audio
       this.currentAudio.pause();
+      this.isPlaying = false;
       this.stopPlaybackTracking();
-    } else if (this.recordingState.audioUrl) {
+    } else if (this.currentAudio && this.currentAudio.paused) {
+      // Resume from paused position
+      this.currentAudio.play();
+      this.isPlaying = true;
+      this.startPlaybackTracking();
+    } else {
+      // Start new playback
+      // First, clean up any existing audio
+      if (this.currentAudio) {
+        this.currentAudio.pause();
+        this.currentAudio = null;
+      }
+
       this.currentAudio = this.recordingService.playRecording();
       if (this.currentAudio) {
         this.isPlaying = true;
@@ -146,13 +166,7 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
         // Handle playback end
         this.currentAudio.onended = () => {
           this.stopPlaybackTracking();
-        };
-
-        // Handle manual pause
-        this.currentAudio.onpause = () => {
-          if (this.isPlaying) {
-            this.stopPlaybackTracking();
-          }
+          this.currentAudio = null; // Clear reference when ended
         };
       }
     }
@@ -177,17 +191,19 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
     const wasComplete = this.playbackRemaining < 0.1 && this.isPlaying;
 
     this.isPlaying = false;
-    this.currentAudio = null;
-    this.playbackDuration = 0;
-    this.playbackRemaining = 0;
+    // Don't null out currentAudio here - keep it for resume
 
     if (this.playbackInterval) {
       clearInterval(this.playbackInterval);
       this.playbackInterval = null;
     }
 
-    // Show completion feedback
+    // Show completion feedback only if playback completed naturally
     if (wasComplete) {
+      this.playbackDuration = 0;
+      this.playbackRemaining = 0;
+      this.currentAudio = null; // Only null out on completion
+
       const playBtn = document.querySelector('.play-btn');
       if (playBtn) {
         playBtn.classList.add('completion-flash');
