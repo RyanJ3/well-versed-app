@@ -8,143 +8,536 @@
 
   <!-- Profile Content -->
   <div *ngIf="!isLoading && user" class="profile-layout">
-    <!-- Fixed Hero Section -->
-    <div class="hero-section">
-      <div class="hero-background">
-        <div class="hero-gradient"></div>
-        <div class="hero-pattern"></div>
-      </div>
-      <div class="hero-content">
-        <div class="profile-avatar">
-          <span>{{ getInitial() }}</span>
+    <!-- Compact Header -->
+    <div class="profile-header">
+      <div class="header-content">
+        <div class="header-left">
+          <div class="user-avatar">
+            <span>{{ getInitial() }}</span>
+          </div>
+          <div class="user-info">
+            <h1 class="page-title">Profile Settings</h1>
+            <p class="page-subtitle">Manage your account preferences</p>
+          </div>
         </div>
-        <div class="profile-info">
-          <h1 class="profile-name">{{ getDisplayName() }}</h1>
-          <p class="profile-email">{{ user!.email }}</p>
-          <p class="profile-join-date">
+        <div class="header-right">
+          <div *ngIf="hasUnsavedChanges()" class="unsaved-indicator">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            Member since {{ user!.createdAt | date:'mediumDate' }}
-          </p>
+            <span>Unsaved changes</span>
+          </div>
+          <div class="auto-save-toggle">
+            <label class="toggle-label">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="autoSaveEnabled" 
+                (change)="onAutoSaveToggle()"
+              >
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">Auto-save</span>
+            </label>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Scrollable Settings Section -->
-    <div class="settings-container">
-      <!-- Success Alert -->
-      <div class="alert alert-success" *ngIf="showSuccess">
-        <div class="alert-content">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-            class="alert-icon">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <div class="profile-container">
+      <!-- Mobile Menu Toggle -->
+      <button 
+        class="mobile-menu-toggle"
+        (click)="toggleMobileSidebar()"
+        [class.active]="mobileSidebarOpen"
+      >
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </button>
+
+      <!-- Sidebar Navigation -->
+      <nav 
+        class="profile-sidebar"
+        [class.mobile-open]="mobileSidebarOpen"
+      >
+        <div 
+          class="sidebar-backdrop"
+          (click)="closeMobileSidebar()"
+          *ngIf="mobileSidebarOpen"
+        ></div>
+        <div class="sidebar-content">
+          <button
+            *ngFor="let section of sections"
+            (click)="setActiveSection(section.id)"
+            [class.active]="activeSection === section.id"
+            [class.has-changes]="sectionHasChanges(section.id)"
+            class="sidebar-item"
+            [attr.data-section]="section.id"
+          >
+            <svg *ngIf="section.id === 'personal'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <svg *ngIf="section.id === 'bible'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <svg *ngIf="section.id === 'study'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            <svg *ngIf="section.id === 'display'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+            </svg>
+            <span>{{ section.label }}</span>
+            <span class="change-indicator" *ngIf="sectionHasChanges(section.id)">•</span>
+            <svg class="chevron" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Main Content Area -->
+      <div class="profile-content">
+        <!-- Success Alert -->
+        <div class="alert alert-success" *ngIf="showSuccess">
+          <div class="alert-content">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="alert-icon">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div class="alert-text">
+              <strong>Success!</strong> Profile updated successfully.
+              <span *ngIf="profileForm.includeApocrypha"> Apocryphal books are now visible.</span>
+              <span *ngIf="!profileForm.includeApocrypha"> Apocryphal books are now hidden.</span>
+            </div>
+            <button class="alert-close" (click)="dismissSuccess()">×</button>
+          </div>
+        </div>
+
+        <!-- Section Content -->
+        <div class="section-wrapper">
+          <!-- Personal Information Section -->
+          <div class="section" [class.active]="activeSection === 'personal'">
+            <h2 class="section-title">Personal Information</h2>
+            
+            <form class="section-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="firstName">First Name <span class="required">*</span></label>
+                  <input 
+                    type="text" 
+                    id="firstName" 
+                    class="form-control" 
+                    [(ngModel)]="profileForm.firstName"
+                    name="firstName" 
+                    (ngModelChange)="onFieldChange('personal')"
+                    required
+                  >
+                </div>
+                <div class="form-group">
+                  <label for="lastName">Last Name</label>
+                  <input 
+                    type="text" 
+                    id="lastName" 
+                    class="form-control" 
+                    [(ngModel)]="profileForm.lastName" 
+                    name="lastName"
+                    (ngModelChange)="onFieldChange('personal')"
+                  >
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="denomination">Denomination</label>
+                <select 
+                  id="denomination" 
+                  class="form-control" 
+                  [(ngModel)]="profileForm.denomination" 
+                  name="denomination"
+                  (ngModelChange)="onFieldChange('personal')"
+                >
+                  <option *ngFor="let option of denominationOptions" [value]="option.value">{{ option.text }}</option>
+                </select>
+              </div>
+
+              <!-- Account Information Card -->
+              <div class="account-info-card">
+                <h4>Account Information</h4>
+                <div class="info-row">
+                  <span class="info-label">Email</span>
+                  <span class="info-value">{{ user?.email }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Member Since</span>
+                  <span class="info-value">{{ user?.createdAt | date:'longDate' }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Account Type</span>
+                  <span class="info-value">Free Account</span>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Bible & Reading Section -->
+          <div class="section" [class.active]="activeSection === 'bible'">
+            <h2 class="section-title">Bible & Reading</h2>
+            
+            <div class="warning-banner">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p>Changing Bible translation will refresh the page to load the new version.</p>
+            </div>
+
+            <form class="section-form">
+              <div class="form-group">
+                <label for="preferredLanguage">Bible Language <span class="required">*</span></label>
+                <select 
+                  id="preferredLanguage" 
+                  class="form-control" 
+                  [(ngModel)]="profileForm.preferredLanguage"
+                  name="preferredLanguage" 
+                  (change)="onLanguageChange()" 
+                  [disabled]="loadingBibles" 
+                  required
+                >
+                  <option value="">Select Language</option>
+                  <option *ngFor="let lang of languages" [value]="lang.id">
+                    {{ lang.name }}<span *ngIf="lang.nameLocal && lang.nameLocal !== lang.name"> ({{ lang.nameLocal }})</span>
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="preferredBible">Preferred Bible Translation <span class="required">*</span></label>
+                <select 
+                  id="preferredBible" 
+                  class="form-control" 
+                  [(ngModel)]="profileForm.preferredBible"
+                  name="preferredBible" 
+                  (change)="onBibleChange()"
+                  [disabled]="loadingBibles || availableBibles.length === 0" 
+                  required
+                >
+                  <option value="">
+                    {{ loadingBibles ? 'Loading...' : availableBibles.length === 0 ? 'No Bibles available' : 'Select Bible Translation' }}
+                  </option>
+                  <option *ngFor="let bible of availableBibles" [value]="bible.abbreviation">
+                    {{ bible.name }} ({{ bible.abbreviation }})
+                  </option>
+                </select>
+                <small class="form-text" *ngIf="selectedBibleId && !isEsvSelected">
+                  Bible ID: {{ selectedBibleId }}
+                </small>
+              </div>
+
+              <div class="form-group" *ngIf="isEsvSelected">
+                <label for="esvApiToken">ESV API Token <span class="required">*</span></label>
+                <input 
+                  type="text" 
+                  id="esvApiToken" 
+                  class="form-control monospace" 
+                  [(ngModel)]="profileForm.esvApiToken"
+                  name="esvApiToken" 
+                  placeholder="Enter your ESV API token" 
+                  (ngModelChange)="onFieldChange('bible')"
+                  required
+                >
+                <small class="form-text">
+                  Get your token from <a href="https://api.esv.org/" target="_blank" rel="noopener">api.esv.org</a>
+                </small>
+              </div>
+
+              <!-- Additional Texts Section -->
+              <div class="subsection">
+                <h3 class="subsection-title">Additional Texts</h3>
+                
+                <div class="preference-card">
+                  <div class="preference-header">
+                    <div class="preference-info">
+                      <h4>Include Apocrypha</h4>
+                      <p>Show apocryphal books and chapters in the Bible tracker.</p>
+                    </div>
+                    <label class="switch">
+                      <input 
+                        type="checkbox" 
+                        [(ngModel)]="profileForm.includeApocrypha" 
+                        name="includeApocrypha"
+                        (ngModelChange)="onFieldChange('bible')"
+                      >
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                  
+                  <div class="preference-details" *ngIf="profileForm.includeApocrypha">
+                    <p class="apocrypha-note">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Note: Not all Bible translations include the Apocrypha. The selected translation will be used if available.
+                    </p>
+                    <p>The following books will be included:</p>
+                    <ul>
+                      <li>Tobit, Judith, Wisdom of Solomon</li>
+                      <li>Sirach (Ecclesiasticus), Baruch</li>
+                      <li>1 & 2 Maccabees</li>
+                      <li>Additions to Esther and Daniel</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- Study Preferences Section -->
+          <div class="section" [class.active]="activeSection === 'study'">
+            <h2 class="section-title">Study Preferences</h2>
+            
+            <form class="section-form">
+              <div class="form-group">
+                <label for="memorization-method">Default Memorization Method</label>
+                <select 
+                  id="memorization-method" 
+                  class="form-control" 
+                  [(ngModel)]="profileForm.studyPreferences.preferredMemorizationMethod"
+                  name="memorization-method"
+                  (ngModelChange)="onFieldChange('study')"
+                >
+                  <option value="flow">FLOW Method</option>
+                  <option value="flashcards">Flashcards</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="daily-goal">Daily Verse Goal</label>
+                <input 
+                  type="number" 
+                  id="daily-goal" 
+                  class="form-control" 
+                  [(ngModel)]="profileForm.studyPreferences.dailyGoal"
+                  name="daily-goal"
+                  min="1"
+                  max="10"
+                  (ngModelChange)="onFieldChange('study')"
+                >
+                <small class="form-text">Number of verses you want to memorize each day</small>
+              </div>
+
+              <div class="preference-card">
+                <div class="preference-header">
+                  <div class="preference-info">
+                    <h4>Daily Study Reminder</h4>
+                    <p>Get reminded to practice your verses</p>
+                  </div>
+                  <label class="switch">
+                    <input 
+                      type="checkbox" 
+                      [(ngModel)]="profileForm.studyPreferences.reminderEnabled" 
+                      name="reminder-enabled"
+                      (ngModelChange)="onFieldChange('study')"
+                    >
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                
+                <div class="preference-details" *ngIf="profileForm.studyPreferences.reminderEnabled">
+                  <div class="form-group">
+                    <label for="reminder-time">Reminder Time</label>
+                    <input 
+                      type="time" 
+                      id="reminder-time" 
+                      class="form-control" 
+                      [(ngModel)]="profileForm.studyPreferences.reminderTime"
+                      name="reminder-time"
+                      (ngModelChange)="onFieldChange('study')"
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="font-size">Preferred Font Size</label>
+                <select 
+                  id="font-size" 
+                  class="form-control" 
+                  [(ngModel)]="profileForm.studyPreferences.preferredFontSize"
+                  name="font-size"
+                  (ngModelChange)="onFieldChange('study')"
+                >
+                  <option value="small">Small</option>
+                  <option value="medium">Medium</option>
+                  <option value="large">Large</option>
+                  <option value="xlarge">Extra Large</option>
+                </select>
+              </div>
+            </form>
+          </div>
+
+          <!-- Theme & Display Section -->
+          <div class="section" [class.active]="activeSection === 'display'">
+            <h2 class="section-title">Theme & Display</h2>
+            
+            <form class="section-form">
+              <div class="form-group">
+                <label for="theme">Color Theme</label>
+                <select 
+                  id="theme" 
+                  class="form-control" 
+                  [(ngModel)]="profileForm.displaySettings.theme"
+                  name="theme"
+                  (ngModelChange)="onFieldChange('display')"
+                >
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                  <option value="auto">Auto (System)</option>
+                </select>
+              </div>
+
+              <div class="subsection">
+                <h3 class="subsection-title">Accessibility</h3>
+                
+                <div class="preference-card">
+                  <div class="preference-header">
+                    <div class="preference-info">
+                      <h4>Reduce Motion</h4>
+                      <p>Minimize animations and transitions</p>
+                    </div>
+                    <label class="switch">
+                      <input 
+                        type="checkbox" 
+                        [(ngModel)]="profileForm.displaySettings.reduceMotion" 
+                        name="reduce-motion"
+                        (ngModelChange)="onFieldChange('display')"
+                      >
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="preference-card">
+                  <div class="preference-header">
+                    <div class="preference-info">
+                      <h4>High Contrast Mode</h4>
+                      <p>Increase contrast for better visibility</p>
+                    </div>
+                    <label class="switch">
+                      <input 
+                        type="checkbox" 
+                        [(ngModel)]="profileForm.displaySettings.highContrast" 
+                        name="high-contrast"
+                        (ngModelChange)="onFieldChange('display')"
+                      >
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Clear Data Button -->
+              <div class="danger-section">
+                <button type="button" class="btn btn-outline-danger" (click)="openClearDataModal()">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Clear All Data
+                </button>
+                <small class="form-text">Remove all memorization progress and start fresh</small>
+              </div>
+            </form>
+          </div>
+
+          <!-- Action buttons - only show for sections with forms -->
+          <div class="form-actions" *ngIf="shouldShowSaveButtons(activeSection)">
+            <button 
+              type="button" 
+              class="btn btn-primary" 
+              [disabled]="isSaving || !isFormValid || !hasUnsavedChanges()" 
+              (click)="saveProfile()"
+            >
+              <svg *ngIf="!isSaving" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+              <span *ngIf="!isSaving">Save Changes</span>
+              <span *ngIf="isSaving">Saving...</span>
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-secondary" 
+              (click)="cancelChanges()" 
+              [disabled]="!hasUnsavedChanges() || isSaving"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clear Data Modal -->
+  <div class="modal-backdrop" *ngIf="showClearDataModal" (click)="closeClearDataModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="danger-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <div class="alert-text">
-            <strong>Success!</strong> Profile updated successfully.
-            <span *ngIf="profileForm.includeApocrypha"> Apocryphal books are now visible.</span>
-            <span *ngIf="!profileForm.includeApocrypha"> Apocryphal books are now hidden.</span>
-          </div>
-          <button class="alert-close" (click)="dismissSuccess()">×</button>
+        </div>
+        <h2>Clear All Data</h2>
+      </div>
+      
+      <div class="modal-body">
+        <p class="warning-text">
+          This action will permanently delete:
+        </p>
+        <ul class="deletion-list">
+          <li>All memorized verses</li>
+          <li>Progress statistics</li>
+          <li>Study history</li>
+          <li>Achievement records</li>
+        </ul>
+        <p class="info-text">
+          Your account and settings will remain intact.
+        </p>
+        
+        <div class="confirmation-section">
+          <label for="confirm-input">Type <strong>delete all data</strong> to confirm:</label>
+          <input 
+            type="text" 
+            id="confirm-input"
+            class="form-control" 
+            [(ngModel)]="confirmText"
+            placeholder="delete all data"
+            (keyup.enter)="confirmClearData()"
+          >
         </div>
       </div>
-
-      <!-- Settings Card -->
-      <div class="card-header">
-        <h2 class="card-title">
-          ⚙️ Profile Settings
-          <span class="pending-indicator" *ngIf="hasUnsavedChanges()">• Unsaved Changes</span>
-        </h2>
-      </div>
-
-      <div class="card-body">
-        <form (ngSubmit)="saveProfile()" class="settings-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="firstName">First Name <span class="required">*</span></label>
-              <input type="text" id="firstName" class="form-control" [(ngModel)]="profileForm.firstName"
-                name="firstName" required>
-            </div>
-            <div class="form-group">
-              <label for="lastName">Last Name</label>
-              <input type="text" id="lastName" class="form-control" [(ngModel)]="profileForm.lastName" name="lastName">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="denomination">Denomination</label>
-            <select id="denomination" class="form-control" [(ngModel)]="profileForm.denomination" name="denomination">
-              <option *ngFor="let option of denominationOptions" [value]="option.value">{{ option.text }}</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="preferredLanguage">Bible Language <span class="required">*</span></label>
-            <select id="preferredLanguage" class="form-control" [(ngModel)]="profileForm.preferredLanguage"
-              name="preferredLanguage" (change)="onLanguageChange()" [disabled]="loadingBibles" required>
-              <option value="">Select Language</option>
-              <option *ngFor="let lang of languages" [value]="lang.id">
-                {{ lang.name }}<span *ngIf="lang.nameLocal && lang.nameLocal !== lang.name"> ({{ lang.nameLocal
-                  }})</span>
-              </option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="preferredBible">Preferred Bible Translation <span class="required">*</span></label>
-            <select id="preferredBible" class="form-control" [(ngModel)]="profileForm.preferredBible"
-              name="preferredBible" (change)="onBibleChange()"
-              [disabled]="loadingBibles || availableBibles.length === 0" required>
-              <option value="">{{ loadingBibles ? 'Loading...' : availableBibles.length === 0 ? 'No Bibles available'
-                : 'Select Bible Translation (Required)' }}</option>
-              <option *ngFor="let bible of availableBibles" [value]="bible.abbreviation">{{ bible.name }} ({{
-                bible.abbreviation }})</option>
-            </select>
-            <small class="form-text" *ngIf="selectedBibleId && !isEsvSelected">Bible ID: {{ selectedBibleId }}</small>
-          </div>
-
-          <div class="form-group" *ngIf="isEsvSelected">
-            <label for="esvApiToken">ESV API Token <span class="required">*</span></label>
-            <input type="text" id="esvApiToken" class="form-control" [(ngModel)]="profileForm.esvApiToken"
-              name="esvApiToken" placeholder="Enter your ESV API token" required>
-            <small class="form-text">Get your token from <a href="https://api.esv.org/" target="_blank"
-                rel="noopener">api.esv.org</a></small>
-          </div>
-
-          <!-- Include Apocrypha Toggle Card -->
-          <div class="apocrypha-card">
-            <div class="apocrypha-header">
-              <span class="apocrypha-title">Include Apocrypha</span>
-              <label class="switch">
-                <input type="checkbox" [(ngModel)]="profileForm.includeApocrypha" name="includeApocrypha">
-                <span class="slider"></span>
-              </label>
-            </div>
-            <p class="apocrypha-description">
-              Show apocryphal books and chapters in the Bible tracker. This includes books like Tobit, Judith, Wisdom,
-              and others.
-            </p>
-          </div>
-
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary" [disabled]="isSaving || !isFormValid">
-              <span *ngIf="!isSaving">💾 Save Changes</span>
-              <span *ngIf="isSaving">⏳ Saving...</span>
-            </button>
-            <button type="button" class="btn btn-secondary" (click)="cancelChanges()" [disabled]="!hasUnsavedChanges() || isSaving">
-              <span>❌ Cancel</span>
-            </button>
-          </div>
-        </form>
-
-        <!-- Danger Zone -->
-        <div class="danger-zone">
-          <h3>🚨 Danger Zone</h3>
-          <p>Clear your memorization data and start fresh.</p>
-          <button type="button" class="btn btn-danger" (click)="clearAllData()">Clear All Data</button>
-        </div>
+      
+      <div class="modal-footer">
+        <button 
+          class="btn btn-secondary" 
+          (click)="closeClearDataModal()"
+          [disabled]="isClearing"
+        >
+          Cancel
+        </button>
+        <button 
+          class="btn btn-danger" 
+          (click)="confirmClearData()"
+          [disabled]="!isConfirmEnabled || isClearing"
+        >
+          <span *ngIf="!isClearing">Clear All Data</span>
+          <span *ngIf="isClearing">Clearing...</span>
+        </button>
       </div>
     </div>
   </div>
