@@ -62,7 +62,7 @@
           {{ formatDuration(recordingState.duration) }}
         </span>
         <span *ngIf="currentAudio && !isPlaying && playbackDuration > 0">
-          {{ formatDuration(Math.floor(playbackDuration)) }} / {{ formatDuration(recordingState.duration) }}
+          {{ formatPlaybackPosition() }}
         </span>
         <span *ngIf="isPlaying" [class.ending]="playbackRemaining < 3">
           {{ formatRemaining(playbackRemaining) }}

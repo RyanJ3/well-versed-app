@@ -218,6 +218,12 @@ export class NavigationControlsComponent implements OnInit, OnDestroy {
     return this.recordingService.formatDuration(Math.ceil(seconds));
   }
 
+  formatPlaybackPosition(): string {
+    const current = this.recordingService.formatDuration(Math.floor(this.playbackDuration));
+    const total = this.recordingService.formatDuration(this.recordingState.duration);
+    return `${current} / ${total}`;
+  }
+
   getPlayTooltip(): string {
     if (this.recordingState.isRecording) {
       return 'Cannot play while recording';
