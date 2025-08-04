@@ -1,5 +1,5 @@
 // frontend/src/app/features/profile/profile.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
@@ -9,7 +9,7 @@ import { UserService } from '@services/api/user.service';
 import { BibleService } from '@services/api/bible.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 
 interface LanguageOption {
   id: string;
@@ -33,6 +33,12 @@ interface AvailableBiblesResponse {
   cacheExpiry: string;
 }
 
+interface ProfileSection {
+  id: 'personal' | 'bible' | 'study' | 'display';
+  label: string;
+  icon: string;
+}
+
 @Component({
   selector: 'app-profile',
   templateUrl: './profile.component.html',
@@ -45,7 +51,7 @@ interface AvailableBiblesResponse {
   ]
 })
 export class ProfileComponent implements OnInit, OnDestroy {
-
+  // User and loading states
   user: User | null = null;
   isLoading = true;
   showSuccess = false;
@@ -54,7 +60,26 @@ export class ProfileComponent implements OnInit, OnDestroy {
   isInitialLoad = true;
   private userDataLoaded = false;
   private destroy$ = new Subject<void>();
+  private autoSave$ = new Subject<void>();
 
+  // Section management
+  activeSection: ProfileSection['id'] = 'personal';
+  mobileSidebarOpen = false;
+  autoSaveEnabled = false;
+  
+  // Modal states
+  showClearDataModal = false;
+  confirmText = '';
+  isClearing = false;
+  
+  sections: ProfileSection[] = [
+    { id: 'personal', label: 'Personal Info', icon: 'user' },
+    { id: 'bible', label: 'Bible & Reading', icon: 'book' },
+    { id: 'study', label: 'Study Preferences', icon: 'brain' },
+    { id: 'display', label: 'Theme & Display', icon: 'palette' }
+  ];
+
+  // Form data
   profileForm: any = {
     firstName: '',
     lastName: '',
@@ -63,9 +88,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
     preferredLanguage: 'eng',
     includeApocrypha: false,
     useEsvApi: false,
-    esvApiToken: ''
+    esvApiToken: '',
+    studyPreferences: {
+      preferredMemorizationMethod: 'flow',
+      dailyGoal: 1,
+      reminderEnabled: false,
+      reminderTime: '09:00',
+      preferredFontSize: 'medium'
+    },
+    displaySettings: {
+      theme: 'light',
+      reduceMotion: false,
+      highContrast: false
+    }
   };
 
+  // Track changes by section
+  private sectionChanges = new Set<ProfileSection['id']>();
+  
   // Language and Bible data
   languages: LanguageOption[] = [];
   availableBibles: BibleVersion[] = [];
@@ -111,11 +151,41 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadUserProfile();
+    this.loadSavedSection();
+    this.setupAutoSave();
+    
+    // Load auto-save preference
+    const savedAutoSave = localStorage.getItem('profileAutoSave');
+    this.autoSaveEnabled = savedAutoSave === 'true';
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.autoSave$.complete();
+  }
+
+  // Keyboard navigation
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+      const currentIndex = this.sections.findIndex(s => s.id === this.activeSection);
+      let newIndex: number;
+      
+      if (event.key === 'ArrowUp') {
+        newIndex = currentIndex > 0 ? currentIndex - 1 : this.sections.length - 1;
+      } else {
+        newIndex = currentIndex < this.sections.length - 1 ? currentIndex + 1 : 0;
+      }
+      
+      this.setActiveSection(this.sections[newIndex].id);
+      event.preventDefault();
+    }
+    
+    // Close modal on Escape
+    if (event.key === 'Escape' && this.showClearDataModal) {
+      this.closeClearDataModal();
+    }
   }
 
   get isFormValid(): boolean {
@@ -131,6 +201,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   get isEsvSelected(): boolean {
     return this.profileForm.preferredBible === 'ESV';
+  }
+
+  get isConfirmEnabled(): boolean {
+    return this.confirmText.toLowerCase() === 'delete all data';
   }
 
   loadUserProfile(): void {
@@ -181,15 +255,25 @@ export class ProfileComponent implements OnInit, OnDestroy {
       preferredLanguage: user.preferredLanguage || 'eng',
       includeApocrypha: user.includeApocrypha === true,
       useEsvApi: user.useEsvApi === true,
-      esvApiToken: user.esvApiToken || ''
+      esvApiToken: user.esvApiToken || '',
+      studyPreferences: user.studyPreferences || {
+        preferredMemorizationMethod: 'flow',
+        dailyGoal: 1,
+        reminderEnabled: false,
+        reminderTime: '09:00',
+        preferredFontSize: 'medium'
+      },
+      displaySettings: user.displaySettings || {
+        theme: 'light',
+        reduceMotion: false,
+        highContrast: false
+      }
     };
 
     // Store original values for comparison
-    this.originalFormData = { ...this.profileForm };
+    this.originalFormData = JSON.parse(JSON.stringify(this.profileForm));
 
     console.log('Profile form initialized:', this.profileForm);
-    console.log('User preferred Bible:', user.preferredBible);
-    console.log('User uses ESV:', user.useEsvApi);
   }
 
   loadInitialBibleData(): void {
@@ -316,6 +400,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   onLanguageChange(): void {
     console.log('Language changed to:', this.profileForm.preferredLanguage);
+    this.onFieldChange('bible');
 
     if (!this.isInitialLoad && !this.loadingBibles) {
       this.profileForm.preferredBible = '';
@@ -338,8 +423,111 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.profileForm.esvApiToken = '';
       }
     }
+    
+    this.onFieldChange('bible');
   }
 
+  // Section management
+  setActiveSection(sectionId: ProfileSection['id']): void {
+    if (this.activeSection === sectionId) return;
+    this.activeSection = sectionId;
+    this.saveSectionToLocalStorage(sectionId);
+    this.closeMobileSidebar();
+  }
+
+  sectionHasChanges(sectionId: ProfileSection['id']): boolean {
+    return this.sectionChanges.has(sectionId);
+  }
+
+  onFieldChange(section: ProfileSection['id']): void {
+    this.sectionChanges.add(section);
+    
+    if (this.autoSaveEnabled) {
+      this.autoSave$.next();
+    }
+  }
+
+  shouldShowSaveButtons(sectionId: string): boolean {
+    return ['personal', 'bible', 'study'].includes(sectionId);
+  }
+
+  // Auto-save functionality
+  setupAutoSave(): void {
+    this.autoSave$
+      .pipe(
+        debounceTime(2000),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        if (this.hasUnsavedChanges() && this.isFormValid) {
+          this.saveProfile();
+        }
+      });
+  }
+
+  onAutoSaveToggle(): void {
+    localStorage.setItem('profileAutoSave', this.autoSaveEnabled.toString());
+    
+    if (this.autoSaveEnabled && this.hasUnsavedChanges() && this.isFormValid) {
+      this.autoSave$.next();
+    }
+  }
+
+  // Local storage management
+  loadSavedSection(): void {
+    const savedSection = localStorage.getItem('profileActiveSection') as ProfileSection['id'];
+    if (savedSection && this.sections.some(s => s.id === savedSection)) {
+      this.activeSection = savedSection;
+    }
+  }
+
+  saveSectionToLocalStorage(sectionId: ProfileSection['id']): void {
+    localStorage.setItem('profileActiveSection', sectionId);
+  }
+
+  // Mobile sidebar
+  toggleMobileSidebar(): void {
+    this.mobileSidebarOpen = !this.mobileSidebarOpen;
+  }
+
+  closeMobileSidebar(): void {
+    this.mobileSidebarOpen = false;
+  }
+
+  // Clear data modal
+  openClearDataModal(): void {
+    this.showClearDataModal = true;
+    this.confirmText = '';
+  }
+
+  closeClearDataModal(): void {
+    this.showClearDataModal = false;
+    this.confirmText = '';
+  }
+
+  confirmClearData(): void {
+    if (!this.isConfirmEnabled || this.isClearing) return;
+    
+    this.isClearing = true;
+    
+    this.userService.clearMemorizationData().subscribe({
+      next: () => {
+        this.showClearDataModal = false;
+        this.isClearing = false;
+        this.confirmText = '';
+        this.modalService.success('Data Cleared', 'All memorization data has been removed.');
+        this.router.navigate(['/']);
+      },
+      error: (error: any) => {
+        console.error('Error clearing data:', error);
+        this.isClearing = false;
+        this.modalService.alert('Error', 'Failed to clear data. Please try again.', 'danger');
+      }
+    });
+  }
+
+  // Save functionality
   saveProfile(): void {
     if (!this.profileForm || this.isSaving || !this.isFormValid) return;
 
@@ -354,7 +542,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
       preferredLanguage: this.profileForm.preferredLanguage,
       includeApocrypha: this.profileForm.includeApocrypha,
       useEsvApi: this.isEsvSelected,
-      esvApiToken: this.isEsvSelected ? this.profileForm.esvApiToken : null
+      esvApiToken: this.isEsvSelected ? this.profileForm.esvApiToken : null,
+      studyPreferences: this.profileForm.studyPreferences,
+      displaySettings: this.profileForm.displaySettings
     };
 
     console.log('Profile update payload:', profileUpdate);
@@ -367,7 +557,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.user = updatedUser;
 
         // Update original form data
-        this.originalFormData = { ...this.profileForm };
+        this.originalFormData = JSON.parse(JSON.stringify(this.profileForm));
+        
+        // Clear section changes
+        this.sectionChanges.clear();
 
         // Update Bible service preferences
         if (updatedUser && updatedUser.includeApocrypha !== undefined) {
@@ -391,6 +584,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
           }
         }
 
+        // Apply theme changes if any
+        if (this.profileForm.displaySettings) {
+          this.applyThemeSettings(this.profileForm.displaySettings);
+        }
+
         // Show success message
         this.showSuccess = true;
         setTimeout(() => {
@@ -407,29 +605,28 @@ export class ProfileComponent implements OnInit, OnDestroy {
     });
   }
 
-  dismissSuccess(): void {
-    this.showSuccess = false;
+  private applyThemeSettings(settings: any): void {
+    // Apply theme to body
+    document.body.classList.remove('light-theme', 'dark-theme', 'auto-theme');
+    document.body.classList.add(`${settings.theme}-theme`);
+    
+    // Apply reduce motion
+    if (settings.reduceMotion) {
+      document.body.classList.add('reduce-motion');
+    } else {
+      document.body.classList.remove('reduce-motion');
+    }
+    
+    // Apply high contrast
+    if (settings.highContrast) {
+      document.body.classList.add('high-contrast');
+    } else {
+      document.body.classList.remove('high-contrast');
+    }
   }
 
-  async clearAllData(): Promise<void> {
-    const confirmed = await this.modalService.danger(
-      'Clear All Data',
-      'This will remove all of your memorization progress. Your account will remain. This action cannot be undone.',
-      'Clear Data'
-    );
-
-    if (!confirmed) return;
-
-    this.userService.clearMemorizationData().subscribe({
-      next: () => {
-        this.modalService.success('Data Cleared', 'All memorization data has been removed.');
-        this.router.navigate(['/']);
-      },
-      error: (error: any) => {
-        console.error('Error clearing data:', error);
-        this.modalService.alert('Error', 'Failed to clear data. Please try again.', 'danger');
-      }
-    });
+  dismissSuccess(): void {
+    this.showSuccess = false;
   }
 
   hasUnsavedChanges(): boolean {
@@ -440,7 +637,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   cancelChanges(): void {
     if (this.originalFormData) {
-      this.profileForm = { ...this.originalFormData };
+      this.profileForm = JSON.parse(JSON.stringify(this.originalFormData));
+      this.sectionChanges.clear();
 
       // Reload Bible data if language was changed
       if (this.profileForm.preferredLanguage) {
