@@ -7,6 +7,7 @@ import { ProfilePersonalSectionComponent } from './components/personal-section/p
 import { ProfileBibleSectionComponent } from './components/bible-section/bible-section.component';
 import { ProfileStudySectionComponent } from './components/study-section/study-section.component';
 import { ProfileDisplaySectionComponent } from './components/display-section/display-section.component';
+import { ClearDataModalComponent } from './components/clear-data-modal/clear-data-modal.component';
 import { ModalService } from '@services/utils/modal.service';
 import { User } from '@models/user';
 import { UserService } from '@services/api/user.service';
@@ -56,7 +57,8 @@ interface ProfileSection {
     ProfilePersonalSectionComponent,
     ProfileBibleSectionComponent,
     ProfileStudySectionComponent,
-    ProfileDisplaySectionComponent
+    ProfileDisplaySectionComponent,
+    ClearDataModalComponent
   ]
 })
 export class ProfileComponent implements OnInit, OnDestroy {
@@ -78,7 +80,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
   
   // Modal states
   showClearDataModal = false;
-  confirmText = '';
   isClearing = false;
   
   sections: ProfileSection[] = [
@@ -212,9 +213,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     return this.profileForm.preferredBible === 'ESV';
   }
 
-  get isConfirmEnabled(): boolean {
-    return this.confirmText.toLowerCase() === 'delete all data';
-  }
 
   loadUserProfile(): void {
     this.isLoading = true;
@@ -507,24 +505,22 @@ export class ProfileComponent implements OnInit, OnDestroy {
   // Clear data modal
   openClearDataModal(): void {
     this.showClearDataModal = true;
-    this.confirmText = '';
   }
 
   closeClearDataModal(): void {
+    if (this.isClearing) return;
     this.showClearDataModal = false;
-    this.confirmText = '';
   }
 
   confirmClearData(): void {
-    if (!this.isConfirmEnabled || this.isClearing) return;
-    
+    if (this.isClearing) return;
+
     this.isClearing = true;
-    
+
     this.userService.clearMemorizationData().subscribe({
       next: () => {
         this.showClearDataModal = false;
         this.isClearing = false;
-        this.confirmText = '';
         this.modalService.success('Data Cleared', 'All memorization data has been removed.');
         this.router.navigate(['/']);
       },
