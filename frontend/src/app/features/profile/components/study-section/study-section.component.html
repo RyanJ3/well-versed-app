@@ -1,0 +1,80 @@
+<h2 class="section-title">Study Preferences</h2>
+
+<form class="section-form">
+  <div class="form-group">
+    <label for="memorization-method">Default Memorization Method</label>
+    <select
+      id="memorization-method"
+      class="form-control"
+      [(ngModel)]="profileForm.studyPreferences.preferredMemorizationMethod"
+      name="memorization-method"
+      (ngModelChange)="fieldChange.emit()"
+    >
+      <option value="flow">FLOW Method</option>
+      <option value="flashcards">Flashcards</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="daily-goal">Daily Verse Goal</label>
+    <input
+      type="number"
+      id="daily-goal"
+      class="form-control"
+      [(ngModel)]="profileForm.studyPreferences.dailyGoal"
+      name="daily-goal"
+      min="1"
+      max="10"
+      (ngModelChange)="fieldChange.emit()"
+    >
+    <small class="form-text">Number of verses you want to memorize each day</small>
+  </div>
+
+  <div class="preference-card">
+    <div class="preference-header">
+      <div class="preference-info">
+        <h4>Daily Study Reminder</h4>
+        <p>Get reminded to practice your verses</p>
+      </div>
+      <label class="switch">
+        <input
+          type="checkbox"
+          [(ngModel)]="profileForm.studyPreferences.reminderEnabled"
+          name="reminder-enabled"
+          (ngModelChange)="fieldChange.emit()"
+        >
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="preference-details" *ngIf="profileForm.studyPreferences.reminderEnabled">
+      <div class="form-group">
+        <label for="reminder-time">Reminder Time</label>
+        <input
+          type="time"
+          id="reminder-time"
+          class="form-control"
+          [(ngModel)]="profileForm.studyPreferences.reminderTime"
+          name="reminder-time"
+          (ngModelChange)="fieldChange.emit()"
+        >
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="font-size">Preferred Font Size</label>
+    <select
+      id="font-size"
+      class="form-control"
+      [(ngModel)]="profileForm.studyPreferences.preferredFontSize"
+      name="font-size"
+      (ngModelChange)="fieldChange.emit()"
+    >
+      <option value="small">Small</option>
+      <option value="medium">Medium</option>
+      <option value="large">Large</option>
+      <option value="xlarge">Extra Large</option>
+    </select>
+  </div>
+</form>

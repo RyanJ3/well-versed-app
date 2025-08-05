@@ -1,0 +1,109 @@
+<h2 class="section-title">Bible &amp; Reading</h2>
+
+<div class="warning-banner">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+  <p>Changing Bible translation will refresh the page to load the new version.</p>
+</div>
+
+<form class="section-form">
+  <div class="form-group">
+    <label for="preferredLanguage">Bible Language <span class="required">*</span></label>
+    <select
+      id="preferredLanguage"
+      class="form-control"
+      [(ngModel)]="profileForm.preferredLanguage"
+      name="preferredLanguage"
+      (change)="languageChange.emit(); fieldChange.emit()"
+      [disabled]="loadingBibles"
+      required
+    >
+      <option value="">Select Language</option>
+      <option *ngFor="let lang of languages" [value]="lang.id">
+        {{ lang.name }}<span *ngIf="lang.nameLocal && lang.nameLocal !== lang.name"> ({{ lang.nameLocal }})</span>
+      </option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="preferredBible">Preferred Bible Translation <span class="required">*</span></label>
+    <select
+      id="preferredBible"
+      class="form-control"
+      [(ngModel)]="profileForm.preferredBible"
+      name="preferredBible"
+      (change)="bibleChange.emit(); fieldChange.emit()"
+      [disabled]="loadingBibles || availableBibles.length === 0"
+      required
+    >
+      <option value="">
+        {{ loadingBibles ? 'Loading...' : availableBibles.length === 0 ? 'No Bibles available' : 'Select Bible Translation' }}
+      </option>
+      <option *ngFor="let bible of availableBibles" [value]="bible.abbreviation">
+        {{ bible.name }} ({{ bible.abbreviation }})
+      </option>
+    </select>
+    <small class="form-text" *ngIf="selectedBibleId && !isEsvSelected">
+      Bible ID: {{ selectedBibleId }}
+    </small>
+  </div>
+
+  <div class="form-group" *ngIf="isEsvSelected">
+    <label for="esvApiToken">ESV API Token <span class="required">*</span></label>
+    <input
+      type="text"
+      id="esvApiToken"
+      class="form-control monospace"
+      [(ngModel)]="profileForm.esvApiToken"
+      name="esvApiToken"
+      placeholder="Enter your ESV API token"
+      (ngModelChange)="fieldChange.emit()"
+      required
+    >
+    <small class="form-text">
+      Get your token from <a href="https://api.esv.org/" target="_blank" rel="noopener">api.esv.org</a>
+    </small>
+  </div>
+
+  <!-- Additional Texts Section -->
+  <div class="subsection">
+    <h3 class="subsection-title">Additional Texts</h3>
+
+    <div class="preference-card">
+      <div class="preference-header">
+        <div class="preference-info">
+          <h4>Include Apocrypha</h4>
+          <p>Show apocryphal books and chapters in the Bible tracker.</p>
+        </div>
+        <label class="switch">
+          <input
+            type="checkbox"
+            [(ngModel)]="profileForm.includeApocrypha"
+            name="includeApocrypha"
+            (ngModelChange)="fieldChange.emit()"
+          >
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="preference-details" *ngIf="profileForm.includeApocrypha">
+        <p class="apocrypha-note">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Note: Not all Bible translations include the Apocrypha. The selected translation will be used if available.
+        </p>
+        <p>The following books will be included:</p>
+        <ul>
+          <li>Tobit, Judith, Wisdom of Solomon</li>
+          <li>Sirach (Ecclesiasticus), Baruch</li>
+          <li>1 &amp; 2 Maccabees</li>
+          <li>Additions to Esther and Daniel</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</form>

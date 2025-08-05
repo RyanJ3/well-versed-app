@@ -1,8 +1,12 @@
 // frontend/src/app/features/profile/profile.component.ts
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { ProfilePersonalSectionComponent } from './components/personal-section/personal-section.component';
+import { ProfileBibleSectionComponent } from './components/bible-section/bible-section.component';
+import { ProfileStudySectionComponent } from './components/study-section/study-section.component';
+import { ProfileDisplaySectionComponent } from './components/display-section/display-section.component';
 import { ModalService } from '@services/utils/modal.service';
 import { User } from '@models/user';
 import { UserService } from '@services/api/user.service';
@@ -44,10 +48,15 @@ interface ProfileSection {
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss'],
   standalone: true,
+  encapsulation: ViewEncapsulation.None,
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule
+    RouterModule,
+    ProfilePersonalSectionComponent,
+    ProfileBibleSectionComponent,
+    ProfileStudySectionComponent,
+    ProfileDisplaySectionComponent
   ]
 })
 export class ProfileComponent implements OnInit, OnDestroy {
