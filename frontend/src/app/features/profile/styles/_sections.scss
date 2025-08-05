@@ -1,0 +1,56 @@
+// frontend/src/app/features/profile/styles/_sections.scss
+
+// Section Wrapper
+.section-wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+  position: relative;
+  min-height: 500px;
+}
+
+// Section visibility
+.section {
+  display: none;
+  animation: fadeIn 0.3s ease;
+
+  &.active {
+    display: block;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Section typography
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 1.5rem 0;
+}
+
+.subsection {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.subsection-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #4b5563;
+  margin: 0 0 1rem 0;
+}
+

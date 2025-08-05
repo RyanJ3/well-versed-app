@@ -1,0 +1,31 @@
+// frontend/src/app/features/profile/styles/_content.scss
+
+// Content Area
+.profile-content {
+  flex: 1;
+  overflow-y: auto;
+  background: #f9fafb;
+  padding: 1.5rem;
+
+  // Custom scrollbar
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+  }
+}
+

@@ -1,0 +1,87 @@
+// frontend/src/app/features/profile/styles/_responsive.scss
+
+// Mobile Responsive
+@media (max-width: 768px) {
+  .header-content {
+    padding: 0.875rem 1rem;
+  }
+
+  .header-left {
+    gap: 0.75rem;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .user-info {
+    .page-title {
+      font-size: 1.25rem;
+    }
+
+    .page-subtitle {
+      display: none;
+    }
+  }
+
+  .header-right {
+    gap: 0.75rem;
+  }
+
+  .auto-save-toggle {
+    .toggle-text {
+      display: none;
+    }
+  }
+
+  .mobile-menu-toggle {
+    display: flex;
+  }
+
+  .profile-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    transform: translateX(-100%);
+    z-index: 100;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+
+    &.mobile-open {
+      transform: translateX(0);
+
+      & + .profile-content {
+        overflow: hidden;
+      }
+    }
+  }
+
+  .sidebar-backdrop {
+    display: block;
+  }
+
+  .profile-content {
+    padding: 3.5rem 1rem 1rem;
+  }
+
+  .section-wrapper {
+    padding: 1.5rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}
+
