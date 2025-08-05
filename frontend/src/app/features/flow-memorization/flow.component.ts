@@ -1,551 +1,770 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Subject, takeUntil } from 'rxjs';
-import { VerseSelection } from '../../components/bible/verse-range-picker/verse-range-picker.component';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, takeUntil, debounceTime, firstValueFrom, take } from 'rxjs';
+import { Store } from '@ngrx/store';
+import { trigger, transition, style, animate } from '@angular/animations';
+
 import { BibleService } from '@services/api/bible.service';
 import { UserService } from '@services/api/user.service';
+import { NotificationService } from '@services/utils/notification.service';
 import { FlowParsingService } from '@services/utils/flow-parsing.service';
-import { MemorizationModalComponent } from './memorization-modal/memorization-modal.component';
-import { User } from '@models/user';
-import { UserVerseDetail } from '@models/bible';
-
-// New imports
-import { FlowHeaderComponent } from './components/flow-header/flow-header.component';
-import { FlowSidebarComponent } from './components/flow-sidebar/flow-sidebar.component';
-import { FlowGridViewComponent } from './components/flow-grid-view/flow-grid-view.component';
-import { FlowTextViewComponent } from './components/flow-text-view/flow-text-view.component';
 import { FlowStateService } from './services/flow-state.service';
 import { FlowMemorizationService } from './services/flow-memorization.service';
-import { FlowVerse, ModalVerse, FlowViewSettings } from './models/flow.models';
+import { MemorizationModalComponent } from './memorization-modal/memorization-modal.component';
+
+import { BibleBook, BibleChapter, BibleVerse } from '@models/bible';
+import { AppState } from '@state/app.state';
+import { BibleMemorizationActions } from '@state/bible-tracker/actions/bible-memorization.actions';
+import { selectBibleDataWithProgress } from '@state/bible-tracker/selectors/bible-memorization.selectors';
+import { FlowVerse, ModalVerse } from './models/flow.models';
+
+interface VerseSection {
+  name: string;
+  start: number;
+  end: number;
+}
+
+interface ChapterProgress {
+  memorized: number;
+  total: number;
+  lastStudied: string | null;
+}
+
+interface ContextMenuData {
+  visible: boolean;
+  x: number;
+  y: number;
+  verseId: string | null;
+  selectedCount: number;
+}
 
 @Component({
-  selector: 'app-flow',
+  selector: 'app-flow-memorization',
   standalone: true,
-  imports: [
-    CommonModule,
-    MemorizationModalComponent,
-    FlowHeaderComponent,
-    FlowSidebarComponent,
-    FlowGridViewComponent,
-    FlowTextViewComponent
-  ],
+  imports: [CommonModule, MemorizationModalComponent],
   providers: [FlowStateService, FlowMemorizationService],
   templateUrl: './flow.component.html',
   styleUrls: ['./flow.component.scss'],
+  animations: [
+    trigger('fadeInOut', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(-10px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ]),
+      transition(':leave', [
+        animate('300ms ease-in', style({ opacity: 0, transform: 'translateY(-10px)' }))
+      ])
+    ])
+  ]
 })
 export class FlowComponent implements OnInit, OnDestroy {
-  // Data
+  @ViewChild('versesContainer') versesContainer!: ElementRef<HTMLDivElement>;
+
+  // Core data
   verses: FlowVerse[] = [];
-  currentSelection: VerseSelection | null = null;
-  initialSelection: VerseSelection | null = null;
-  selectedBook: any = null;
-  warningMessage: string | null = null;
+  selectedVerses = new Set<string>();
+  hoveredSection = -1;
   
-  // View settings from service
-  viewSettings: FlowViewSettings = {
-    layoutMode: 'grid',
-    isTextMode: false,
-    highlightFifthVerse: true,
-    showVerseNumbers: true,
-    fontSize: 16
-  };
-
-  // Progress tracking
-  memorizedCount = 0;
-
-  // Loading states
+  // Current book/chapter from Bible models
+  currentBook: BibleBook | null = null;
+  currentChapter = 1;
+  currentBibleChapter: BibleChapter | null = null;
+  
+  // UI state
+  showFullText = false;
+  fontSize = 16;
+  layoutMode: 'grid' | 'single' = 'grid';
+  activeFilter: 'all' | 'unmemorized' | 'needsReview' | 'sections' = 'all';
+  showSettings = false;
+  isGearSpinning = false;
+  showEncouragement = '';
   isLoading = false;
-  isSaving = false;
-  showSavedMessage = false;
-
-  // User
-  userId = 1;
-
-  // Memorization modal
-  showMemorization = false;
-  versesForModal: ModalVerse[] = [];
-  modalBookId = 0;
+  
+  // Chapter navigation
+  chapterProgress: Record<number, ChapterProgress> = {};
+  availableChapters: number[] = [];
+  
+  // Selection state
+  lastClickedVerse: number | null = null;
+  isDragging = false;
+  dragStart: number | null = null;
+  dragEnd: number | null = null;
+  
+  // Context menu
+  contextMenu: ContextMenuData = {
+    visible: false,
+    x: 0,
+    y: 0,
+    verseId: null,
+    selectedCount: 0
+  };
+  
+  // Sections
+  verseSections: VerseSection[] = [];
+  
+  // Review data
+  verseReviewData: Record<string, { lastReviewed: number; strength: number }> = {};
+  
+  // Modal
+  showModal = false;
+  modalVerses: ModalVerse[] = [];
   modalChapterName = '';
-
-  // API rate limit handling
-  retryCountdown: number | null = null;
-  private retryTimer: any;
-  private originalShowVerseNumbers = true;
-
-  // Observables
+  
+  // Flashcard decks
+  flashcardDecks = ['Basic Deck', 'Review Deck', 'Difficult Verses'];
+  
+  // Expose Math to template
+  Math = Math;
+  
   private destroy$ = new Subject<void>();
-  private loadVersesCancel$ = new Subject<void>();
-  private requestCounter = 0;
+  private saveQueue$ = new Subject<FlowVerse>();
+  private userId = 1;
+
+  // Computed properties for template
+  get memorizedVersesCount(): number {
+    return this.verses.filter(v => v.isMemorized).length;
+  }
+
+  get unmemorizedVersesCount(): number {
+    return this.verses.filter(v => !v.isMemorized).length;
+  }
+
+  get needsReviewCount(): number {
+    return this.verses.filter(v => this.needsReview(v.verseCode)).length;
+  }
+
+  get progressPercentage(): number {
+    if (this.verses.length === 0) return 0;
+    return Math.round((this.memorizedVersesCount / this.verses.length) * 100);
+  }
+
+  get progressBarWidth(): number {
+    if (this.verses.length === 0) return 0;
+    return (this.memorizedVersesCount / this.verses.length) * 100;
+  }
+
+  get selectedVerseIsMemorized(): boolean {
+    if (!this.contextMenu.verseId) return false;
+    const verse = this.verses.find(v => v.verseCode === this.contextMenu.verseId);
+    return verse?.isMemorized || false;
+  }
+
+  get shouldShowMarkAsMemorized(): boolean {
+    return !this.selectedVerseIsMemorized || this.contextMenu.selectedCount > 0;
+  }
+
+  get shouldShowMarkAsUnmemorized(): boolean {
+    return this.selectedVerseIsMemorized || this.contextMenu.selectedCount > 0;
+  }
 
   constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private store: Store<AppState>,
     private bibleService: BibleService,
     private userService: UserService,
-    private route: ActivatedRoute,
-    private cdr: ChangeDetectorRef,
-    private stateService: FlowStateService,
-    private memorizationService: FlowMemorizationService,
-    private flowParsingService: FlowParsingService
+    private flowStateService: FlowStateService,
+    private flowMemorizationService: FlowMemorizationService,
+    private flowParsingService: FlowParsingService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit() {
-    // Load saved state
-    const savedState = this.stateService.getState();
-    this.viewSettings = this.stateService.getViewSettings();
-    this.originalShowVerseNumbers = this.viewSettings.showVerseNumbers;
-
-    // Subscribe to view settings changes
-    this.stateService.viewSettings$
+    console.log('FlowComponent initializing...');
+    
+    // Get user ID
+    this.userService.currentUser$
       .pipe(takeUntil(this.destroy$))
-      .subscribe(settings => {
-        this.viewSettings = settings;
-        this.cdr.detectChanges();
+      .subscribe(user => {
+        if (user) {
+          this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+          console.log('User ID set:', this.userId);
+        }
       });
 
+    // Load saved state
+    this.loadSavedState();
+    
+    // Setup save queue
+    this.setupSaveQueue();
+    
+    // Initialize sections
+    this.initializeSections();
+    
     // Subscribe to save notifications
-    this.memorizationService.savedNotification$
+    this.flowMemorizationService.savedNotification$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.showSaveNotification();
-        this.updateProgress();
       });
-
-    // Get current user
-    this.userService.currentUser$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((user: User | null) => {
-        if (user) {
-          this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
-        }
-      });
-
-    // Check for query params (deep linking)
+    
+    // Load from route params
     this.route.queryParams
       .pipe(takeUntil(this.destroy$))
-      .subscribe((params) => {
-        const bookId = parseInt(params['bookId']);
-        const chapter = parseInt(params['chapter']);
-
-        if (!isNaN(bookId) && !isNaN(chapter)) {
-          this.loadFromQueryParams(bookId, chapter);
-        } else if (savedState.bookId && savedState.chapter) {
-          this.navigateToChapter(savedState.bookId, savedState.chapter);
+      .subscribe(params => {
+        console.log('Route params:', params);
+        const bookId = params['bookId'] ? parseInt(params['bookId']) : null;
+        const chapter = params['chapter'] ? parseInt(params['chapter']) : null;
+        
+        if (bookId && chapter) {
+          console.log('Loading chapter from params:', bookId, chapter);
+          this.loadChapter(bookId, chapter);
+        } else {
+          // Load default chapter if no params
+          console.log('No params, loading default chapter');
+          this.loadChapter(16, 9); // Nehemiah book ID and chapter 9
         }
-      });
-
-    // Listen for ESV API rate limit events
-    this.bibleService.esvRetry$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((wait) => {
-        this.startRetryTimer(wait);
       });
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    this.loadVersesCancel$.complete();
-    if (this.retryTimer) {
-      clearInterval(this.retryTimer);
+  }
+
+  ngAfterViewInit() {
+    console.log('Component view initialized');
+  }
+
+  @HostListener('document:click')
+  onDocumentClick() {
+    this.contextMenu.visible = false;
+    this.showSettings = false;
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      this.selectedVerses.clear();
+      this.contextMenu.visible = false;
+    } else if (event.key === 'Enter' && this.selectedVerses.size > 0) {
+      this.startStudySession();
+    } else if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
+      event.preventDefault();
+      this.selectAll();
     }
   }
 
-  private loadFromQueryParams(bookId: number, chapter: number) {
-    const book = this.bibleService.getBibleData().getBookById(bookId);
-    if (!book) return;
-
-    const chapterData = book.chapters[chapter - 1];
-    if (!chapterData) return;
-
-    const verseCodes = chapterData.verses.map(
-      (v) => `${book.id}-${chapter}-${v.verseNumber}`,
-    );
-
-    this.initialSelection = {
-      mode: 'chapter',
-      startVerse: {
-        book: book.name,
-        bookId: book.id,
-        chapter,
-        verse: 1,
-      },
-      verseCodes,
-      verseCount: verseCodes.length,
-      reference: `${book.name} ${chapter}`,
-    };
-
-    this.onVerseSelectionChanged(this.initialSelection);
-  }
-
-  onVerseSelectionChanged(selection: VerseSelection) {
-    this.currentSelection = selection;
-    
-    if (selection.startVerse) {
-      this.selectedBook = this.bibleService
-        .getBibleData()
-        .getBookById(selection.startVerse.bookId);
-      
-      this.stateService.updateState({
-        bookId: selection.startVerse.bookId,
-        chapter: selection.startVerse.chapter
-      });
-    }
-
-    // Validation
-    if (selection.mode !== 'chapter' && selection.verseCount < 10) {
-      this.warningMessage = 'Please select at least 10 verses or an entire chapter.';
-      this.verses = [];
-      return;
-    }
-
-    this.warningMessage = null;
-    this.loadVersesCancel$.next();
-    if (this.retryCountdown !== null) return;
-
-    this.loadVerses();
-  }
-
-  async loadVerses() {
-    if (!this.currentSelection || this.retryCountdown !== null) return;
-
-    const cached = this.bibleService.getCachedVerseTexts(this.currentSelection.verseCodes);
-    if (cached) {
-      this.applyVerseTexts(cached);
-      return;
-    }
-
-    this.isLoading = true;
-    this.verses = [];
-    const currentRequestId = ++this.requestCounter;
-
+  private async loadChapter(bookId: number, chapterNum: number) {
     try {
-      const verseTexts = await this.bibleService
-        .getVerseTexts(this.userId, this.currentSelection.verseCodes)
-        .pipe(takeUntil(this.loadVersesCancel$))
-        .toPromise();
-
-      if (currentRequestId !== this.requestCounter) return;
-      this.applyVerseTexts(verseTexts || {});
-    } catch (error: any) {
-      if (error?.name === 'EmptyError') return;
-      console.error('Error loading verses:', error);
-      this.verses = [];
-      alert('Failed to load verses. Please check your connection and try again.');
-    } finally {
-      if (currentRequestId === this.requestCounter) {
+      this.isLoading = true;
+      this.currentChapter = chapterNum;
+      
+      // Get book from Bible data
+      const bibleData = this.bibleService.getBibleData();
+      this.currentBook = bibleData.getBookById(bookId) || null;
+      
+      if (!this.currentBook) {
+        console.error('Book not found:', bookId);
         this.isLoading = false;
+        return;
+      }
+      
+      // Get chapter from book
+      this.currentBibleChapter = this.currentBook.getChapter(chapterNum);
+      this.availableChapters = Array.from({ length: this.currentBook.totalChapters }, (_, i) => i + 1);
+      
+      console.log('Loading chapter:', this.currentBook.name, chapterNum);
+      
+      // Generate verse codes
+      const totalVerses = this.currentBibleChapter.totalVerses;
+      const verseCodes: string[] = Array.from({ length: totalVerses }, (_, i) => 
+        `${bookId}-${chapterNum}-${i + 1}`
+      );
+      
+      // Get verse texts
+      const verseTexts = await firstValueFrom(
+        this.bibleService.getVerseTexts(this.userId, verseCodes)
+      );
+      
+      console.log('Verse texts loaded:', Object.keys(verseTexts).length);
+      
+      // Create verses array
+      this.verses = verseCodes.map((code, index) => {
+        const [, , verseNum] = code.split('-').map(Number);
+        const text = verseTexts[code] || '';
+        
+        // Check if this verse starts a new paragraph
+        const isNewParagraph = verseNum === 1 || [6, 11, 16, 21, 26, 31, 36].includes(verseNum);
+        const displayText = isNewParagraph && text ? `¶ ${text}` : text;
+        
+        // Get memorization status from Bible model
+        const bibleVerse = this.currentBibleChapter?.verses[verseNum - 1];
+        const isMemorized = bibleVerse?.memorized || false;
+        
+        return {
+          verseCode: code,
+          reference: this.currentBook!.chapters.length === 1 ? `v${verseNum}` : `${chapterNum}:${verseNum}`,
+          text: displayText,
+          firstLetters: this.flowParsingService.extractFirstLetters(displayText),
+          isMemorized: isMemorized,
+          isFifth: (index + 1) % 5 === 0,
+          bookName: this.currentBook!.name,
+          chapter: chapterNum,
+          verse: verseNum,
+          isSaving: false
+        } as FlowVerse;
+      });
+      
+      // Load memorization progress for all chapters
+      await this.loadAllChapterProgress();
+      
+      // Initialize review data for memorized verses
+      this.verses.forEach(verse => {
+        if (verse.isMemorized) {
+          const daysSinceMemorized = Math.floor(Math.random() * 10) + 1;
+          this.verseReviewData[verse.verseCode] = {
+            lastReviewed: Date.now() - (daysSinceMemorized * 24 * 60 * 60 * 1000),
+            strength: Math.max(50, 100 - (daysSinceMemorized * 5))
+          };
+        }
+      });
+      
+      this.isLoading = false;
+      console.log('Verses loaded with memorization data:', this.verses.length);
+      
+    } catch (error) {
+      console.error('Error loading chapter:', error);
+      this.isLoading = false;
+      this.notificationService.error('Failed to load chapter data');
+    }
+  }
+
+  private async loadAllChapterProgress() {
+    if (!this.currentBook) return;
+    
+    // Load progress for all chapters in the book
+    this.availableChapters.forEach(chapterNum => {
+      const chapter = this.currentBook!.getChapter(chapterNum);
+      if (chapter) {
+        const memorized = chapter.memorizedVerses;
+        const total = chapter.totalVerses;
+        
+        this.chapterProgress[chapterNum] = {
+          memorized,
+          total,
+          lastStudied: memorized > 0 ? this.getLastStudiedText(chapterNum) : null
+        };
+      }
+    });
+  }
+
+  private getLastStudiedText(chapterNum: number): string {
+    // In a real app, this would come from actual study session data
+    if (chapterNum === this.currentChapter) return 'Today';
+    if (chapterNum === this.currentChapter - 1) return 'Yesterday';
+    return `${Math.floor(Math.random() * 7) + 2} days ago`;
+  }
+
+  private loadSavedState() {
+    const savedState = this.flowStateService.getState();
+    this.fontSize = savedState.fontSize || 16;
+    this.layoutMode = savedState.layoutMode || 'grid';
+    this.showFullText = savedState.isTextMode || false;
+  }
+
+  private saveState() {
+    this.flowStateService.updateState({
+      fontSize: this.fontSize,
+      layoutMode: this.layoutMode,
+      isTextMode: this.showFullText
+    });
+  }
+
+  private setupSaveQueue() {
+    this.saveQueue$
+      .pipe(
+        debounceTime(300),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(verse => {
+        this.flowMemorizationService.queueVerseSave(verse, this.userId);
+      });
+  }
+
+  private initializeSections() {
+    // These sections are specific to Nehemiah 9 - in a real app, 
+    // sections would be loaded from backend based on the chapter
+    this.verseSections = [
+      { start: 0, end: 4, name: "Israel's Confession" },
+      { start: 5, end: 9, name: "God's Faithfulness" },
+      { start: 10, end: 14, name: "The Covenant" },
+      { start: 15, end: 19, name: "Desert Wanderings" },
+      { start: 20, end: 24, name: "Promised Land" },
+      { start: 25, end: 29, name: "Rebellion & Mercy" },
+      { start: 30, end: 34, name: "Current Distress" },
+      { start: 35, end: 37, name: "Commitment" }
+    ];
+  }
+
+  // Verse click handling
+  handleVerseClick(index: number, event: MouseEvent) {
+    event.preventDefault();
+    const actualIndex = this.getActualIndex(index);
+    const verse = this.verses[actualIndex];
+    
+    if (event.shiftKey && this.lastClickedVerse !== null) {
+      // Range selection
+      const start = Math.min(this.lastClickedVerse, actualIndex);
+      const end = Math.max(this.lastClickedVerse, actualIndex);
+      
+      for (let i = start; i <= end; i++) {
+        this.selectedVerses.add(this.verses[i].verseCode);
+      }
+    } else if (event.ctrlKey || event.metaKey) {
+      // Toggle selection
+      if (this.selectedVerses.has(verse.verseCode)) {
+        this.selectedVerses.delete(verse.verseCode);
+      } else {
+        this.selectedVerses.add(verse.verseCode);
+      }
+    } else {
+      // Single selection
+      this.selectedVerses.clear();
+      this.selectedVerses.add(verse.verseCode);
+    }
+    
+    this.lastClickedVerse = actualIndex;
+  }
+
+  handleVerseDoubleClick(verse: FlowVerse) {
+    this.toggleMemorized(verse);
+  }
+
+  handleContextMenu(event: MouseEvent, verse: FlowVerse) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    this.contextMenu = {
+      visible: true,
+      x: event.clientX,
+      y: event.clientY,
+      verseId: verse.verseCode,
+      selectedCount: this.selectedVerses.size
+    };
+  }
+
+  // Drag selection
+  handleMouseDown(index: number) {
+    const actualIndex = this.getActualIndex(index);
+    this.isDragging = true;
+    this.dragStart = actualIndex;
+    this.dragEnd = actualIndex;
+  }
+
+  handleMouseEnter(index: number) {
+    const actualIndex = this.getActualIndex(index);
+    if (this.isDragging && this.dragStart !== null) {
+      this.dragEnd = actualIndex;
+      const start = Math.min(this.dragStart, actualIndex);
+      const end = Math.max(this.dragStart, actualIndex);
+      
+      this.selectedVerses.clear();
+      for (let i = start; i <= end; i++) {
+        this.selectedVerses.add(this.verses[i].verseCode);
       }
     }
   }
 
-  private applyVerseTexts(verseTexts: Record<string, string>) {
-    const hasContent = verseTexts && Object.values(verseTexts).some((t) => t.trim() !== '');
-    
-    if (!hasContent) {
-      this.stateService.updateViewSettings({ showVerseNumbers: false });
-    } else if (this.viewSettings.showVerseNumbers !== this.originalShowVerseNumbers) {
-      this.stateService.updateViewSettings({ showVerseNumbers: this.originalShowVerseNumbers });
+  handleMouseUp() {
+    this.isDragging = false;
+  }
+
+  private getActualIndex(filteredIndex: number): number {
+    // Convert filtered index to actual verse index
+    const filteredVerses = this.getFilteredVerses();
+    if (filteredIndex >= 0 && filteredIndex < filteredVerses.length) {
+      const verse = filteredVerses[filteredIndex];
+      return this.verses.findIndex(v => v.verseCode === verse.verseCode);
     }
-
-    this.verses = this.currentSelection!.verseCodes.map((verseCode, index) => {
-      const [bookId, chapter, verse] = verseCode.split('-').map(Number);
-      const verseText = verseTexts?.[verseCode] || '';
-
-      return {
-        verseCode,
-        reference: this.formatVerseReference(bookId, chapter, verse),
-        text: verseText,
-        firstLetters: this.flowParsingService.extractFirstLetters(verseText),
-        isMemorized: false,
-        isFifth: (index + 1) % 5 === 0,
-        bookName: this.getBookName(bookId),
-        chapter,
-        verse,
-        isSaving: false,
-      } as FlowVerse;
-    });
-
-    this.updateMemorizationStatus();
-    this.updateProgress();
+    return filteredIndex;
   }
 
-  private updateMemorizationStatus() {
-    this.bibleService
-      .getUserVerses(this.userId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((userVerses: UserVerseDetail[]) => {
-        const memorizedSet = new Set(
-          userVerses.map(
-            (v) => `${v.verse.book_id}-${v.verse.chapter_number}-${v.verse.verse_number}`,
-          ),
-        );
-
-        this.verses.forEach((verse) => {
-          verse.isMemorized = memorizedSet.has(verse.verseCode);
-        });
-
-        this.updateProgress();
-      });
-  }
-
-  private updateProgress() {
-    this.memorizedCount = this.verses.filter((v) => v.isMemorized).length;
-  }
-
-  onViewSettingsChanged(settings: Partial<FlowViewSettings>) {
-    this.stateService.updateViewSettings(settings);
-  }
-
-  onToggleVerse(verse: FlowVerse) {
-    if (verse.isSaving) return;
-
+  // Actions
+  toggleMemorized(verse: FlowVerse) {
+    const wasMemorized = verse.isMemorized;
     verse.isMemorized = !verse.isMemorized;
     verse.isSaving = true;
-
-    const verseElement = document.querySelector(`[data-verse="${verse.verseCode}"]`);
-    if (verseElement) {
-      verseElement.classList.add('fade-in');
-      setTimeout(() => verseElement.classList.remove('fade-in'), 300);
+    
+    this.saveQueue$.next(verse);
+    
+    // Update store
+    const [bookId, chapter, verseNum] = verse.verseCode.split('-').map(Number);
+    this.store.dispatch(BibleMemorizationActions.toggleVerseMemorization({
+      userId: this.userId,
+      bookId,
+      chapterNumber: chapter,
+      verseNumber: verseNum
+    }));
+    
+    // Update Bible model
+    if (this.currentBibleChapter) {
+      this.currentBibleChapter.toggleVerse(verseNum);
     }
-
-    this.updateProgress();
-    this.memorizationService.queueVerseSave(verse, this.userId);
-    this.cdr.detectChanges();
+    
+    // Update chapter progress
+    this.loadAllChapterProgress();
+    
+    // Show appropriate message
+    if (!wasMemorized && verse.isMemorized) {
+      // Marking as memorized
+      const memorizedCount = this.verses.filter(v => v.isMemorized).length;
+      if (memorizedCount > 0 && memorizedCount % 5 === 0) {
+        this.showEncouragement = `Great job! ${memorizedCount} verses memorized! 🎉`;
+        setTimeout(() => this.showEncouragement = '', 3000);
+      }
+    } else if (wasMemorized && !verse.isMemorized) {
+      // Unmarking as memorized
+      this.notificationService.info('Verse unmarked as memorized');
+    }
   }
 
-  private showSaveNotification() {
-    this.showSavedMessage = true;
-    setTimeout(() => {
-      this.showSavedMessage = false;
-      this.cdr.detectChanges();
-    }, 2000);
+  markSelectedAsMemorized() {
+    let changedCount = 0;
+    this.selectedVerses.forEach(verseCode => {
+      const verse = this.verses.find(v => v.verseCode === verseCode);
+      if (verse && !verse.isMemorized) {
+        this.toggleMemorized(verse);
+        changedCount++;
+      }
+    });
+    
+    if (changedCount > 0) {
+      this.showEncouragement = `${changedCount} verse${changedCount > 1 ? 's' : ''} marked as memorized!`;
+      setTimeout(() => this.showEncouragement = '', 3000);
+    }
+    
+    this.contextMenu.visible = false;
   }
 
-  getPassageTitle(): string {
-    if (!this.currentSelection || !this.selectedBook) {
-      return this.currentSelection?.reference || '';
+  markSelectedAsUnmemorized() {
+    let changedCount = 0;
+    this.selectedVerses.forEach(verseCode => {
+      const verse = this.verses.find(v => v.verseCode === verseCode);
+      if (verse && verse.isMemorized) {
+        this.toggleMemorized(verse);
+        changedCount++;
+      }
+    });
+    
+    if (changedCount > 0) {
+      this.notificationService.info(`${changedCount} verse${changedCount > 1 ? 's' : ''} unmarked as memorized`);
     }
-
-    if (this.selectedBook.chapters.length === 1) {
-      return this.selectedBook.name;
-    }
-
-    return this.currentSelection.reference;
+    
+    this.contextMenu.visible = false;
   }
 
-  hasPreviousChapter(): boolean {
-    if (!this.selectedBook || !this.currentSelection) return false;
-    const currentChapter = this.currentSelection.startVerse?.chapter || 1;
-    return currentChapter > 1 || this.selectedBook.id > 1;
+  selectAll() {
+    this.verses.forEach(v => this.selectedVerses.add(v.verseCode));
+  }
+
+  selectSection(section: VerseSection) {
+    for (let i = section.start; i <= section.end && i < this.verses.length; i++) {
+      this.selectedVerses.add(this.verses[i].verseCode);
+    }
+  }
+
+  // Navigation
+  changeChapter(chapter: number) {
+    if (chapter !== this.currentChapter && this.currentBook) {
+      this.router.navigate([], {
+        queryParams: { bookId: this.currentBook.id, chapter },
+        queryParamsHandling: 'merge'
+      });
+    }
+  }
+
+  goToPreviousChapter() {
+    if (this.currentChapter > 1) {
+      this.changeChapter(this.currentChapter - 1);
+    }
+  }
+
+  goToNextChapter() {
+    if (this.currentBook && this.currentChapter < this.currentBook.totalChapters) {
+      this.changeChapter(this.currentChapter + 1);
+    }
   }
 
   hasNextChapter(): boolean {
-    if (!this.selectedBook || !this.currentSelection) return false;
-    const currentChapter = this.currentSelection.startVerse?.chapter || 1;
-    return currentChapter < this.selectedBook.chapters.length || this.selectedBook.id < 66;
+    if (!this.currentBook) return false;
+    return this.currentChapter < this.currentBook.totalChapters;
   }
 
-  getPreviousChapterLabel(): string {
-    if (!this.selectedBook || !this.currentSelection) return '';
+  getVisibleChapters(): number[] {
+    // Show 5 chapters centered around current chapter
+    const start = Math.max(1, this.currentChapter - 2);
+    const end = Math.min(this.availableChapters.length, this.currentChapter + 2);
+    return this.availableChapters.slice(start - 1, end);
+  }
 
-    const currentChapter = this.currentSelection.startVerse?.chapter || 1;
+  // Settings
+  toggleSettings(event: MouseEvent) {
+    event.stopPropagation();
+    this.showSettings = !this.showSettings;
+    this.isGearSpinning = true;
+    setTimeout(() => this.isGearSpinning = false, 600);
+  }
 
-    if (currentChapter > 1) {
-      return `${this.selectedBook.name} ${currentChapter - 1}`;
-    } else {
-      const prevBookId = this.selectedBook.id - 1;
-      if (prevBookId >= 1) {
-        const prevBook = this.bibleService.getBibleData().getBookById(prevBookId);
-        if (prevBook) {
-          const lastChapter = prevBook.chapters.length;
-          return lastChapter === 1 ? prevBook.name : `${prevBook.name} ${lastChapter}`;
-        }
-      }
+  increaseFontSize() {
+    if (this.fontSize < 24) {
+      this.fontSize += 2;
+      this.saveState();
     }
-    return '';
   }
 
-  getNextChapterLabel(): string {
-    if (!this.selectedBook || !this.currentSelection) return '';
-
-    const currentChapter = this.currentSelection.startVerse?.chapter || 1;
-
-    if (currentChapter < this.selectedBook.chapters.length) {
-      return `${this.selectedBook.name} ${currentChapter + 1}`;
-    } else {
-      const nextBookId = this.selectedBook.id + 1;
-      if (nextBookId <= 66) {
-        const nextBook = this.bibleService.getBibleData().getBookById(nextBookId);
-        if (nextBook) {
-          return nextBook.chapters.length === 1 ? nextBook.name : `${nextBook.name} 1`;
-        }
-      }
+  decreaseFontSize() {
+    if (this.fontSize > 12) {
+      this.fontSize -= 2;
+      this.saveState();
     }
-    return '';
   }
 
-  navigateToPreviousChapter() {
-    if (!this.selectedBook || !this.currentSelection) return;
+  setLayoutMode(mode: 'grid' | 'single') {
+    this.layoutMode = mode;
+    this.saveState();
+  }
 
-    const currentChapter = this.currentSelection.startVerse?.chapter || 1;
-    let targetBookId = this.selectedBook.id;
-    let targetChapter = currentChapter - 1;
+  toggleTextMode() {
+    this.showFullText = !this.showFullText;
+    this.saveState();
+  }
 
-    if (targetChapter < 1) {
-      targetBookId--;
-      if (targetBookId >= 1) {
-        const prevBook = this.bibleService.getBibleData().getBookById(targetBookId);
-        if (prevBook) {
-          targetChapter = prevBook.chapters.length;
-        }
-      }
+  // Filtering
+  getFilteredVerses(): FlowVerse[] {
+    if (!this.verses || this.verses.length === 0) {
+      return [];
     }
-
-    this.navigateToChapter(targetBookId, targetChapter);
-  }
-
-  navigateToNextChapter() {
-    if (!this.selectedBook || !this.currentSelection) return;
-
-    const currentChapter = this.currentSelection.startVerse?.chapter || 1;
-    let targetBookId = this.selectedBook.id;
-    let targetChapter = currentChapter + 1;
-
-    if (targetChapter > this.selectedBook.chapters.length) {
-      targetBookId++;
-      targetChapter = 1;
+    
+    switch (this.activeFilter) {
+      case 'unmemorized':
+        return this.verses.filter(v => !v.isMemorized);
+      case 'needsReview':
+        return this.verses.filter(v => this.needsReview(v.verseCode));
+      default:
+        return this.verses;
     }
-
-    this.navigateToChapter(targetBookId, targetChapter);
   }
 
-  private navigateToChapter(bookId: number, chapter: number) {
-    const book = this.bibleService.getBibleData().getBookById(bookId);
-    if (!book) return;
+  needsReview(verseCode: string): boolean {
+    const reviewData = this.verseReviewData[verseCode];
+    if (!reviewData) return false;
+    
+    // Needs review if strength is below 80% or last reviewed more than 3 days ago
+    const daysSinceReview = (Date.now() - reviewData.lastReviewed) / (1000 * 60 * 60 * 24);
+    return reviewData.strength < 80 || daysSinceReview > 3;
+  }
 
-    const chapterData = book.chapters[chapter - 1];
-    if (!chapterData) return;
+  getVerseDisplay(verse: FlowVerse): string {
+    if (!verse) {
+      return '';
+    }
+    return this.showFullText ? verse.text : verse.firstLetters;
+  }
 
-    const verseCodes = chapterData.verses.map(
-      (v) => `${book.id}-${chapter}-${v.verseNumber}`,
+  // Study session
+  startStudySession() {
+    const selectedVerseObjects = this.verses.filter(v => 
+      this.selectedVerses.has(v.verseCode)
     );
-
-    const selection: VerseSelection = {
-      mode: 'chapter',
-      startVerse: {
-        book: book.name,
-        bookId: book.id,
-        chapter,
-        verse: 1,
-      },
-      verseCodes,
-      verseCount: verseCodes.length,
-      reference: `${book.name} ${chapter}`,
-    };
-
-    this.initialSelection = selection;
-    this.onVerseSelectionChanged(selection);
+    
+    this.modalVerses = selectedVerseObjects.map(v => ({
+      code: v.verseCode,
+      text: v.text.replace(/¶\s*/g, ''), // Remove paragraph markers
+      reference: v.reference,
+      bookId: this.currentBook?.id || 0,
+      chapter: v.chapter,
+      verse: v.verse
+    }));
+    
+    this.modalChapterName = `${this.currentBook?.name} ${this.currentChapter}`;
+    this.showModal = true;
   }
 
-  startMemorization() {
-    if (!this.verses.length || !this.selectedBook) return;
-
-    this.versesForModal = this.verses.map((v) => {
-      const [bookId, chapter, verse] = v.verseCode.split('-').map(Number);
-      return {
-        code: v.verseCode,
-        text: v.text,
-        reference: v.reference,
-        bookId,
-        chapter,
-        verse,
-      };
-    });
-
-    this.modalBookId = this.selectedBook.id;
-    this.modalChapterName = this.getPassageTitle();
-    this.showMemorization = true;
+  startFullChapter() {
+    this.modalVerses = this.verses.map(v => ({
+      code: v.verseCode,
+      text: v.text.replace(/¶\s*/g, ''), // Remove paragraph markers
+      reference: v.reference,
+      bookId: this.currentBook?.id || 0,
+      chapter: v.chapter,
+      verse: v.verse
+    }));
+    
+    this.modalChapterName = `${this.currentBook?.name} ${this.currentChapter}`;
+    this.showModal = true;
   }
 
-  onMemorizationCompleted(result: { memorized: boolean }) {
-    this.showMemorization = false;
-    if (result.memorized) {
-      this.updateMemorizationStatus();
+  onModalCompleted(event: { memorized: boolean }) {
+    this.showModal = false;
+    if (event.memorized && this.currentBook) {
+      // Reload verse data to reflect memorization
+      this.loadChapter(this.currentBook.id, this.currentChapter);
     }
   }
 
-  async markAllMemorized() {
-    if (!this.verses.length || !this.selectedBook) return;
-    this.isSaving = true;
-
-    try {
-      await this.memorizationService.markAllMemorized(
-        this.verses, 
-        this.selectedBook.id, 
-        this.userId
-      );
-      this.updateProgress();
-    } catch (error) {
-      console.error('Error marking all as memorized:', error);
-      alert('Failed to mark all verses as memorized');
-    } finally {
-      this.isSaving = false;
-    }
+  // Flashcard operations
+  addToFlashcardDeck(deck: string) {
+    const versesToAdd = this.contextMenu.selectedCount > 0 
+      ? Array.from(this.selectedVerses) 
+      : [this.contextMenu.verseId!];
+    
+    console.log(`Adding ${versesToAdd.length} verses to ${deck}`);
+    this.showEncouragement = `Added ${versesToAdd.length} verse(s) to ${deck}!`;
+    this.contextMenu.visible = false;
+    
+    setTimeout(() => this.showEncouragement = '', 3000);
   }
 
-  async deselectAllVerses() {
-    if (!this.verses.length || !this.selectedBook) return;
-    this.isSaving = true;
-
-    try {
-      await this.memorizationService.deselectAllVerses(
-        this.verses, 
-        this.selectedBook.id, 
-        this.userId
-      );
-      this.updateProgress();
-    } catch (error) {
-      console.error('Error deselecting verses:', error);
-      alert('Failed to deselect all verses');
-    } finally {
-      this.isSaving = false;
-    }
+  // Utility methods
+  getChapterProgress(chapter: number): number {
+    const progress = this.chapterProgress[chapter];
+    return progress && progress.total > 0 
+      ? Math.round((progress.memorized / progress.total) * 100) 
+      : 0;
   }
 
-  private formatVerseReference(bookId: number, chapter: number, verse: number): string {
-    const book = this.bibleService.getBibleData().getBookById(bookId);
-    const bookName = book ? book.name : `Book ${bookId}`;
-    if (book && book.chapters.length === 1) {
-      return `${bookName} ${verse}`;
-    }
-    return `${bookName} ${chapter}:${verse}`;
+  getVerseSection(index: number): VerseSection | undefined {
+    return this.verseSections.find(s => index >= s.start && index <= s.end);
   }
 
-  private getBookName(bookId: number): string {
-    const book = this.bibleService.getBibleData().getBookById(bookId);
-    return book ? book.name : `Book ${bookId}`;
+  isVerseSelected(verse: FlowVerse): boolean {
+    return this.selectedVerses.has(verse.verseCode);
   }
 
-  private startRetryTimer(wait: number) {
-    this.retryCountdown = wait;
-    this.originalShowVerseNumbers = this.viewSettings.showVerseNumbers;
-    this.stateService.updateViewSettings({ showVerseNumbers: false });
-    this.cdr.detectChanges();
+  isNewParagraph(verse: FlowVerse): boolean {
+    return verse.text.startsWith('¶');
+  }
 
-    if (this.retryTimer) {
-      clearInterval(this.retryTimer);
+  getVerseState(verse: FlowVerse, index: number): string {
+    const classes = ['verse-block'];
+    
+    if (this.isNewParagraph(verse)) {
+      classes.push('new-paragraph');
     }
-
-    this.retryTimer = setInterval(() => {
-      if (this.retryCountdown !== null) {
-        this.retryCountdown--;
-        if (this.retryCountdown <= 0) {
-          clearInterval(this.retryTimer);
-          this.retryCountdown = null;
-          this.loadVerses();
-        }
-        this.cdr.detectChanges();
+    
+    if (verse.isMemorized) {
+      if (this.needsReview(verse.verseCode)) {
+        classes.push('memorized-needs-review');
+      } else {
+        classes.push('memorized');
       }
-    }, 1000);
+    } else if (this.isVerseSelected(verse)) {
+      classes.push('selected');
+    } else if (verse.isFifth) {
+      classes.push('fifth-verse');
+    }
+    
+    return classes.join(' ');
+  }
+
+  isMilestoneAchieved(milestone: number): boolean {
+    return this.progressPercentage >= milestone;
+  }
+
+  private showSaveNotification() {
+    this.showEncouragement = 'Progress saved!';
+    setTimeout(() => this.showEncouragement = '', 2000);
   }
 }

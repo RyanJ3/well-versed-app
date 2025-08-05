@@ -1,132 +1,391 @@
-<div class="flow-container">
-  <app-flow-header></app-flow-header>
-
-  <div class="main-layout">
-    <app-flow-sidebar
-      [verses]="verses"
-      [initialSelection]="initialSelection"
-      [warningMessage]="warningMessage"
-      [retryCountdown]="retryCountdown"
-      [isLoading]="isLoading"
-      [isSaving]="isSaving"
-      [viewSettings]="viewSettings"
-      [memorizedCount]="memorizedCount"
-      (selectionApplied)="onVerseSelectionChanged($event)"
-      (startMemorization)="startMemorization()"
-      (viewSettingsChanged)="onViewSettingsChanged($event)"
-      (toggleVerse)="onToggleVerse($event)"
-      (markAllMemorized)="markAllMemorized()"
-      (deselectAllVerses)="deselectAllVerses()"
-    ></app-flow-sidebar>
-
-    <div class="content-wrapper">
-      <div
-        class="passage-header"
-        *ngIf="!isLoading && (verses.length > 0 || retryCountdown !== null)"
+<div class="flow-memorization-container" (mouseup)="handleMouseUp()">
+  <!-- Fixed Header -->
+  <div class="flow-header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1>FLOW Memorization</h1>
+        <p class="subtitle">First Letter Of Word technique</p>
+      </div>
+      <div class="header-right">
+        <button class="toggle-text-btn" (click)="toggleTextMode()">
+          <svg *ngIf="!showFullText" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <svg *ngIf="showFullText" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+          </svg>
+          {{ showFullText ? 'Show FLOW' : 'Show Full Text' }}
+        </button>
+        <button *ngIf="selectedVerses.size > 0" class="study-btn animate-pulse" (click)="startStudySession()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+          </svg>
+          Study {{ selectedVerses.size }} Selected Verses
+        </button>
+        <button *ngIf="selectedVerses.size === 0" class="start-btn" (click)="startFullChapter()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          Start Full Chapter
+        </button>
+      </div>
+    </div>
+    
+    <div class="progress-info">
+      <div class="progress-stats">
+        <div class="stat-item" *ngIf="selectedVerses.size > 0">
+          <p class="stat-label">Selected</p>
+          <p class="stat-value">{{ selectedVerses.size }} verses selected</p>
+        </div>
+        <div class="stat-item" *ngIf="selectedVerses.size === 0">
+          <p class="stat-label">Current Chapter</p>
+          <p class="stat-value">{{ currentBook?.name }} {{ currentChapter }}</p>
+        </div>
+        <div class="stat-item">
+          <p class="stat-label">Progress</p>
+          <p class="stat-value">
+            {{ memorizedVersesCount }}/{{ verses.length }} verses 
+            ({{ progressPercentage }}%)
+          </p>
+        </div>
+      </div>
+      
+      <div class="font-controls">
+        <button (click)="decreaseFontSize()" class="font-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+        <span class="font-value">{{ fontSize }}</span>
+        <button (click)="increaseFontSize()" class="font-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+      <div 
+        class="progress-fill"
+        [style.width.%]="progressBarWidth"
       >
-        <button
-          class="nav-btn"
-          (click)="navigateToPreviousChapter()"
-          [disabled]="!hasPreviousChapter()"
-          [title]="getPreviousChapterLabel()"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <polyline points="15 18 9 12 15 6"></polyline>
-          </svg>
-          <span class="nav-label">{{ getPreviousChapterLabel() }}</span>
-        </button>
-        <h2 class="passage-title">{{ getPassageTitle() }}</h2>
-        <button
-          class="nav-btn"
-          (click)="navigateToNextChapter()"
-          [disabled]="!hasNextChapter()"
-          [title]="getNextChapterLabel()"
-        >
-          <span class="nav-label">{{ getNextChapterLabel() }}</span>
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
+        <div class="progress-shimmer"></div>
       </div>
-
-      <main class="content-area">
-        <!-- Loading State -->
-        <div *ngIf="isLoading" class="loading-state">
-          <div class="spinner"></div>
-          <p>Loading verses...</p>
-        </div>
-
-      <!-- Empty State -->
-      <div *ngIf="!isLoading && verses.length === 0" class="empty-state">
-        <div class="empty-icon">📖</div>
-        <p>
-          Select verses and click <strong>Apply Selection</strong> to begin.
-        </p>
-      </div>
-
-      <div *ngIf="retryCountdown !== null" class="countdown-overlay">
-        <div class="countdown-timer">
-          ESV API limit reached. Retrying in {{ retryCountdown }}s...
+      <!-- Milestone markers -->
+      <div class="progress-milestones">
+        <div *ngFor="let milestone of [25, 50, 75, 100]" 
+             class="milestone"
+             [style.left.%]="milestone"
+             [class.achieved]="isMilestoneAchieved(milestone)">
+          <div class="milestone-marker">
+            <span *ngIf="milestone < 100">{{ milestone }}</span>
+            <span *ngIf="milestone === 100">🏆</span>
+          </div>
         </div>
       </div>
-
-      <!-- Content Views -->
-      <app-flow-grid-view
-        *ngIf="!isLoading && verses.length > 0 && !viewSettings.isTextMode"
-        [verses]="verses"
-        [layoutMode]="viewSettings.layoutMode"
-        [showVerseNumbers]="viewSettings.showVerseNumbers"
-        [highlightFifthVerse]="viewSettings.highlightFifthVerse"
-        [fontSize]="viewSettings.fontSize"
-        (toggleVerse)="onToggleVerse($event)"
-      ></app-flow-grid-view>
-
-      <app-flow-text-view
-        *ngIf="!isLoading && verses.length > 0 && viewSettings.isTextMode"
-        [verses]="verses"
-        [showVerseNumbers]="viewSettings.showVerseNumbers"
-        [fontSize]="viewSettings.fontSize"
-      ></app-flow-text-view>
-      </main>
     </div>
-    </div>
-
-  <!-- Success Notification -->
-  <div class="notification" [class.show]="showSavedMessage">
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-    >
-      <polyline points="20 6 9 17 4 12"></polyline>
-    </svg>
-    <span>Progress saved successfully!</span>
   </div>
-</div>
 
-<!-- Memorization Modal -->
-<app-memorization-modal
-  *ngIf="showMemorization"
-  [verses]="versesForModal"
-  [chapterId]="modalBookId"
-  [chapterName]="modalChapterName"
-  [verseCount]="verses.length"
-  (completed)="onMemorizationCompleted($event)"
-></app-memorization-modal>
+  <!-- Encouragement Message -->
+  <div class="encouragement-message" *ngIf="showEncouragement" [@fadeInOut]>
+    {{ showEncouragement }}
+  </div>
+
+  <!-- Chapter Navigation -->
+  <div class="chapter-navigation">
+    <button 
+      (click)="goToPreviousChapter()"
+      class="nav-btn"
+      [disabled]="currentChapter <= 1"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      <span>Previous</span>
+    </button>
+    
+    <div class="chapter-buttons">
+      <button
+        *ngFor="let ch of getVisibleChapters()"
+        (click)="changeChapter(ch)"
+        class="chapter-btn"
+        [class.active]="ch === currentChapter"
+        [class.has-progress]="getChapterProgress(ch) > 0"
+      >
+        <div class="chapter-label">Ch {{ ch }}</div>
+        <div class="chapter-progress" *ngIf="getChapterProgress(ch) > 0">
+          {{ getChapterProgress(ch) }}%
+        </div>
+        <div 
+          class="progress-indicator" 
+          *ngIf="getChapterProgress(ch) > 0"
+          [style.width.%]="getChapterProgress(ch)"
+        ></div>
+      </button>
+    </div>
+    
+    <button 
+      (click)="goToNextChapter()"
+      class="nav-btn"
+      [disabled]="!hasNextChapter()"
+    >
+      <span>Next</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Quick Filters -->
+  <div class="filters-bar">
+    <span class="filters-label">Quick Filters:</span>
+    <button
+      (click)="activeFilter = 'all'"
+      class="filter-btn"
+      [class.active]="activeFilter === 'all'"
+    >
+      All Verses
+      <span class="filter-count">{{ verses.length }}</span>
+    </button>
+    <button
+      (click)="activeFilter = 'unmemorized'"
+      class="filter-btn"
+      [class.active]="activeFilter === 'unmemorized'"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+      </svg>
+      To Learn
+      <span class="filter-count">{{ unmemorizedVersesCount }}</span>
+    </button>
+    <button
+      (click)="activeFilter = 'needsReview'"
+      class="filter-btn"
+      [class.active]="activeFilter === 'needsReview'"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <polyline points="12 6 12 12 16 14"></polyline>
+      </svg>
+      Review
+      <span class="filter-count">{{ needsReviewCount }}</span>
+    </button>
+    <button
+      (click)="activeFilter = 'sections'"
+      class="filter-btn"
+      [class.active]="activeFilter === 'sections'"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="21" y1="10" x2="7" y2="10"></line>
+        <line x1="21" y1="6" x2="3" y2="6"></line>
+        <line x1="21" y1="14" x2="3" y2="14"></line>
+        <line x1="21" y1="18" x2="7" y2="18"></line>
+      </svg>
+      By Section
+      <span class="filter-count">{{ verseSections.length }}</span>
+    </button>
+  </div>
+
+  <!-- Selection Info -->
+  <div class="selection-info" *ngIf="selectedVerses.size > 0">
+    <span>{{ selectedVerses.size }} verses selected • Shift+Click for range • Ctrl/Cmd+A to select all</span>
+    <button (click)="selectedVerses.clear()" class="clear-selection-btn">
+      Clear selection (Esc)
+    </button>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="verses-container" #versesContainer>
+    <div class="instructions" *ngIf="verses.length === 0 && !isLoading">
+      Right-click for options • Space to select • Enter to study • Arrow keys to navigate
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading verses...</p>
+    </div>
+
+    <!-- Section View -->
+    <div *ngIf="activeFilter === 'sections' && !isLoading" class="sections-view">
+      <div *ngFor="let section of verseSections; let sectionIdx = index" class="section-group">
+        <div 
+          class="section-header"
+          (mouseenter)="hoveredSection = sectionIdx"
+          (mouseleave)="hoveredSection = -1"
+          (click)="selectSection(section)"
+        >
+          <h3>{{ section.name }}</h3>
+          <div class="section-divider"></div>
+          <span class="section-range">Verses {{ section.start + 1 }}-{{ section.end + 1 }}</span>
+          <button *ngIf="hoveredSection === sectionIdx" class="select-all-btn">
+            Select All
+          </button>
+        </div>
+        
+        <div class="verses-grid">
+          <div
+            *ngFor="let verse of verses.slice(section.start, section.end + 1); let i = index"
+            [class]="getVerseState(verse, section.start + i)"
+            [style.fontSize.px]="fontSize"
+            (click)="handleVerseClick(section.start + i, $event)"
+            (dblclick)="handleVerseDoubleClick(verse)"
+            (mousedown)="handleMouseDown(section.start + i)"
+            (mouseenter)="handleMouseEnter(section.start + i)"
+            (contextmenu)="handleContextMenu($event, verse)"
+          >
+            <div class="new-paragraph-marker" *ngIf="isNewParagraph(verse)">
+              ¶ New paragraph
+            </div>
+            
+            <div class="verse-checkmark" *ngIf="verse.isMemorized">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            
+            <div class="verse-selected-check" *ngIf="isVerseSelected(verse) && !verse.isMemorized">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            
+            <div class="review-indicator" *ngIf="needsReview(verse.verseCode) && verse.isMemorized">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14" fill="none" stroke="white" stroke-width="2"></polyline>
+              </svg>
+            </div>
+            
+            <div class="verse-ref">v{{ verse.verse }}</div>
+            <div class="verse-text" [class.full-text]="showFullText">
+              {{ getVerseDisplay(verse) }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Regular Grid View -->
+    <div *ngIf="activeFilter !== 'sections' && !isLoading && verses.length > 0" class="verses-grid">
+      <div
+        *ngFor="let verse of getFilteredVerses(); let i = index"
+        [class]="getVerseState(verse, i)"
+        [style.fontSize.px]="fontSize"
+        (click)="handleVerseClick(i, $event)"
+        (dblclick)="handleVerseDoubleClick(verse)"
+        (mousedown)="handleMouseDown(i)"
+        (mouseenter)="handleMouseEnter(i)"
+        (contextmenu)="handleContextMenu($event, verse)"
+      >
+        <div class="new-paragraph-marker" *ngIf="isNewParagraph(verse)">
+          ¶ New paragraph
+        </div>
+        
+        <div class="verse-checkmark" *ngIf="verse.isMemorized">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        
+        <div class="verse-selected-check" *ngIf="isVerseSelected(verse) && !verse.isMemorized">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        
+        <div class="review-indicator" *ngIf="needsReview(verse.verseCode) && verse.isMemorized">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14" fill="none" stroke="white" stroke-width="2"></polyline>
+          </svg>
+        </div>
+        
+        <div class="verse-ref">v{{ verse.verse }}</div>
+        <div class="verse-text" [class.full-text]="showFullText">
+          {{ getVerseDisplay(verse) }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Context Menu -->
+  <div 
+    class="context-menu"
+    *ngIf="contextMenu.visible"
+    [style.left.px]="contextMenu.x"
+    [style.top.px]="contextMenu.y"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="context-header">
+      {{ contextMenu.selectedCount > 0 
+        ? contextMenu.selectedCount + ' verses selected' 
+        : 'Verse options' }}
+    </div>
+    
+    <button 
+      class="context-item"
+      (click)="markSelectedAsMemorized()"
+      *ngIf="shouldShowMarkAsMemorized"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      Mark as memorized
+    </button>
+    
+    <button 
+      class="context-item"
+      (click)="markSelectedAsUnmemorized()"
+      *ngIf="shouldShowMarkAsUnmemorized"
+    >
+      <div class="empty-checkbox"></div>
+      Mark as unmemorized
+    </button>
+    
+    <div class="context-divider"></div>
+    
+    <div class="context-submenu">
+      <button class="context-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        Add to flashcard deck
+        <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+      
+      <div class="submenu">
+        <button 
+          *ngFor="let deck of flashcardDecks"
+          class="context-item"
+          (click)="addToFlashcardDeck(deck)"
+        >
+          {{ deck }}
+        </button>
+        <div class="context-divider"></div>
+        <button class="context-item create-new">
+          + Create new deck
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Memorization Modal -->
+  <app-memorization-modal
+    *ngIf="showModal"
+    [verses]="modalVerses"
+    [chapterId]="currentBook?.id || 0"
+    [chapterName]="modalChapterName"
+    [verseCount]="modalVerses.length"
+    (completed)="onModalCompleted($event)"
+  ></app-memorization-modal>
+</div>
