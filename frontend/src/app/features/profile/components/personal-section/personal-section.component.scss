@@ -1,0 +1,35 @@
+.account-info-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  margin-top: 1.5rem;
+
+  h4 {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+  }
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .info-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .info-value {
+    font-size: 0.875rem;
+    color: #1f2937;
+    font-weight: 500;
+  }
+}

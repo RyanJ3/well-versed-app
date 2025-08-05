@@ -1,0 +1,70 @@
+<h2 class="section-title">Theme &amp; Display</h2>
+
+<form class="section-form">
+  <div class="form-group">
+    <label for="theme">Color Theme</label>
+    <select
+      id="theme"
+      class="form-control"
+      [(ngModel)]="profileForm.displaySettings.theme"
+      name="theme"
+      (ngModelChange)="fieldChange.emit()"
+    >
+      <option value="light">Light</option>
+      <option value="dark">Dark</option>
+      <option value="auto">Auto (System)</option>
+    </select>
+  </div>
+
+  <div class="subsection">
+    <h3 class="subsection-title">Accessibility</h3>
+
+    <div class="preference-card">
+      <div class="preference-header">
+        <div class="preference-info">
+          <h4>Reduce Motion</h4>
+          <p>Minimize animations and transitions</p>
+        </div>
+        <label class="switch">
+          <input
+            type="checkbox"
+            [(ngModel)]="profileForm.displaySettings.reduceMotion"
+            name="reduce-motion"
+            (ngModelChange)="fieldChange.emit()"
+          >
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="preference-card">
+      <div class="preference-header">
+        <div class="preference-info">
+          <h4>High Contrast Mode</h4>
+          <p>Increase contrast for better visibility</p>
+        </div>
+        <label class="switch">
+          <input
+            type="checkbox"
+            [(ngModel)]="profileForm.displaySettings.highContrast"
+            name="high-contrast"
+            (ngModelChange)="fieldChange.emit()"
+          >
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clear Data Button -->
+  <div class="danger-section">
+    <button type="button" class="btn btn-outline-danger" (click)="openClearData.emit()">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+      </svg>
+      Clear All Data
+    </button>
+    <small class="form-text">Remove all memorization progress and start fresh</small>
+  </div>
+</form>
