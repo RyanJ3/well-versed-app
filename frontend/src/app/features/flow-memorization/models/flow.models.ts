@@ -53,6 +53,8 @@ export interface ModalVerse {
 export interface FlowState {
   bookId?: number;
   chapter?: number;
+  lastBookId?: number;
+  lastChapter?: number;
   layoutMode: 'grid' | 'single';
   isTextMode: boolean;
   highlightFifthVerse: boolean;

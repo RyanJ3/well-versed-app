@@ -23,7 +23,9 @@ export class FlowStateService {
       isTextMode: false,
       highlightFifthVerse: true,
       showVerseNumbers: true,
-      fontSize: 16
+      fontSize: 16,
+      lastBookId: undefined,
+      lastChapter: undefined
     };
   }
 
@@ -53,6 +55,18 @@ export class FlowStateService {
     const updated = { ...current, ...state };
     this.stateSubject.next(updated);
     this.saveState();
+  }
+
+  saveLastChapter(bookId: number, chapter: number) {
+    this.updateState({ lastBookId: bookId, lastChapter: chapter });
+  }
+
+  getLastChapter(): { bookId: number; chapter: number } | null {
+    const state = this.getState();
+    if (state.lastBookId && state.lastChapter) {
+      return { bookId: state.lastBookId, chapter: state.lastChapter };
+    }
+    return null;
   }
 
   saveState() {
