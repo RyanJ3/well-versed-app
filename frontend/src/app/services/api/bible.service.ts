@@ -45,15 +45,14 @@ export class BibleService {
   public esvRetry$ = this.esvRetrySubject.asObservable();
 
   // Current Bible version for citations
-  private currentBibleVersionSubject = new BehaviorSubject<BibleVersion>({
-    id: 'de4e12af7f28f599-02',
-    name: 'King James Version', 
-    abbreviation: 'KJV',
-    isPublicDomain: true
-  });
+  private currentBibleVersionSubject = new BehaviorSubject<BibleVersion | null>(null);
   public currentBibleVersion$ = this.currentBibleVersionSubject.asObservable();
 
   public preferences$ = this.preferencesSubject.asObservable();
+
+  hasValidVersion(): boolean {
+    return this.currentBibleVersionSubject.value !== null;
+  }
 
   constructor(
     private http: HttpClient,
@@ -223,6 +222,13 @@ export class BibleService {
    * Get verse texts from API.Bible through backend
    */
   getVerseTexts(userId: number, verseCodes: string[], bibleId?: string): Observable<Record<string, string>> {
+    if (!this.hasValidVersion() && !bibleId) {
+      console.warn('No Bible translation selected');
+      const empty: Record<string, string> = {};
+      verseCodes.forEach(code => empty[code] = 'Please select a Bible translation');
+      return of(empty);
+    }
+
     console.log(`Getting texts for ${verseCodes.length} verses`);
 
     const cached = this.getCachedVerseTexts(verseCodes);

@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { BibleService } from '@services/api/bible.service';
 import { User } from '@models/user';
 import { UserService } from '@services/api/user.service';
@@ -33,13 +33,9 @@ const ESV_BIBLE_VERSION: BibleVersion = {
 })
 export class CitationFooterComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  
-  currentBibleVersion: BibleVersion = {
-    id: 'de4e12af7f28f599-02',
-    name: 'King James Version',
-    abbreviation: 'KJV',
-    isPublicDomain: true
-  };
+
+  currentBibleVersion: BibleVersion | null = null;
+  hasTranslation = false;
   
   showTooltip = false;
   tooltipX = 0;
@@ -49,24 +45,35 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
 
   constructor(
     private bibleService: BibleService,
-    private userService: UserService
+    private userService: UserService,
+    private router: Router
   ) {}
 
   ngOnInit() {
-    // Subscribe to current Bible version changes
+    // Watch for Bible version changes
     this.bibleService.currentBibleVersion$
       .pipe(takeUntil(this.destroy$))
       .subscribe((version: BibleVersion | null) => {
-        if (version) {
-          this.currentBibleVersion = version;
-        }
+        this.currentBibleVersion = version;
+        this.hasTranslation = !!version;
       });
 
-    // Watch user preference for ESV API usage
+    // Watch for user changes
     this.userService.currentUser$
       .pipe(takeUntil(this.destroy$))
       .subscribe((user: User | null) => {
         this.useEsvApi = user?.useEsvApi ?? false;
+        this.hasTranslation = !!(user?.preferredBible);
+
+        // Sync Bible version if user has one but service doesn't
+        if (user?.preferredBible && !this.currentBibleVersion) {
+          this.bibleService.setCurrentBibleVersion({
+            id: user.preferredBible === 'ESV' ? 'esv' : user.preferredBible,
+            name: user.preferredBible,
+            abbreviation: user.preferredBible,
+            isPublicDomain: user.preferredBible !== 'ESV'
+          });
+        }
       });
   }
 
@@ -92,7 +99,7 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
   }
 
   get displayBibleVersion(): BibleVersion {
-    return this.isEsv() ? ESV_BIBLE_VERSION : this.currentBibleVersion;
+    return this.isEsv() ? ESV_BIBLE_VERSION : (this.currentBibleVersion as BibleVersion);
   }
 
   get providerName(): string {
@@ -103,6 +110,10 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
     return this.isEsv()
       ? 'https://www.crossway.org'
       : 'https://scripture.api.bible';
+  }
+
+  goToProfileSetup(): void {
+    this.router.navigate(['/profile'], { queryParams: { setup: 'bible' } });
   }
 
   getCitationText(): string {

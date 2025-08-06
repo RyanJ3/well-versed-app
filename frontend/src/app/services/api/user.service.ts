@@ -7,6 +7,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { User, UserApiResponse, UserProfileUpdate } from '@models/user';
 
+declare const require: any;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -14,6 +16,7 @@ export class UserService {
   private apiUrl = environment.apiUrl;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
+  private bibleService?: any; // Lazy injection to avoid circular dependency
 
   constructor(
     private http: HttpClient,
@@ -30,12 +33,38 @@ export class UserService {
       tap(user => {
         console.log('Fetched user from API:', user);
         this.currentUserSubject.next(user);
+
+        // Sync Bible version if user has one
+        if (user?.preferredBible) {
+          try {
+            const bibleService = this.getBibleService();
+            if (bibleService) {
+              bibleService.setCurrentBibleVersion({
+                id: user.preferredBible === 'ESV' ? 'esv' : user.preferredBible,
+                name: user.preferredBible,
+                abbreviation: user.preferredBible,
+                isPublicDomain: user.preferredBible !== 'ESV'
+              });
+            }
+          } catch (e) {
+            console.log('Bible service not available yet');
+          }
+        }
       }),
       catchError(error => {
         console.error('Error fetching user:', error);
         return of(null);
       })
     ).subscribe();
+  }
+
+  private getBibleService() {
+    if (!this.bibleService) {
+      const { BibleService } = require('./bible.service');
+      const injector = (window as any).angularInjector;
+      this.bibleService = injector.get(BibleService);
+    }
+    return this.bibleService;
   }
 
   getCurrentUser(): User | null {
@@ -89,6 +118,11 @@ export class UserService {
         throw error;
       })
     );
+  }
+
+  hasValidTranslation(): boolean {
+    const user = this.currentUserSubject.value;
+    return !!(user?.preferredBible && user.preferredBible !== '');
   }
 
   // Helper method to convert API response (snake_case) to User model (camelCase)

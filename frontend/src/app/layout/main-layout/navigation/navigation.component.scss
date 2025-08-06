@@ -167,6 +167,29 @@
   }
 }
 
+.bible-indicator {
+  padding: 4px 12px;
+  border-radius: 16px;
+  background: #eff6ff;
+  font-size: 0.875rem;
+
+  &.warning {
+    background: #fef3c7;
+    a { color: #92400e; }
+  }
+
+  a {
+    color: #3b82f6;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
 // Profile Dropdown
 .nav-dropdown.profile {
   .profile-button {
