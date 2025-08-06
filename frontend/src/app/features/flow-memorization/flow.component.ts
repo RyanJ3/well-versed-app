@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener } fro
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil, debounceTime, firstValueFrom, take } from 'rxjs';
-import { Store } from '@ngrx/store';
+import { Store, StoreModule } from '@ngrx/store';
 import { trigger, transition, style, animate } from '@angular/animations';
 
 import { BibleService } from '@services/api/bible.service';
@@ -17,6 +17,7 @@ import { BibleBook, BibleChapter, BibleVerse } from '@models/bible';
 import { AppState } from '@state/app.state';
 import { BibleMemorizationActions } from '@state/bible-tracker/actions/bible-memorization.actions';
 import { selectBibleDataWithProgress } from '@state/bible-tracker/selectors/bible-memorization.selectors';
+import { bibleMemorizationReducer } from '@state/bible-tracker/reducers/bible-memorization.reducer';
 import { FlowVerse, ModalVerse } from './models/flow.models';
 
 interface VerseSection {
@@ -42,7 +43,11 @@ interface ContextMenuData {
 @Component({
   selector: 'app-flow-memorization',
   standalone: true,
-  imports: [CommonModule, MemorizationModalComponent],
+  imports: [
+    CommonModule,
+    MemorizationModalComponent,
+    StoreModule.forFeature('bibleMemorization', bibleMemorizationReducer)
+  ],
   providers: [FlowStateService, FlowMemorizationService],
   templateUrl: './flow.component.html',
   styleUrls: ['./flow.component.scss'],
