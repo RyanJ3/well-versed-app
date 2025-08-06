@@ -187,13 +187,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.activeSection = 'bible';
         this.saveSectionToLocalStorage('bible');
 
-        // Auto-scroll to bible section after view initializes
-        setTimeout(() => {
-          const bibleSection = document.querySelector('[data-section="bible"]');
-          if (bibleSection) {
-            bibleSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        }, 100);
+        // // Auto-scroll to bible section after view initializes
+        // setTimeout(() => {
+        //   const bibleSection = document.querySelector('[data-section="bible"]');
+        //   if (bibleSection) {
+        //     bibleSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        //   }
+        // }, 100);
       }
     });
   }
@@ -328,8 +328,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
     this.http.get<AvailableBiblesResponse>(`${environment.apiUrl}/bibles/available`).subscribe({
       next: (response) => {
-        console.log('Initial Bible data response:', response);
-
         // Set languages
         if (response.languages && Array.isArray(response.languages)) {
           this.languages = response.languages;
