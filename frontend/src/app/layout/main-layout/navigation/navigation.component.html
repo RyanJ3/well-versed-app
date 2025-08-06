@@ -36,7 +36,6 @@
         <button
           class="nav-link dropdown-toggle"
           [class.active]="memorizeMenuActive"
-          [class.disabled]="!hasTranslation()"
           [attr.title]="!hasTranslation() ? 'Please select a Bible translation first' : null"
         >
           Memorize
@@ -144,12 +143,6 @@
             🗺️ Scripture Atlas
           </a>
         </div>
-      </div>
-
-      <div class="bible-indicator" [class.warning]="!hasTranslation()">
-        <a (click)="goToTranslationSetup()" [attr.title]="hasTranslation() ? 'Current Bible: ' + getTranslationDisplay() : 'Select Bible Translation'">
-          {{ getTranslationDisplay() }}
-        </a>
       </div>
 
       <!-- Profile dropdown menu -->

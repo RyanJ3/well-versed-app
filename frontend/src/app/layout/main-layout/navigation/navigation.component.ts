@@ -107,17 +107,6 @@ export class NavigationComponent implements OnInit {
     return this.currentUser?.preferredBible ? true : false;
   }
 
-  getTranslationDisplay(): string {
-    if (this.currentUser?.preferredBible) {
-      return this.currentUser.preferredBible;
-    }
-    return '📖 Select';
-  }
-
-  goToTranslationSetup(): void {
-    this.router.navigate(['/profile'], { queryParams: { setup: 'bible' } });
-  }
-
   logout() {
     this.userService.logout();
     this.closeMenu();
