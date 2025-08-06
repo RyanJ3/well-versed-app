@@ -1,0 +1,61 @@
+<div
+  class="context-menu"
+  [style.left.px]="contextMenu.x"
+  [style.top.px]="contextMenu.y"
+  (click)="$event.stopPropagation()"
+>
+  <div class="context-header">
+    {{ contextMenu.selectedCount > 0
+      ? contextMenu.selectedCount + ' verses selected'
+      : 'Verse options' }}
+  </div>
+
+  <button
+    class="context-item"
+    (click)="markAsMemorized.emit()"
+    *ngIf="shouldShowMarkAsMemorized"
+  >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    Mark as memorized
+  </button>
+
+  <button
+    class="context-item"
+    (click)="markAsUnmemorized.emit()"
+    *ngIf="shouldShowMarkAsUnmemorized"
+  >
+    <div class="empty-checkbox"></div>
+    Mark as unmemorized
+  </button>
+
+  <div class="context-divider"></div>
+
+  <div class="context-submenu">
+    <button class="context-item">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+      </svg>
+      Add to flashcard deck
+      <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+
+    <div class="submenu">
+      <button
+        *ngFor="let deck of flashcardDecks"
+        class="context-item"
+        (click)="addToFlashcardDeck(deck)"
+      >
+        {{ deck }}
+      </button>
+      <div class="context-divider"></div>
+      <button class="context-item create-new">
+        + Create new deck
+      </button>
+    </div>
+  </div>
+</div>

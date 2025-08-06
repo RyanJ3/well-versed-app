@@ -1,0 +1,48 @@
+<div class="filters-bar">
+  <span class="filters-label">Quick Filters:</span>
+  <button
+    (click)="setFilter('all')"
+    class="filter-btn"
+    [class.active]="activeFilter === 'all'"
+  >
+    All Verses
+    <span class="filter-count">{{ totalVerses }}</span>
+  </button>
+  <button
+    (click)="setFilter('unmemorized')"
+    class="filter-btn"
+    [class.active]="activeFilter === 'unmemorized'"
+  >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+    </svg>
+    To Learn
+    <span class="filter-count">{{ unmemorizedCount }}</span>
+  </button>
+  <button
+    (click)="setFilter('needsReview')"
+    class="filter-btn"
+    [class.active]="activeFilter === 'needsReview'"
+  >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"></circle>
+      <polyline points="12 6 12 12 16 14"></polyline>
+    </svg>
+    Review
+    <span class="filter-count">{{ needsReviewCount }}</span>
+  </button>
+  <button
+    (click)="setFilter('sections')"
+    class="filter-btn"
+    [class.active]="activeFilter === 'sections'"
+  >
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="21" y1="10" x2="7" y2="10"></line>
+      <line x1="21" y1="6" x2="3" y2="6"></line>
+      <line x1="21" y1="14" x2="3" y2="14"></line>
+      <line x1="21" y1="18" x2="7" y2="18"></line>
+    </svg>
+    By Section
+    <span class="filter-count">{{ sectionCount }}</span>
+  </button>
+</div>

@@ -1,0 +1,78 @@
+.context-menu {
+  position: fixed;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  padding: 0.25rem 0;
+  z-index: 50;
+  min-width: 200px;
+
+  .context-header {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .context-item {
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.15s;
+
+    &:hover {
+      background-color: #f3f4f6;
+    }
+
+    &.create-new {
+      color: #3b82f6;
+    }
+  }
+
+  .context-divider {
+    height: 1px;
+    background-color: #f3f4f6;
+    margin: 0.25rem 0;
+  }
+
+  .empty-checkbox {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #9ca3af;
+    border-radius: 0.25rem;
+  }
+
+  .context-submenu {
+    position: relative;
+
+    &:hover .submenu {
+      display: block;
+    }
+
+    .chevron {
+      margin-left: auto;
+    }
+
+    .submenu {
+      display: none;
+      position: absolute;
+      left: 100%;
+      top: 0;
+      margin-left: 0.25rem;
+      background-color: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e7eb;
+      padding: 0.25rem 0;
+      min-width: 150px;
+    }
+  }
+}

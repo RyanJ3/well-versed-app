@@ -1,0 +1,95 @@
+.chapter-navigation {
+  background-color: #f9fafb;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6b7280;
+    background: none;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: color 0.2s;
+
+    &:hover:not(:disabled) {
+      color: #1f2937;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  .chapter-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .chapter-btn {
+    position: relative;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    overflow: hidden;
+    background-color: white;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+    cursor: pointer;
+
+    &:hover {
+      background-color: #f3f4f6;
+    }
+
+    &.active {
+      background-color: #3b82f6;
+      color: white;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      border-color: #3b82f6;
+    }
+
+    &.has-progress:not(.active) {
+      .progress-indicator {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 4px;
+        background-color: #10b981;
+        transition: width 0.3s;
+      }
+    }
+
+    .chapter-label {
+      font-weight: 600;
+      font-size: 0.875rem;
+    }
+
+    .chapter-progress {
+      font-size: 0.75rem;
+      margin-top: 0.125rem;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .chapter-navigation {
+    padding: 0.5rem 1rem;
+
+    .chapter-buttons {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
+}
