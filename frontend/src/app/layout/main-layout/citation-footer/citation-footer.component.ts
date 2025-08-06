@@ -55,7 +55,6 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((version: BibleVersion | null) => {
         this.currentBibleVersion = version;
-        this.hasTranslation = !!version;
       });
 
     // Watch for user changes
@@ -63,10 +62,17 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((user: User | null) => {
         this.useEsvApi = user?.useEsvApi ?? false;
-        this.hasTranslation = !!(user?.preferredBible);
+
+        // Check if translation is fully configured
+        const hasBasicTranslation = !!(user?.preferredBible);
+        const isEsvConfigured =
+          user?.preferredBible !== 'ESV' ||
+          (!!user?.esvApiToken && user.esvApiToken.trim() !== '');
+
+        this.hasTranslation = hasBasicTranslation && isEsvConfigured;
 
         // Sync Bible version if user has one but service doesn't
-        if (user?.preferredBible && !this.currentBibleVersion) {
+        if (user?.preferredBible && !this.currentBibleVersion && isEsvConfigured) {
           this.bibleService.setCurrentBibleVersion({
             id: user.preferredBible === 'ESV' ? 'esv' : user.preferredBible,
             name: user.preferredBible,

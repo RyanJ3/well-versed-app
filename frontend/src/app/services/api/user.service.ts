@@ -103,7 +103,21 @@ export class UserService {
 
   hasValidTranslation(): boolean {
     const user = this.currentUserSubject.value;
-    return !!(user?.preferredBible && user.preferredBible !== '');
+
+    // No user or no Bible selected
+    if (!user?.preferredBible || user.preferredBible === '') {
+      return false;
+    }
+
+    // ESV selected but no token
+    if (
+      user.preferredBible === 'ESV' &&
+      (!user.esvApiToken || user.esvApiToken.trim() === '')
+    ) {
+      return false;
+    }
+
+    return true;
   }
 
   // Helper method to convert API response (snake_case) to User model (camelCase)

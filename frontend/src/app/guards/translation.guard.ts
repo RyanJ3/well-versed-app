@@ -24,16 +24,27 @@ export class TranslationGuard implements CanActivate {
     return this.userService.currentUser$.pipe(
       take(1),
       map(user => {
-        if (!user?.preferredBible || user.preferredBible === '') {
+        // Check if no Bible selected
+        const noBibleSelected = !user?.preferredBible || user.preferredBible === '';
+
+        // Check if ESV is selected but token is missing
+        const esvWithoutToken =
+          user?.preferredBible === 'ESV' &&
+          (!user.esvApiToken || user.esvApiToken.trim() === '');
+
+        // Redirect if either condition is true
+        if (noBibleSelected || esvWithoutToken) {
           // Store the attempted URL only if in browser
           if (this.isBrowser) {
             sessionStorage.setItem('redirectAfterTranslation', state.url);
           }
+
           // Redirect to profile with setup flag
           return this.router.createUrlTree(['/profile'], {
             queryParams: { setup: 'bible' }
           });
         }
+
         return true;
       })
     );

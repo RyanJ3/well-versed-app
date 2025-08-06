@@ -104,7 +104,20 @@ export class NavigationComponent implements OnInit {
   }
 
   hasTranslation(): boolean {
-    return this.currentUser?.preferredBible ? true : false;
+    // Check basic translation
+    if (!this.currentUser?.preferredBible) {
+      return false;
+    }
+
+    // Check ESV token if ESV is selected
+    if (
+      this.currentUser.preferredBible === 'ESV' &&
+      (!this.currentUser.esvApiToken || this.currentUser.esvApiToken.trim() === '')
+    ) {
+      return false;
+    }
+
+    return true;
   }
 
   logout() {

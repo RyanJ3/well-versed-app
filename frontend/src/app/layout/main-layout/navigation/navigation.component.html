@@ -36,7 +36,11 @@
         <button
           class="nav-link dropdown-toggle"
           [class.active]="memorizeMenuActive"
-          [attr.title]="!hasTranslation() ? 'Please select a Bible translation first' : null"
+          [attr.title]="!hasTranslation() ? 
+            (currentUser?.preferredBible === 'ESV' ? 
+              'Please configure your ESV API token' : 
+              'Please select a Bible translation first') : 
+            null"
         >
           Memorize
           <svg

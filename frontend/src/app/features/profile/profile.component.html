@@ -126,7 +126,8 @@
             </svg>
             <div class="alert-text">
               <strong>Welcome to Well Versed!</strong>
-              <span>Please select a Bible translation below to access memorization features.</span>
+              <span *ngIf="!profileForm.preferredBible">Please select a Bible translation below to access memorization features.</span>
+              <span *ngIf="profileForm.preferredBible === 'ESV' && !profileForm.esvApiToken">Please enter your ESV API token to use the ESV translation.</span>
             </div>
             <button class="alert-close" (click)="dismissSetupBanner()">×</button>
           </div>
