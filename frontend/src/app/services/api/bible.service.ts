@@ -279,13 +279,20 @@ export class BibleService {
   /**
    * Updates the current Bible version (for citations)
    */
-  setCurrentBibleVersion(version: BibleVersion): void {
+  setCurrentBibleVersion(version: BibleVersion | null): void {
     this.currentBibleVersionSubject.next(version);
+
+    // Store in localStorage - only if in the browser
+    if (version && this.isBrowser) {
+      localStorage.setItem('currentBibleVersion', JSON.stringify(version));
+    } else if (!version && this.isBrowser) {
+      localStorage.removeItem('currentBibleVersion');
+    }
   }
 
   setBibleVersionFromAbbreviation(abbreviation: string): void {
     if (!abbreviation) {
-      this.currentBibleVersionSubject.next(null);
+      this.setCurrentBibleVersion(null);
       return;
     }
 

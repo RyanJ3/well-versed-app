@@ -7,6 +7,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { User, UserApiResponse, UserProfileUpdate } from '@models/user';
 
+declare const require: any;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -14,13 +16,57 @@ export class UserService {
   private apiUrl = environment.apiUrl;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
+  private isBrowser: boolean;
+  private bibleService?: any;
 
   constructor(
     private http: HttpClient,
     @Inject(PLATFORM_ID) platformId: Object
   ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+
+    // Check localStorage for stored preferences if in the browser
+    if (this.isBrowser) {
+      const stored = localStorage.getItem('userPreferences');
+      if (stored) {
+        try {
+          const prefs = JSON.parse(stored);
+          if (prefs.preferredBible) {
+            this.syncBibleVersion(prefs);
+          }
+        } catch (e) {}
+      }
+    }
+
     // Initial check to load current user
     this.fetchCurrentUser();
+  }
+
+  private getBibleService() {
+    if (!this.bibleService) {
+      const { BibleService } = require('./bible.service');
+      const injector = (window as any).angularInjector;
+      this.bibleService = injector.get(BibleService);
+    }
+    return this.bibleService;
+  }
+
+  private syncBibleVersion(user: { preferredBible?: string }): void {
+    if (!user?.preferredBible) return;
+
+    try {
+      const bibleService = this.getBibleService();
+      if (bibleService) {
+        bibleService.setCurrentBibleVersion({
+          id: user.preferredBible === 'ESV' ? 'esv' : user.preferredBible,
+          name: user.preferredBible,
+          abbreviation: user.preferredBible,
+          isPublicDomain: user.preferredBible !== 'ESV'
+        });
+      }
+    } catch (e) {
+      console.log('Bible service not available yet');
+    }
   }
 
   fetchCurrentUser(): void {
@@ -31,14 +77,14 @@ export class UserService {
         console.log('Fetched user from API:', user);
         this.currentUserSubject.next(user);
 
-        // Sync Bible version if user has one
-        if (user?.preferredBible) {
-          // Import BibleService properly to avoid circular dependency
-          import('./bible.service').then(({ BibleService }) => {
-            const injector = (window as any).appInjector; // Set this in main.ts
-            const bibleService = injector.get(BibleService);
-            bibleService.setBibleVersionFromAbbreviation(user.preferredBible);
-          });
+        // Store preferences if in browser
+        if (user && this.isBrowser) {
+          localStorage.setItem('userPreferences', JSON.stringify({
+            preferredBible: user.preferredBible,
+            preferredLanguage: user.preferredLanguage,
+            useEsvApi: user.useEsvApi
+          }));
+          this.syncBibleVersion(user);
         }
       }),
       catchError(error => {
@@ -80,6 +126,15 @@ export class UserService {
       tap(updatedUser => {
         console.log('User updated successfully, mapped response:', updatedUser);
         this.currentUserSubject.next(updatedUser);
+
+        if (updatedUser && this.isBrowser) {
+          localStorage.setItem('userPreferences', JSON.stringify({
+            preferredBible: updatedUser.preferredBible,
+            preferredLanguage: updatedUser.preferredLanguage,
+            useEsvApi: updatedUser.useEsvApi
+          }));
+          this.syncBibleVersion(updatedUser);
+        }
       }),
       catchError(error => {
         console.error('Error updating user:', error);

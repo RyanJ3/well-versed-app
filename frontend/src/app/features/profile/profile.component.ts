@@ -173,9 +173,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.loadSavedSection();
     this.setupAutoSave();
 
-    // Load auto-save preference
-    const savedAutoSave = localStorage.getItem('profileAutoSave');
-    this.autoSaveEnabled = savedAutoSave === 'true';
+    // Load auto-save preference - only if running in the browser
+    if (this.isBrowser) {
+      const savedAutoSave = localStorage.getItem('profileAutoSave');
+      this.autoSaveEnabled = savedAutoSave === 'true';
+    }
 
     // Check for setup mode
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
@@ -510,7 +512,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   onAutoSaveToggle(): void {
-    localStorage.setItem('profileAutoSave', this.autoSaveEnabled.toString());
+    if (this.isBrowser) {
+      localStorage.setItem('profileAutoSave', this.autoSaveEnabled.toString());
+    }
     
     if (this.autoSaveEnabled && this.hasUnsavedChanges() && this.isFormValid) {
       this.autoSave$.next();
@@ -519,6 +523,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   // Local storage management
   loadSavedSection(): void {
+    if (!this.isBrowser) return;
+
     const savedSection = localStorage.getItem('profileActiveSection') as ProfileSection['id'];
     if (savedSection && this.sections.some(s => s.id === savedSection)) {
       this.activeSection = savedSection;
@@ -526,6 +532,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   saveSectionToLocalStorage(sectionId: ProfileSection['id']): void {
+    if (!this.isBrowser) return;
+
     localStorage.setItem('profileActiveSection', sectionId);
   }
 
