@@ -15,6 +15,23 @@
   }
 }
 
+.alert.alert-info {
+  background: #dbeafe;
+  border: 1px solid #93c5fd;
+  color: #1e40af;
+
+  .alert-icon {
+    color: #3b82f6;
+  }
+}
+
+.setup-banner {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin-bottom: 1rem;
+}
+
 @keyframes slideDown {
   from {
     opacity: 0;

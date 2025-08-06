@@ -45,15 +45,14 @@ export class BibleService {
   public esvRetry$ = this.esvRetrySubject.asObservable();
 
   // Current Bible version for citations
-  private currentBibleVersionSubject = new BehaviorSubject<BibleVersion>({
-    id: 'de4e12af7f28f599-02',
-    name: 'King James Version', 
-    abbreviation: 'KJV',
-    isPublicDomain: true
-  });
+  private currentBibleVersionSubject = new BehaviorSubject<BibleVersion | null>(null);
   public currentBibleVersion$ = this.currentBibleVersionSubject.asObservable();
 
   public preferences$ = this.preferencesSubject.asObservable();
+
+  hasValidVersion(): boolean {
+    return this.currentBibleVersionSubject.value !== null;
+  }
 
   constructor(
     private http: HttpClient,
@@ -223,6 +222,13 @@ export class BibleService {
    * Get verse texts from API.Bible through backend
    */
   getVerseTexts(userId: number, verseCodes: string[], bibleId?: string): Observable<Record<string, string>> {
+    if (!this.hasValidVersion() && !bibleId) {
+      console.warn('No Bible translation selected');
+      const empty: Record<string, string> = {};
+      verseCodes.forEach(code => empty[code] = 'Please select a Bible translation');
+      return of(empty);
+    }
+
     console.log(`Getting texts for ${verseCodes.length} verses`);
 
     const cached = this.getCachedVerseTexts(verseCodes);
@@ -273,8 +279,47 @@ export class BibleService {
   /**
    * Updates the current Bible version (for citations)
    */
-  setCurrentBibleVersion(version: BibleVersion): void {
+  setCurrentBibleVersion(version: BibleVersion | null): void {
     this.currentBibleVersionSubject.next(version);
+
+    // Store in localStorage - only if in the browser
+    if (version && this.isBrowser) {
+      localStorage.setItem('currentBibleVersion', JSON.stringify(version));
+    } else if (!version && this.isBrowser) {
+      localStorage.removeItem('currentBibleVersion');
+    }
+  }
+
+  setBibleVersionFromAbbreviation(abbreviation: string): void {
+    if (!abbreviation) {
+      this.setCurrentBibleVersion(null);
+      return;
+    }
+
+    // Map common abbreviations to full names
+    const versionMap: Record<string, string> = {
+      'KJV': 'King James Version',
+      'NIV': 'New International Version',
+      'ESV': 'English Standard Version',
+      'NASB': 'New American Standard Bible',
+      'NLT': 'New Living Translation',
+      'BSB': 'Berean Standard Bible',
+      'CSB': 'Christian Standard Bible',
+      'NKJV': 'New King James Version',
+      'RSV': 'Revised Standard Version',
+      'MSG': 'The Message',
+      'AMP': 'Amplified Bible'
+    };
+
+    const version: BibleVersion = {
+      id: abbreviation.toLowerCase(),
+      name: versionMap[abbreviation] || abbreviation,
+      abbreviation: abbreviation,
+      isPublicDomain: !['NIV', 'ESV', 'NLT', 'MSG', 'AMP', 'CSB'].includes(abbreviation),
+      copyright: abbreviation === 'ESV' ? '© 2016 Crossway Bibles.' : undefined
+    };
+
+    this.setCurrentBibleVersion(version);
   }
 
   // ----- Bible Tracker Progress Methods (stub implementations) -----

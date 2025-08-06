@@ -47,6 +47,7 @@ export class NavigationComponent implements OnInit {
   }
 
   openMemorizeMenu() {
+    if (!this.hasTranslation()) { return; }
     this.memorizeMenuActive = true;
     this.learningMenuActive = false;
     this.profileMenuActive = false;
@@ -100,6 +101,23 @@ export class NavigationComponent implements OnInit {
       return `${this.currentUser.firstName || ''} ${this.currentUser.lastName || ''}`.trim();
     }
     return this.currentUser?.name || 'User';
+  }
+
+  hasTranslation(): boolean {
+    // Check basic translation
+    if (!this.currentUser?.preferredBible) {
+      return false;
+    }
+
+    // Check ESV token if ESV is selected
+    if (
+      this.currentUser.preferredBible === 'ESV' &&
+      (!this.currentUser.esvApiToken || this.currentUser.esvApiToken.trim() === '')
+    ) {
+      return false;
+    }
+
+    return true;
   }
 
   logout() {

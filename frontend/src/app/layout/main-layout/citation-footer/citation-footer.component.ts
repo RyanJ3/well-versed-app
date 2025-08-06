@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { BibleService } from '@services/api/bible.service';
 import { User } from '@models/user';
 import { UserService } from '@services/api/user.service';
@@ -33,13 +33,9 @@ const ESV_BIBLE_VERSION: BibleVersion = {
 })
 export class CitationFooterComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  
-  currentBibleVersion: BibleVersion = {
-    id: 'de4e12af7f28f599-02',
-    name: 'King James Version',
-    abbreviation: 'KJV',
-    isPublicDomain: true
-  };
+
+  currentBibleVersion: BibleVersion | null = null;
+  hasTranslation = false;
   
   showTooltip = false;
   tooltipX = 0;
@@ -49,24 +45,41 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
 
   constructor(
     private bibleService: BibleService,
-    private userService: UserService
+    private userService: UserService,
+    private router: Router
   ) {}
 
   ngOnInit() {
-    // Subscribe to current Bible version changes
+    // Watch for Bible version changes
     this.bibleService.currentBibleVersion$
       .pipe(takeUntil(this.destroy$))
       .subscribe((version: BibleVersion | null) => {
-        if (version) {
-          this.currentBibleVersion = version;
-        }
+        this.currentBibleVersion = version;
       });
 
-    // Watch user preference for ESV API usage
+    // Watch for user changes
     this.userService.currentUser$
       .pipe(takeUntil(this.destroy$))
       .subscribe((user: User | null) => {
         this.useEsvApi = user?.useEsvApi ?? false;
+
+        // Check if translation is fully configured
+        const hasBasicTranslation = !!(user?.preferredBible);
+        const isEsvConfigured =
+          user?.preferredBible !== 'ESV' ||
+          (!!user?.esvApiToken && user.esvApiToken.trim() !== '');
+
+        this.hasTranslation = hasBasicTranslation && isEsvConfigured;
+
+        // Sync Bible version if user has one but service doesn't
+        if (user?.preferredBible && !this.currentBibleVersion && isEsvConfigured) {
+          this.bibleService.setCurrentBibleVersion({
+            id: user.preferredBible === 'ESV' ? 'esv' : user.preferredBible,
+            name: user.preferredBible,
+            abbreviation: user.preferredBible,
+            isPublicDomain: user.preferredBible !== 'ESV'
+          });
+        }
       });
   }
 
@@ -87,12 +100,33 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
     this.showTooltip = false;
   }
 
+  goToProfileSetup(): void {
+    this.router.navigate(['/profile'], { queryParams: { setup: 'bible' } });
+  }
+
   isEsv(): boolean {
     return this.useEsvApi;
   }
 
   get displayBibleVersion(): BibleVersion {
-    return this.isEsv() ? ESV_BIBLE_VERSION : this.currentBibleVersion;
+    // If using ESV API
+    if (this.isEsv()) {
+      return ESV_BIBLE_VERSION;
+    }
+
+    // If we have a current Bible version, use it
+    if (this.currentBibleVersion) {
+      return this.currentBibleVersion;
+    }
+
+    // Return a placeholder object when no translation is selected
+    return {
+      id: '',
+      name: 'No Translation Selected',
+      abbreviation: '',
+      isPublicDomain: true,
+      copyright: ''
+    };
   }
 
   get providerName(): string {
@@ -107,6 +141,12 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
 
   getCitationText(): string {
     const version = this.displayBibleVersion;
+
+    // Don't show citation text if no translation selected
+    if (!version.abbreviation) {
+      return '';
+    }
+
     if (version.isPublicDomain) {
       return `Scripture quotations from ${version.abbreviation} (Public Domain)`;
     }
