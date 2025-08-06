@@ -18,6 +18,10 @@ import { practiceSessionReducer } from './state/practice-session/reducers/practi
 import { PracticeSessionEffects } from './state/practice-session/effects/practice-session.effects';
 import { uiReducer } from './state/ui/ui.reducer';
 import { ConfigService } from '@services/config/config.service';
+import { UserService } from '@services/api/user.service';
+import { BibleService } from '@services/api/bible.service';
+import { TranslationStateService } from '@services/state/translation-state.service';
+import { skip, take } from 'rxjs/operators';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -30,6 +34,28 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       const configService = inject(ConfigService);
       return configService.loadConfig();
+    }),
+
+    provideAppInitializer(() => {
+      const userService = inject(UserService);
+      const bibleService = inject(BibleService);
+      const translationState = inject(TranslationStateService);
+      return () =>
+        new Promise<void>(resolve => {
+          userService.currentUser$.pipe(skip(1), take(1)).subscribe(user => {
+            if (user?.preferredBible) {
+              bibleService.setCurrentBibleVersion({
+                id: '',
+                name: user.preferredBible,
+                abbreviation: user.preferredBible,
+                isPublicDomain: user.preferredBible !== 'ESV'
+              });
+            } else if (user) {
+              translationState.setNeedsTranslationSelection(true);
+            }
+            resolve();
+          });
+        });
     }),
     
     // NgRx Store Configuration

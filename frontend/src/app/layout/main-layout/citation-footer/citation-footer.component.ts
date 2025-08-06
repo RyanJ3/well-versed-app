@@ -33,13 +33,8 @@ const ESV_BIBLE_VERSION: BibleVersion = {
 })
 export class CitationFooterComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  
-  currentBibleVersion: BibleVersion = {
-    id: 'de4e12af7f28f599-02',
-    name: 'King James Version',
-    abbreviation: 'KJV',
-    isPublicDomain: true
-  };
+
+  currentBibleVersion: BibleVersion | null = null;
   
   showTooltip = false;
   tooltipX = 0;
@@ -53,16 +48,12 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // Subscribe to current Bible version changes
     this.bibleService.currentBibleVersion$
       .pipe(takeUntil(this.destroy$))
       .subscribe((version: BibleVersion | null) => {
-        if (version) {
-          this.currentBibleVersion = version;
-        }
+        this.currentBibleVersion = version;
       });
 
-    // Watch user preference for ESV API usage
     this.userService.currentUser$
       .pipe(takeUntil(this.destroy$))
       .subscribe((user: User | null) => {
@@ -92,7 +83,7 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
   }
 
   get displayBibleVersion(): BibleVersion {
-    return this.isEsv() ? ESV_BIBLE_VERSION : this.currentBibleVersion;
+    return this.isEsv() ? ESV_BIBLE_VERSION : (this.currentBibleVersion as BibleVersion);
   }
 
   get providerName(): string {
@@ -111,5 +102,9 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
       return `Scripture quotations from ${version.abbreviation} (Public Domain)`;
     }
     return `Scripture quotations from ${version.abbreviation}`;
+  }
+
+  hasValidTranslation(): boolean {
+    return this.currentBibleVersion !== null;
   }
 }

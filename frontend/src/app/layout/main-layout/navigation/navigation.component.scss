@@ -52,6 +52,19 @@
   align-items: center;
 }
 
+.translation-badge {
+  padding: 4px 8px;
+  background: #e5e7eb;
+  border-radius: 12px;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.translation-badge .warn-icon {
+  margin-right: 4px;
+}
+
 .nav-link {
   padding: 10px 16px;
   text-decoration: none;

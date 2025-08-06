@@ -36,6 +36,8 @@
         <button
           class="nav-link dropdown-toggle"
           [class.active]="memorizeMenuActive"
+          [disabled]="!canAccessFeatures()"
+          [title]="!canAccessFeatures() ? 'Please select a Bible translation in your profile' : ''"
         >
           Memorize
           <svg
@@ -107,6 +109,8 @@
         <button
           class="nav-link dropdown-toggle"
           [class.active]="learningMenuActive"
+          [disabled]="!canAccessFeatures()"
+          [title]="!canAccessFeatures() ? 'Please select a Bible translation in your profile' : ''"
         >
           Learning
           <svg
@@ -142,6 +146,15 @@
             🗺️ Scripture Atlas
           </a>
         </div>
+      </div>
+
+      <div class="translation-badge" (click)="navigateToProfileBible()">
+        <ng-container *ngIf="currentBibleAbbr; else noTranslation">
+          {{ currentBibleAbbr }}
+        </ng-container>
+        <ng-template #noTranslation>
+          <span class="warn-icon">⚠️</span> Select Bible
+        </ng-template>
       </div>
 
       <!-- Profile dropdown menu -->

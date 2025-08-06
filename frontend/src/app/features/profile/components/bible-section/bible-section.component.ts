@@ -1,5 +1,5 @@
 // frontend/src/app/features/profile/components/bible-section/bible-section.component.ts
-import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -27,7 +27,7 @@ interface BibleVersion {
   imports: [CommonModule, FormsModule],
   host: { class: 'section' }
 })
-export class ProfileBibleSectionComponent {
+export class ProfileBibleSectionComponent implements OnInit {
   @Input() profileForm: any;
   @Input() languages: LanguageOption[] = [];
   @Input() availableBibles: BibleVersion[] = [];
@@ -41,5 +41,27 @@ export class ProfileBibleSectionComponent {
 
   @HostBinding('class.active') get isActive() {
     return this.active;
+  }
+
+  displayedToken = '';
+  tokenExists = false;
+
+  ngOnInit(): void {
+    if (this.profileForm?.esvApiToken) {
+      this.displayedToken = '********' + this.profileForm.esvApiToken.slice(-4);
+      this.tokenExists = true;
+    }
+  }
+
+  onTokenChange(value: string) {
+    if (this.tokenExists && value === this.displayedToken) {
+      return;
+    }
+    this.tokenExists = false;
+    this.displayedToken = value;
+    if (value && value.length >= 10) {
+      this.profileForm.esvApiToken = value;
+      this.fieldChange.emit();
+    }
   }
 }
