@@ -99,7 +99,24 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
   }
 
   get displayBibleVersion(): BibleVersion {
-    return this.isEsv() ? ESV_BIBLE_VERSION : (this.currentBibleVersion as BibleVersion);
+    // If using ESV API
+    if (this.isEsv()) {
+      return ESV_BIBLE_VERSION;
+    }
+
+    // If we have a current Bible version, use it
+    if (this.currentBibleVersion) {
+      return this.currentBibleVersion;
+    }
+
+    // Return a placeholder object when no translation is selected
+    return {
+      id: '',
+      name: 'No Translation Selected',
+      abbreviation: '',
+      isPublicDomain: true,
+      copyright: ''
+    };
   }
 
   get providerName(): string {
@@ -112,12 +129,14 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
       : 'https://scripture.api.bible';
   }
 
-  goToProfileSetup(): void {
-    this.router.navigate(['/profile'], { queryParams: { setup: 'bible' } });
-  }
-
   getCitationText(): string {
     const version = this.displayBibleVersion;
+
+    // Don't show citation text if no translation selected
+    if (!version.abbreviation) {
+      return '';
+    }
+
     if (version.isPublicDomain) {
       return `Scripture quotations from ${version.abbreviation} (Public Domain)`;
     }

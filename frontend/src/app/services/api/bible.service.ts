@@ -283,6 +283,38 @@ export class BibleService {
     this.currentBibleVersionSubject.next(version);
   }
 
+  setBibleVersionFromAbbreviation(abbreviation: string): void {
+    if (!abbreviation) {
+      this.currentBibleVersionSubject.next(null);
+      return;
+    }
+
+    // Map common abbreviations to full names
+    const versionMap: Record<string, string> = {
+      'KJV': 'King James Version',
+      'NIV': 'New International Version',
+      'ESV': 'English Standard Version',
+      'NASB': 'New American Standard Bible',
+      'NLT': 'New Living Translation',
+      'BSB': 'Berean Standard Bible',
+      'CSB': 'Christian Standard Bible',
+      'NKJV': 'New King James Version',
+      'RSV': 'Revised Standard Version',
+      'MSG': 'The Message',
+      'AMP': 'Amplified Bible'
+    };
+
+    const version: BibleVersion = {
+      id: abbreviation.toLowerCase(),
+      name: versionMap[abbreviation] || abbreviation,
+      abbreviation: abbreviation,
+      isPublicDomain: !['NIV', 'ESV', 'NLT', 'MSG', 'AMP', 'CSB'].includes(abbreviation),
+      copyright: abbreviation === 'ESV' ? '© 2016 Crossway Bibles.' : undefined
+    };
+
+    this.setCurrentBibleVersion(version);
+  }
+
   // ----- Bible Tracker Progress Methods (stub implementations) -----
 
   getUserReadingProgress(): Observable<{ [bookId: string]: BibleBook }> {
