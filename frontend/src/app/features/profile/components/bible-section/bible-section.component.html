@@ -56,9 +56,9 @@
       type="text"
       id="esvApiToken"
       class="form-control monospace"
-      [value]="esvTokenMasked || profileForm.esvApiToken"
-      (focus)="onEsvTokenFocus()"
+      [ngModel]="esvTokenDisplay"
       (ngModelChange)="onEsvTokenChange($event)"
+      (focus)="onEsvTokenFocus()"
       name="esvApiToken"
       placeholder="Enter your ESV API token"
       required

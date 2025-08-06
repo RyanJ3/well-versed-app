@@ -34,37 +34,42 @@ export class ProfileBibleSectionComponent implements OnChanges {
   @Input() loadingBibles = false;
   @Input() selectedBibleId = '';
   @Input() isEsvSelected = false;
-  @Input() esvTokenMasked = '';
   @Input() active = false;
   @Output() fieldChange = new EventEmitter<void>();
   @Output() languageChange = new EventEmitter<void>();
   @Output() bibleChange = new EventEmitter<void>();
 
-  private actualEsvToken = '';
+  // Display helpers for ESV token
+  esvTokenDisplay = '';
+  isTokenMasked = false;
 
   @HostBinding('class.active') get isActive() {
     return this.active;
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['profileForm'] && this.profileForm.esvApiToken) {
+    if (changes['profileForm'] && this.profileForm?.esvApiToken) {
       const token = this.profileForm.esvApiToken;
       if (token && token.length > 4) {
-        this.esvTokenMasked = '•'.repeat(token.length - 4) + token.slice(-4);
-        this.actualEsvToken = token;
+        this.esvTokenDisplay = '•'.repeat(token.length - 4) + token.slice(-4);
+        this.isTokenMasked = true;
+      } else {
+        this.esvTokenDisplay = token;
+        this.isTokenMasked = false;
       }
     }
   }
 
   onEsvTokenFocus() {
-    this.profileForm.esvApiToken = '';
-    this.esvTokenMasked = '';
+    if (this.isTokenMasked) {
+      this.esvTokenDisplay = '';
+      this.isTokenMasked = false;
+    }
   }
 
   onEsvTokenChange(value: string) {
-    if (value && value !== this.esvTokenMasked) {
-      this.profileForm.esvApiToken = value;
-      this.fieldChange.emit();
-    }
+    this.profileForm.esvApiToken = value;
+    this.esvTokenDisplay = value;
+    this.fieldChange.emit();
   }
 }
