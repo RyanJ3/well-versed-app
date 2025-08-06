@@ -94,6 +94,10 @@ export class CitationFooterComponent implements OnInit, OnDestroy {
     this.showTooltip = false;
   }
 
+  goToProfileSetup(): void {
+    this.router.navigate(['/profile'], { queryParams: { setup: 'bible' } });
+  }
+
   isEsv(): boolean {
     return this.useEsvApi;
   }

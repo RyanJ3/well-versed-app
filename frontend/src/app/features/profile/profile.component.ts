@@ -1,6 +1,6 @@
 // frontend/src/app/features/profile/profile.component.ts
-import { Component, OnInit, OnDestroy, HostListener, ViewEncapsulation } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, HostListener, ViewEncapsulation, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { ProfilePersonalSectionComponent } from './components/personal-section/personal-section.component';
@@ -119,6 +119,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   isSetupMode = false;
   showSetupBanner = false;
 
+  private isBrowser: boolean;
+
   // Language and Bible data
   languages: LanguageOption[] = [];
   availableBibles: BibleVersion[] = [];
@@ -160,8 +162,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private router: Router,
     private modalService: ModalService,
     private http: HttpClient,
-    private route: ActivatedRoute
-  ) { }
+    private route: ActivatedRoute,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngOnInit(): void {
     this.loadUserProfile();
@@ -621,11 +626,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
         }
         // Check if we came from setup mode and redirect
         if (this.isSetupMode && this.profileForm.preferredBible) {
-          const redirectUrl = sessionStorage.getItem('redirectAfterTranslation');
+          let redirectUrl: string | null = null;
+
+          // Only access sessionStorage if in browser
+          if (this.isBrowser) {
+            redirectUrl = sessionStorage.getItem('redirectAfterTranslation');
+            if (redirectUrl) {
+              sessionStorage.removeItem('redirectAfterTranslation');
+            }
+          }
+
           if (redirectUrl) {
-            sessionStorage.removeItem('redirectAfterTranslation');
             this.router.navigate([redirectUrl]);
           } else {
+            // Remove setup query param
             this.router.navigate([], {
               relativeTo: this.route,
               queryParams: {},

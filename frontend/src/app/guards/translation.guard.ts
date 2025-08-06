@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { CanActivate, Router, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { Observable } from 'rxjs';
 import { map, take } from 'rxjs/operators';
@@ -6,10 +7,15 @@ import { UserService } from '@services/api/user.service';
 
 @Injectable({ providedIn: 'root' })
 export class TranslationGuard implements CanActivate {
+  private isBrowser: boolean;
+
   constructor(
     private userService: UserService,
-    private router: Router
-  ) {}
+    private router: Router,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   canActivate(
     route: ActivatedRouteSnapshot,
@@ -19,8 +25,10 @@ export class TranslationGuard implements CanActivate {
       take(1),
       map(user => {
         if (!user?.preferredBible || user.preferredBible === '') {
-          // Store the attempted URL for later redirect
-          sessionStorage.setItem('redirectAfterTranslation', state.url);
+          // Store the attempted URL only if in browser
+          if (this.isBrowser) {
+            sessionStorage.setItem('redirectAfterTranslation', state.url);
+          }
           // Redirect to profile with setup flag
           return this.router.createUrlTree(['/profile'], {
             queryParams: { setup: 'bible' }
