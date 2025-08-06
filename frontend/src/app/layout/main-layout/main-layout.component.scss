@@ -2,32 +2,17 @@
 
 // App Container
 .app-container {
-  font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f9fafb;
   overflow: hidden;
-  padding-top: 60px; // Add padding for fixed header
 }
 
-// Main Content Area
 .app-content {
-  flex: 1;
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 20px;
-  overflow: scroll;
-  display: flex;
-  flex-direction: column;
-  
-  // Smooth page transitions
-  animation: fadeIn 0.4s ease;
-  
-  @media (max-width: 768px) {
-    padding: 20px 16px 16px; // Reduced top padding since container already has padding
-  }
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  padding-top: 60px;
 }
 
 // Footer

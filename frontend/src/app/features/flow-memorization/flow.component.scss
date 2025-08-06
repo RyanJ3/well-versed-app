@@ -1,9 +1,12 @@
 .flow-memorization-container {
-  height: 100vh;
+  height: 100%;  // Fill parent container
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
   overflow: hidden;
+  max-width: 1200px;  // Add max-width to center content
+  margin: 0 auto;     // Center the container
+  width: 100%;        // Full width up to max-width
 }
 
 // Header Section
@@ -11,6 +14,8 @@
   background: linear-gradient(to right, #3b82f6, #1d4ed8);
   color: white;
   flex-shrink: 0;
+  position: relative;  // Ensure proper stacking
+  z-index: 10;        // Above scrollable content
 
   .header-content {
     padding: 1.5rem 1.5rem 1rem;
@@ -255,6 +260,10 @@
   justify-content: space-between;
   border-bottom: 1px solid #e5e7eb;
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  overflow-x: auto;  // Allow horizontal scroll if needed for many chapters
+  overflow-y: hidden;
 
   .nav-btn {
     display: flex;
@@ -336,6 +345,10 @@
   align-items: center;
   gap: 1rem;
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+  overflow-x: auto;   // Allow horizontal scroll on mobile
+  overflow-y: hidden;
 
   .filters-label {
     font-size: 0.875rem;
@@ -388,6 +401,8 @@
   font-size: 0.875rem;
   color: #1d4ed8;
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 
   .clear-selection-btn {
     color: #3b82f6;
@@ -402,12 +417,37 @@
   }
 }
 
-// Main Content Area
+// Main Content Area - THIS IS WHERE THE SCROLLBAR WILL BE
 .verses-container {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: auto;    // Vertical scroll when needed
+  overflow-x: hidden;  // No horizontal scroll
   padding: 2rem;
   background-color: #f9fafb;
+  position: relative;  // For proper scrollbar positioning
+  
+  // Custom scrollbar styling - will appear within content area
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+  
+  &::-webkit-scrollbar {
+    width: 8px;  // Slightly wider for better visibility
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(243, 244, 246, 0.5);
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.6);
+    border-radius: 4px;
+    border: 1px solid rgba(243, 244, 246, 0.5);
+    
+    &:hover {
+      background-color: rgba(107, 114, 128, 0.7);
+    }
+  }
 
   .instructions {
     text-align: center;

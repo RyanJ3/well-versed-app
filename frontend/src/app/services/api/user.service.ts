@@ -93,8 +93,6 @@ export class UserService {
 
   // Helper method to convert API response (snake_case) to User model (camelCase)
   private mapApiResponseToUser(apiResponse: UserApiResponse): User {
-    console.log('Mapping API response:', apiResponse);
-
     // Convert include_apocrypha to a proper boolean if it exists
     const includeApocrypha = apiResponse.include_apocrypha !== undefined
       ? apiResponse.include_apocrypha === true

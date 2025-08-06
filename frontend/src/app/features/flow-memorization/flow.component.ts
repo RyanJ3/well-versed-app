@@ -189,9 +189,6 @@ export class FlowComponent implements OnInit, OnDestroy {
     // Setup save queue
     this.setupSaveQueue();
     
-    // Initialize sections
-    this.initializeSections();
-    
     // Subscribe to save notifications
     this.flowMemorizationService.savedNotification$
       .pipe(takeUntil(this.destroy$))
@@ -213,7 +210,6 @@ export class FlowComponent implements OnInit, OnDestroy {
         } else {
           // Load default chapter if no params
           console.log('No params, loading default chapter');
-          this.loadChapter(16, 9); // Nehemiah book ID and chapter 9
         }
       });
   }
@@ -381,21 +377,6 @@ export class FlowComponent implements OnInit, OnDestroy {
       .subscribe(verse => {
         this.flowMemorizationService.queueVerseSave(verse, this.userId);
       });
-  }
-
-  private initializeSections() {
-    // These sections are specific to Nehemiah 9 - in a real app, 
-    // sections would be loaded from backend based on the chapter
-    this.verseSections = [
-      { start: 0, end: 4, name: "Israel's Confession" },
-      { start: 5, end: 9, name: "God's Faithfulness" },
-      { start: 10, end: 14, name: "The Covenant" },
-      { start: 15, end: 19, name: "Desert Wanderings" },
-      { start: 20, end: 24, name: "Promised Land" },
-      { start: 25, end: 29, name: "Rebellion & Mercy" },
-      { start: 30, end: 34, name: "Current Distress" },
-      { start: 35, end: 37, name: "Commitment" }
-    ];
   }
 
   // Verse click handling
