@@ -206,14 +206,22 @@ export class FlowComponent implements OnInit, OnDestroy {
         console.log('Route params:', params);
         const bookId = params['bookId'] ? parseInt(params['bookId']) : null;
         const chapter = params['chapter'] ? parseInt(params['chapter']) : null;
-        
+
         if (bookId && chapter) {
           console.log('Loading chapter from params:', bookId, chapter);
           this.loadChapter(bookId, chapter);
         } else {
-          // Load default chapter if no params
-          console.log('No params, loading default chapter');
-          this.loadChapter(16, 9); // Nehemiah book ID and chapter 9
+          // Check for last selected chapter
+          const lastChapter = this.flowStateService.getLastChapter();
+
+          if (lastChapter) {
+            console.log('Loading last selected chapter:', lastChapter);
+            this.loadChapter(lastChapter.bookId, lastChapter.chapter);
+          } else {
+            // Default to Genesis 1
+            console.log('No last chapter, loading Genesis 1');
+            this.loadChapter(1, 1); // Genesis book ID is 1, chapter 1
+          }
         }
       });
   }
@@ -250,7 +258,10 @@ export class FlowComponent implements OnInit, OnDestroy {
     try {
       this.isLoading = true;
       this.currentChapter = chapterNum;
-      
+
+      // Save this as the last selected chapter
+      this.flowStateService.saveLastChapter(bookId, chapterNum);
+
       // Get book from Bible data
       const bibleData = this.bibleService.getBibleData();
       this.currentBook = bibleData.getBookById(bookId) || null;
