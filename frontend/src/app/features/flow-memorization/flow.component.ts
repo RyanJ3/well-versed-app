@@ -12,12 +12,16 @@ import { FlowParsingService } from '@services/utils/flow-parsing.service';
 import { FlowStateService } from './services/flow-state.service';
 import { FlowMemorizationService } from './services/flow-memorization.service';
 import { MemorizationModalComponent } from './memorization-modal/memorization-modal.component';
+import { ChapterNavigationComponent } from './components/chapter-navigation/chapter-navigation.component';
+import { FiltersBarComponent } from './components/filters-bar/filters-bar.component';
+import { FlowContextMenuComponent } from './components/context-menu/context-menu.component';
 
 import { BibleBook, BibleChapter, BibleVerse } from '@models/bible';
 import { AppState } from '@state/app.state';
 import { BibleMemorizationActions } from '@state/bible-tracker/actions/bible-memorization.actions';
 import { selectBibleDataWithProgress } from '@state/bible-tracker/selectors/bible-memorization.selectors';
 import { FlowVerse, ModalVerse } from './models/flow.models';
+import { ContextMenuData } from './models/context-menu-data.model';
 
 interface VerseSection {
   name: string;
@@ -31,18 +35,17 @@ interface ChapterProgress {
   lastStudied: string | null;
 }
 
-interface ContextMenuData {
-  visible: boolean;
-  x: number;
-  y: number;
-  verseId: string | null;
-  selectedCount: number;
-}
 
 @Component({
   selector: 'app-flow-memorization',
   standalone: true,
-  imports: [CommonModule, MemorizationModalComponent],
+  imports: [
+    CommonModule,
+    MemorizationModalComponent,
+    ChapterNavigationComponent,
+    FiltersBarComponent,
+    FlowContextMenuComponent
+  ],
   providers: [FlowStateService, FlowMemorizationService],
   templateUrl: './flow.component.html',
   styleUrls: ['./flow.component.scss'],
