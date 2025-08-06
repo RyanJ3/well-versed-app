@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { UserService } from '@services/api/user.service';
 import { User } from '@models/user';
+import { BibleService } from '@services/api/bible.service';
 
 @Component({
   selector: 'app-navigation',
@@ -18,15 +19,21 @@ export class NavigationComponent implements OnInit {
   learningMenuActive = false;
   profileMenuActive = false;
   currentUser: User | null = null;
+  currentBibleAbbr: string | null = null;
 
   constructor(
     private router: Router,
-    private userService: UserService
+    private userService: UserService,
+    private bibleService: BibleService
   ) { }
 
   ngOnInit() {
     this.userService.currentUser$.subscribe((user: User | null) => {
       this.currentUser = user;
+    });
+
+    this.bibleService.currentBibleVersion$.subscribe(version => {
+      this.currentBibleAbbr = version?.abbreviation || null;
     });
   }
 
@@ -106,5 +113,13 @@ export class NavigationComponent implements OnInit {
     this.userService.logout();
     this.closeMenu();
     this.router.navigate(['/']);
+  }
+
+  canAccessFeatures(): boolean {
+    return this.userService.hasValidTranslation();
+  }
+
+  navigateToProfileBible() {
+    this.router.navigate(['/profile'], { fragment: 'bible' });
   }
 }

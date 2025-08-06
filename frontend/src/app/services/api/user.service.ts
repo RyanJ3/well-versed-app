@@ -6,6 +6,7 @@ import { catchError, map, tap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { User, UserApiResponse, UserProfileUpdate } from '@models/user';
+import { BibleService, BibleVersion } from '@services/api/bible.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,22 +15,57 @@ export class UserService {
   private apiUrl = environment.apiUrl;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
+  private isBrowser: boolean;
 
   constructor(
     private http: HttpClient,
-    @Inject(PLATFORM_ID) platformId: Object
+    @Inject(PLATFORM_ID) platformId: Object,
+    private bibleService: BibleService
   ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+
+    if (this.isBrowser) {
+      const stored = localStorage.getItem('userPreferences');
+      if (stored) {
+        try {
+          const prefs: User = JSON.parse(stored);
+          this.currentUserSubject.next(prefs);
+          if (prefs.preferredBible) {
+            this.bibleService.setCurrentBibleVersion({
+              id: '',
+              name: prefs.preferredBible,
+              abbreviation: prefs.preferredBible,
+              isPublicDomain: prefs.preferredBible !== 'ESV'
+            });
+          }
+        } catch (e) {
+          console.error('Error parsing userPreferences from localStorage', e);
+        }
+      }
+    }
+
     // Initial check to load current user
     this.fetchCurrentUser();
   }
 
   fetchCurrentUser(): void {
-    // For testing, we'll use user ID 1
     this.http.get<UserApiResponse>(`${this.apiUrl}/users/1`).pipe(
       map(apiResponse => this.mapApiResponseToUser(apiResponse)),
+      map(user => this.checkAndMigrateUser(user)),
       tap(user => {
         console.log('Fetched user from API:', user);
         this.currentUserSubject.next(user);
+        if (user?.preferredBible) {
+          this.bibleService.setCurrentBibleVersion({
+            id: '',
+            name: user.preferredBible,
+            abbreviation: user.preferredBible,
+            isPublicDomain: user.preferredBible !== 'ESV'
+          });
+        }
+        if (this.isBrowser) {
+          localStorage.setItem('userPreferences', JSON.stringify(user));
+        }
       }),
       catchError(error => {
         console.error('Error fetching user:', error);
@@ -70,6 +106,17 @@ export class UserService {
       tap(updatedUser => {
         console.log('User updated successfully, mapped response:', updatedUser);
         this.currentUserSubject.next(updatedUser);
+        if (this.isBrowser) {
+          localStorage.setItem('userPreferences', JSON.stringify(updatedUser));
+        }
+        if (updatedUser.preferredBible) {
+          this.bibleService.setCurrentBibleVersion({
+            id: '',
+            name: updatedUser.preferredBible,
+            abbreviation: updatedUser.preferredBible,
+            isPublicDomain: updatedUser.preferredBible !== 'ESV'
+          });
+        }
       }),
       catchError(error => {
         console.error('Error updating user:', error);
@@ -80,6 +127,11 @@ export class UserService {
 
   logout(): void {
     this.currentUserSubject.next(null);
+  }
+
+  hasValidTranslation(): boolean {
+    const user = this.currentUserSubject.value;
+    return !!(user && user.preferredBible);
   }
 
   clearMemorizationData(): Observable<any> {
@@ -138,5 +190,17 @@ export class UserService {
 
     console.log('Mapped user:', mappedUser);
     return mappedUser;
+  }
+
+  checkAndMigrateUser(user: User): User {
+    const migrated = { ...user } as any;
+    if (migrated.preferred_bible && !migrated.preferredBible) {
+      migrated.preferredBible = migrated.preferred_bible;
+    }
+
+    if (migrated.preferredBible === 'KJV' && !localStorage.getItem('userSelectedBible')) {
+      migrated.preferredBible = null;
+    }
+    return migrated as User;
   }
 }

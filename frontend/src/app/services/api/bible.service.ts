@@ -45,12 +45,7 @@ export class BibleService {
   public esvRetry$ = this.esvRetrySubject.asObservable();
 
   // Current Bible version for citations
-  private currentBibleVersionSubject = new BehaviorSubject<BibleVersion>({
-    id: 'de4e12af7f28f599-02',
-    name: 'King James Version', 
-    abbreviation: 'KJV',
-    isPublicDomain: true
-  });
+  private currentBibleVersionSubject = new BehaviorSubject<BibleVersion | null>(null);
   public currentBibleVersion$ = this.currentBibleVersionSubject.asObservable();
 
   public preferences$ = this.preferencesSubject.asObservable();
@@ -62,6 +57,18 @@ export class BibleService {
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
     this.bibleData = new BibleData();
+
+    if (this.isBrowser) {
+      const stored = localStorage.getItem('currentBibleVersion');
+      if (stored) {
+        try {
+          const version: BibleVersion = JSON.parse(stored);
+          this.currentBibleVersionSubject.next(version);
+        } catch (e) {
+          console.error('Error parsing currentBibleVersion from localStorage', e);
+        }
+      }
+    }
   }
 
   getBibleData(): BibleData {
@@ -225,6 +232,11 @@ export class BibleService {
   getVerseTexts(userId: number, verseCodes: string[], bibleId?: string): Observable<Record<string, string>> {
     console.log(`Getting texts for ${verseCodes.length} verses`);
 
+    if (!this.currentBibleVersionSubject.value) {
+      console.warn('No Bible translation selected');
+      return of({});
+    }
+
     const cached = this.getCachedVerseTexts(verseCodes);
     if (cached) {
       return of(cached);
@@ -275,6 +287,13 @@ export class BibleService {
    */
   setCurrentBibleVersion(version: BibleVersion): void {
     this.currentBibleVersionSubject.next(version);
+    if (this.isBrowser) {
+      localStorage.setItem('currentBibleVersion', JSON.stringify(version));
+    }
+  }
+
+  hasValidVersion(): boolean {
+    return this.currentBibleVersionSubject.value !== null;
   }
 
   // ----- Bible Tracker Progress Methods (stub implementations) -----

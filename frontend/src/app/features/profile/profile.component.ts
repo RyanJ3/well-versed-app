@@ -539,6 +539,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
     console.log('Saving profile with data:', this.profileForm);
     this.isSaving = true;
 
+    const previousBible = this.user?.preferredBible;
+    const previousToken = this.user?.esvApiToken;
+
     const profileUpdate = {
       firstName: this.profileForm.firstName,
       lastName: this.profileForm.lastName,
@@ -558,6 +561,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
       next: (updatedUser: any) => {
         console.log('Profile updated successfully:', updatedUser);
 
+        // Determine if Bible translation changed
+        const bibleChanged = previousBible !== updatedUser.preferredBible;
+
         // Update local user reference
         this.user = updatedUser;
 
@@ -572,21 +578,27 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.bibleService.updateUserPreferences(updatedUser.includeApocrypha);
         }
 
-        // Update Bible version in service
-        if (this.profileForm.preferredBible) {
+        if (bibleChanged && updatedUser.preferredBible) {
           const selectedBible = this.availableBibles.find(
-            b => b.abbreviation === this.profileForm.preferredBible
+            b => b.abbreviation === updatedUser.preferredBible
           );
-
           if (selectedBible || this.isEsvSelected) {
             this.bibleService.setCurrentBibleVersion({
               id: selectedBible?.id || 'esv',
               name: selectedBible?.name || 'English Standard Version',
-              abbreviation: this.profileForm.preferredBible,
+              abbreviation: updatedUser.preferredBible,
               isPublicDomain: !this.isEsvSelected,
               copyright: selectedBible?.description || '© 2016 Crossway Bibles.'
             });
           }
+        }
+
+        if (this.isEsvSelected && updatedUser.esvApiToken) {
+          sessionStorage.setItem('esvApiToken', updatedUser.esvApiToken);
+          localStorage.setItem('esvConfigured', 'true');
+        } else if (previousToken) {
+          sessionStorage.removeItem('esvApiToken');
+          localStorage.removeItem('esvConfigured');
         }
 
         // Apply theme changes if any
