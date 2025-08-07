@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil, debounceTime, firstValueFrom, take } from 'rxjs';
@@ -21,6 +21,7 @@ import { BibleMemorizationActions } from '@state/bible-tracker/actions/bible-mem
 import { selectBibleDataWithProgress } from '@state/bible-tracker/selectors/bible-memorization.selectors';
 import { FlowVerse, ModalVerse } from './models/flow.models';
 import { ContextMenuData } from './models/context-menu-data.model';
+import { FlowParsingService } from '@services/utils/flow-parsing.service';
 
 interface VerseSection {
   name: string;
@@ -62,6 +63,8 @@ interface ChapterProgress {
 })
 export class FlowComponent implements OnInit, OnDestroy {
   @ViewChild('versesContainer') versesContainer!: ElementRef<HTMLDivElement>;
+
+  private flowParsingService: FlowParsingService = inject(FlowParsingService);
 
   // Core data
   verses: FlowVerse[] = [];
@@ -136,10 +139,13 @@ export class FlowComponent implements OnInit, OnDestroy {
     return this.verses.filter(v => this.needsReview(v.verseCode)).length;
   }
 
-  get progressPercentage(): number {
-    if (this.verses.length === 0) return 0;
-    return Math.round((this.memorizedVersesCount / this.verses.length) * 100);
-  }
+  
+get progressPercentage(): number {
+  if (!this.currentBook) return 0;
+  const total = this.currentBook.totalVerses;
+  const memorized = this.currentBook.memorizedVerses;
+  return total > 0 ? Math.round((memorized / total) * 100) : 0;
+}
 
   get progressBarWidth(): number {
     if (this.verses.length === 0) return 0;
@@ -168,7 +174,6 @@ export class FlowComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private flowStateService: FlowStateService,
     private flowMemorizationService: FlowMemorizationService,
-    private flowParsingService: FlowParsingService,
     private notificationService: NotificationService
   ) {}
 
@@ -585,7 +590,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   getAllBooksWithProgress(): any[] {
     // Get all books from BibleService with progress data
     const bibleData = this.bibleService.getBibleData();
-    const books = bibleData.getAllBooks();
+    const books = bibleData.books;
 
     return books.map(book => {
       let totalMemorized = 0;
