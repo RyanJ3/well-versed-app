@@ -8,13 +8,13 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { BibleService } from '@services/api/bible.service';
 import { UserService } from '@services/api/user.service';
 import { NotificationService } from '@services/utils/notification.service';
-import { FlowParsingService } from '@services/utils/flow-parsing.service';
 import { FlowStateService } from './services/flow-state.service';
 import { FlowMemorizationService } from './services/flow-memorization.service';
 import { MemorizationModalComponent } from './memorization-modal/memorization-modal.component';
 import { ChapterNavigationComponent } from './components/chapter-navigation/chapter-navigation.component';
 import { FiltersBarComponent } from './components/filters-bar/filters-bar.component';
 import { FlowContextMenuComponent } from './components/context-menu/context-menu.component';
+import { FlowHeaderComponent } from './components/flow-header/flow-header.component';
 
 import { BibleBook, BibleChapter, BibleVerse } from '@models/bible';
 import { AppState } from '@state/app.state';
@@ -44,7 +44,8 @@ interface ChapterProgress {
     MemorizationModalComponent,
     ChapterNavigationComponent,
     FiltersBarComponent,
-    FlowContextMenuComponent
+    FlowContextMenuComponent,
+    FlowHeaderComponent
   ],
   providers: [FlowStateService, FlowMemorizationService],
   templateUrl: './flow.component.html',
@@ -581,6 +582,26 @@ export class FlowComponent implements OnInit, OnDestroy {
     const start = Math.max(1, this.currentChapter - 2);
     const end = Math.min(this.availableChapters.length, this.currentChapter + 2);
     return this.availableChapters.slice(start - 1, end);
+  }
+
+  getAllBooksWithProgress(): any[] {
+    // This should come from your BibleService
+    // For now, return mock data - replace with real data
+    return [
+      { id: 1, name: 'Genesis', testament: 'OT', totalChapters: 50, progressPercentage: 70 },
+      { id: 2, name: 'Exodus', testament: 'OT', totalChapters: 40, progressPercentage: 23 },
+      { id: 3, name: 'Leviticus', testament: 'OT', totalChapters: 27, progressPercentage: 0 },
+      { id: 40, name: 'Matthew', testament: 'NT', totalChapters: 28, progressPercentage: 45 },
+      { id: 41, name: 'Mark', testament: 'NT', totalChapters: 16, progressPercentage: 80 },
+    ];
+  }
+
+  changeBook(bookId: number) {
+    // Navigate to the new book
+    this.router.navigate([], {
+      queryParams: { bookId, chapter: 1 },
+      queryParamsHandling: 'merge'
+    });
   }
 
   // Settings
