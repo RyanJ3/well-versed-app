@@ -1,0 +1,151 @@
+<div class="flow-header-gradient">
+  <!-- Animated background mesh -->
+  <div class="animated-mesh"></div>
+  
+  <!-- Main header content -->
+  <div class="header-glass-container">
+    
+    <!-- Left Section: Book Info & Progress -->
+    <div class="header-left-section">
+      
+      <!-- Book Selector -->
+      <div class="book-selector-glass">
+        <span class="book-icon">📚</span>
+        <span class="book-title">{{ currentBook?.name || 'Genesis' }}</span>
+        <span class="dropdown-arrow">▼</span>
+      </div>
+      
+      <!-- Progress Container -->
+      <div class="progress-stats-container">
+        
+        <!-- Progress Ring -->
+        <div class="progress-ring">
+          <svg width="80" height="80">
+            <defs>
+              <linearGradient id="gradient-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#34d399" />
+                <stop offset="100%" stop-color="#10b981" />
+              </linearGradient>
+            </defs>
+            <circle cx="40" cy="40" r="36" class="ring-bg"></circle>
+            <circle cx="40" cy="40" r="36" class="ring-fill" 
+                    [attr.stroke-dasharray]="progressCircumference" 
+                    [attr.stroke-dashoffset]="progressOffset"></circle>
+          </svg>
+          <div class="ring-percentage">{{ progressPercentage }}%</div>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="stats-cards">
+          <div class="stat-card-glass">
+            <span class="stat-label">Chapters</span>
+            <span class="stat-value">{{ chaptersWithProgress }} / {{ totalChapters }}</span>
+          </div>
+          <div class="stat-card-glass">
+            <span class="stat-label">Verses</span>
+            <span class="stat-value">{{ memorizedVersesCount }} / {{ totalVerses }}</span>
+          </div>
+          <div class="stat-card-glass">
+            <span class="stat-label">Complete</span>
+            <span class="stat-value">{{ completedChaptersCount }} chapters</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="action-buttons-glass">
+        <button class="btn-glass-action toggle-text" (click)="toggleTextMode.emit()">
+          <svg *ngIf="!showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <svg *ngIf="showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+          </svg>
+          {{ showFullText ? 'Show FLOW' : 'Show Full Text' }}
+        </button>
+        
+        <button class="btn-glass-action primary" (click)="onStartButtonClick()">
+          <svg *ngIf="selectedVersesCount === 0" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <svg *ngIf="selectedVersesCount > 0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+          </svg>
+          <span *ngIf="selectedVersesCount === 0">Start Full Chapter</span>
+          <span *ngIf="selectedVersesCount > 0">Study {{ selectedVersesCount }} Selected</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Right Section: Chapters Grid -->
+    <div class="chapters-section">
+      
+      <!-- Filter Controls -->
+      <div class="chapters-controls-bar">
+        <div class="filter-pills">
+          <button 
+            class="filter-pill" 
+            [class.active]="activeChapterFilter === 'all'"
+            (click)="setChapterFilter('all')"
+          >
+            All
+          </button>
+          <button 
+            class="filter-pill" 
+            [class.active]="activeChapterFilter === 'inProgress'"
+            (click)="setChapterFilter('inProgress')"
+          >
+            In Progress
+          </button>
+          <button 
+            class="filter-pill" 
+            [class.active]="activeChapterFilter === 'completed'"
+            (click)="setChapterFilter('completed')"
+          >
+            Completed
+          </button>
+        </div>
+        
+        <div class="chapter-count">
+          <span>{{ filteredChapters.length }} chapters</span>
+        </div>
+      </div>
+      
+      <!-- Chapters Grid -->
+      <div class="chapters-grid-glass">
+        <div 
+          *ngFor="let chapter of visibleChapters"
+          class="chapter-card-glass"
+          [class.current]="chapter.isCurrent"
+          [class.completed]="chapter.isCompleted"
+          (click)="onChapterClick(chapter.number)"
+        >
+          <div class="completed-icon" *ngIf="chapter.isCompleted">✓</div>
+          <div class="ch-number">Ch {{ chapter.number }}</div>
+          <div class="progress-bar-mini">
+            <div 
+              class="progress-fill-mini" 
+              [style.width.%]="chapter.progressPercentage"
+              [style.background]="chapter.isCurrent ? 'white' : null"
+            ></div>
+          </div>
+          <div class="ch-verses">
+            {{ chapter.memorizedVerses }}/{{ chapter.totalVerses }} verses
+          </div>
+        </div>
+        
+        <!-- Show more indicator if there are more chapters -->
+        <div 
+          *ngIf="filteredChapters.length > 10" 
+          class="more-chapters-indicator"
+        >
+          +{{ filteredChapters.length - 10 }} more
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>

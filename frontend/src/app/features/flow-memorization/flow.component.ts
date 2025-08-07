@@ -15,6 +15,7 @@ import { MemorizationModalComponent } from './memorization-modal/memorization-mo
 import { ChapterNavigationComponent } from './components/chapter-navigation/chapter-navigation.component';
 import { FiltersBarComponent } from './components/filters-bar/filters-bar.component';
 import { FlowContextMenuComponent } from './components/context-menu/context-menu.component';
+import { FlowHeaderComponent } from './components/flow-header/flow-header.component';
 
 import { BibleBook, BibleChapter, BibleVerse } from '@models/bible';
 import { AppState } from '@state/app.state';
@@ -44,7 +45,8 @@ interface ChapterProgress {
     MemorizationModalComponent,
     ChapterNavigationComponent,
     FiltersBarComponent,
-    FlowContextMenuComponent
+    FlowContextMenuComponent,
+    FlowHeaderComponent
   ],
   providers: [FlowStateService, FlowMemorizationService],
   templateUrl: './flow.component.html',
