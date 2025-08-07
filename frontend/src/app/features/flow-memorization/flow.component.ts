@@ -749,6 +749,28 @@ export class FlowComponent implements OnInit, OnDestroy {
     return this.progressPercentage >= milestone;
   }
 
+  getAllBooksWithProgress(): any[] {
+    // This should come from your BibleService
+    // For now, return mock data - replace with real data
+    return [
+      { id: 1, name: 'Genesis', testament: 'OT', totalChapters: 50, progressPercentage: 70 },
+      { id: 2, name: 'Exodus', testament: 'OT', totalChapters: 40, progressPercentage: 23 },
+      { id: 3, name: 'Leviticus', testament: 'OT', totalChapters: 27, progressPercentage: 0 },
+      // ... more books
+      { id: 40, name: 'Matthew', testament: 'NT', totalChapters: 28, progressPercentage: 45 },
+      { id: 41, name: 'Mark', testament: 'NT', totalChapters: 16, progressPercentage: 80 },
+      // ... more books
+    ];
+  }
+
+  changeBook(bookId: number) {
+    // Navigate to the new book
+    this.router.navigate([], {
+      queryParams: { bookId, chapter: 1 },
+      queryParamsHandling: 'merge'
+    });
+  }
+
   private showSaveNotification() {
     this.showEncouragement = 'Progress saved!';
     setTimeout(() => this.showEncouragement = '', 2000);

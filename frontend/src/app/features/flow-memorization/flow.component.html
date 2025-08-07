@@ -11,10 +11,12 @@
     [showFullText]="showFullText"
     [chapterProgress]="chapterProgress"
     [availableChapters]="availableChapters"
+    [allBooks]="getAllBooksWithProgress()"
     (toggleTextMode)="toggleTextMode()"
     (startFullChapter)="startFullChapter()"
     (startStudySession)="startStudySession()"
     (changeChapter)="changeChapter($event)"
+    (changeBook)="changeBook($event)"
   ></app-flow-header>
 
   <!-- Encouragement Message (keep as is) -->

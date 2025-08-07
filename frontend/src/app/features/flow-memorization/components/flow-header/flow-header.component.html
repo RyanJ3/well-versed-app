@@ -1,5 +1,5 @@
-<div class="flow-header-gradient">
-  <!-- Animated background mesh -->
+<div class="flow-header-glass">
+  <!-- Subtle animated mesh background -->
   <div class="animated-mesh"></div>
   
   <!-- Main header content -->
@@ -8,11 +8,100 @@
     <!-- Left Section: Book Info & Progress -->
     <div class="header-left-section">
       
-      <!-- Book Selector -->
-      <div class="book-selector-glass">
-        <span class="book-icon">📚</span>
-        <span class="book-title">{{ currentBook?.name || 'Genesis' }}</span>
-        <span class="dropdown-arrow">▼</span>
+      <!-- Book Selector with Testament Filter -->
+      <div class="book-selector-wrapper">
+        <!-- Testament Filter -->
+        <div class="testament-filter">
+          <button 
+            [class.active]="testamentFilter === 'ALL'"
+            (click)="setTestamentFilter('ALL')"
+          >
+            ALL
+          </button>
+          <button 
+            [class.active]="testamentFilter === 'OT'"
+            (click)="setTestamentFilter('OT')"
+          >
+            OT
+          </button>
+          <button 
+            [class.active]="testamentFilter === 'NT'"
+            (click)="setTestamentFilter('NT')"
+          >
+            NT
+          </button>
+          <button 
+            [class.active]="testamentFilter === 'APO'"
+            (click)="setTestamentFilter('APO')"
+          >
+            APO
+          </button>
+        </div>
+        
+        <!-- Book Selector -->
+        <div class="book-selector-glass" (click)="toggleBookDropdown()">
+          <span class="book-icon">📚</span>
+          <span class="book-title">{{ currentBook?.name || 'Select Book' }}</span>
+          <span class="dropdown-arrow" [class.open]="showBookDropdown">▼</span>
+        </div>
+        
+        <!-- Book Dropdown -->
+        <div class="book-dropdown" *ngIf="showBookDropdown">
+          <div class="dropdown-section" *ngIf="booksByTestament.OT.length > 0">
+            <div class="dropdown-header">Old Testament</div>
+            <div class="book-list">
+              <div 
+                *ngFor="let book of booksByTestament.OT"
+                class="book-item"
+                [class.current]="book.id === currentBook?.id"
+                (click)="onBookSelect(book.id)"
+              >
+                <span class="book-name">{{ book.name }}</span>
+                <span class="book-progress">{{ book.progressPercentage }}%</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="dropdown-section" *ngIf="booksByTestament.NT.length > 0">
+            <div class="dropdown-header">New Testament</div>
+            <div class="book-list">
+              <div 
+                *ngFor="let book of booksByTestament.NT"
+                class="book-item"
+                [class.current]="book.id === currentBook?.id"
+                (click)="onBookSelect(book.id)"
+              >
+                <span class="book-name">{{ book.name }}</span>
+                <span class="book-progress">{{ book.progressPercentage }}%</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="dropdown-section" *ngIf="booksByTestament.APO.length > 0">
+            <div class="dropdown-header">Apocrypha</div>
+            <div class="book-list">
+              <div 
+                *ngFor="let book of booksByTestament.APO"
+                class="book-item"
+                [class.current]="book.id === currentBook?.id"
+                (click)="onBookSelect(book.id)"
+              >
+                <span class="book-name">{{ book.name }}</span>
+                <span class="book-progress">{{ book.progressPercentage }}%</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="dropdown-section recently-studied">
+            <div class="dropdown-header">Recently Studied</div>
+            <div class="recent-list">
+              <div *ngFor="let recent of recentlyStudied" class="recent-item">
+                <span class="recent-book">{{ recent.bookName }} Ch {{ recent.chapter }}</span>
+                <span class="recent-time">{{ recent.timeAgo }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       
       <!-- Progress Container -->
@@ -43,7 +132,7 @@
           </div>
           <div class="stat-card-glass">
             <span class="stat-label">Verses</span>
-            <span class="stat-value">{{ memorizedVersesCount }} / {{ totalVerses }}</span>
+            <span class="stat-value">{{ memorizedBookVerses }} / {{ totalBookVerses }}</span>
           </div>
           <div class="stat-card-glass">
             <span class="stat-label">Complete</span>
@@ -109,13 +198,16 @@
           </button>
         </div>
         
-        <div class="chapter-count">
-          <span>{{ filteredChapters.length }} chapters</span>
+        <div class="chapter-controls-right">
+          <span class="chapter-count">{{ filteredChapters.length }} chapters</span>
+          <button class="view-toggle-btn" (click)="toggleChapterView()" title="Change view">
+            {{ getViewModeIcon() }}
+          </button>
         </div>
       </div>
       
-      <!-- Chapters Grid -->
-      <div class="chapters-grid-glass">
+      <!-- Chapters Grid View -->
+      <div class="chapters-grid-glass" *ngIf="chapterViewMode === 'grid'">
         <div 
           *ngFor="let chapter of visibleChapters"
           class="chapter-card-glass"
@@ -133,16 +225,68 @@
             ></div>
           </div>
           <div class="ch-verses">
-            {{ chapter.memorizedVerses }}/{{ chapter.totalVerses }} verses
+            {{ chapter.memorizedVerses }}/{{ chapter.totalVerses }}
+          </div>
+          <div class="ch-last-studied" *ngIf="chapter.lastStudied">
+            {{ chapter.lastStudied }}
           </div>
         </div>
-        
-        <!-- Show more indicator if there are more chapters -->
+      </div>
+      
+      <!-- Chapters Row View -->
+      <div class="chapters-list-glass" *ngIf="chapterViewMode === 'row'">
         <div 
-          *ngIf="filteredChapters.length > 10" 
-          class="more-chapters-indicator"
+          *ngFor="let chapter of visibleChapters"
+          class="chapter-row"
+          [class.current]="chapter.isCurrent"
+          [class.completed]="chapter.isCompleted"
+          (click)="onChapterClick(chapter.number)"
         >
-          +{{ filteredChapters.length - 10 }} more
+          <div class="row-number">Ch {{ chapter.number }}</div>
+          <div class="row-progress">
+            <div class="progress-bar-row">
+              <div 
+                class="progress-fill-row" 
+                [style.width.%]="chapter.progressPercentage"
+              ></div>
+            </div>
+          </div>
+          <div class="row-stats">
+            <span class="verses-count">{{ chapter.memorizedVerses }}/{{ chapter.totalVerses }}</span>
+            <span class="percentage">{{ chapter.progressPercentage }}%</span>
+          </div>
+          <div class="row-last-studied" *ngIf="chapter.lastStudied">
+            {{ chapter.lastStudied }}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Chapters List View -->
+      <div class="chapters-detailed-glass" *ngIf="chapterViewMode === 'list'">
+        <div 
+          *ngFor="let chapter of visibleChapters"
+          class="chapter-list-item"
+          [class.current]="chapter.isCurrent"
+          [class.completed]="chapter.isCompleted"
+          (click)="onChapterClick(chapter.number)"
+        >
+          <div class="list-header">
+            <span class="list-number">Chapter {{ chapter.number }}</span>
+            <span class="list-badge" *ngIf="chapter.isCurrent">Current</span>
+            <span class="list-badge completed" *ngIf="chapter.isCompleted">Complete</span>
+          </div>
+          <div class="list-progress">
+            <div class="progress-bar-list">
+              <div 
+                class="progress-fill-list" 
+                [style.width.%]="chapter.progressPercentage"
+              ></div>
+            </div>
+          </div>
+          <div class="list-footer">
+            <span>{{ chapter.memorizedVerses }} of {{ chapter.totalVerses }} verses ({{ chapter.progressPercentage }}%)</span>
+            <span class="last-studied" *ngIf="chapter.lastStudied">Last studied: {{ chapter.lastStudied }}</span>
+          </div>
         </div>
       </div>
     </div>
