@@ -75,9 +75,9 @@ export class FlowHeaderComponent {
     }
   }
 
-  // Progress ring calculations
+  // LARGER Progress ring calculations for more prominent display
   get progressCircumference(): number {
-    return 2 * Math.PI * 36; // radius = 36
+    return 2 * Math.PI * 54; // INCREASED radius from 36 to 54
   }
 
   get progressOffset(): number {
@@ -102,12 +102,6 @@ export class FlowHeaderComponent {
     return Object.values(this.chapterProgress).reduce((sum, ch: any) => 
       sum + (ch.memorized || 0), 0
     );
-  }
-
-  get completedChaptersCount(): number {
-    return Object.values(this.chapterProgress).filter((ch: any) => 
-      ch.total > 0 && ch.memorized === ch.total
-    ).length;
   }
 
   get chaptersWithProgress(): number {
@@ -161,6 +155,9 @@ export class FlowHeaderComponent {
 
   // Filter books by testament
   get filteredBooks(): BookWithProgress[] {
+    if (!this.allBooks || this.allBooks.length === 0) {
+      return [];
+    }
     if (this.testamentFilter === 'ALL') return this.allBooks;
     return this.allBooks.filter(book => 
       book.testament === this.testamentFilter
@@ -169,6 +166,9 @@ export class FlowHeaderComponent {
 
   // Get books grouped by testament for dropdown
   get booksByTestament() {
+    if (!this.allBooks || this.allBooks.length === 0) {
+      return { OT: [], NT: [], APO: [] };
+    }
     const otBooks = this.allBooks.filter(b => b.testament === 'OT');
     const ntBooks = this.allBooks.filter(b => b.testament === 'NT');
     const apoBooks = this.allBooks.filter(b => b.testament === 'APO');
@@ -178,6 +178,16 @@ export class FlowHeaderComponent {
       NT: ntBooks,
       APO: apoBooks
     };
+  }
+
+  // Calculate pie chart values for chapter cards
+  getChapterPieCircumference(): number {
+    return 2 * Math.PI * 18; // radius for small pie charts
+  }
+
+  getChapterPieOffset(percentage: number): number {
+    const circumference = this.getChapterPieCircumference();
+    return circumference - (percentage / 100) * circumference;
   }
 
   setChapterFilter(filter: 'all' | 'inProgress' | 'completed'): void {
@@ -198,6 +208,7 @@ export class FlowHeaderComponent {
     this.showBookDropdown = !this.showBookDropdown;
   }
 
+  // FIX: Properly emit chapter change event
   onChapterClick(chapterNumber: number): void {
     if (chapterNumber !== this.currentChapter) {
       this.changeChapter.emit(chapterNumber);
@@ -219,10 +230,10 @@ export class FlowHeaderComponent {
 
   getViewModeIcon(): string {
     switch (this.chapterViewMode) {
-      case 'grid': return '⊎';
+      case 'grid': return '⊞';
       case 'row': return '☰';
       case 'list': return '⋮⋮';
-      default: return '⊎';
+      default: return '⊞';
     }
   }
 }

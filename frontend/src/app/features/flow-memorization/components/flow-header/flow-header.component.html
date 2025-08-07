@@ -106,25 +106,25 @@
       
       <!-- Progress Container -->
       <div class="progress-stats-container">
-        
-        <!-- Progress Ring -->
-        <div class="progress-ring">
-          <svg width="80" height="80">
+  
+        <!-- LARGER Progress Ring -->
+        <div class="progress-ring-large">
+          <svg width="120" height="120">
             <defs>
               <linearGradient id="gradient-ring" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stop-color="#34d399" />
                 <stop offset="100%" stop-color="#10b981" />
               </linearGradient>
             </defs>
-            <circle cx="40" cy="40" r="36" class="ring-bg"></circle>
-            <circle cx="40" cy="40" r="36" class="ring-fill" 
+            <circle cx="60" cy="60" r="54" class="ring-bg"></circle>
+            <circle cx="60" cy="60" r="54" class="ring-fill" 
                     [attr.stroke-dasharray]="progressCircumference" 
                     [attr.stroke-dashoffset]="progressOffset"></circle>
           </svg>
           <div class="ring-percentage">{{ progressPercentage }}%</div>
         </div>
-        
-        <!-- Stats Cards -->
+  
+        <!-- Stats Cards (removed Complete stat) -->
         <div class="stats-cards">
           <div class="stat-card-glass">
             <span class="stat-label">Chapters</span>
@@ -133,10 +133,6 @@
           <div class="stat-card-glass">
             <span class="stat-label">Verses</span>
             <span class="stat-value">{{ memorizedBookVerses }} / {{ totalBookVerses }}</span>
-          </div>
-          <div class="stat-card-glass">
-            <span class="stat-label">Complete</span>
-            <span class="stat-value">{{ completedChaptersCount }} chapters</span>
           </div>
         </div>
       </div>
@@ -217,13 +213,26 @@
         >
           <div class="completed-icon" *ngIf="chapter.isCompleted">✓</div>
           <div class="ch-number">Ch {{ chapter.number }}</div>
-          <div class="progress-bar-mini">
-            <div 
-              class="progress-fill-mini" 
-              [style.width.%]="chapter.progressPercentage"
-              [style.background]="chapter.isCurrent ? 'white' : null"
-            ></div>
+          
+          <!-- PIE CHART instead of progress bar for grid mode -->
+          <div class="chapter-pie-chart">
+            <svg width="40" height="40">
+              <defs>
+                <linearGradient [id]="'ch-gradient-' + chapter.number" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" [attr.stop-color]="chapter.isCurrent ? '#fff' : '#667eea'" />
+                  <stop offset="100%" [attr.stop-color]="chapter.isCurrent ? '#fff' : '#764ba2'" />
+                </linearGradient>
+              </defs>
+              <circle cx="20" cy="20" r="18" class="pie-bg"></circle>
+              <circle cx="20" cy="20" r="18" class="pie-fill"
+                      [attr.stroke]="chapter.isCurrent ? '#fff' : 'url(#ch-gradient-' + chapter.number + ')'
+                        "
+                      [attr.stroke-dasharray]="getChapterPieCircumference()" 
+                      [attr.stroke-dashoffset]="getChapterPieOffset(chapter.progressPercentage)"></circle>
+            </svg>
+            <div class="pie-percentage">{{ chapter.progressPercentage }}%</div>
           </div>
+          
           <div class="ch-verses">
             {{ chapter.memorizedVerses }}/{{ chapter.totalVerses }}
           </div>

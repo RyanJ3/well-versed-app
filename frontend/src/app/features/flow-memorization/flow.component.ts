@@ -11,7 +11,6 @@ import { NotificationService } from '@services/utils/notification.service';
 import { FlowStateService } from './services/flow-state.service';
 import { FlowMemorizationService } from './services/flow-memorization.service';
 import { MemorizationModalComponent } from './memorization-modal/memorization-modal.component';
-import { ChapterNavigationComponent } from './components/chapter-navigation/chapter-navigation.component';
 import { FiltersBarComponent } from './components/filters-bar/filters-bar.component';
 import { FlowContextMenuComponent } from './components/context-menu/context-menu.component';
 import { FlowHeaderComponent } from './components/flow-header/flow-header.component';
@@ -42,7 +41,6 @@ interface ChapterProgress {
   imports: [
     CommonModule,
     MemorizationModalComponent,
-    ChapterNavigationComponent,
     FiltersBarComponent,
     FlowContextMenuComponent,
     FlowHeaderComponent
@@ -585,19 +583,39 @@ export class FlowComponent implements OnInit, OnDestroy {
   }
 
   getAllBooksWithProgress(): any[] {
-    // This should come from your BibleService
-    // For now, return mock data - replace with real data
-    return [
-      { id: 1, name: 'Genesis', testament: 'OT', totalChapters: 50, progressPercentage: 70 },
-      { id: 2, name: 'Exodus', testament: 'OT', totalChapters: 40, progressPercentage: 23 },
-      { id: 3, name: 'Leviticus', testament: 'OT', totalChapters: 27, progressPercentage: 0 },
-      { id: 40, name: 'Matthew', testament: 'NT', totalChapters: 28, progressPercentage: 45 },
-      { id: 41, name: 'Mark', testament: 'NT', totalChapters: 16, progressPercentage: 80 },
-    ];
+    // Get all books from BibleService with progress data
+    const bibleData = this.bibleService.getBibleData();
+    const books = bibleData.getAllBooks();
+
+    return books.map(book => {
+      let totalMemorized = 0;
+      let totalVerses = 0;
+
+      // Calculate progress for each book
+      for (let i = 1; i <= book.totalChapters; i++) {
+        const chapter = book.getChapter(i);
+        if (chapter) {
+          totalVerses += chapter.totalVerses;
+          totalMemorized += chapter.memorizedVerses;
+        }
+      }
+
+      const progressPercentage = totalVerses > 0
+        ? Math.round((totalMemorized / totalVerses) * 100)
+        : 0;
+
+      return {
+        id: book.id,
+        name: book.name,
+        testament: book.testament || 'OT', // Add testament property to your Book model
+        totalChapters: book.totalChapters,
+        progressPercentage
+      };
+    });
   }
 
   changeBook(bookId: number) {
-    // Navigate to the new book
+    // Navigate to the new book at chapter 1
     this.router.navigate([], {
       queryParams: { bookId, chapter: 1 },
       queryParamsHandling: 'merge'

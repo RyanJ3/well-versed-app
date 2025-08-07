@@ -250,48 +250,49 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  
-  .progress-ring {
+
+  .progress-ring-large {
     position: relative;
-    width: 80px;
-    height: 80px;
+    width: 120px;  // Increased from 80px
+    height: 120px; // Increased from 80px
     flex-shrink: 0;
-    
+
     svg {
       transform: rotate(-90deg);
-      filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.15));
+      filter: drop-shadow(0 6px 20px rgba(16, 185, 129, 0.2));
     }
-    
+
     .ring-bg {
       fill: none;
       stroke: rgba(16, 185, 129, 0.1);
-      stroke-width: 8;
+      stroke-width: 10; // Increased from 8
     }
-    
+
     .ring-fill {
       fill: none;
       stroke: url(#gradient-ring);
-      stroke-width: 8;
+      stroke-width: 10; // Increased from 8
       stroke-linecap: round;
       transition: stroke-dashoffset 0.5s ease;
     }
-    
+
     .ring-percentage {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 22px;
+      font-size: 28px; // Increased from 22px
       font-weight: 700;
       color: #059669;
     }
   }
-  
+
   .stats-cards {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 14px; // Increased gap
+    justify-content: center; // Center vertically since we have fewer items
   }
 }
 
@@ -484,7 +485,7 @@
   transition: all 0.3s;
   position: relative;
   overflow: hidden;
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -496,40 +497,40 @@
     transform: scaleX(0);
     transition: transform 0.3s;
   }
-  
+
   &:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 16px rgba(102, 126, 234, 0.12);
     border-color: #667eea;
-    
+
     &::before {
       transform: scaleX(1);
     }
   }
-  
+
   &.current {
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
     border-color: transparent;
     box-shadow: 0 6px 16px rgba(102, 126, 234, 0.25);
     animation: pulse-glow 2s infinite;
-    
+
     .ch-verses,
     .ch-last-studied {
       color: white;
       opacity: 0.9;
     }
   }
-  
+
   &.completed {
     background: linear-gradient(135deg, #d1fae5, #a7f3d0);
     border-color: #10b981;
-    
+
     .ch-verses {
       color: #059669;
     }
   }
-  
+
   .completed-icon {
     position: absolute;
     top: -4px;
@@ -546,35 +547,68 @@
     border: 2px solid white;
     box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
   }
-  
+
   .ch-number {
     font-size: 14px;
     font-weight: 700;
     margin-bottom: 4px;
     color: #374151;
   }
-  
-  .progress-bar-mini {
-    height: 5px;
-    background: rgba(229, 231, 235, 0.5);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: 4px;
+
+  .chapter-pie-chart {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    margin: 8px auto;
+
+    svg {
+      transform: rotate(-90deg);
+    }
+
+    .pie-bg {
+      fill: none;
+      stroke: rgba(229, 231, 235, 0.5);
+      stroke-width: 4;
+    }
+
+    .pie-fill {
+      fill: none;
+      stroke-width: 4;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.5s ease;
+    }
+
+    .pie-percentage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 10px;
+      font-weight: 700;
+      color: #374151;
+    }
   }
-  
-  .progress-fill-mini {
-    height: 100%;
-    background: linear-gradient(90deg, #667eea, #764ba2);
-    border-radius: 3px;
-    transition: width 0.5s ease;
+
+  &.current {
+    .pie-percentage {
+      color: white;
+    }
   }
-  
+
+  &.completed {
+    .chapter-pie-chart {
+      .pie-fill {
+        stroke: #10b981 !important;
+      }
+    }
+  }
+
   .ch-verses {
     font-size: 10px;
     color: #6b7280;
     margin-bottom: 2px;
   }
-  
+
   .ch-last-studied {
     font-size: 9px;
     color: #9ca3af;
@@ -785,6 +819,18 @@
       font-style: italic;
       color: #9ca3af;
     }
+  }
+}
+
+// Make chapter cards clickable with better cursor feedback
+.chapter-card-glass,
+.chapter-row,
+.chapter-list-item {
+  cursor: pointer;
+  user-select: none;
+
+  &:active {
+    transform: scale(0.98);
   }
 }
 

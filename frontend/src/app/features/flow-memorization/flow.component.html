@@ -1,5 +1,5 @@
 <div class="flow-memorization-container" (mouseup)="handleMouseUp()">
-  <!-- NEW Glassmorphism Header Component -->
+  <!-- NEW Glassmorphism Header Component (includes chapter navigation) -->
   <app-flow-header
     [currentBook]="currentBook"
     [currentChapter]="currentChapter"
@@ -24,7 +24,8 @@
     {{ showEncouragement }}
   </div>
 
-  <!-- Chapter Navigation (keep as is) -->
+  <!-- REMOVE THE CHAPTER NAVIGATION COMPONENT - IT'S NOW PART OF THE HEADER -->
+  <!-- DELETE THESE LINES:
   <app-chapter-navigation
     [currentChapter]="currentChapter"
     [visibleChapters]="getVisibleChapters()"
@@ -34,8 +35,9 @@
     (next)="goToNextChapter()"
     (change)="changeChapter($event)"
   ></app-chapter-navigation>
+  -->
 
-  <!-- Quick Filters -->
+  <!-- Quick Filters (keep as is) -->
   <app-filters-bar
     [activeFilter]="activeFilter"
     [totalVerses]="verses.length"
