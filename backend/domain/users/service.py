@@ -92,17 +92,38 @@ class UserService(BaseService):
         if "preferred_bible" in update_dict:
             if update_dict["preferred_bible"] == "ESV":
                 update_dict["use_esv_api"] = True
+                # Don't clear the token if switching TO ESV and token already exists
+                if "esv_api_token" not in update_dict and existing_user.get("esv_api_token"):
+                    # Keep existing token when switching to ESV
+                    logger.info("Keeping existing ESV token when switching to ESV")
             elif "use_esv_api" not in update_dict:
                 # If bible changed from ESV to something else, disable use_esv_api
                 update_dict["use_esv_api"] = False
+                # Clear token when switching away from ESV
+                update_dict["esv_api_token"] = None
 
-        # Clear ESV token if not using ESV
-        if update_dict.get("use_esv_api") is False:
+        # Handle ESV token updates more carefully
+        if "esv_api_token" in update_dict:
+            # If token is being explicitly set to empty string, treat as deletion
+            if update_dict["esv_api_token"] == "":
+                update_dict["esv_api_token"] = None
+                logger.info("Clearing ESV token (empty string provided)")
+            elif update_dict["esv_api_token"] is not None:
+                # Token is being updated with a new value
+                logger.info("Updating ESV token with new value")
+
+        # Clear ESV token if not using ESV (unless token update is not provided)
+        if update_dict.get("use_esv_api") is False and "esv_api_token" not in update_dict:
             update_dict["esv_api_token"] = None
+            logger.info("Clearing ESV token (not using ESV API)")
 
         if not update_dict:
             logger.info("No changes supplied; returning existing user")
             return self.get_user(user_id)
+
+        # Log what we're updating (but don't log sensitive data)
+        safe_update_dict = {k: v if k != "esv_api_token" else "***" for k, v in update_dict.items()}
+        logger.info(f"Updating user {user_id} with: {safe_update_dict}")
 
         updated_user = self.repo.update(user_id, update_dict)
         logger.info(f"User {user_id} updated successfully")

@@ -1,5 +1,5 @@
 // frontend/src/app/features/profile/profile.component.ts
-import { Component, OnInit, OnDestroy, HostListener, ViewEncapsulation, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ViewEncapsulation, Inject, PLATFORM_ID, ViewChild } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router, ActivatedRoute } from '@angular/router';
@@ -62,6 +62,8 @@ interface ProfileSection {
   ]
 })
 export class ProfileComponent implements OnInit, OnDestroy {
+  @ViewChild(ProfileBibleSectionComponent) bibleSection?: ProfileBibleSectionComponent;
+
   // User and loading states
   user: User | null = null;
   isLoading = true;
@@ -72,6 +74,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private userDataLoaded = false;
   private destroy$ = new Subject<void>();
   private autoSave$ = new Subject<void>();
+
+  // Add property to store last known token
+  private lastKnownEsvToken: string | null = null;
 
   // Section management
   activeSection: ProfileSection['id'] = 'personal';
@@ -169,14 +174,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Restore token from multiple sources as failsafe
+    this.restoreEsvTokenIfNeeded();
+
     this.loadUserProfile();
     this.loadSavedSection();
     this.setupAutoSave();
 
-    // Load auto-save preference - only if running in the browser
     if (this.isBrowser) {
       const savedAutoSave = localStorage.getItem('profileAutoSave');
       this.autoSaveEnabled = savedAutoSave === 'true';
+
+      // Also check for saved token
+      this.lastKnownEsvToken = localStorage.getItem('esvApiToken');
     }
 
     // Check for setup mode
@@ -199,6 +209,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // Save current token state before destroying component
+    if (this.profileForm?.esvApiToken && this.isBrowser) {
+      localStorage.setItem('esvApiToken', this.profileForm.esvApiToken);
+    }
+
     this.destroy$.next();
     this.destroy$.complete();
     this.autoSave$.complete();
@@ -250,7 +265,39 @@ export class ProfileComponent implements OnInit, OnDestroy {
   get isEsvSelected(): boolean {
     return this.profileForm.preferredBible === 'ESV';
   }
+  
+  private restoreEsvTokenIfNeeded(): void {
+    if (!this.isBrowser) return;
 
+    let restoredToken: string | null = null;
+
+    // Source 1: Direct localStorage
+    const savedToken = localStorage.getItem('esvApiToken');
+    if (savedToken) {
+      restoredToken = savedToken;
+      console.log('Found ESV token in direct storage');
+    }
+
+    // Source 2: Cached user data
+    if (!restoredToken) {
+      const cachedUser = localStorage.getItem('currentUser');
+      if (cachedUser) {
+        try {
+          const user = JSON.parse(cachedUser);
+          if (user.esvApiToken || user.esv_api_token) {
+            restoredToken = user.esvApiToken || user.esv_api_token;
+            console.log('Found ESV token in cached user data');
+          }
+        } catch (e) {
+          console.error('Error parsing cached user:', e);
+        }
+      }
+    }
+
+    if (restoredToken) {
+      this.lastKnownEsvToken = restoredToken;
+    }
+  }
 
   loadUserProfile(): void {
     this.isLoading = true;
@@ -264,18 +311,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
             return;
           }
 
-          // Only process user data once
-          if (this.userDataLoaded) return;
+          console.log('Received user data with ESV token:', {
+            hasToken: !!(user.esvApiToken || user.esv_api_token),
+            tokenLength: (user.esvApiToken || user.esv_api_token || '').length
+          });
 
-          console.log('Received user data:', user);
-          this.userDataLoaded = true;
+          // Always re-initialize the form when user data is received
           this.user = user;
-
-          // Initialize the form fields with user data
           this.initializeForm(user);
 
-          // Load available Bibles after user is loaded
-          this.loadInitialBibleData();
+          // Only load Bible data on first load
+          if (!this.userDataLoaded) {
+            this.userDataLoaded = true;
+            this.loadInitialBibleData();
+          }
 
           this.isLoading = false;
         },
@@ -292,33 +341,58 @@ export class ProfileComponent implements OnInit, OnDestroy {
   initializeForm(user: any): void {
     console.log('Initializing form with user:', user);
 
+    // Try to get ESV token from multiple sources
+    let esvToken = user.esvApiToken || user.esv_api_token || '';
+
+    // Fallback to last known token if current is empty but we had one before
+    if (
+      !esvToken &&
+      this.lastKnownEsvToken &&
+      (user.preferredBible === 'ESV' || user.preferred_bible === 'ESV')
+    ) {
+      console.warn('ESV token missing but found in backup, restoring...');
+      esvToken = this.lastKnownEsvToken;
+    }
+
     this.profileForm = {
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
+      firstName: user.firstName || user.first_name || '',
+      lastName: user.lastName || user.last_name || '',
       denomination: user.denomination || '',
-      preferredBible: user.preferredBible || '',
-      preferredLanguage: user.preferredLanguage || 'eng',
-      includeApocrypha: user.includeApocrypha === true,
-      useEsvApi: user.useEsvApi === true,
-      esvApiToken: user.esvApiToken || '',
-      studyPreferences: user.studyPreferences || {
+      preferredBible: user.preferredBible || user.preferred_bible || '',
+      preferredLanguage: user.preferredLanguage || user.preferred_language || 'eng',
+      includeApocrypha:
+        user.includeApocrypha === true || user.include_apocrypha === true,
+      useEsvApi: user.useEsvApi === true || user.use_esv_api === true,
+      esvApiToken: esvToken,
+      studyPreferences: user.studyPreferences || user.study_preferences || {
         preferredMemorizationMethod: 'flow',
         dailyGoal: 1,
         reminderEnabled: false,
         reminderTime: '09:00',
         preferredFontSize: 'medium'
       },
-      displaySettings: user.displaySettings || {
+      displaySettings: user.displaySettings || user.display_settings || {
         theme: 'light',
         reduceMotion: false,
         highContrast: false
       }
     };
 
+    // Save token if we have it
+    if (esvToken && this.isBrowser) {
+      localStorage.setItem('esvApiToken', esvToken);
+      this.lastKnownEsvToken = esvToken;
+    }
+
     // Store original values for comparison
     this.originalFormData = JSON.parse(JSON.stringify(this.profileForm));
 
-    console.log('Profile form initialized:', this.profileForm);
+    console.log('Profile form initialized:', {
+      hasEsvToken: !!esvToken,
+      tokenLength: esvToken ? esvToken.length : 0,
+      isEsv: this.profileForm.preferredBible === 'ESV',
+      tokenSource: !user.esvApiToken && esvToken ? 'restored' : 'user'
+    });
   }
 
   loadInitialBibleData(): void {
@@ -578,10 +652,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
   saveProfile(): void {
     if (!this.profileForm || this.isSaving || !this.isFormValid) return;
 
-    console.log('Saving profile with data:', this.profileForm);
     this.isSaving = true;
 
-    const profileUpdate = {
+    // Save token before request if it exists
+    if (this.profileForm.esvApiToken && this.isBrowser) {
+      localStorage.setItem('esvApiToken', this.profileForm.esvApiToken);
+      this.lastKnownEsvToken = this.profileForm.esvApiToken;
+    }
+
+    const profileUpdate: any = {
       firstName: this.profileForm.firstName,
       lastName: this.profileForm.lastName,
       denomination: this.profileForm.denomination,
@@ -589,24 +668,62 @@ export class ProfileComponent implements OnInit, OnDestroy {
       preferredLanguage: this.profileForm.preferredLanguage,
       includeApocrypha: this.profileForm.includeApocrypha,
       useEsvApi: this.isEsvSelected,
-      esvApiToken: this.isEsvSelected ? this.profileForm.esvApiToken : null,
       studyPreferences: this.profileForm.studyPreferences,
       displaySettings: this.profileForm.displaySettings
     };
 
-    console.log('Profile update payload:', profileUpdate);
+    // Only include token if it changed OR if we're setting ESV for first time
+    if (this.isEsvSelected) {
+      const tokenChanged =
+        this.profileForm.esvApiToken !== this.originalFormData.esvApiToken;
+      const isNewEsvSelection =
+        this.originalFormData.preferredBible !== 'ESV' &&
+        this.profileForm.preferredBible === 'ESV';
+
+      if (tokenChanged || isNewEsvSelection) {
+        profileUpdate.esvApiToken = this.profileForm.esvApiToken;
+        console.log('Including ESV token in update:', tokenChanged ? 'changed' : 'new selection');
+      }
+    } else {
+      profileUpdate.esvApiToken = null;
+      profileUpdate.useEsvApi = false;
+
+      if (this.isBrowser) {
+        localStorage.removeItem('esvApiToken');
+        this.lastKnownEsvToken = null;
+      }
+    }
 
     this.userService.updateUser(profileUpdate).subscribe({
       next: (updatedUser: any) => {
-        console.log('Profile updated successfully:', updatedUser);
+        console.log('Profile updated successfully');
 
-        // Update local user reference
         this.user = updatedUser;
 
-        // Update original form data
+        // Get the token from response
+        const returnedToken =
+          updatedUser.esvApiToken || updatedUser.esv_api_token || '';
+
+        // Ensure token is preserved
+        if (this.isEsvSelected && !returnedToken && this.lastKnownEsvToken) {
+          console.warn('Token missing in response, using last known token');
+          this.profileForm.esvApiToken = this.lastKnownEsvToken;
+        } else {
+          this.profileForm.esvApiToken = returnedToken;
+
+          if (returnedToken && this.isBrowser) {
+            localStorage.setItem('esvApiToken', returnedToken);
+            this.lastKnownEsvToken = returnedToken;
+          }
+        }
+
         this.originalFormData = JSON.parse(JSON.stringify(this.profileForm));
-        
-        // Clear section changes
+
+        // Update the bible section's original token reference
+        if (this.bibleSection) {
+          this.bibleSection.updateOriginalToken(this.profileForm.esvApiToken);
+        }
+
         this.sectionChanges.clear();
 
         // Update Bible service preferences
