@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil, debounceTime, firstValueFrom, take } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { Subject, debounceTime, firstValueFrom, take } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { trigger, transition, style, animate } from '@angular/animations';
 
@@ -192,31 +193,33 @@ get progressPercentage(): number {
 
     // Load saved state
     this.loadSavedState();
-    
+
     // Setup save queue
     this.setupSaveQueue();
-    
+
     // Subscribe to save notifications
     this.flowMemorizationService.savedNotification$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.showSaveNotification();
       });
-    
-    // Load from route params
-    this.route.queryParams
+
+    // React to query param changes (bookId & chapter) and load the chapter
+    this.route.queryParamMap
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
-        console.log('Route params:', params);
-        const bookId = params['bookId'] ? parseInt(params['bookId']) : null;
-        const chapter = params['chapter'] ? parseInt(params['chapter']) : null;
-        
-        if (bookId && chapter) {
-          console.log('Loading chapter from params:', bookId, chapter);
+        const bookIdParam = params.get('bookId');
+        const chapterParam = params.get('chapter');
+
+        // Fall back to current or defaults
+        const bookId = bookIdParam ? Number(bookIdParam) : (this.currentBook?.id ?? 1);
+        const chapter = chapterParam ? Number(chapterParam) : (this.currentChapter || 1);
+
+        if (
+          bookId !== (this.currentBook?.id ?? 0) ||
+          chapter !== this.currentChapter
+        ) {
           this.loadChapter(bookId, chapter);
-        } else {
-          // Load default chapter if no params
-          console.log('No params, loading default chapter');
         }
       });
   }
@@ -253,11 +256,12 @@ get progressPercentage(): number {
     try {
       this.isLoading = true;
       this.currentChapter = chapterNum;
-      
-      // Get book from Bible data
-      const bibleData = this.bibleService.getBibleData();
-      this.currentBook = bibleData.getBookById(bookId) || null;
-      
+
+      if (!this.currentBook || this.currentBook.id !== bookId) {
+        const bibleData = this.bibleService.getBibleData();
+        this.currentBook = bibleData.getBookById(bookId) || null;
+      }
+
       if (!this.currentBook) {
         console.error('Book not found:', bookId);
         this.isLoading = false;
