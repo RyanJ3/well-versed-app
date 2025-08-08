@@ -39,7 +39,7 @@
         </div>
         
           <!-- Book Selector Dropdown -->
-          <select class="book-select" (change)="onBookSelect(parseInt($any($event.target).value))">
+          <select class="book-select" (change)="onBookSelect($any($event.target).value)">
             <option *ngFor="let book of filteredBooks" [value]="book.id" [selected]="book.id === currentBook?.id">
               {{ book.name }}
             </option>
