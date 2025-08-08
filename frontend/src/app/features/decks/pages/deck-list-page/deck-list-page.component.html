@@ -1,9 +1,25 @@
 <!-- frontend/src/app/features/decks/pages/deck-list-page/deck-list-page.component.html -->
 <div class="flashcard-container">
+  <!-- Add Hero Section -->
+  <app-deck-hero
+    [nextDeck]="getNextDeck()"
+    [streakDays]="userStreakDays"
+    (continueStudy)="onContinueStudy($event)">
+  </app-deck-hero>
+
+  <!-- Page Header -->
   <div class="page-header">
-    <h2 class="page-title">Flashcard Decks</h2>
+    <h1 class="page-title">Flashcard Decks</h1>
     <p class="page-subtitle">Organize and study your scripture verses with personalized flashcard decks</p>
   </div>
+
+  <!-- Add Metrics Section -->
+  <app-deck-metrics
+    [totalDecks]="getTotalDecks()"
+    [totalCards]="getTotalCards()"
+    [totalMemorized]="getTotalMemorized()"
+    [averageProgress]="getAverageProgress()">
+  </app-deck-metrics>
 
   <div class="content-wrapper">
     <!-- Tab Navigation -->

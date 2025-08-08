@@ -1,0 +1,66 @@
+@use '../../shared/styles/variables' as *;
+@use '../../shared/styles/animations' as *;
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+.metric-card {
+  background: white;
+  border-radius: $radius-xl;
+  padding: 1.25rem;
+  text-align: center;
+  box-shadow: $shadow-sm;
+  border: 1px solid $border-light;
+  transition: all $transition-smooth;
+  animation: slideUp 0.5s ease-out both;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+  }
+
+  &[data-color="blue"] {
+    border-top: 3px solid $color-blue-500;
+  }
+
+  &[data-color="teal"] {
+    border-top: 3px solid $color-teal-500;
+  }
+
+  &[data-color="emerald"] {
+    border-top: 3px solid $color-emerald-500;
+  }
+
+  &[data-color="sky"] {
+    border-top: 3px solid $color-sky-500;
+  }
+}
+
+.metric-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: $text-primary;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+
+  @media (max-width: 640px) {
+    font-size: 1.5rem;
+  }
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: $text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

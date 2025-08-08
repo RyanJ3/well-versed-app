@@ -1,0 +1,27 @@
+<div class="hero-card">
+  <div class="hero-gradient"></div>
+  <div class="hero-pattern"></div>
+  
+  <div class="hero-content">
+    <div class="streak-badge" *ngIf="streakDays > 0">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+              d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+      </svg>
+      <span>{{ streakDays }} day streak!</span>
+    </div>
+    
+    <h2 class="hero-title">Keep your momentum—pick up where you left off</h2>
+    
+    <p class="hero-subtitle" *ngIf="nextDeck">
+      Next up: <span class="deck-name">{{ nextDeck.name }}</span>
+    </p>
+    
+    <button class="continue-button" (click)="onContinueClick()" [disabled]="!nextDeck">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+      </svg>
+      Continue Studying
+    </button>
+  </div>
+</div>
