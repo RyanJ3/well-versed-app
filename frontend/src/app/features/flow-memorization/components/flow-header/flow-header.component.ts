@@ -52,6 +52,8 @@ export class FlowHeaderComponent {
   @Output() startStudySession = new EventEmitter<void>();
   @Output() changeChapter = new EventEmitter<number>();
   @Output() changeBook = new EventEmitter<number>();
+  /** New: jump to next unmemorized chapter in sequence */
+  @Output() jumpToNextSequential = new EventEmitter<void>();
 
   // Component state
   activeChapterFilter: 'all' | 'inProgress' | 'completed' = 'all';
@@ -218,6 +220,11 @@ export class FlowHeaderComponent {
   onBookSelect(bookId: number): void {
     this.changeBook.emit(bookId);
     this.showBookDropdown = false;
+  }
+
+  /** New: bubble click up to parent */
+  onJumpToNextSequentialClick(): void {
+    this.jumpToNextSequential.emit();
   }
 
   onStartButtonClick(): void {

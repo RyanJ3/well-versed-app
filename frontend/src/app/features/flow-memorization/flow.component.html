@@ -3,20 +3,21 @@
   <app-flow-header
     [currentBook]="currentBook"
     [currentChapter]="currentChapter"
-    [totalChapters]="currentBook?.totalChapters || 50"
+    [totalChapters]="currentBook?.totalChapters || 0"
     [memorizedVersesCount]="memorizedVersesCount"
-    [totalVerses]="verses.length"
+    [totalVerses]="verses?.length || 0"
     [progressPercentage]="progressPercentage"
     [selectedVersesCount]="selectedVerses.size"
     [showFullText]="showFullText"
     [chapterProgress]="chapterProgress"
     [availableChapters]="availableChapters"
     [allBooks]="getAllBooksWithProgress()"
+    (changeChapter)="changeChapter($event)"
+    (changeBook)="changeBook($event)"
     (toggleTextMode)="toggleTextMode()"
     (startFullChapter)="startFullChapter()"
     (startStudySession)="startStudySession()"
-    (changeChapter)="changeChapter($event)"
-    (changeBook)="changeBook($event)"
+    (jumpToNextSequential)="jumpToNextSequential()"
   ></app-flow-header>
 
   <!-- Encouragement Message (keep as is) -->
@@ -95,8 +96,8 @@
             (mouseenter)="handleMouseEnter(section.start + i)"
             (contextmenu)="handleContextMenu($event, verse)"
           >
-            <div class="new-paragraph-marker" *ngIf="isNewParagraph(verse)">
-              ¶ New paragraph
+            <div class="new-paragraph-marker">
+              <ng-container *ngIf="isNewParagraph(verse)">¶ New paragraph</ng-container>
             </div>
 
             <div class="verse-checkmark" *ngIf="verse.isMemorized">
@@ -139,8 +140,8 @@
         (mouseenter)="handleMouseEnter(i)"
         (contextmenu)="handleContextMenu($event, verse)"
       >
-        <div class="new-paragraph-marker" *ngIf="isNewParagraph(verse)">
-          ¶ New paragraph
+        <div class="new-paragraph-marker">
+          <ng-container *ngIf="isNewParagraph(verse)">¶ New paragraph</ng-container>
         </div>
 
         <div class="verse-checkmark" *ngIf="verse.isMemorized">
