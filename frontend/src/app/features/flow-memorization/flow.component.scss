@@ -158,13 +158,10 @@
     border-top-width: 4px;
   }
 
+  // Memorized verses no longer have a green background or border; they only show a checkmark.
   &.memorized {
-    background-color: #f0fdf4;
-    border-color: #10b981;
-
-    &:hover {
-      border-color: #059669;
-    }
+    background-color: white;
+    border-color: #e5e7eb;
   }
 
   &.memorized-needs-review {

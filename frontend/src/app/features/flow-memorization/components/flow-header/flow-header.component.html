@@ -38,71 +38,13 @@
           </button>
         </div>
         
-        <!-- Book Selector -->
-        <div class="book-selector-glass" (click)="toggleBookDropdown()">
-          <span class="book-icon">📚</span>
-          <span class="book-title">{{ currentBook?.name || 'Select Book' }}</span>
-          <span class="dropdown-arrow" [class.open]="showBookDropdown">▼</span>
+          <!-- Book Selector Dropdown -->
+          <select class="book-select" (change)="onBookSelect(parseInt($any($event.target).value))">
+            <option *ngFor="let book of filteredBooks" [value]="book.id" [selected]="book.id === currentBook?.id">
+              {{ book.name }}
+            </option>
+          </select>
         </div>
-        
-        <!-- Book Dropdown -->
-        <div class="book-dropdown" *ngIf="showBookDropdown">
-          <div class="dropdown-section" *ngIf="booksByTestament.OT.length > 0">
-            <div class="dropdown-header">Old Testament</div>
-            <div class="book-list">
-              <div 
-                *ngFor="let book of booksByTestament.OT"
-                class="book-item"
-                [class.current]="book.id === currentBook?.id"
-                (click)="onBookSelect(book.id)"
-              >
-                <span class="book-name">{{ book.name }}</span>
-                <span class="book-progress">{{ book.progressPercentage }}%</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="dropdown-section" *ngIf="booksByTestament.NT.length > 0">
-            <div class="dropdown-header">New Testament</div>
-            <div class="book-list">
-              <div 
-                *ngFor="let book of booksByTestament.NT"
-                class="book-item"
-                [class.current]="book.id === currentBook?.id"
-                (click)="onBookSelect(book.id)"
-              >
-                <span class="book-name">{{ book.name }}</span>
-                <span class="book-progress">{{ book.progressPercentage }}%</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="dropdown-section" *ngIf="booksByTestament.APO.length > 0">
-            <div class="dropdown-header">Apocrypha</div>
-            <div class="book-list">
-              <div 
-                *ngFor="let book of booksByTestament.APO"
-                class="book-item"
-                [class.current]="book.id === currentBook?.id"
-                (click)="onBookSelect(book.id)"
-              >
-                <span class="book-name">{{ book.name }}</span>
-                <span class="book-progress">{{ book.progressPercentage }}%</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="dropdown-section recently-studied">
-            <div class="dropdown-header">Recently Studied</div>
-            <div class="recent-list">
-              <div *ngFor="let recent of recentlyStudied" class="recent-item">
-                <span class="recent-book">{{ recent.bookName }} Ch {{ recent.chapter }}</span>
-                <span class="recent-time">{{ recent.timeAgo }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
       
       <!-- Progress Container -->
       <div class="progress-stats-container">
@@ -124,16 +66,11 @@
           <div class="ring-percentage">{{ progressPercentage }}%</div>
         </div>
   
-        <!-- Stats Cards (removed Complete stat) -->
-        <div class="stats-cards">
-          <div class="stat-card-glass">
-            <span class="stat-label">Chapters</span>
-          </div>
-          <div class="stat-card-glass">
+          <!-- Verses statistic pill moved below the progress ring -->
+          <div class="verses-pill stat-card-glass">
             <span class="stat-label">Verses</span>
             <span class="stat-value">{{ memorizedBookVerses }} / {{ totalBookVerses }}</span>
           </div>
-        </div>
       </div>
       
       <!-- Action Buttons -->
