@@ -77,7 +77,7 @@ export class FlowHeaderComponent {
 
   // LARGER Progress ring calculations for more prominent display
   get progressCircumference(): number {
-    return 2 * Math.PI * 54; // INCREASED radius from 36 to 54
+    return 2 * Math.PI * 45;
   }
 
   get progressOffset(): number {
