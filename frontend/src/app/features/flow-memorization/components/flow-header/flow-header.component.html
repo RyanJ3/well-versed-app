@@ -1,7 +1,4 @@
 <div class="flow-header-glass">
-  <!-- Subtle animated mesh background -->
-  <div class="animated-mesh"></div>
-  
   <!-- Main header content -->
   <div class="header-glass-container">
     
@@ -111,14 +108,15 @@
         <div class="progress-ring-large">
           <svg width="120" height="120">
             <defs>
-              <linearGradient id="gradient-ring" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#34d399" />
-                <stop offset="100%" stop-color="#10b981" />
+              <linearGradient id="gradient-neon" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#22d3ee" />
+                <stop offset="100%" stop-color="#a855f7" />
               </linearGradient>
             </defs>
-            <circle cx="60" cy="60" r="54" class="ring-bg"></circle>
-            <circle cx="60" cy="60" r="54" class="ring-fill" 
-                    [attr.stroke-dasharray]="progressCircumference" 
+            <circle cx="60" cy="60" r="45" class="ring-bg"></circle>
+            <circle cx="60" cy="60" r="45" class="ring-fill"
+                    [attr.stroke]="'url(#gradient-neon)'"
+                    [attr.stroke-dasharray]="progressCircumference"
                     [attr.stroke-dashoffset]="progressOffset"></circle>
           </svg>
           <div class="ring-percentage">{{ progressPercentage }}%</div>
@@ -218,8 +216,8 @@
             <svg width="40" height="40">
               <defs>
                 <linearGradient [id]="'ch-gradient-' + chapter.number" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" [attr.stop-color]="chapter.isCurrent ? '#fff' : '#667eea'" />
-                  <stop offset="100%" [attr.stop-color]="chapter.isCurrent ? '#fff' : '#764ba2'" />
+                  <stop offset="0%" [attr.stop-color]="chapter.isCurrent ? '#fff' : '#22d3ee'" />
+                  <stop offset="100%" [attr.stop-color]="chapter.isCurrent ? '#fff' : '#a855f7'" />
                 </linearGradient>
               </defs>
               <circle cx="20" cy="20" r="18" class="pie-bg"></circle>
