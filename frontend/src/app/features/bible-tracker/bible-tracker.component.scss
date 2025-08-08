@@ -4,6 +4,13 @@
   box-sizing: border-box;
 }
 
+.scroll-container {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 2rem;
+}
+
 .bible-selector-container {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background: #f3f4f6;
@@ -11,6 +18,7 @@
   color: #1f2937;
   max-width: 1200px;
   margin: 0 auto;
+  height: 100%;
 }
 
 .chart-grid {
