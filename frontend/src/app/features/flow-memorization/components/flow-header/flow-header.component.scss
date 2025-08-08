@@ -52,6 +52,29 @@
   position: relative;
 }
 
+// Native select element to choose a book
+.book-select {
+  flex: 1;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  font-size: 16px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 4px 6px -1px rgba(102, 126, 234, 0.1);
+  }
+
+  option {
+    color: #374151;
+  }
+}
+
 .testament-filter {
   display: flex;
   gap: 2px;
@@ -247,9 +270,11 @@
 
 // Progress Stats Container
 .progress-stats-container {
+  // Stack the progress ring and the verses pill vertically
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
 
   .progress-ring-large {
     position: relative;
@@ -287,13 +312,19 @@
     }
   }
 
+  // Remove the old stats-cards styles as we no longer use the wrapper
   .stats-cards {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 14px; // Increased gap
-    justify-content: center; // Center vertically since we have fewer items
+    display: none;
   }
+}
+
+// Verses pill below the progress ring
+.verses-pill {
+  margin-top: 0.5rem;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .stat-card-glass {

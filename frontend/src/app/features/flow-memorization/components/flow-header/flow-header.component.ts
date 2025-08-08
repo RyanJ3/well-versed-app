@@ -215,8 +215,9 @@ export class FlowHeaderComponent {
     }
   }
 
-  onBookSelect(bookId: number): void {
-    this.changeBook.emit(bookId);
+  onBookSelect(bookId: string): void {
+    const parsedId = parseInt(bookId, 10);
+    this.changeBook.emit(parsedId);
     this.showBookDropdown = false;
   }
 
