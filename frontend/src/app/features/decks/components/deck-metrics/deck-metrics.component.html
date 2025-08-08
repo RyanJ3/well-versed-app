@@ -1,0 +1,8 @@
+<div class="metrics-grid">
+  <div class="metric-card" *ngFor="let metric of metrics; let i = index" 
+       [style.animation-delay.ms]="i * 100"
+       [attr.data-color]="metric.color">
+    <div class="metric-value">{{ metric.value }}</div>
+    <div class="metric-label">{{ metric.label }}</div>
+  </div>
+</div>

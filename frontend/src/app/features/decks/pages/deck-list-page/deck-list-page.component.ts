@@ -2,8 +2,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { DeckListComponent as DeckListPresentationalComponent } from '../../components/deck-list/deck-list.component';
+import { DeckHeroComponent } from '../../components/deck-hero/deck-hero.component';
+import { DeckMetricsComponent } from '../../components/deck-metrics/deck-metrics.component';
 import { DeckWithCounts } from '../../components/deck-card/deck-card.component';
 import { CreateDeckModalComponent } from '../../components/create-deck-modal/create-deck-modal.component';
 import { DeckFilterComponent } from '../../components/deck-filter/deck-filter.component';
@@ -33,7 +35,9 @@ interface Tab {
     RouterModule,
     DeckListPresentationalComponent,
     CreateDeckModalComponent,
-    DeckFilterComponent
+    DeckFilterComponent,
+    DeckHeroComponent,
+    DeckMetricsComponent
   ],
   templateUrl: './deck-list-page.component.html',
   styleUrls: [
@@ -75,11 +79,14 @@ export class DeckListPageComponent implements OnInit {
   
   // Create deck modal
   showCreateModal = false;
+  
+  userStreakDays: number = 0;
 
   constructor(
     private deckService: DeckService,
     private userService: UserService,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -512,6 +519,54 @@ export class DeckListPageComponent implements OnInit {
         );
       }
     });
+  }
+
+  getNextDeck() {
+    // Find deck with lowest completion percentage
+    const inProgressDecks = this.myDecks
+      .filter(d => {
+        const progress = this.getProgress(d);
+        return progress > 0 && progress < 100;
+      })
+      .sort((a, b) => this.getProgress(a) - this.getProgress(b));
+
+    if (inProgressDecks.length > 0) {
+      const deck = inProgressDecks[0];
+      return {
+        deck_id: deck.deck_id,
+        name: deck.name,
+        progress: this.getProgress(deck)
+      };
+    }
+    return null;
+  }
+
+  getProgress(deck: DeckWithCounts): number {
+    if (!deck.card_count || deck.card_count === 0) return 0;
+    const memorized = deck.memorized_count || 0;
+    return Math.round((memorized / deck.card_count) * 100);
+    }
+
+  getTotalDecks(): number {
+    return this.myDecks.length;
+  }
+
+  getTotalCards(): number {
+    return this.myDecks.reduce((total, deck) => total + deck.card_count, 0);
+  }
+
+  getTotalMemorized(): number {
+    return this.myDecks.reduce((total, deck) => total + (deck.memorized_count || 0), 0);
+  }
+
+  getAverageProgress(): number {
+    if (this.myDecks.length === 0) return 0;
+    const totalProgress = this.myDecks.reduce((sum, deck) => sum + this.getProgress(deck), 0);
+    return Math.round(totalProgress / this.myDecks.length);
+  }
+
+  onContinueStudy(deckId: number) {
+    this.router.navigate(['/decks/study', deckId]);
   }
 
   // TrackBy function for better performance
