@@ -1,76 +1,78 @@
-<div class="bible-selector-container">
-  <!-- Loading overlay -->
-  <div *ngIf="isLoading$ | async" class="global-loading-overlay">
-    <div class="loading-spinner"></div>
-    <p>Loading Bible data...</p>
-  </div>
+<div class="scroll-container">
+  <div class="bible-selector-container">
+    <!-- Loading overlay -->
+    <div *ngIf="isLoading$ | async" class="global-loading-overlay">
+      <div class="loading-spinner"></div>
+      <p>Loading Bible data...</p>
+    </div>
 
-  <!-- Success Popup (kept for backward compatibility, though notifications should handle this) -->
-  <div class="success-popup" [class.show]="showSuccessMessage">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="success-icon">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-    </svg>
-    <span>{{ successMessage }}</span>
-  </div>
+    <!-- Success Popup (kept for backward compatibility, though notifications should handle this) -->
+    <div class="success-popup" [class.show]="showSuccessMessage">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="success-icon">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+      <span>{{ successMessage }}</span>
+    </div>
 
-  <!-- Header -->
-  <app-bible-tracker-header></app-bible-tracker-header>
+    <!-- Header -->
+    <app-bible-tracker-header></app-bible-tracker-header>
 
-  <!-- Stats -->
-  <app-bible-tracker-stats
-    [memorizedVerses]="(memorizedVerses$ | async) || 0"
-    [percentComplete]="(percentComplete$ | async) || 0"
-    [progressViewMode]="(progressViewMode$ | async) || 'testament'"
-    [progressSegments]="(progressSegments$ | async) || []"
-    (toggleProgressView)="toggleProgressView()">
-  </app-bible-tracker-stats>
+    <!-- Stats -->
+    <app-bible-tracker-stats
+      [memorizedVerses]="(memorizedVerses$ | async) || 0"
+      [percentComplete]="(percentComplete$ | async) || 0"
+      [progressViewMode]="(progressViewMode$ | async) || 'testament'"
+      [progressSegments]="(progressSegments$ | async) || []"
+      (toggleProgressView)="toggleProgressView()">
+    </app-bible-tracker-stats>
 
-  <!-- Testament Cards -->
-  <div class="chart-grid">
-    <app-bible-tracker-testament-card
-      *ngFor="let testament of (testaments$ | async) || []"
-      [testament]="testament"
-      [isActive]="testament === selectedTestament"
+    <!-- Testament Cards -->
+    <div class="chart-grid">
+      <app-bible-tracker-testament-card
+        *ngFor="let testament of (testaments$ | async) || []"
+        [testament]="testament"
+        [isActive]="testament === selectedTestament"
+        [groupColors]="groupColors"
+        (testamentSelected)="setTestament($event)">
+      </app-bible-tracker-testament-card>
+    </div>
+
+    <!-- Book Groups -->
+    <app-bible-tracker-book-groups
+      [selectedTestament]="selectedTestament"
+      [selectedGroup]="selectedGroup"
       [groupColors]="groupColors"
-      (testamentSelected)="setTestament($event)">
-    </app-bible-tracker-testament-card>
+      (groupSelected)="setGroup($event)">
+    </app-bible-tracker-book-groups>
+
+    <!-- Book Grid -->
+    <app-bible-tracker-book-grid
+      [selectedGroup]="selectedGroup"
+      [selectedBook]="selectedBook"
+      (bookSelected)="setBook($event)">
+    </app-bible-tracker-book-grid>
+
+    <!-- Chapter Heatmap -->
+    <app-bible-tracker-chapter-heatmap
+      [selectedBook]="selectedBook"
+      [includeApocrypha]="includeApocrypha"
+      [isLoading]="(isLoading$ | async) || false"
+      [isSavingBulk]="(isSavingBulk$ | async) || false"
+      (chapterSelected)="setChapter($event)"
+      (selectAllChapters)="selectAllChapters()"
+      (clearAllChapters)="clearAllChapters()">
+    </app-bible-tracker-chapter-heatmap>
+
+    <!-- Verse Grid -->
+    <app-bible-tracker-verse-grid
+      [selectedBook]="selectedBook"
+      [selectedChapter]="selectedChapter"
+      [isLoading]="(isLoading$ | async) || false"
+      [isSavingBulk]="(isSavingBulk$ | async) || false"
+      (verseToggled)="toggleAndSaveVerse($event)"
+      (selectAllVerses)="selectAllVerses()"
+      (clearAllVerses)="clearAllVerses()">
+    </app-bible-tracker-verse-grid>
   </div>
-
-  <!-- Book Groups -->
-  <app-bible-tracker-book-groups
-    [selectedTestament]="selectedTestament"
-    [selectedGroup]="selectedGroup"
-    [groupColors]="groupColors"
-    (groupSelected)="setGroup($event)">
-  </app-bible-tracker-book-groups>
-
-  <!-- Book Grid -->
-  <app-bible-tracker-book-grid
-    [selectedGroup]="selectedGroup"
-    [selectedBook]="selectedBook"
-    (bookSelected)="setBook($event)">
-  </app-bible-tracker-book-grid>
-
-  <!-- Chapter Heatmap -->
-  <app-bible-tracker-chapter-heatmap
-    [selectedBook]="selectedBook"
-    [includeApocrypha]="includeApocrypha"
-    [isLoading]="(isLoading$ | async) || false"
-    [isSavingBulk]="(isSavingBulk$ | async) || false"
-    (chapterSelected)="setChapter($event)"
-    (selectAllChapters)="selectAllChapters()"
-    (clearAllChapters)="clearAllChapters()">
-  </app-bible-tracker-chapter-heatmap>
-
-  <!-- Verse Grid -->
-  <app-bible-tracker-verse-grid
-    [selectedBook]="selectedBook"
-    [selectedChapter]="selectedChapter"
-    [isLoading]="(isLoading$ | async) || false"
-    [isSavingBulk]="(isSavingBulk$ | async) || false"
-    (verseToggled)="toggleAndSaveVerse($event)"
-    (selectAllVerses)="selectAllVerses()"
-    (clearAllVerses)="clearAllVerses()">
-  </app-bible-tracker-verse-grid>
 </div>
