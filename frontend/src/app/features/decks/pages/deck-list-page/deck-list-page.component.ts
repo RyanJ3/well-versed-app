@@ -6,7 +6,6 @@ import { RouterModule } from '@angular/router';
 import { DeckListComponent as DeckListPresentationalComponent } from '../../components/deck-list/deck-list.component';
 import { DeckWithCounts } from '../../components/deck-card/deck-card.component';
 import { CreateDeckModalComponent } from '../../components/create-deck-modal/create-deck-modal.component';
-import { DeckFilterComponent } from '../../components/deck-filter/deck-filter.component';
 import { UserService } from '@services/api/user.service';
 import { ModalService } from '@services/utils/modal.service';
 import {
@@ -32,8 +31,7 @@ interface Tab {
     FormsModule,
     RouterModule,
     DeckListPresentationalComponent,
-    CreateDeckModalComponent,
-    DeckFilterComponent
+    CreateDeckModalComponent
   ],
   templateUrl: './deck-list-page.component.html',
   styleUrls: [
@@ -76,6 +74,12 @@ export class DeckListPageComponent implements OnInit {
   // Create deck modal
   showCreateModal = false;
 
+  // Dashboard metrics
+  userName = '';
+  versesMemorized = 0;
+  streakDays = 0;
+  weeklyProgress = 0;
+
   constructor(
     private deckService: DeckService,
     private userService: UserService,
@@ -87,6 +91,9 @@ export class DeckListPageComponent implements OnInit {
     this.userService.currentUser$.subscribe((user: any) => {
       if (user) {
         this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+        this.userName = user.name || 'Friend';
+        this.versesMemorized = user.versesMemorized || 0;
+        this.streakDays = user.streakDays || 0;
         this.loadMyDecks();
       }
     });
