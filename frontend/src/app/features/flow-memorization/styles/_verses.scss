@@ -1,0 +1,206 @@
+.verses-container {
+  flex: 1;
+  overflow-y: auto;    // Vertical scroll when needed
+  overflow-x: hidden;  // No horizontal scroll
+  padding: 2rem;
+  background-color: #f9fafb;
+  position: relative;  // For proper scrollbar positioning
+  
+  // Custom scrollbar styling - will appear within content area
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+  
+  &::-webkit-scrollbar {
+    width: 8px;  // Slightly wider for better visibility
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(243, 244, 246, 0.5);
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.6);
+    border-radius: 4px;
+    border: 1px solid rgba(243, 244, 246, 0.5);
+    
+    &:hover {
+      background-color: rgba(107, 114, 128, 0.7);
+    }
+  }
+
+  .instructions {
+    text-align: center;
+    color: #9ca3af;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+  }
+
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid #e5e7eb;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Verses Grid
+.verses-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  max-width: 90rem;
+  margin: 0 auto;
+}
+
+.verse-block {
+  position: relative;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 2px solid #e5e7eb; // Always gray border by default
+  transition: all 0.3s;
+  cursor: pointer;
+  user-select: none;
+  background-color: white;
+
+  // Simple hover effect - just shadow, no border change
+  &:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+  }
+
+  &.new-paragraph {
+    border-top-width: 4px;
+  }
+
+  // Memorized verses - no special border treatment
+  &.memorized {
+    background-color: white;
+    
+    .verse-checkmark {
+      display: flex !important;
+    }
+  }
+
+  // Review needed - just background color change
+  &.memorized-needs-review {
+    background-color: #fef3c7; // Light yellow background
+  }
+
+  // Fifth verse - just background color change
+  &.fifth-verse {
+    background-color: #fef3c7; // Light yellow background
+  }
+
+  // Selected state - ALWAYS blue border regardless of other states
+  &.selected {
+    background-color: #eff6ff; // Light blue background
+    border-color: #3b82f6 !important; // Blue border - important to override all other states
+    box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1);
+  }
+}
+
+.new-paragraph-marker {
+  position: absolute;
+  top: -0.75rem;
+  left: 0;
+  font-size: 0.75rem;
+  color: #7c3aed;
+  font-weight: 600;
+}
+
+// Checkmarks are visible and properly styled
+.verse-checkmark,
+.verse-selected-check {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: scale(1);
+  transition: transform 0.3s;
+  z-index: 2; // Ensure it's above other elements
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+.verse-checkmark {
+  background-color: #10b981;
+  color: white;
+  display: flex; // Ensure it's visible by default when verse is memorized
+}
+
+.verse-selected-check {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.review-indicator {
+  position: absolute;
+  top: -0.5rem;
+  left: -0.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: #f59e0b;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.verse-ref {
+  font-size: 0.875rem;
+  font-weight: bold;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.verse-text {
+  color: #6b7280;
+  line-height: 1.5;
+  font-family: monospace;
+  letter-spacing: 0.1em;
+
+  &.full-text {
+    font-family: inherit;
+    letter-spacing: normal;
+    font-size: 0.875rem;
+  }
+}
+
+// Sections View

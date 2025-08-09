@@ -1,0 +1,63 @@
+.flow-memorization-container {
+  height: 100%;  // Fill parent container
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  overflow: hidden;
+  max-width: 1200px;  // Add max-width to center content
+  margin: 0 auto;     // Center the container
+  width: 100%;        // Full width up to max-width
+}
+
+// Encouragement Message
+.encouragement-message {
+  position: absolute;
+  top: 5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  background-color: #10b981;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  animation: bounce 1s ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-0.5rem);
+  }
+}
+
+// Selection Info
+.selection-info {
+  background-color: #eff6ff;
+  padding: 0.5rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #dbeafe;
+  font-size: 0.875rem;
+  color: #1d4ed8;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+
+  .clear-selection-btn {
+    color: #3b82f6;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+
+    &:hover {
+      color: #1d4ed8;
+    }
+  }
+}
+
+// Main Content Area - THIS IS WHERE THE SCROLLBAR WILL BE
