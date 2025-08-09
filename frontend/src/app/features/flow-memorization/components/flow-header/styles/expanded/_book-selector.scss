@@ -1,0 +1,171 @@
+
+.book-selector-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.testament-filter {
+  display: flex;
+  gap: 2px;
+  background: rgba(243, 244, 246, 0.8);
+  padding: 2px;
+  border-radius: 10px;
+  
+  button {
+    padding: 5px 9px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+    
+    &.active {
+      background: white;
+      color: #667eea;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+  }
+}
+
+.book-selector-glass {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.85);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.1);
+  }
+  
+  .book-icon {
+    font-size: 18px;
+  }
+  
+  .book-title {
+    font-size: 16px;
+    font-weight: 600;
+    flex: 1;
+    color: #374151;
+  }
+  
+  .dropdown-arrow {
+    color: #6b7280;
+    transition: transform 0.3s;
+    font-size: 12px;
+    
+    &.open {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.book-dropdown-container {
+  position: relative;
+  width: 100%;
+  margin-top: 8px;
+  
+  .book-dropdown {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(229, 231, 235, 0.6);
+    max-height: 400px;
+    overflow-y: auto;
+    animation: slideDown 0.3s ease;
+    
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f3f4f6;
+      border-radius: 8px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 8px;
+      
+      &:hover {
+        background: #9ca3af;
+      }
+    }
+  }
+}
+
+.dropdown-section {
+  padding: 12px;
+  border-bottom: 1px solid #f3f4f6;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.dropdown-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  padding: 0 8px;
+}
+
+.book-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.book-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: #f3f4f6;
+  }
+  
+  &.current {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    
+    .book-name {
+      color: #2563eb;
+      font-weight: 600;
+    }
+  }
+  
+  .book-name {
+    font-size: 14px;
+    color: #374151;
+  }
+  
+  .book-progress {
+    font-size: 12px;
+    color: #9ca3af;
+    font-weight: 500;
+  }
+}
