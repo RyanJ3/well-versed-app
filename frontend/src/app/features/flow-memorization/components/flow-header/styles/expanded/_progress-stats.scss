@@ -1,0 +1,63 @@
+.progress-stats-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  .progress-ring-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .progress-ring-large {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    flex-shrink: 0;
+
+    svg {
+      transform: rotate(-90deg);
+      filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.15));
+    }
+
+    .ring-bg {
+      fill: none;
+      stroke: rgba(16, 185, 129, 0.1);
+      stroke-width: 8;
+    }
+
+    .ring-fill {
+      fill: none;
+      stroke: url(#gradient-ring);
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0.5s ease;
+    }
+
+    .ring-percentage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      font-weight: 700;
+      color: #059669;
+    }
+  }
+
+  .verses-count-label {
+    text-align: center;
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+    
+    .verses-count-value {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-top: 2px;
+    }
+  }
+}
