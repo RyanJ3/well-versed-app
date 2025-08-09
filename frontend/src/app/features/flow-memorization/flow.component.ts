@@ -22,12 +22,8 @@ import { selectBibleDataWithProgress } from '@state/bible-tracker/selectors/bibl
 import { FlowVerse, ModalVerse } from './models/flow.models';
 import { ContextMenuData } from './models/context-menu-data.model';
 import { FlowParsingService } from '@services/utils/flow-parsing.service';
-
-interface VerseSection {
-  name: string;
-  start: number;
-  end: number;
-}
+import { VerseSection } from './models/verse-section.model';
+import { FlowSelectionService } from './services/flow-selection.service';
 
 @Component({
   selector: 'app-flow-memorization',
@@ -39,7 +35,7 @@ interface VerseSection {
     FlowContextMenuComponent,
     FlowHeaderComponent
   ],
-  providers: [FlowStateService, FlowMemorizationService],
+  providers: [FlowStateService, FlowMemorizationService, FlowSelectionService],
   templateUrl: './flow.component.html',
   styleUrls: ['./flow.component.scss'],
   animations: [
@@ -61,7 +57,6 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   // Core data
   verses: FlowVerse[] = [];
-  selectedVerses = new Set<string>();
   hoveredSection = -1;
 
   // Bible models - using actual Bible objects
@@ -83,12 +78,6 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   // Chapter navigation - using BibleChapter objects
   availableChapters: BibleChapter[] = [];
-
-  // Selection state
-  lastClickedVerse: number | null = null;
-  isDragging = false;
-  dragStart: number | null = null;
-  dragEnd: number | null = null;
 
   // Context menu
   contextMenu: ContextMenuData = {
@@ -170,7 +159,8 @@ export class FlowComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private flowStateService: FlowStateService,
     private flowMemorizationService: FlowMemorizationService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    public selectionService: FlowSelectionService
   ) {}
 
   ngOnInit() {
@@ -239,9 +229,9 @@ export class FlowComponent implements OnInit, OnDestroy {
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
     if (event.key === 'Escape') {
-      this.selectedVerses.clear();
+      this.selectionService.clearSelection();
       this.contextMenu.visible = false;
-    } else if (event.key === 'Enter' && this.selectedVerses.size > 0) {
+    } else if (event.key === 'Enter' && this.selectionService.selectedVerses.size > 0) {
       this.startStudySession();
     } else if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
       event.preventDefault();
@@ -396,29 +386,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   handleVerseClick(index: number, event: MouseEvent) {
     event.preventDefault();
     const actualIndex = this.getActualIndex(index);
-    const verse = this.verses[actualIndex];
-
-    if (event.shiftKey && this.lastClickedVerse !== null) {
-      // Range selection
-      const start = Math.min(this.lastClickedVerse, actualIndex);
-      const end = Math.max(this.lastClickedVerse, actualIndex);
-      for (let i = start; i <= end; i++) {
-        this.selectedVerses.add(this.verses[i].verseCode);
-      }
-    } else if (event.ctrlKey || event.metaKey) {
-      // Toggle selection
-      if (this.selectedVerses.has(verse.verseCode)) {
-        this.selectedVerses.delete(verse.verseCode);
-      } else {
-        this.selectedVerses.add(verse.verseCode);
-      }
-    } else {
-      // Single selection
-      this.selectedVerses.clear();
-      this.selectedVerses.add(verse.verseCode);
-    }
-
-    this.lastClickedVerse = actualIndex;
+    this.selectionService.handleVerseClick(actualIndex, event, this.verses);
   }
 
   handleVerseDoubleClick(verse: FlowVerse) {
@@ -433,33 +401,23 @@ export class FlowComponent implements OnInit, OnDestroy {
       x: event.clientX,
       y: event.clientY,
       verseId: verse.verseCode,
-      selectedCount: this.selectedVerses.size
+      selectedCount: this.selectionService.selectedVerses.size
     };
   }
 
   // Drag selection
   handleMouseDown(index: number) {
     const actualIndex = this.getActualIndex(index);
-    this.isDragging = true;
-    this.dragStart = actualIndex;
-    this.dragEnd = actualIndex;
+    this.selectionService.handleMouseDown(actualIndex);
   }
 
   handleMouseEnter(index: number) {
     const actualIndex = this.getActualIndex(index);
-    if (this.isDragging && this.dragStart !== null) {
-      this.dragEnd = actualIndex;
-      const start = Math.min(this.dragStart, actualIndex);
-      const end = Math.max(this.dragStart, actualIndex);
-      this.selectedVerses.clear();
-      for (let i = start; i <= end; i++) {
-        this.selectedVerses.add(this.verses[i].verseCode);
-      }
-    }
+    this.selectionService.handleMouseMove(actualIndex, this.verses);
   }
 
   handleMouseUp() {
-    this.isDragging = false;
+    this.selectionService.handleMouseUp();
   }
 
   private getActualIndex(filteredIndex: number): number {
@@ -506,7 +464,7 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   markSelectedAsMemorized() {
     let changedCount = 0;
-    this.selectedVerses.forEach(verseCode => {
+    this.selectionService.selectedVerses.forEach(verseCode => {
       const verse = this.verses.find(v => v.verseCode === verseCode);
       if (verse && !verse.isMemorized) {
         this.toggleMemorized(verse);
@@ -522,7 +480,7 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   markSelectedAsUnmemorized() {
     let changedCount = 0;
-    this.selectedVerses.forEach(verseCode => {
+    this.selectionService.selectedVerses.forEach(verseCode => {
       const verse = this.verses.find(v => v.verseCode === verseCode);
       if (verse && verse.isMemorized) {
         this.toggleMemorized(verse);
@@ -536,13 +494,11 @@ export class FlowComponent implements OnInit, OnDestroy {
   }
 
   selectAll() {
-    this.verses.forEach(v => this.selectedVerses.add(v.verseCode));
+    this.selectionService.selectAll(this.verses);
   }
 
   selectSection(section: VerseSection) {
-    for (let i = section.start; i <= section.end && i < this.verses.length; i++) {
-      this.selectedVerses.add(this.verses[i].verseCode);
-    }
+    this.selectionService.selectSection(section, this.verses);
   }
 
   // Navigation
@@ -646,7 +602,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   // Study session
   startStudySession() {
     const selectedVerseObjects = this.verses.filter(v =>
-      this.selectedVerses.has(v.verseCode)
+      this.selectionService.selectedVerses.has(v.verseCode)
     );
     this.modalVerses = selectedVerseObjects.map(v => ({
       code: v.verseCode,
@@ -684,7 +640,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   // Flashcard operations
   addToFlashcardDeck(deck: string) {
     const versesToAdd = this.contextMenu.selectedCount > 0
-      ? Array.from(this.selectedVerses)
+      ? Array.from(this.selectionService.selectedVerses)
       : [this.contextMenu.verseId!];
     console.log(`Adding ${versesToAdd.length} verses to ${deck}`);
     this.showEncouragement = `Added ${versesToAdd.length} verse(s) to ${deck}!`;
@@ -698,7 +654,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   }
 
   isVerseSelected(verse: FlowVerse): boolean {
-    return this.selectedVerses.has(verse.verseCode);
+    return this.selectionService.isVerseSelected(verse);
   }
 
   isNewParagraph(verse: FlowVerse): boolean {

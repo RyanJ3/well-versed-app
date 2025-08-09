@@ -1,0 +1,83 @@
+// Responsive
+@media (max-width: 768px) {
+  .flow-header-glass {
+    padding: 12px;
+    
+    &.collapsed {
+      padding: 8px 12px;
+      min-height: 60px;
+    }
+  }
+  
+  .collapsed-bar {
+    gap: 12px;
+    
+    .collapsed-book-info {
+      min-width: 150px;
+      padding: 6px 10px;
+      
+      .book-chapter-text {
+        font-size: 12px;
+      }
+    }
+    
+    .collapsed-actions {
+      flex-direction: column;
+      gap: 6px;
+      
+      .btn-glass-action {
+        padding: 6px 10px;
+        font-size: 10px;
+      }
+    }
+  }
+  
+  .collapse-toggle {
+    width: 28px;
+    height: 28px;
+    top: 12px;
+    right: 12px;
+    
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+  
+  .expanded-content {
+    gap: 14px;
+  }
+  
+  .testament-filter {
+    button {
+      padding: 4px 7px;
+      font-size: 9px;
+    }
+  }
+  
+  .progress-stats-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .action-buttons-glass {
+    grid-template-columns: 1fr;
+    
+    .btn-glass-action {
+      grid-column: 1 !important;
+    }
+  }
+  
+  .chapters-grid-glass {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  }
+  
+  // Default to collapsed on mobile
+  .flow-header-glass {
+    &:not(.expanded-by-user) {
+      @media (max-width: 768px) {
+        padding: 8px 12px;
+        min-height: 60px;
+      }
+    }
+  }
