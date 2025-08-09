@@ -7,7 +7,7 @@
     [memorizedVersesCount]="memorizedVersesCount"
     [totalVerses]="verses.length"
     [progressPercentage]="progressPercentage"
-    [selectedVersesCount]="selectedVerses.size"
+    [selectedVersesCount]="selectionService.selectedVerses.size"
     [showFullText]="showFullText"
     [availableChapters]="availableChapters"
     [allBooks]="allBooks"
@@ -34,9 +34,9 @@
   ></app-filters-bar>
 
   <!-- Selection Info -->
-  <div class="selection-info" *ngIf="selectedVerses.size > 0">
-    <span>{{ selectedVerses.size }} verses selected • Shift+Click for range • Ctrl/Cmd+A to select all</span>
-    <button (click)="selectedVerses.clear()" class="clear-selection-btn">
+  <div class="selection-info" *ngIf="selectionService.selectedVerses.size > 0">
+    <span>{{ selectionService.selectedVerses.size }} verses selected • Shift+Click for range • Ctrl/Cmd+A to select all</span>
+    <button (click)="selectionService.clearSelection()" class="clear-selection-btn">
       Clear selection (Esc)
     </button>
   </div>
