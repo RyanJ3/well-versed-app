@@ -15,7 +15,7 @@ import { FiltersBarComponent } from './components/filters-bar/filters-bar.compon
 import { FlowContextMenuComponent } from './components/context-menu/context-menu.component';
 import { FlowHeaderComponent } from './components/flow-header/flow-header.component';
 
-import { BibleBook, BibleChapter, BibleVerse } from '@models/bible';
+import { BibleBook, BibleChapter, BibleVerse, BibleData } from '@models/bible';
 import { AppState } from '@state/app.state';
 import { BibleMemorizationActions } from '@state/bible-tracker/actions/bible-memorization.actions';
 import { selectBibleDataWithProgress } from '@state/bible-tracker/selectors/bible-memorization.selectors';
@@ -28,13 +28,6 @@ interface VerseSection {
   start: number;
   end: number;
 }
-
-interface ChapterProgress {
-  memorized: number;
-  total: number;
-  lastStudied: string | null;
-}
-
 
 @Component({
   selector: 'app-flow-memorization',
@@ -71,10 +64,12 @@ export class FlowComponent implements OnInit, OnDestroy {
   selectedVerses = new Set<string>();
   hoveredSection = -1;
   
-  // Current book/chapter from Bible models
+  // Bible models - using actual Bible objects
+  bibleData: BibleData | null = null;
   currentBook: BibleBook | null = null;
   currentChapter = 1;
   currentBibleChapter: BibleChapter | null = null;
+  allBooks: BibleBook[] = [];
   
   // UI state
   showFullText = false;
@@ -86,9 +81,8 @@ export class FlowComponent implements OnInit, OnDestroy {
   showEncouragement = '';
   isLoading = false;
   
-  // Chapter navigation
-  chapterProgress: Record<number, ChapterProgress> = {};
-  availableChapters: number[] = [];
+  // Chapter navigation - using BibleChapter objects
+  availableChapters: BibleChapter[] = [];
   
   // Selection state
   lastClickedVerse: number | null = null;
@@ -139,13 +133,12 @@ export class FlowComponent implements OnInit, OnDestroy {
     return this.verses.filter(v => this.needsReview(v.verseCode)).length;
   }
 
-  
-get progressPercentage(): number {
-  if (!this.currentBook) return 0;
-  const total = this.currentBook.totalVerses;
-  const memorized = this.currentBook.memorizedVerses;
-  return total > 0 ? Math.round((memorized / total) * 100) : 0;
-}
+  get progressPercentage(): number {
+    if (!this.currentBook) return 0;
+    const total = this.currentBook.totalVerses;
+    const memorized = this.currentBook.memorizedVerses;
+    return total > 0 ? Math.round((memorized / total) * 100) : 0;
+  }
 
   get progressBarWidth(): number {
     if (this.verses.length === 0) return 0;
@@ -179,6 +172,9 @@ get progressPercentage(): number {
 
   ngOnInit() {
     console.log('FlowComponent initializing...');
+    
+    // Load Bible data
+    this.loadBibleData();
     
     // Get user ID
     this.userService.currentUser$
@@ -215,8 +211,9 @@ get progressPercentage(): number {
           console.log('Loading chapter from params:', bookId, chapter);
           this.loadChapter(bookId, chapter);
         } else {
-          // Load default chapter if no params
-          console.log('No params, loading default chapter');
+          // Load default Genesis 1 if no params
+          console.log('No params, loading Genesis 1');
+          this.loadChapter(1, 1);
         }
       });
   }
@@ -249,14 +246,28 @@ get progressPercentage(): number {
     }
   }
 
+  private loadBibleData() {
+    // Get Bible data from service
+    this.bibleData = this.bibleService.getBibleData();
+    if (this.bibleData) {
+      this.allBooks = this.bibleData.books;
+      console.log('Loaded Bible books:', this.allBooks.length);
+    } else {
+      console.error('Failed to load Bible data');
+    }
+  }
+
   private async loadChapter(bookId: number, chapterNum: number) {
     try {
       this.isLoading = true;
       this.currentChapter = chapterNum;
       
       // Get book from Bible data
-      const bibleData = this.bibleService.getBibleData();
-      this.currentBook = bibleData.getBookById(bookId) || null;
+      if (!this.bibleData) {
+        this.loadBibleData();
+      }
+      
+      this.currentBook = this.bibleData?.getBookById(bookId) || null;
       
       if (!this.currentBook) {
         console.error('Book not found:', bookId);
@@ -266,7 +277,9 @@ get progressPercentage(): number {
       
       // Get chapter from book
       this.currentBibleChapter = this.currentBook.getChapter(chapterNum);
-      this.availableChapters = Array.from({ length: this.currentBook.totalChapters }, (_, i) => i + 1);
+      
+      // Get all chapters for this book
+      this.availableChapters = this.currentBook.chapters;
       
       console.log('Loading chapter:', this.currentBook.name, chapterNum);
       
@@ -310,9 +323,6 @@ get progressPercentage(): number {
         } as FlowVerse;
       });
       
-      // Load memorization progress for all chapters
-      await this.loadAllChapterProgress();
-      
       // Initialize review data for memorized verses
       this.verses.forEach(verse => {
         if (verse.isMemorized) {
@@ -332,32 +342,6 @@ get progressPercentage(): number {
       this.isLoading = false;
       this.notificationService.error('Failed to load chapter data');
     }
-  }
-
-  private async loadAllChapterProgress() {
-    if (!this.currentBook) return;
-    
-    // Load progress for all chapters in the book
-    this.availableChapters.forEach(chapterNum => {
-      const chapter = this.currentBook!.getChapter(chapterNum);
-      if (chapter) {
-        const memorized = chapter.memorizedVerses;
-        const total = chapter.totalVerses;
-        
-        this.chapterProgress[chapterNum] = {
-          memorized,
-          total,
-          lastStudied: memorized > 0 ? this.getLastStudiedText(chapterNum) : null
-        };
-      }
-    });
-  }
-
-  private getLastStudiedText(chapterNum: number): string {
-    // In a real app, this would come from actual study session data
-    if (chapterNum === this.currentChapter) return 'Today';
-    if (chapterNum === this.currentChapter - 1) return 'Yesterday';
-    return `${Math.floor(Math.random() * 7) + 2} days ago`;
   }
 
   private loadSavedState() {
@@ -491,9 +475,6 @@ get progressPercentage(): number {
       this.currentBibleChapter.toggleVerse(verseNum);
     }
     
-    // Update chapter progress
-    this.loadAllChapterProgress();
-    
     // Show appropriate message
     if (!wasMemorized && verse.isMemorized) {
       // Marking as memorized
@@ -580,47 +561,9 @@ get progressPercentage(): number {
     return this.currentChapter < this.currentBook.totalChapters;
   }
 
-  getVisibleChapters(): number[] {
-    // Show 5 chapters centered around current chapter
-    const start = Math.max(1, this.currentChapter - 2);
-    const end = Math.min(this.availableChapters.length, this.currentChapter + 2);
-    return this.availableChapters.slice(start - 1, end);
-  }
-
-  getAllBooksWithProgress(): any[] {
-    // Get all books from BibleService with progress data
-    const bibleData = this.bibleService.getBibleData();
-    const books = bibleData.books;
-
-    return books.map(book => {
-      let totalMemorized = 0;
-      let totalVerses = 0;
-
-      // Calculate progress for each book
-      for (let i = 1; i <= book.totalChapters; i++) {
-        const chapter = book.getChapter(i);
-        if (chapter) {
-          totalVerses += chapter.totalVerses;
-          totalMemorized += chapter.memorizedVerses;
-        }
-      }
-
-      const progressPercentage = totalVerses > 0
-        ? Math.round((totalMemorized / totalVerses) * 100)
-        : 0;
-
-      return {
-        id: book.id,
-        name: book.name,
-        testament: book.testament || 'OT', // Add testament property to your Book model
-        totalChapters: book.totalChapters,
-        progressPercentage
-      };
-    });
-  }
-
   changeBook(bookId: number) {
     // Navigate to the new book at chapter 1
+    console.log('Changing to book:', bookId);
     this.router.navigate([], {
       queryParams: { bookId, chapter: 1 },
       queryParamsHandling: 'merge'
@@ -746,13 +689,6 @@ get progressPercentage(): number {
   }
 
   // Utility methods
-  getChapterProgress(chapter: number): number {
-    const progress = this.chapterProgress[chapter];
-    return progress && progress.total > 0 
-      ? Math.round((progress.memorized / progress.total) * 100) 
-      : 0;
-  }
-
   getVerseSection(index: number): VerseSection | undefined {
     return this.verseSections.find(s => index >= s.start && index <= s.end);
   }

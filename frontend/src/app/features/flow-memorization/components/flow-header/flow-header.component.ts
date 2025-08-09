@@ -1,29 +1,6 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
-interface ChapterData {
-  number: number;
-  totalVerses: number;
-  memorizedVerses: number;
-  isCompleted: boolean;
-  isCurrent: boolean;
-  progressPercentage: number;
-  lastStudied?: string;
-}
-
-interface BookWithProgress {
-  id: number;
-  name: string;
-  testament: 'OT' | 'NT' | 'APO';
-  totalChapters: number;
-  progressPercentage: number;
-}
-
-interface RecentlyStudied {
-  bookName: string;
-  chapter: number;
-  timeAgo: string;
-}
+import { BibleBook, BibleChapter } from '@models/bible';
 
 @Component({
   selector: 'app-flow-header',
@@ -32,9 +9,9 @@ interface RecentlyStudied {
   templateUrl: './flow-header.component.html',
   styleUrls: ['./flow-header.component.scss']
 })
-export class FlowHeaderComponent {
-  // Inputs from parent FlowComponent
-  @Input() currentBook: any = null;
+export class FlowHeaderComponent implements OnInit {
+  // Inputs from parent FlowComponent - using actual Bible models
+  @Input() currentBook: BibleBook | null = null;
   @Input() currentChapter = 1;
   @Input() totalChapters = 50;
   @Input() memorizedVersesCount = 0;
@@ -42,9 +19,8 @@ export class FlowHeaderComponent {
   @Input() progressPercentage = 0;
   @Input() selectedVersesCount = 0;
   @Input() showFullText = false;
-  @Input() chapterProgress: Record<number, any> = {};
-  @Input() availableChapters: number[] = [];
-  @Input() allBooks: BookWithProgress[] = [];
+  @Input() availableChapters: BibleChapter[] = [];
+  @Input() allBooks: BibleBook[] = [];
 
   // Outputs to parent FlowComponent
   @Output() toggleTextMode = new EventEmitter<void>();
@@ -58,15 +34,15 @@ export class FlowHeaderComponent {
   testamentFilter: 'ALL' | 'OT' | 'NT' | 'APO' = 'ALL';
   chapterViewMode: 'grid' | 'row' | 'list' = 'grid';
   showBookDropdown = false;
-  
-  // Mock recently studied data - in real app, this would come from parent
-  recentlyStudied: RecentlyStudied[] = [
-    { bookName: 'Genesis', chapter: 3, timeAgo: '2 hours ago' },
-    { bookName: 'Mark', chapter: 5, timeAgo: 'Yesterday' },
-    { bookName: 'Psalms', chapter: 23, timeAgo: '3 days ago' }
-  ];
 
   constructor(private elementRef: ElementRef) {}
+
+  ngOnInit() {
+    // Log the books to debug
+    console.log('FlowHeaderComponent - allBooks:', this.allBooks);
+    console.log('FlowHeaderComponent - currentBook:', this.currentBook);
+    console.log('FlowHeaderComponent - availableChapters:', this.availableChapters);
+  }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent) {
@@ -75,9 +51,9 @@ export class FlowHeaderComponent {
     }
   }
 
-  // LARGER Progress ring calculations for more prominent display
+  // Progress ring calculations
   get progressCircumference(): number {
-    return 2 * Math.PI * 54; // INCREASED radius from 36 to 54
+    return 2 * Math.PI * 54;
   }
 
   get progressOffset(): number {
@@ -87,91 +63,83 @@ export class FlowHeaderComponent {
   // Book statistics
   get totalBookVerses(): number {
     if (!this.currentBook) return 0;
-    // Sum all verses from all chapters in the book
-    let total = 0;
-    for (let i = 1; i <= this.currentBook.totalChapters; i++) {
-      const progress = this.chapterProgress[i];
-      if (progress) {
-        total += progress.total;
-      }
-    }
-    return total;
+    return this.currentBook.totalVerses;
   }
 
   get memorizedBookVerses(): number {
-    return Object.values(this.chapterProgress).reduce((sum, ch: any) => 
-      sum + (ch.memorized || 0), 0
-    );
+    if (!this.currentBook) return 0;
+    return this.currentBook.memorizedVerses;
   }
 
   get chaptersWithProgress(): number {
-    return Object.values(this.chapterProgress).filter((ch: any) => 
-      ch.memorized > 0
-    ).length;
+    if (!this.availableChapters) return 0;
+    return this.availableChapters.filter(ch => ch.memorizedVerses > 0).length;
   }
 
   // Get filtered chapters for display
-  get filteredChapters(): ChapterData[] {
-    const chapters: ChapterData[] = this.availableChapters.map(num => {
-      const progress = this.chapterProgress[num] || { memorized: 0, total: 0 };
-      const percentage = progress.total > 0 
-        ? Math.round((progress.memorized / progress.total) * 100)
-        : 0;
-      
-      // Mock last studied data for completed chapters
-      let lastStudied: string | undefined;
-      if (percentage === 100) {
-        const daysAgo = Math.floor(Math.random() * 30);
-        if (daysAgo === 0) lastStudied = 'Today';
-        else if (daysAgo === 1) lastStudied = 'Yesterday';
-        else lastStudied = `${daysAgo} days ago`;
-      }
-      
-      return {
-        number: num,
-        totalVerses: progress.total,
-        memorizedVerses: progress.memorized,
-        isCompleted: progress.total > 0 && progress.memorized === progress.total,
-        isCurrent: num === this.currentChapter,
-        progressPercentage: percentage,
-        lastStudied
-      };
-    });
+  get filteredChapters(): BibleChapter[] {
+    if (!this.availableChapters || this.availableChapters.length === 0) {
+      return [];
+    }
 
     switch (this.activeChapterFilter) {
       case 'completed':
-        return chapters.filter(ch => ch.isCompleted);
+        return this.availableChapters.filter(ch => 
+          ch.totalVerses > 0 && ch.memorizedVerses === ch.totalVerses
+        );
       case 'inProgress':
-        return chapters.filter(ch => ch.memorizedVerses > 0 && !ch.isCompleted);
+        return this.availableChapters.filter(ch => 
+          ch.memorizedVerses > 0 && ch.memorizedVerses < ch.totalVerses
+        );
       default:
-        return chapters;
+        return this.availableChapters;
     }
   }
 
-  // Get all chapters - no slicing!
-  get visibleChapters(): ChapterData[] {
+  // Get all chapters
+  get visibleChapters(): BibleChapter[] {
     return this.filteredChapters;
   }
 
   // Filter books by testament
-  get filteredBooks(): BookWithProgress[] {
+  get filteredBooks(): BibleBook[] {
     if (!this.allBooks || this.allBooks.length === 0) {
       return [];
     }
-    if (this.testamentFilter === 'ALL') return this.allBooks;
-    return this.allBooks.filter(book => 
-      book.testament === this.testamentFilter
-    );
+    
+    if (this.testamentFilter === 'ALL') {
+      return this.allBooks;
+    }
+    
+    return this.allBooks.filter(book => {
+      const testament = this.getBookTestament(book.id);
+      return testament === this.testamentFilter;
+    });
   }
 
   // Get books grouped by testament for dropdown
   get booksByTestament() {
     if (!this.allBooks || this.allBooks.length === 0) {
+      console.warn('No books available for dropdown');
       return { OT: [], NT: [], APO: [] };
     }
-    const otBooks = this.allBooks.filter(b => b.testament === 'OT');
-    const ntBooks = this.allBooks.filter(b => b.testament === 'NT');
-    const apoBooks = this.allBooks.filter(b => b.testament === 'APO');
+    
+    // Apply testament filter
+    let filteredBooks = this.allBooks;
+    if (this.testamentFilter !== 'ALL') {
+      filteredBooks = this.filteredBooks;
+    }
+    
+    const otBooks = filteredBooks.filter(b => this.getBookTestament(b.id) === 'OT');
+    const ntBooks = filteredBooks.filter(b => this.getBookTestament(b.id) === 'NT');
+    const apoBooks = filteredBooks.filter(b => this.getBookTestament(b.id) === 'APO');
+    
+    console.log('Books by testament:', { 
+      OT: otBooks.length, 
+      NT: ntBooks.length, 
+      APO: apoBooks.length,
+      total: this.allBooks.length 
+    });
     
     return {
       OT: otBooks,
@@ -180,14 +148,51 @@ export class FlowHeaderComponent {
     };
   }
 
+  // Helper to determine testament based on book ID
+  private getBookTestament(bookId: number): 'OT' | 'NT' | 'APO' {
+    if (bookId <= 39) return 'OT';
+    if (bookId <= 66) return 'NT';
+    return 'APO';
+  }
+
   // Calculate pie chart values for chapter cards
   getChapterPieCircumference(): number {
-    return 2 * Math.PI * 18; // radius for small pie charts
+    return 2 * Math.PI * 18;
   }
 
   getChapterPieOffset(percentage: number): number {
     const circumference = this.getChapterPieCircumference();
     return circumference - (percentage / 100) * circumference;
+  }
+
+  // Get chapter progress percentage
+  getChapterProgress(chapter: BibleChapter): number {
+    if (!chapter || chapter.totalVerses === 0) return 0;
+    return Math.round((chapter.memorizedVerses / chapter.totalVerses) * 100);
+  }
+
+  // Get book progress percentage
+  getBookProgress(book: BibleBook): number {
+    if (!book || book.totalVerses === 0) return 0;
+    return Math.round((book.memorizedVerses / book.totalVerses) * 100);
+  }
+
+  // Check if chapter is current
+  isCurrentChapter(chapter: BibleChapter): boolean {
+    return chapter.chapterNumber === this.currentChapter;
+  }
+
+  // Check if chapter is completed
+  isChapterCompleted(chapter: BibleChapter): boolean {
+    return chapter.totalVerses > 0 && chapter.memorizedVerses === chapter.totalVerses;
+  }
+
+  // Get last studied text for a chapter (mock for now)
+  getLastStudied(chapter: BibleChapter): string | null {
+    if (chapter.memorizedVerses === 0) return null;
+    if (chapter.chapterNumber === this.currentChapter) return 'Today';
+    if (Math.random() > 0.5) return 'Yesterday';
+    return `${Math.floor(Math.random() * 7) + 2} days ago`;
   }
 
   setChapterFilter(filter: 'all' | 'inProgress' | 'completed'): void {
@@ -208,7 +213,6 @@ export class FlowHeaderComponent {
     this.showBookDropdown = !this.showBookDropdown;
   }
 
-  // FIX: Properly emit chapter change event
   onChapterClick(chapterNumber: number): void {
     if (chapterNumber !== this.currentChapter) {
       this.changeChapter.emit(chapterNumber);
@@ -216,6 +220,7 @@ export class FlowHeaderComponent {
   }
 
   onBookSelect(bookId: number): void {
+    console.log('Book selected:', bookId);
     this.changeBook.emit(bookId);
     this.showBookDropdown = false;
   }
