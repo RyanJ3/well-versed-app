@@ -55,7 +55,7 @@ interface VerseSection {
   ]
 })
 export class FlowComponent implements OnInit, OnDestroy {
-  @ViewChild('versesContainer') versesContainer!: ElementRef<HTMLDivElement>;
+  @ViewChild('versesContainer') versesContainer!: ElementRef;
 
   private flowParsingService: FlowParsingService = inject(FlowParsingService);
 
@@ -63,14 +63,14 @@ export class FlowComponent implements OnInit, OnDestroy {
   verses: FlowVerse[] = [];
   selectedVerses = new Set<string>();
   hoveredSection = -1;
-  
+
   // Bible models - using actual Bible objects
   bibleData: BibleData | null = null;
   currentBook: BibleBook | null = null;
   currentChapter = 1;
   currentBibleChapter: BibleChapter | null = null;
   allBooks: BibleBook[] = [];
-  
+
   // UI state
   showFullText = false;
   fontSize = 16;
@@ -80,16 +80,16 @@ export class FlowComponent implements OnInit, OnDestroy {
   isGearSpinning = false;
   showEncouragement = '';
   isLoading = false;
-  
+
   // Chapter navigation - using BibleChapter objects
   availableChapters: BibleChapter[] = [];
-  
+
   // Selection state
   lastClickedVerse: number | null = null;
   isDragging = false;
   dragStart: number | null = null;
   dragEnd: number | null = null;
-  
+
   // Context menu
   contextMenu: ContextMenuData = {
     visible: false,
@@ -98,27 +98,30 @@ export class FlowComponent implements OnInit, OnDestroy {
     verseId: null,
     selectedCount: 0
   };
-  
+
   // Sections
   verseSections: VerseSection[] = [];
-  
+
   // Review data
   verseReviewData: Record<string, { lastReviewed: number; strength: number }> = {};
-  
+
   // Modal
   showModal = false;
   modalVerses: ModalVerse[] = [];
   modalChapterName = '';
-  
+
   // Flashcard decks
   flashcardDecks = ['Basic Deck', 'Review Deck', 'Difficult Verses'];
-  
+
   // Expose Math to template
   Math = Math;
-  
+
   private destroy$ = new Subject<void>();
   private saveQueue$ = new Subject<FlowVerse>();
   private userId = 1;
+
+  // Track whether progress has been loaded to avoid redundant API calls
+  private progressLoaded = false;
 
   // Computed properties for template
   get memorizedVersesCount(): number {
@@ -172,10 +175,10 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     console.log('FlowComponent initializing...');
-    
-    // Load Bible data
+
+    // Load Bible data (structure only)
     this.loadBibleData();
-    
+
     // Get user ID
     this.userService.currentUser$
       .pipe(takeUntil(this.destroy$))
@@ -188,17 +191,17 @@ export class FlowComponent implements OnInit, OnDestroy {
 
     // Load saved state
     this.loadSavedState();
-    
+
     // Setup save queue
     this.setupSaveQueue();
-    
+
     // Subscribe to save notifications
     this.flowMemorizationService.savedNotification$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.showSaveNotification();
       });
-    
+
     // Load from route params
     this.route.queryParams
       .pipe(takeUntil(this.destroy$))
@@ -206,7 +209,7 @@ export class FlowComponent implements OnInit, OnDestroy {
         console.log('Route params:', params);
         const bookId = params['bookId'] ? parseInt(params['bookId']) : null;
         const chapter = params['chapter'] ? parseInt(params['chapter']) : null;
-        
+
         if (bookId && chapter) {
           console.log('Loading chapter from params:', bookId, chapter);
           this.loadChapter(bookId, chapter);
@@ -257,58 +260,78 @@ export class FlowComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Ensure memorization progress has been loaded from the backend before
+   * attempting to render verses. This method caches the result so that
+   * subsequent calls do not trigger another API request.
+   */
+  private async ensureProgressLoaded(): Promise<void> {
+    if (this.progressLoaded) {
+      return;
+    }
+    try {
+      // Fetch user memorization data, which updates the BibleData instance
+      await firstValueFrom(this.bibleService.getUserVerses(this.userId));
+    } catch (error) {
+      console.error('Error loading memorization progress:', error);
+    }
+    this.progressLoaded = true;
+    // Refresh Bible data and visible books after progress has been applied
+    this.loadBibleData();
+  }
+
   private async loadChapter(bookId: number, chapterNum: number) {
     try {
+      // Make sure progress is loaded before generating verses
+      await this.ensureProgressLoaded();
+
       this.isLoading = true;
       this.currentChapter = chapterNum;
-      
-      // Get book from Bible data
+
+      // Ensure bible data is available
       if (!this.bibleData) {
         this.loadBibleData();
       }
-      
+
       this.currentBook = this.bibleData?.getBookById(bookId) || null;
-      
       if (!this.currentBook) {
         console.error('Book not found:', bookId);
         this.isLoading = false;
         return;
       }
-      
+
       // Get chapter from book
       this.currentBibleChapter = this.currentBook.getChapter(chapterNum);
-      
       // Get all chapters for this book
       this.availableChapters = this.currentBook.chapters;
-      
+
       console.log('Loading chapter:', this.currentBook.name, chapterNum);
-      
+
       // Generate verse codes
       const totalVerses = this.currentBibleChapter.totalVerses;
-      const verseCodes: string[] = Array.from({ length: totalVerses }, (_, i) => 
+      const verseCodes: string[] = Array.from({ length: totalVerses }, (_, i) =>
         `${bookId}-${chapterNum}-${i + 1}`
       );
-      
+
       // Get verse texts
       const verseTexts = await firstValueFrom(
         this.bibleService.getVerseTexts(this.userId, verseCodes)
       );
-      
       console.log('Verse texts loaded:', Object.keys(verseTexts).length);
-      
+
       // Create verses array
       this.verses = verseCodes.map((code, index) => {
         const [, , verseNum] = code.split('-').map(Number);
         const text = verseTexts[code] || '';
-        
+
         // Check if this verse starts a new paragraph
         const isNewParagraph = verseNum === 1 || [6, 11, 16, 21, 26, 31, 36].includes(verseNum);
         const displayText = isNewParagraph && text ? `¶ ${text}` : text;
-        
+
         // Get memorization status from Bible model
         const bibleVerse = this.currentBibleChapter?.verses[verseNum - 1];
         const isMemorized = bibleVerse?.memorized || false;
-        
+
         return {
           verseCode: code,
           reference: this.currentBook!.chapters.length === 1 ? `v${verseNum}` : `${chapterNum}:${verseNum}`,
@@ -322,21 +345,20 @@ export class FlowComponent implements OnInit, OnDestroy {
           isSaving: false
         } as FlowVerse;
       });
-      
+
       // Initialize review data for memorized verses
       this.verses.forEach(verse => {
         if (verse.isMemorized) {
           const daysSinceMemorized = Math.floor(Math.random() * 10) + 1;
           this.verseReviewData[verse.verseCode] = {
-            lastReviewed: Date.now() - (daysSinceMemorized * 24 * 60 * 60 * 1000),
-            strength: Math.max(50, 100 - (daysSinceMemorized * 5))
+            lastReviewed: Date.now() - daysSinceMemorized * 24 * 60 * 60 * 1000,
+            strength: Math.max(50, 100 - daysSinceMemorized * 5)
           };
         }
       });
-      
+
       this.isLoading = false;
       console.log('Verses loaded with memorization data:', this.verses.length);
-      
     } catch (error) {
       console.error('Error loading chapter:', error);
       this.isLoading = false;
@@ -375,12 +397,11 @@ export class FlowComponent implements OnInit, OnDestroy {
     event.preventDefault();
     const actualIndex = this.getActualIndex(index);
     const verse = this.verses[actualIndex];
-    
+
     if (event.shiftKey && this.lastClickedVerse !== null) {
       // Range selection
       const start = Math.min(this.lastClickedVerse, actualIndex);
       const end = Math.max(this.lastClickedVerse, actualIndex);
-      
       for (let i = start; i <= end; i++) {
         this.selectedVerses.add(this.verses[i].verseCode);
       }
@@ -396,7 +417,7 @@ export class FlowComponent implements OnInit, OnDestroy {
       this.selectedVerses.clear();
       this.selectedVerses.add(verse.verseCode);
     }
-    
+
     this.lastClickedVerse = actualIndex;
   }
 
@@ -407,7 +428,6 @@ export class FlowComponent implements OnInit, OnDestroy {
   handleContextMenu(event: MouseEvent, verse: FlowVerse) {
     event.preventDefault();
     event.stopPropagation();
-    
     this.contextMenu = {
       visible: true,
       x: event.clientX,
@@ -431,7 +451,6 @@ export class FlowComponent implements OnInit, OnDestroy {
       this.dragEnd = actualIndex;
       const start = Math.min(this.dragStart, actualIndex);
       const end = Math.max(this.dragStart, actualIndex);
-      
       this.selectedVerses.clear();
       for (let i = start; i <= end; i++) {
         this.selectedVerses.add(this.verses[i].verseCode);
@@ -458,9 +477,7 @@ export class FlowComponent implements OnInit, OnDestroy {
     const wasMemorized = verse.isMemorized;
     verse.isMemorized = !verse.isMemorized;
     verse.isSaving = true;
-    
     this.saveQueue$.next(verse);
-    
     // Update store
     const [bookId, chapter, verseNum] = verse.verseCode.split('-').map(Number);
     this.store.dispatch(BibleMemorizationActions.toggleVerseMemorization({
@@ -469,19 +486,17 @@ export class FlowComponent implements OnInit, OnDestroy {
       chapterNumber: chapter,
       verseNumber: verseNum
     }));
-    
     // Update Bible model
     if (this.currentBibleChapter) {
       this.currentBibleChapter.toggleVerse(verseNum);
     }
-    
     // Show appropriate message
     if (!wasMemorized && verse.isMemorized) {
       // Marking as memorized
       const memorizedCount = this.verses.filter(v => v.isMemorized).length;
       if (memorizedCount > 0 && memorizedCount % 5 === 0) {
         this.showEncouragement = `Great job! ${memorizedCount} verses memorized! 🎉`;
-        setTimeout(() => this.showEncouragement = '', 3000);
+        setTimeout(() => (this.showEncouragement = ''), 3000);
       }
     } else if (wasMemorized && !verse.isMemorized) {
       // Unmarking as memorized
@@ -498,12 +513,10 @@ export class FlowComponent implements OnInit, OnDestroy {
         changedCount++;
       }
     });
-    
     if (changedCount > 0) {
       this.showEncouragement = `${changedCount} verse${changedCount > 1 ? 's' : ''} marked as memorized!`;
-      setTimeout(() => this.showEncouragement = '', 3000);
+      setTimeout(() => (this.showEncouragement = ''), 3000);
     }
-    
     this.contextMenu.visible = false;
   }
 
@@ -516,11 +529,9 @@ export class FlowComponent implements OnInit, OnDestroy {
         changedCount++;
       }
     });
-    
     if (changedCount > 0) {
       this.notificationService.info(`${changedCount} verse${changedCount > 1 ? 's' : ''} unmarked as memorized`);
     }
-    
     this.contextMenu.visible = false;
   }
 
@@ -575,7 +586,7 @@ export class FlowComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     this.showSettings = !this.showSettings;
     this.isGearSpinning = true;
-    setTimeout(() => this.isGearSpinning = false, 600);
+    setTimeout(() => (this.isGearSpinning = false), 600);
   }
 
   increaseFontSize() {
@@ -607,7 +618,6 @@ export class FlowComponent implements OnInit, OnDestroy {
     if (!this.verses || this.verses.length === 0) {
       return [];
     }
-    
     switch (this.activeFilter) {
       case 'unmemorized':
         return this.verses.filter(v => !v.isMemorized);
@@ -621,7 +631,6 @@ export class FlowComponent implements OnInit, OnDestroy {
   needsReview(verseCode: string): boolean {
     const reviewData = this.verseReviewData[verseCode];
     if (!reviewData) return false;
-    
     // Needs review if strength is below 80% or last reviewed more than 3 days ago
     const daysSinceReview = (Date.now() - reviewData.lastReviewed) / (1000 * 60 * 60 * 24);
     return reviewData.strength < 80 || daysSinceReview > 3;
@@ -636,10 +645,9 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   // Study session
   startStudySession() {
-    const selectedVerseObjects = this.verses.filter(v => 
+    const selectedVerseObjects = this.verses.filter(v =>
       this.selectedVerses.has(v.verseCode)
     );
-    
     this.modalVerses = selectedVerseObjects.map(v => ({
       code: v.verseCode,
       text: v.text.replace(/¶\s*/g, ''), // Remove paragraph markers
@@ -648,7 +656,6 @@ export class FlowComponent implements OnInit, OnDestroy {
       chapter: v.chapter,
       verse: v.verse
     }));
-    
     this.modalChapterName = `${this.currentBook?.name} ${this.currentChapter}`;
     this.showModal = true;
   }
@@ -656,13 +663,12 @@ export class FlowComponent implements OnInit, OnDestroy {
   startFullChapter() {
     this.modalVerses = this.verses.map(v => ({
       code: v.verseCode,
-      text: v.text.replace(/¶\s*/g, ''), // Remove paragraph markers
+      text: v.text.replace(/¶\s*/g, ''),
       reference: v.reference,
       bookId: this.currentBook?.id || 0,
       chapter: v.chapter,
       verse: v.verse
     }));
-    
     this.modalChapterName = `${this.currentBook?.name} ${this.currentChapter}`;
     this.showModal = true;
   }
@@ -677,15 +683,13 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   // Flashcard operations
   addToFlashcardDeck(deck: string) {
-    const versesToAdd = this.contextMenu.selectedCount > 0 
-      ? Array.from(this.selectedVerses) 
+    const versesToAdd = this.contextMenu.selectedCount > 0
+      ? Array.from(this.selectedVerses)
       : [this.contextMenu.verseId!];
-    
     console.log(`Adding ${versesToAdd.length} verses to ${deck}`);
     this.showEncouragement = `Added ${versesToAdd.length} verse(s) to ${deck}!`;
     this.contextMenu.visible = false;
-    
-    setTimeout(() => this.showEncouragement = '', 3000);
+    setTimeout(() => (this.showEncouragement = ''), 3000);
   }
 
   // Utility methods
@@ -703,11 +707,9 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   getVerseState(verse: FlowVerse, index: number): string {
     const classes = ['verse-block'];
-    
     if (this.isNewParagraph(verse)) {
       classes.push('new-paragraph');
     }
-    
     if (verse.isMemorized) {
       if (this.needsReview(verse.verseCode)) {
         classes.push('memorized-needs-review');
@@ -719,7 +721,6 @@ export class FlowComponent implements OnInit, OnDestroy {
     } else if (verse.isFifth) {
       classes.push('fifth-verse');
     }
-    
     return classes.join(' ');
   }
 
@@ -729,6 +730,6 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   private showSaveNotification() {
     this.showEncouragement = 'Progress saved!';
-    setTimeout(() => this.showEncouragement = '', 2000);
+    setTimeout(() => (this.showEncouragement = ''), 2000);
   }
 }

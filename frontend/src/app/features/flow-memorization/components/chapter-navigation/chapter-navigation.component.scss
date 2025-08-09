@@ -34,7 +34,11 @@
 
   .chapter-buttons {
     display: flex;
-    gap: 0.5rem;
+    /* Allow chapter buttons to wrap onto multiple lines to prevent overlap */
+    flex-wrap: wrap;
+    /* Provide both horizontal and vertical spacing between buttons */
+    column-gap: 0.5rem;
+    row-gap: 0.5rem;
   }
 
   .chapter-btn {
@@ -47,6 +51,8 @@
     color: #6b7280;
     border: 1px solid #e5e7eb;
     cursor: pointer;
+    /* Provide a small margin to separate buttons further in case wrapping occurs */
+    margin: 0;
 
     &:hover {
       background-color: #f3f4f6;
@@ -87,6 +93,7 @@
     padding: 0.5rem 1rem;
 
     .chapter-buttons {
+      /* On mobile we keep the horizontal scrolling behaviour */
       flex-wrap: nowrap;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;

@@ -10,7 +10,7 @@ import { BibleBook, BibleChapter } from '@models/bible';
   styleUrls: ['./flow-header.component.scss']
 })
 export class FlowHeaderComponent implements OnInit {
-  // Inputs from parent FlowComponent - using actual Bible models
+  // Inputs from parent FlowComponent
   @Input() currentBook: BibleBook | null = null;
   @Input() currentChapter = 1;
   @Input() totalChapters = 50;
@@ -34,14 +34,29 @@ export class FlowHeaderComponent implements OnInit {
   testamentFilter: 'ALL' | 'OT' | 'NT' | 'APO' = 'ALL';
   chapterViewMode: 'grid' | 'row' | 'list' = 'grid';
   showBookDropdown = false;
+  
+  // Collapse state
+  isCollapsed = false;
+  private readonly COLLAPSED_STATE_KEY = 'flow-header-collapsed';
+  private readonly isBrowser = typeof window !== 'undefined';
 
   constructor(private elementRef: ElementRef) {}
 
   ngOnInit() {
-    // Log the books to debug
-    console.log('FlowHeaderComponent - allBooks:', this.allBooks);
-    console.log('FlowHeaderComponent - currentBook:', this.currentBook);
-    console.log('FlowHeaderComponent - availableChapters:', this.availableChapters);
+    // Load collapsed state from localStorage
+    this.loadCollapsedState();
+    
+    // On mobile, default to collapsed unless user has explicitly expanded
+    if (this.isBrowser && window.innerWidth <= 768) {
+      const hasUserPreference = localStorage.getItem(this.COLLAPSED_STATE_KEY) !== null;
+      if (!hasUserPreference) {
+        this.isCollapsed = true;
+      }
+    }
+    
+    console.log('FlowHeaderComponent initialized');
+    console.log('Collapsed state:', this.isCollapsed);
+    console.log('Available chapters:', this.availableChapters.length);
   }
 
   @HostListener('document:click', ['$event'])
@@ -51,13 +66,75 @@ export class FlowHeaderComponent implements OnInit {
     }
   }
 
-  // Progress ring calculations - Updated for smaller ring
+  @HostListener('window:resize', ['$event'])
+  onWindowResize(event: Event) {
+    // Auto-collapse on mobile if window is resized to mobile size
+    if (this.isBrowser && window.innerWidth <= 768) {
+      const hasUserPreference = localStorage.getItem(this.COLLAPSED_STATE_KEY) !== null;
+      if (!hasUserPreference) {
+        this.isCollapsed = true;
+      }
+    }
+  }
+
+  // Toggle collapse/expand
+  toggleCollapse(): void {
+    this.isCollapsed = !this.isCollapsed;
+    this.saveCollapsedState();
+  }
+
+  // Expand header and open book selector
+  expandAndOpenBookSelector(): void {
+    if (this.isCollapsed) {
+      this.isCollapsed = false;
+      this.saveCollapsedState();
+      // Small delay to let animation complete before opening dropdown
+      setTimeout(() => {
+        this.showBookDropdown = true;
+      }, 300);
+    } else {
+      this.showBookDropdown = !this.showBookDropdown;
+    }
+  }
+
+  // Save collapsed state to localStorage
+  private saveCollapsedState(): void {
+    if (this.isBrowser) {
+      localStorage.setItem(this.COLLAPSED_STATE_KEY, JSON.stringify(this.isCollapsed));
+    }
+  }
+
+  // Load collapsed state from localStorage
+  private loadCollapsedState(): void {
+    if (this.isBrowser) {
+      const savedState = localStorage.getItem(this.COLLAPSED_STATE_KEY);
+      if (savedState !== null) {
+        try {
+          this.isCollapsed = JSON.parse(savedState);
+        } catch (e) {
+          console.error('Error parsing collapsed state:', e);
+          this.isCollapsed = false;
+        }
+      }
+    }
+  }
+
+  // Progress ring calculations for expanded view
   get progressCircumference(): number {
-    return 2 * Math.PI * 45; // Updated for 100x100 SVG with r=45
+    return 2 * Math.PI * 45;
   }
 
   get progressOffset(): number {
     return this.progressCircumference - (this.progressPercentage / 100) * this.progressCircumference;
+  }
+
+  // Mini progress ring calculations for collapsed view
+  get miniProgressCircumference(): number {
+    return 2 * Math.PI * 22;
+  }
+
+  get miniProgressOffset(): number {
+    return this.miniProgressCircumference - (this.progressPercentage / 100) * this.miniProgressCircumference;
   }
 
   // Book statistics
@@ -112,7 +189,7 @@ export class FlowHeaderComponent implements OnInit {
     }
     
     return this.allBooks.filter(book => {
-      const testament = this.getBookTestament(book.id);
+      const testament = this.getBookTestament(book);
       return testament === this.testamentFilter;
     });
   }
@@ -130,16 +207,9 @@ export class FlowHeaderComponent implements OnInit {
       filteredBooks = this.filteredBooks;
     }
     
-    const otBooks = filteredBooks.filter(b => this.getBookTestament(b.id) === 'OT');
-    const ntBooks = filteredBooks.filter(b => this.getBookTestament(b.id) === 'NT');
-    const apoBooks = filteredBooks.filter(b => this.getBookTestament(b.id) === 'APO');
-    
-    console.log('Books by testament:', { 
-      OT: otBooks.length, 
-      NT: ntBooks.length, 
-      APO: apoBooks.length,
-      total: this.allBooks.length 
-    });
+    const otBooks = filteredBooks.filter(b => this.getBookTestament(b) === 'OT');
+    const ntBooks = filteredBooks.filter(b => this.getBookTestament(b) === 'NT');
+    const apoBooks = filteredBooks.filter(b => this.getBookTestament(b) === 'APO');
     
     return {
       OT: otBooks,
@@ -149,15 +219,22 @@ export class FlowHeaderComponent implements OnInit {
   }
 
   // Helper to determine testament based on book ID
-  private getBookTestament(bookId: number): 'OT' | 'NT' | 'APO' {
-    if (bookId <= 39) return 'OT';
-    if (bookId <= 66) return 'NT';
-    return 'APO';
+  private getBookTestament(book: BibleBook): 'OT' | 'NT' | 'APO' {
+    // ID-based detection
+    // Standard Protestant Bible: OT (1-39), NT (40-66)
+    // Books after 66 are Apocrypha/Deuterocanonical
+    if (book.id <= 39) {
+      return 'OT';
+    } else if (book.id <= 66) {
+      return 'NT';
+    } else {
+      return 'APO';
+    }
   }
 
-  // Calculate pie chart values for chapter cards - Updated for smaller size
+  // Calculate pie chart values for chapter cards
   getChapterPieCircumference(): number {
-    return 2 * Math.PI * 16; // Updated for 36x36 SVG with r=16
+    return 2 * Math.PI * 16; // For 36x36 SVG with r=16
   }
 
   getChapterPieOffset(percentage: number): number {
@@ -187,14 +264,6 @@ export class FlowHeaderComponent implements OnInit {
     return chapter.totalVerses > 0 && chapter.memorizedVerses === chapter.totalVerses;
   }
 
-  // Get last studied text for a chapter (mock for now)
-  getLastStudied(chapter: BibleChapter): string | null {
-    if (chapter.memorizedVerses === 0) return null;
-    if (chapter.chapterNumber === this.currentChapter) return 'Today';
-    if (Math.random() > 0.5) return 'Yesterday';
-    return `${Math.floor(Math.random() * 7) + 2} days ago`;
-  }
-
   setChapterFilter(filter: 'all' | 'inProgress' | 'completed'): void {
     this.activeChapterFilter = filter;
   }
@@ -210,7 +279,12 @@ export class FlowHeaderComponent implements OnInit {
   }
 
   toggleBookDropdown(): void {
-    this.showBookDropdown = !this.showBookDropdown;
+    // If collapsed, expand first
+    if (this.isCollapsed) {
+      this.expandAndOpenBookSelector();
+    } else {
+      this.showBookDropdown = !this.showBookDropdown;
+    }
   }
 
   onChapterClick(chapterNumber: number): void {
@@ -234,7 +308,6 @@ export class FlowHeaderComponent implements OnInit {
   }
 
   jumpToFurthestIncomplete(): void {
-    // Find the first chapter that is not completed
     const firstIncomplete = this.availableChapters.find(chapter => 
       !this.isChapterCompleted(chapter)
     );
@@ -242,7 +315,6 @@ export class FlowHeaderComponent implements OnInit {
     if (firstIncomplete) {
       this.onChapterClick(firstIncomplete.chapterNumber);
     } else {
-      // If all chapters are complete, go to the last chapter
       const lastChapter = this.availableChapters[this.availableChapters.length - 1];
       if (lastChapter) {
         this.onChapterClick(lastChapter.chapterNumber);
