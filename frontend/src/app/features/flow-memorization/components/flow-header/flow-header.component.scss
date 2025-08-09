@@ -5,7 +5,8 @@
   border-bottom: 1px solid rgba(229, 231, 235, 0.6);
   position: relative;
   overflow: visible;
-  padding: 20px;
+  padding: 16px; // Reduced from 20px
+  margin-top: 12px; // Added padding from top menu
   
   // Subtle animated mesh
   .animated-mesh {
@@ -30,8 +31,8 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 340px 1fr;
-  gap: 24px;
+  grid-template-columns: 320px 1fr; // Reduced from 340px
+  gap: 20px; // Reduced from 24px
   
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
@@ -42,7 +43,7 @@
 .header-left-section {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px; // Reduced from 20px
 }
 
 .book-selector-wrapper {
@@ -60,11 +61,11 @@
   border-radius: 10px;
   
   button {
-    padding: 6px 10px;
+    padding: 5px 9px; // Reduced from 6px 10px
     background: transparent;
     border: none;
     border-radius: 8px;
-    font-size: 11px;
+    font-size: 10px; // Reduced from 11px
     font-weight: 600;
     color: #6b7280;
     cursor: pointer;
@@ -86,8 +87,8 @@
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: 10px; // Reduced from 12px
+  padding: 12px 14px; // Reduced from 14px 16px
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
   border-radius: 14px;
@@ -102,11 +103,11 @@
   }
   
   .book-icon {
-    font-size: 20px;
+    font-size: 18px; // Reduced from 20px
   }
   
   .book-title {
-    font-size: 18px;
+    font-size: 16px; // Reduced from 18px
     font-weight: 600;
     flex: 1;
     color: #374151;
@@ -115,6 +116,7 @@
   .dropdown-arrow {
     color: #6b7280;
     transition: transform 0.3s;
+    font-size: 12px;
     
     &.open {
       transform: rotate(180deg);
@@ -161,10 +163,6 @@
   
   &:last-child {
     border-bottom: none;
-  }
-  
-  &.recently-studied {
-    background: #fafafa;
   }
 }
 
@@ -218,60 +216,40 @@
   }
 }
 
-.recent-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.recent-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 12px;
-  border-radius: 8px;
-  
-  &:hover {
-    background: white;
-  }
-  
-  .recent-book {
-    font-size: 13px;
-    color: #4b5563;
-  }
-  
-  .recent-time {
-    font-size: 12px;
-    color: #9ca3af;
-  }
-}
-
-// Progress Stats Container
+// Progress Stats Container - REDESIGNED
 .progress-stats-container {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
+
+  .progress-ring-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
 
   .progress-ring-large {
     position: relative;
-    width: 120px;  // Increased from 80px
-    height: 120px; // Increased from 80px
+    width: 100px;  // Reduced from 120px
+    height: 100px; // Reduced from 120px
     flex-shrink: 0;
 
     svg {
       transform: rotate(-90deg);
-      filter: drop-shadow(0 6px 20px rgba(16, 185, 129, 0.2));
+      filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.15));
     }
 
     .ring-bg {
       fill: none;
       stroke: rgba(16, 185, 129, 0.1);
-      stroke-width: 10; // Increased from 8
+      stroke-width: 8; // Reduced from 10
     }
 
     .ring-fill {
       fill: none;
       stroke: url(#gradient-ring);
-      stroke-width: 10; // Increased from 8
+      stroke-width: 8; // Reduced from 10
       stroke-linecap: round;
       transition: stroke-dashoffset 0.5s ease;
     }
@@ -281,47 +259,26 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 28px; // Increased from 22px
+      font-size: 24px; // Reduced from 28px
       font-weight: 700;
       color: #059669;
     }
   }
 
-  .stats-cards {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 14px; // Increased gap
-    justify-content: center; // Center vertically since we have fewer items
-  }
-}
-
-.stat-card-glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  border-radius: 10px;
-  padding: 10px 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  transition: all 0.3s;
-  border: 1px solid rgba(102, 126, 234, 0.1);
-  
-  &:hover {
-    background: rgba(255, 255, 255, 0.85);
-    transform: translateX(4px);
-    border-color: rgba(102, 126, 234, 0.2);
-  }
-  
-  .stat-label {
-    font-size: 13px;
+  // Verses count under the pie chart
+  .verses-count-label {
+    text-align: center;
+    font-size: 12px;
     color: #6b7280;
-  }
-  
-  .stat-value {
-    font-size: 15px;
-    font-weight: 600;
-    color: #374151;
+    font-weight: 500;
+    
+    .verses-count-value {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-top: 2px;
+    }
   }
 }
 
@@ -333,20 +290,20 @@
 }
 
 .btn-glass-action {
-  padding: 12px;
+  padding: 10px; // Reduced from 12px
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(102, 126, 234, 0.2);
   border-radius: 10px;
   color: #374151;
-  font-size: 13px;
+  font-size: 12px; // Reduced from 13px
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px; // Reduced from 8px
   
   &:hover {
     background: rgba(255, 255, 255, 0.9);
@@ -365,20 +322,21 @@
   }
   
   svg {
-    width: 18px;
-    height: 18px;
+    width: 16px; // Reduced from 18px
+    height: 16px;
   }
 }
 
-// Chapters Section
+// Chapters Section - OPTIMIZED FOR SPACE
 .chapters-section {
   background: rgba(255, 255, 255, 0.9);
   border-radius: 16px;
-  padding: 20px;
+  padding: 16px; // Reduced from 20px
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  max-height: 280px;
+  gap: 12px; // Reduced from 16px
+  min-height: 280px; // Reduced from 350px
+  height: auto;
   overflow: hidden;
 }
 
@@ -386,21 +344,22 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 16px;
+  padding-bottom: 12px; // Reduced from 16px
   border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+  flex-shrink: 0;
 }
 
 .filter-pills {
   display: flex;
-  gap: 8px;
+  gap: 6px; // Reduced from 8px
 }
 
 .filter-pill {
-  padding: 6px 14px;
+  padding: 5px 12px; // Reduced from 6px 14px
   background: white;
   border: 2px solid #e5e7eb;
   border-radius: 20px;
-  font-size: 13px;
+  font-size: 12px; // Reduced from 13px
   color: #6b7280;
   cursor: pointer;
   transition: all 0.3s;
@@ -423,20 +382,46 @@
 .chapter-controls-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px; // Reduced from 12px
+  
+  .jump-to-furthest-btn {
+    padding: 5px 10px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    
+    &:hover {
+      background: #f3f4f6;
+      border-color: #667eea;
+      color: #667eea;
+    }
+    
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
   
   .chapter-count {
-    font-size: 13px;
+    font-size: 12px; // Reduced from 13px
     color: #6b7280;
     font-weight: 500;
   }
   
   .view-toggle-btn {
-    padding: 6px 10px;
+    padding: 5px 9px; // Reduced from 6px 10px
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 13px; // Reduced from 14px
     cursor: pointer;
     transition: all 0.2s;
     
@@ -447,14 +432,17 @@
   }
 }
 
-// Grid View
+// Grid View - FIXED OVERLAPPING
 .chapters-grid-glass {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); // Reduced from 85px
+  gap: 12px; // Increased from 10px to prevent overlap
   overflow-y: auto;
   flex: 1;
+  padding: 4px; // Added padding
   padding-right: 8px;
+  max-height: 320px; // Reduced from 400px
+  min-height: 200px; // Reduced from 250px
   
   &::-webkit-scrollbar {
     width: 6px;
@@ -478,13 +466,15 @@
 .chapter-card-glass {
   background: white;
   border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 10px 6px;
+  border-radius: 10px; // Reduced from 12px
+  padding: 8px 5px; // Reduced from 10px 6px
   text-align: center;
   cursor: pointer;
   transition: all 0.3s;
   position: relative;
   overflow: hidden;
+  height: fit-content;
+  min-width: 0; // Prevent overflow
 
   &::before {
     content: '';
@@ -492,15 +482,15 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
+    height: 2px; // Reduced from 3px
     background: linear-gradient(90deg, #667eea, #764ba2);
     transform: scaleX(0);
     transition: transform 0.3s;
   }
 
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.12);
+    transform: translateY(-2px); // Reduced from -3px
+    box-shadow: 0 6px 12px rgba(102, 126, 234, 0.1);
     border-color: #667eea;
 
     &::before {
@@ -512,13 +502,12 @@
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
     border-color: transparent;
-    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.25);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
     animation: pulse-glow 2s infinite;
 
-    .ch-verses,
-    .ch-last-studied {
+    .ch-number,
+    .ch-verses {
       color: white;
-      opacity: 0.9;
     }
   }
 
@@ -535,31 +524,31 @@
     position: absolute;
     top: -4px;
     right: -4px;
-    width: 20px;
-    height: 20px;
+    width: 18px; // Reduced from 20px
+    height: 18px;
     background: #10b981;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-size: 10px;
+    font-size: 9px; // Reduced from 10px
     border: 2px solid white;
-    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.25);
   }
 
   .ch-number {
-    font-size: 14px;
+    font-size: 13px; // Reduced from 14px
     font-weight: 700;
-    margin-bottom: 4px;
+    margin-bottom: 3px; // Reduced from 4px
     color: #374151;
   }
 
   .chapter-pie-chart {
     position: relative;
-    width: 40px;
-    height: 40px;
-    margin: 8px auto;
+    width: 36px; // Reduced from 40px
+    height: 36px;
+    margin: 6px auto; // Reduced from 8px
 
     svg {
       transform: rotate(-90deg);
@@ -568,12 +557,12 @@
     .pie-bg {
       fill: none;
       stroke: rgba(229, 231, 235, 0.5);
-      stroke-width: 4;
+      stroke-width: 3; // Reduced from 4
     }
 
     .pie-fill {
       fill: none;
-      stroke-width: 4;
+      stroke-width: 3; // Reduced from 4
       stroke-linecap: round;
       transition: stroke-dashoffset 0.5s ease;
     }
@@ -583,7 +572,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 10px;
+      font-size: 9px; // Reduced from 10px
       font-weight: 700;
       color: #374151;
     }
@@ -604,26 +593,22 @@
   }
 
   .ch-verses {
-    font-size: 10px;
+    font-size: 9px; // Reduced from 10px
     color: #6b7280;
-    margin-bottom: 2px;
-  }
-
-  .ch-last-studied {
-    font-size: 9px;
-    color: #9ca3af;
-    font-style: italic;
+    margin-top: 2px;
   }
 }
 
-// Row View
+// Row View - OPTIMIZED
 .chapters-list-glass {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px; // Reduced from 8px
   overflow-y: auto;
   flex: 1;
   padding-right: 8px;
+  max-height: 320px;
+  min-height: 200px;
   
   &::-webkit-scrollbar {
     width: 6px;
@@ -643,18 +628,18 @@
 .chapter-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: 10px; // Reduced from 12px
+  padding: 8px 12px; // Reduced from 10px 14px
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  border-radius: 8px; // Reduced from 10px
   cursor: pointer;
   transition: all 0.2s;
   
   &:hover {
     border-color: #667eea;
-    transform: translateX(4px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+    transform: translateX(3px); // Reduced from 4px
+    box-shadow: 0 3px 8px rgba(102, 126, 234, 0.08);
   }
   
   &.current {
@@ -669,8 +654,8 @@
   
   .row-number {
     font-weight: 600;
-    font-size: 14px;
-    min-width: 45px;
+    font-size: 13px; // Reduced from 14px
+    min-width: 40px; // Reduced from 45px
     color: #374151;
   }
   
@@ -678,54 +663,48 @@
     flex: 1;
     
     .progress-bar-row {
-      height: 8px;
+      height: 6px; // Reduced from 8px
       background: #f3f4f6;
-      border-radius: 4px;
+      border-radius: 3px; // Reduced from 4px
       overflow: hidden;
     }
     
     .progress-fill-row {
       height: 100%;
       background: linear-gradient(90deg, #667eea, #764ba2);
-      border-radius: 4px;
+      border-radius: 3px;
       transition: width 0.5s ease;
     }
   }
   
   .row-stats {
     display: flex;
-    gap: 12px;
+    gap: 10px; // Reduced from 12px
     align-items: center;
     
     .verses-count {
-      font-size: 12px;
+      font-size: 11px; // Reduced from 12px
       color: #6b7280;
     }
     
     .percentage {
-      font-size: 13px;
+      font-size: 12px; // Reduced from 13px
       font-weight: 600;
       color: #374151;
     }
   }
-  
-  .row-last-studied {
-    font-size: 11px;
-    color: #9ca3af;
-    font-style: italic;
-    min-width: 80px;
-    text-align: right;
-  }
 }
 
-// List View (Detailed)
+// List View (Detailed) - OPTIMIZED
 .chapters-detailed-glass {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px; // Reduced from 12px
   overflow-y: auto;
   flex: 1;
   padding-right: 8px;
+  max-height: 320px;
+  min-height: 200px;
   
   &::-webkit-scrollbar {
     width: 6px;
@@ -745,14 +724,14 @@
 .chapter-list-item {
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 14px;
+  border-radius: 10px; // Reduced from 12px
+  padding: 12px; // Reduced from 14px
   cursor: pointer;
   transition: all 0.2s;
   
   &:hover {
     border-color: #667eea;
-    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 4px 10px rgba(102, 126, 234, 0.08);
   }
   
   &.current {
@@ -768,19 +747,19 @@
   .list-header {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: 6px; // Reduced from 8px
+    margin-bottom: 6px; // Reduced from 8px
     
     .list-number {
-      font-size: 15px;
+      font-size: 14px; // Reduced from 15px
       font-weight: 600;
       color: #374151;
     }
     
     .list-badge {
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 10px;
+      padding: 2px 6px; // Reduced from 2px 8px
+      border-radius: 10px; // Reduced from 12px
+      font-size: 9px; // Reduced from 10px
       font-weight: 600;
       background: #fbbf24;
       color: white;
@@ -792,19 +771,19 @@
   }
   
   .list-progress {
-    margin-bottom: 8px;
+    margin-bottom: 6px; // Reduced from 8px
     
     .progress-bar-list {
-      height: 10px;
+      height: 8px; // Reduced from 10px
       background: #f3f4f6;
-      border-radius: 5px;
+      border-radius: 4px; // Reduced from 5px
       overflow: hidden;
     }
     
     .progress-fill-list {
       height: 100%;
       background: linear-gradient(90deg, #667eea, #764ba2);
-      border-radius: 5px;
+      border-radius: 4px;
       transition: width 0.5s ease;
     }
   }
@@ -812,13 +791,8 @@
   .list-footer {
     display: flex;
     justify-content: space-between;
-    font-size: 12px;
+    font-size: 11px; // Reduced from 12px
     color: #6b7280;
-    
-    .last-studied {
-      font-style: italic;
-      color: #9ca3af;
-    }
   }
 }
 
@@ -836,27 +810,36 @@
 
 @keyframes pulse-glow {
   0%, 100% { 
-    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.25); 
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2); 
   }
   50% { 
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35); 
+    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3); 
+  }
+}
+
+// Progress ring calculations update
+.progress-ring-large {
+  .ring-percentage {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
 }
 
 // Responsive
 @media (max-width: 768px) {
   .flow-header-glass {
-    padding: 16px;
+    padding: 12px;
   }
   
   .header-glass-container {
-    gap: 16px;
+    gap: 14px;
   }
   
   .testament-filter {
     button {
-      padding: 4px 8px;
-      font-size: 10px;
+      padding: 4px 7px;
+      font-size: 9px;
     }
   }
   
@@ -874,6 +857,6 @@
   }
   
   .chapters-grid-glass {
-    grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
   }
 }

@@ -51,9 +51,9 @@ export class FlowHeaderComponent implements OnInit {
     }
   }
 
-  // Progress ring calculations
+  // Progress ring calculations - Updated for smaller ring
   get progressCircumference(): number {
-    return 2 * Math.PI * 54;
+    return 2 * Math.PI * 45; // Updated for 100x100 SVG with r=45
   }
 
   get progressOffset(): number {
@@ -155,9 +155,9 @@ export class FlowHeaderComponent implements OnInit {
     return 'APO';
   }
 
-  // Calculate pie chart values for chapter cards
+  // Calculate pie chart values for chapter cards - Updated for smaller size
   getChapterPieCircumference(): number {
-    return 2 * Math.PI * 18;
+    return 2 * Math.PI * 16; // Updated for 36x36 SVG with r=16
   }
 
   getChapterPieOffset(percentage: number): number {
@@ -230,6 +230,23 @@ export class FlowHeaderComponent implements OnInit {
       this.startStudySession.emit();
     } else {
       this.startFullChapter.emit();
+    }
+  }
+
+  jumpToFurthestIncomplete(): void {
+    // Find the first chapter that is not completed
+    const firstIncomplete = this.availableChapters.find(chapter => 
+      !this.isChapterCompleted(chapter)
+    );
+    
+    if (firstIncomplete) {
+      this.onChapterClick(firstIncomplete.chapterNumber);
+    } else {
+      // If all chapters are complete, go to the last chapter
+      const lastChapter = this.availableChapters[this.availableChapters.length - 1];
+      if (lastChapter) {
+        this.onChapterClick(lastChapter.chapterNumber);
+      }
     }
   }
 

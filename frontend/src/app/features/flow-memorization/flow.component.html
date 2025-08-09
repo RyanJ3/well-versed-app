@@ -10,6 +10,7 @@
     [selectedVersesCount]="selectedVerses.size"
     [showFullText]="showFullText"
     [availableChapters]="availableChapters"
+    [allBooks]="allBooks"
     (toggleTextMode)="toggleTextMode()"
     (startFullChapter)="startFullChapter()"
     (startStudySession)="startStudySession()"
@@ -21,19 +22,6 @@
   <div class="encouragement-message" *ngIf="showEncouragement" [@fadeInOut]>
     {{ showEncouragement }}
   </div>
-
-  <!-- REMOVE THE CHAPTER NAVIGATION COMPONENT - IT'S NOW PART OF THE HEADER -->
-  <!-- DELETE THESE LINES:
-  <app-chapter-navigation
-    [currentChapter]="currentChapter"
-    [visibleChapters]="getVisibleChapters()"
-    [chapterProgress]="chapterProgress"
-    [hasNext]="hasNextChapter()"
-    (previous)="goToPreviousChapter()"
-    (next)="goToNextChapter()"
-    (change)="changeChapter($event)"
-  ></app-chapter-navigation>
-  -->
 
   <!-- Quick Filters (keep as is) -->
   <app-filters-bar

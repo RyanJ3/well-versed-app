@@ -158,12 +158,19 @@
     border-top-width: 4px;
   }
 
+  // FIXED: Memorized verses show green checkmark, no green border
   &.memorized {
-    background-color: #f0fdf4;
-    border-color: #10b981;
+    background-color: white; // Keep white background
+    border-color: #e5e7eb; // Keep normal border
+    
+    // The checkmark will be shown via the HTML template
+    .verse-checkmark {
+      display: flex !important; // Ensure it shows
+    }
 
     &:hover {
-      border-color: #059669;
+      border-color: #d1d5db; // Normal hover border
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
   }
 
@@ -205,6 +212,7 @@
   font-weight: 600;
 }
 
+// FIXED: Ensure checkmarks are visible and properly styled
 .verse-checkmark,
 .verse-selected-check {
   position: absolute;
@@ -219,6 +227,12 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   transform: scale(1);
   transition: transform 0.3s;
+  z-index: 2; // Ensure it's above other elements
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
 
   &:hover {
     transform: scale(1.1);
@@ -228,6 +242,7 @@
 .verse-checkmark {
   background-color: #10b981;
   color: white;
+  display: flex; // Ensure it's visible by default when verse is memorized
 }
 
 .verse-selected-check {
@@ -246,6 +261,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 2;
 }
 
 .verse-ref {
@@ -417,8 +433,6 @@
   }
 }
 
-// Context Menu
-
 // Responsive
 @media (max-width: 768px) {
   .verses-grid {
@@ -426,5 +440,18 @@
     gap: 0.75rem;
   }
 
-  /* chapter navigation and filters moved to subcomponents */
+  .verse-block {
+    padding: 0.75rem;
+    
+    .verse-checkmark,
+    .verse-selected-check {
+      width: 1.5rem;
+      height: 1.5rem;
+      
+      svg {
+        width: 14px;
+        height: 14px;
+      }
+    }
+  }
 }
