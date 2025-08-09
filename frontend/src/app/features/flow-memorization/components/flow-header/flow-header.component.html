@@ -161,6 +161,9 @@
           <span *ngIf="selectedVersesCount === 0">Start Full Chapter</span>
           <span *ngIf="selectedVersesCount > 0">Study {{ selectedVersesCount }} Selected</span>
         </button>
+        <button class="jump-next-btn" type="button" (click)="onJumpToNextSequentialClick()">
+          Next in sequence →
+        </button>
       </div>
     </div>
     
@@ -203,12 +206,14 @@
       
       <!-- Chapters Grid View -->
       <div class="chapters-grid-glass" *ngIf="chapterViewMode === 'grid'">
-        <div 
+        <div
           *ngFor="let chapter of visibleChapters"
           class="chapter-card-glass"
           [class.current]="chapter.isCurrent"
           [class.completed]="chapter.isCompleted"
           (click)="onChapterClick(chapter.number)"
+          role="button"
+          tabindex="0"
         >
           <div class="completed-icon" *ngIf="chapter.isCompleted">✓</div>
           <div class="ch-number">Ch {{ chapter.number }}</div>
@@ -243,12 +248,14 @@
       
       <!-- Chapters Row View -->
       <div class="chapters-list-glass" *ngIf="chapterViewMode === 'row'">
-        <div 
+        <div
           *ngFor="let chapter of visibleChapters"
           class="chapter-row"
           [class.current]="chapter.isCurrent"
           [class.completed]="chapter.isCompleted"
           (click)="onChapterClick(chapter.number)"
+          role="button"
+          tabindex="0"
         >
           <div class="row-number">Ch {{ chapter.number }}</div>
           <div class="row-progress">
@@ -271,12 +278,14 @@
       
       <!-- Chapters List View -->
       <div class="chapters-detailed-glass" *ngIf="chapterViewMode === 'list'">
-        <div 
+        <div
           *ngFor="let chapter of visibleChapters"
           class="chapter-list-item"
           [class.current]="chapter.isCurrent"
           [class.completed]="chapter.isCompleted"
           (click)="onChapterClick(chapter.number)"
+          role="button"
+          tabindex="0"
         >
           <div class="list-header">
             <span class="list-number">Chapter {{ chapter.number }}</span>

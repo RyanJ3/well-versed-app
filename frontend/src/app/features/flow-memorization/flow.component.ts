@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil, debounceTime, firstValueFrom, take } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { Subject, debounceTime, firstValueFrom, take } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { trigger, transition, style, animate } from '@angular/animations';
 
@@ -192,31 +193,33 @@ get progressPercentage(): number {
 
     // Load saved state
     this.loadSavedState();
-    
+
     // Setup save queue
     this.setupSaveQueue();
-    
+
     // Subscribe to save notifications
     this.flowMemorizationService.savedNotification$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.showSaveNotification();
       });
-    
-    // Load from route params
-    this.route.queryParams
+
+    // React to query param changes (bookId & chapter) and load the chapter
+    this.route.queryParamMap
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
-        console.log('Route params:', params);
-        const bookId = params['bookId'] ? parseInt(params['bookId']) : null;
-        const chapter = params['chapter'] ? parseInt(params['chapter']) : null;
-        
-        if (bookId && chapter) {
-          console.log('Loading chapter from params:', bookId, chapter);
+        const bookIdParam = params.get('bookId');
+        const chapterParam = params.get('chapter');
+
+        // Fall back to current or defaults
+        const bookId = bookIdParam ? Number(bookIdParam) : (this.currentBook?.id ?? 1);
+        const chapter = chapterParam ? Number(chapterParam) : (this.currentChapter || 1);
+
+        if (
+          bookId !== (this.currentBook?.id ?? 0) ||
+          chapter !== this.currentChapter
+        ) {
           this.loadChapter(bookId, chapter);
-        } else {
-          // Load default chapter if no params
-          console.log('No params, loading default chapter');
         }
       });
   }
@@ -253,11 +256,12 @@ get progressPercentage(): number {
     try {
       this.isLoading = true;
       this.currentChapter = chapterNum;
-      
-      // Get book from Bible data
-      const bibleData = this.bibleService.getBibleData();
-      this.currentBook = bibleData.getBookById(bookId) || null;
-      
+
+      if (!this.currentBook || this.currentBook.id !== bookId) {
+        const bibleData = this.bibleService.getBibleData();
+        this.currentBook = bibleData.getBookById(bookId) || null;
+      }
+
       if (!this.currentBook) {
         console.error('Book not found:', bookId);
         this.isLoading = false;
@@ -287,10 +291,9 @@ get progressPercentage(): number {
       this.verses = verseCodes.map((code, index) => {
         const [, , verseNum] = code.split('-').map(Number);
         const text = verseTexts[code] || '';
-        
-        // Check if this verse starts a new paragraph
-        const isNewParagraph = verseNum === 1 || [6, 11, 16, 21, 26, 31, 36].includes(verseNum);
-        const displayText = isNewParagraph && text ? `¶ ${text}` : text;
+
+        // Do not inject pilcrows. Use source text as-is.
+        const displayText = text;
         
         // Get memorization status from Bible model
         const bibleVerse = this.currentBibleChapter?.verses[verseNum - 1];
@@ -474,26 +477,27 @@ get progressPercentage(): number {
     const wasMemorized = verse.isMemorized;
     verse.isMemorized = !verse.isMemorized;
     verse.isSaving = true;
-    
+
+    // Update backing model so chapter progress is truthful
+    try {
+      this.currentBook?.toggleVerse(verse.chapter, verse.verse);
+    } catch {}
+
+    // Refresh header progress
+    this.loadAllChapterProgress();
+
+    // Queue save as before
     this.saveQueue$.next(verse);
-    
+
     // Update store
-    const [bookId, chapter, verseNum] = verse.verseCode.split('-').map(Number);
+    const [bookId, chapterNumber, verseNum] = verse.verseCode.split('-').map(Number);
     this.store.dispatch(BibleMemorizationActions.toggleVerseMemorization({
       userId: this.userId,
       bookId,
-      chapterNumber: chapter,
+      chapterNumber,
       verseNumber: verseNum
     }));
-    
-    // Update Bible model
-    if (this.currentBibleChapter) {
-      this.currentBibleChapter.toggleVerse(verseNum);
-    }
-    
-    // Update chapter progress
-    this.loadAllChapterProgress();
-    
+
     // Show appropriate message
     if (!wasMemorized && verse.isMemorized) {
       // Marking as memorized
@@ -578,6 +582,24 @@ get progressPercentage(): number {
   hasNextChapter(): boolean {
     if (!this.currentBook) return false;
     return this.currentChapter < this.currentBook.totalChapters;
+  }
+
+  /** Find the first chapter that is NOT fully complete, scanning from 1..N */
+  private getNextSequentialChapterNumber(): number | null {
+    if (!this.currentBook) return null;
+    for (let i = 1; i <= this.currentBook.totalChapters; i++) {
+      const ch = this.currentBook.getChapter(i);
+      if (!ch.isComplete) return i;
+    }
+    return null; // whole book done
+  }
+
+  /** Handler for the header button */
+  jumpToNextSequential() {
+    const next = this.getNextSequentialChapterNumber();
+    if (next && next !== this.currentChapter) {
+      this.changeChapter(next);
+    }
   }
 
   getVisibleChapters(): number[] {
@@ -729,6 +751,8 @@ get progressPercentage(): number {
     if (event.memorized && this.currentBook) {
       // Reload verse data to reflect memorization
       this.loadChapter(this.currentBook.id, this.currentChapter);
+      // Ensure the header pie charts refresh
+      this.loadAllChapterProgress();
     }
   }
 
