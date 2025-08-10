@@ -12,8 +12,8 @@
   
   // Collapsed state
   &.collapsed {
-    padding: 12px 16px;
-    min-height: 70px;
+    padding: 10px 16px;
+    min-height: 80px; // Slightly taller to accommodate all elements
     
     .header-glass-container {
       min-height: auto;
@@ -39,14 +39,15 @@
   }
 }
 
-// Collapse Toggle Button
+// Collapse Toggle Button - Made larger with better hit area
 .collapse-toggle {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 12px;
+  width: 40px;
+  height: 50px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(102, 126, 234, 0.2);
@@ -57,26 +58,34 @@
   transition: all 0.3s;
   z-index: 100;
   
+  // Add subtle hover effect for better discoverability
   &:hover {
-    background: rgba(255, 255, 255, 0.9);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 240, 255, 0.95));
+    transform: translateY(-50%) translateX(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.15);
+    border-color: rgba(102, 126, 234, 0.4);
   }
   
   svg {
     width: 20px;
     height: 20px;
     color: #6b7280;
-    transition: transform 0.3s;
+    transition: all 0.3s;
+  }
+  
+  &:hover svg {
+    color: #667eea;
+    transform: scale(1.1);
   }
 }
 
-// Collapsed Bar
+// Collapsed Bar - Horizontal layout with all elements
 .collapsed-bar {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
   animation: fadeIn 0.3s ease;
+  padding-right: 60px; // Make room for the expand button
   
   @keyframes fadeIn {
     from {
@@ -89,85 +98,338 @@
     }
   }
   
-  .collapsed-book-info {
+  // Testament filter in collapsed state
+  .collapsed-testament-filter {
+    display: flex;
+    gap: 2px;
+    background: rgba(243, 244, 246, 0.8);
+    padding: 2px;
+    border-radius: 8px;
+    flex-shrink: 0;
+    
+    button {
+      padding: 4px 7px;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.2s;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.5);
+      }
+      
+      &.active {
+        background: white;
+        color: #667eea;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+    }
+  }
+  
+  // Book selector in collapsed state
+  .collapsed-book-selector {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
+    gap: 8px;
+    padding: 6px 10px;
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(10px);
-    border-radius: 10px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s;
-    min-width: 200px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    min-width: 140px;
+    flex-shrink: 0;
     
     &:hover {
       background: rgba(255, 255, 255, 0.9);
-      transform: translateY(-2px);
+      transform: translateY(-1px);
       box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
     }
     
     .book-icon {
-      font-size: 16px;
+      font-size: 14px;
     }
     
-    .book-chapter-text {
-      font-size: 14px;
+    .book-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+      flex: 1;
+    }
+    
+    .dropdown-arrow {
+      font-size: 10px;
+      color: #6b7280;
+    }
+  }
+  
+  // Chapter selector in collapsed state
+  .collapsed-chapter-selector {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    min-width: 60px;
+    flex-shrink: 0;
+    position: relative;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.9);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+    }
+    
+    .chapter-text {
+      font-size: 12px;
       font-weight: 600;
       color: #374151;
     }
+    
+    .dropdown-arrow {
+      font-size: 10px;
+      color: #6b7280;
+      transition: transform 0.3s;
+      
+      &.open {
+        transform: rotate(180deg);
+      }
+    }
   }
   
-  .mini-progress-ring {
-    position: relative;
-    width: 50px;
-    height: 50px;
+  // Chapter dropdown menu
+  .chapter-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 150px;
+    max-height: 300px;
+    overflow-y: auto;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(229, 231, 235, 0.6);
+    z-index: 1000;
+    animation: slideDown 0.2s ease;
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .chapter-dropdown-item {
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #374151;
+      cursor: pointer;
+      transition: all 0.2s;
+      
+      &:hover {
+        background: #f3f4f6;
+      }
+      
+      &.current {
+        background: linear-gradient(135deg, #eff6ff, #dbeafe);
+        color: #2563eb;
+        font-weight: 600;
+      }
+    }
+    
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f3f4f6;
+      border-radius: 3px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 3px;
+      
+      &:hover {
+        background: #9ca3af;
+      }
+    }
+  }
+  
+  // Progress bar in collapsed state (horizontal)
+  .collapsed-progress-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    min-width: 120px;
+    
+    .progress-track {
+      flex: 1;
+      height: 6px;
+      background: rgba(229, 231, 235, 0.5);
+      border-radius: 3px;
+      overflow: hidden;
+      width: 80px;
+      
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 3px;
+        transition: width 0.5s ease;
+      }
+    }
+    
+    .progress-text {
+      font-size: 11px;
+      font-weight: 600;
+      color: #374151;
+      min-width: 32px;
+    }
+  }
+  
+  // Jump button in collapsed state
+  .collapsed-jump-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    flex-shrink: 0;
+    
+    &:hover {
+      background: #f3f4f6;
+      border-color: #667eea;
+      color: #667eea;
+    }
+    
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+  
+  // Action buttons in collapsed state
+  .btn-glass-action {
+    padding: 6px 10px;
+    font-size: 11px;
     flex-shrink: 0;
     
     svg {
-      transform: rotate(-90deg);
-      filter: drop-shadow(0 2px 6px rgba(16, 185, 129, 0.15));
+      width: 14px;
+      height: 14px;
     }
     
-    .ring-bg {
-      fill: none;
-      stroke: rgba(16, 185, 129, 0.1);
-      stroke-width: 4;
+    &.toggle-text {
+      min-width: 110px;
     }
     
-    .ring-fill {
-      fill: none;
-      stroke: url(#mini-gradient-ring);
-      stroke-width: 4;
-      stroke-linecap: round;
-      transition: stroke-dashoffset 0.5s ease;
-    }
-    
-    .ring-percentage {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 12px;
-      font-weight: 700;
-      color: #059669;
+    &.primary {
+      min-width: 130px;
     }
   }
-  
-  .collapsed-actions {
-    display: flex;
-    gap: 10px;
-    margin-left: auto;
+}
+
+// Responsive adjustments
+@media (max-width: 1024px) {
+  .collapsed-bar {
+    gap: 8px;
     
-    .btn-glass-action {
-      padding: 8px 12px;
-      font-size: 11px;
+    .collapsed-book-selector {
+      min-width: 120px;
       
-      svg {
-        width: 14px;
-        height: 14px;
+      .book-name {
+        font-size: 11px;
+      }
+    }
+    
+    .collapsed-progress-bar {
+      min-width: 100px;
+      
+      .progress-track {
+        width: 60px;
       }
     }
   }
 }
 
+@media (max-width: 768px) {
+  .flow-header-glass {
+    &.collapsed {
+      padding: 8px 12px;
+      min-height: auto;
+    }
+  }
+  
+  .collapsed-bar {
+    gap: 6px;
+    flex-wrap: wrap;
+    padding-right: 50px;
+    
+    .collapsed-testament-filter {
+      order: 1;
+      width: 100%;
+      margin-bottom: 4px;
+    }
+    
+    .collapsed-book-selector {
+      order: 2;
+      min-width: 110px;
+    }
+    
+    .collapsed-chapter-selector {
+      order: 3;
+    }
+    
+    .collapsed-progress-bar {
+      order: 4;
+      min-width: 80px;
+    }
+    
+    .collapsed-jump-btn {
+      order: 5;
+      padding: 5px 8px;
+      font-size: 10px;
+      
+      span {
+        display: none; // Hide text on mobile, show only icon
+      }
+    }
+    
+    .btn-glass-action {
+      order: 6;
+      padding: 5px 8px;
+      font-size: 10px;
+      
+      &.toggle-text {
+        min-width: auto;
+        
+        // Hide text on mobile for toggle button
+        span {
+          display: none;
+        }
+      }
+    }
+  }
+}

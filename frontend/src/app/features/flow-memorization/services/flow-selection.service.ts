@@ -14,18 +14,27 @@ export class FlowSelectionService {
     const verse = verses[index];
 
     if (event.shiftKey && this.lastClickedVerse !== null) {
+      // Shift+click: Select range from last clicked to current
       const start = Math.min(this.lastClickedVerse, index);
       const end = Math.max(this.lastClickedVerse, index);
+      
+      // If CTRL is also held, add to selection; otherwise replace
+      if (!(event.ctrlKey || event.metaKey)) {
+        this.selectedVerses.clear();
+      }
+      
       for (let i = start; i <= end; i++) {
         this.selectedVerses.add(verses[i].verseCode);
       }
     } else if (event.ctrlKey || event.metaKey) {
+      // CTRL/CMD+click: Toggle individual verse selection
       if (this.selectedVerses.has(verse.verseCode)) {
         this.selectedVerses.delete(verse.verseCode);
       } else {
         this.selectedVerses.add(verse.verseCode);
       }
     } else {
+      // Regular click: Clear selection and select only this verse
       this.selectedVerses.clear();
       this.selectedVerses.add(verse.verseCode);
     }
@@ -37,12 +46,14 @@ export class FlowSelectionService {
     this.isDragging = true;
     this.dragStart = index;
     this.dragEnd = index;
-    this.selectedVerses.clear();
+    // Don't clear selection on mouse down - wait for drag
   }
 
   handleMouseMove(index: number, verses: FlowVerse[]) {
     if (!this.isDragging) return;
     this.dragEnd = index;
+    
+    // Clear and rebuild selection based on drag range
     this.selectedVerses.clear();
     const start = Math.min(this.dragStart ?? index, index);
     const end = Math.max(this.dragStart ?? index, index);
@@ -71,6 +82,7 @@ export class FlowSelectionService {
 
   clearSelection() {
     this.selectedVerses.clear();
+    this.lastClickedVerse = null;
   }
 
   isVerseSelected(verse: FlowVerse): boolean {

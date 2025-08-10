@@ -34,6 +34,7 @@ export class FlowHeaderComponent implements OnInit {
   testamentFilter: 'ALL' | 'OT' | 'NT' | 'APO' = 'ALL';
   chapterViewMode: 'grid' | 'row' | 'list' = 'grid';
   showBookDropdown = false;
+  showChapterDropdown = false;
   
   // Collapse state
   isCollapsed = false;
@@ -63,6 +64,7 @@ export class FlowHeaderComponent implements OnInit {
   onDocumentClick(event: MouseEvent) {
     if (!this.elementRef.nativeElement.contains(event.target)) {
       this.showBookDropdown = false;
+      this.showChapterDropdown = false;
     }
   }
 
@@ -81,6 +83,16 @@ export class FlowHeaderComponent implements OnInit {
   toggleCollapse(): void {
     this.isCollapsed = !this.isCollapsed;
     this.saveCollapsedState();
+    // Close any open dropdowns when collapsing/expanding
+    this.showBookDropdown = false;
+    this.showChapterDropdown = false;
+  }
+
+  // Toggle chapter dropdown
+  toggleChapterDropdown(event: MouseEvent): void {
+    event.stopPropagation();
+    this.showChapterDropdown = !this.showChapterDropdown;
+    this.showBookDropdown = false; // Close book dropdown if open
   }
 
   // Expand header and open book selector
@@ -135,6 +147,19 @@ export class FlowHeaderComponent implements OnInit {
 
   get miniProgressOffset(): number {
     return this.miniProgressCircumference - (this.progressPercentage / 100) * this.miniProgressCircumference;
+  }
+
+  // Chapter progress for collapsed view
+  get chapterProgressPercentage(): number {
+    if (!this.currentBibleChapter) return 0;
+    const total = this.currentBibleChapter.totalVerses;
+    const memorized = this.currentBibleChapter.memorizedVerses;
+    return total > 0 ? Math.round((memorized / total) * 100) : 0;
+  }
+
+  get currentBibleChapter(): BibleChapter | null {
+    if (!this.availableChapters || this.availableChapters.length === 0) return null;
+    return this.availableChapters.find(ch => ch.chapterNumber === this.currentChapter) || null;
   }
 
   // Book statistics
@@ -284,6 +309,7 @@ export class FlowHeaderComponent implements OnInit {
       this.expandAndOpenBookSelector();
     } else {
       this.showBookDropdown = !this.showBookDropdown;
+      this.showChapterDropdown = false; // Close chapter dropdown if open
     }
   }
 

@@ -393,6 +393,13 @@ export class FlowComponent implements OnInit, OnDestroy {
   handleContextMenu(event: MouseEvent, verse: FlowVerse) {
     event.preventDefault();
     event.stopPropagation();
+    
+    // If the verse is not selected, add it to selection (without clearing others)
+    if (!this.selectionService.isVerseSelected(verse)) {
+      this.selectionService.selectedVerses.add(verse.verseCode);
+    }
+    
+    // Show context menu
     this.contextMenu = {
       visible: true,
       x: event.clientX,
