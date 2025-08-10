@@ -95,23 +95,19 @@
     border-top-width: 4px;
   }
 
-  // Memorized verses - no special border treatment
+  // Memorized verses - GREEN border + keep green check visible
   &.memorized {
     background-color: white;
+    border-color: #10b981; // green
     
     .verse-checkmark {
       display: flex !important;
     }
   }
 
-  // Review needed - just background color change
+  // Review needed - no special background; keep GREEN border only
   &.memorized-needs-review {
-    background-color: #fef3c7; // Light yellow background
-  }
-
-  // Fifth verse - just background color change
-  &.fifth-verse {
-    background-color: #fef3c7; // Light yellow background
+    border-color: #10b981;     // green
   }
 
   // Selected state - ALWAYS blue border regardless of other states
@@ -119,6 +115,12 @@
     background-color: #eff6ff; // Light blue background
     border-color: #3b82f6 !important; // Blue border - important to override all other states
     box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1);
+
+    // When a memorized verse is selected, hide the blue selection check
+    // and keep the green memorized check visible.
+    .verse-selected-check {
+      display: none !important;
+    }
   }
 }
 
@@ -169,18 +171,9 @@
   color: white;
 }
 
+// Hide the top-left review tag entirely for now
 .review-indicator {
-  position: absolute;
-  top: -0.5rem;
-  left: -0.5rem;
-  width: 1.5rem;
-  height: 1.5rem;
-  background-color: #f59e0b;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
+  display: none !important;
 }
 
 .verse-ref {

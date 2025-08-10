@@ -161,7 +161,7 @@ export class FlowComponent implements OnInit, OnDestroy {
     private flowMemorizationService: FlowMemorizationService,
     private notificationService: NotificationService,
     public selectionService: FlowSelectionService
-  ) {}
+  ) { }
 
   ngOnInit() {
     console.log('FlowComponent initializing...');
@@ -315,9 +315,6 @@ export class FlowComponent implements OnInit, OnDestroy {
         const text = verseTexts[code] || '';
 
         // Check if this verse starts a new paragraph
-        const isNewParagraph = verseNum === 1 || [6, 11, 16, 21, 26, 31, 36].includes(verseNum);
-        const displayText = isNewParagraph && text ? `¶ ${text}` : text;
-
         // Get memorization status from Bible model
         const bibleVerse = this.currentBibleChapter?.verses[verseNum - 1];
         const isMemorized = bibleVerse?.memorized || false;
@@ -325,8 +322,8 @@ export class FlowComponent implements OnInit, OnDestroy {
         return {
           verseCode: code,
           reference: this.currentBook!.chapters.length === 1 ? `v${verseNum}` : `${chapterNum}:${verseNum}`,
-          text: displayText,
-          firstLetters: this.flowParsingService.extractFirstLetters(displayText),
+          text: text,
+          firstLetters: this.flowParsingService.extractFirstLetters(text),
           isMemorized: isMemorized,
           isFifth: (index + 1) % 5 === 0,
           bookName: this.currentBook!.name,
@@ -593,10 +590,10 @@ export class FlowComponent implements OnInit, OnDestroy {
   }
 
   getVerseDisplay(verse: FlowVerse): string {
-    if (!verse) {
-      return '';
-    }
-    return this.showFullText ? verse.text : verse.firstLetters;
+    if (!verse) { return ''; }
+    const text = this.showFullText ? verse.text : verse.firstLetters;
+    // Remove a leading pilcrow so we don't double-signal when the label shows
+    return text.replace(/^¶\s*/, '');
   }
 
   // Study session
@@ -658,7 +655,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   }
 
   isNewParagraph(verse: FlowVerse): boolean {
-    return verse.text.startsWith('¶');
+    return verse.text.indexOf('¶') > 0;
   }
 
   getVerseState(verse: FlowVerse, index: number): string {
@@ -666,17 +663,23 @@ export class FlowComponent implements OnInit, OnDestroy {
     if (this.isNewParagraph(verse)) {
       classes.push('new-paragraph');
     }
+
+    // Memorized state (adds green border + check)
     if (verse.isMemorized) {
       if (this.needsReview(verse.verseCode)) {
         classes.push('memorized-needs-review');
       } else {
         classes.push('memorized');
       }
-    } else if (this.isVerseSelected(verse)) {
+    }
+
+    // Selection ALWAYS adds 'selected' (blue border wins)
+    if (this.isVerseSelected(verse)) {
       classes.push('selected');
     } else if (verse.isFifth) {
       classes.push('fifth-verse');
     }
+
     return classes.join(' ');
   }
 
