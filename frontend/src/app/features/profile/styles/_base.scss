@@ -1,95 +1,570 @@
-// frontend/src/app/features/profile/styles/_base.scss
-
-.profile-page {
-  height: 100vh;
-  overflow: hidden;
-  background: #f9fafb;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+.flow-header-glass {
+  background: linear-gradient(135deg, rgba(243, 244, 246, 0.95) 0%, rgba(229, 231, 235, 0.95) 100%);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.6);
+  position: relative;
+  padding: 16px;
+  margin-top: 12px;
+  min-height: auto;
+  height: auto;
+  transition: all 0.3s ease;
+  overflow: visible !important; // CRITICAL: Allow dropdowns to overflow
+  z-index: 100;
+  
+  // Collapsed state
+  &.collapsed {
+    padding: 12px 16px;
+    min-height: 60px;
+    
+    .header-glass-container {
+      min-height: auto;
+      overflow: visible !important;
+    }
+  }
+  
+  .animated-mesh {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+    animation: drift 20s linear infinite;
+    pointer-events: none;
+    z-index: -1;
+  }
+  
+  @keyframes drift {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(20px, 20px); }
+  }
 }
 
-// Loading State
-.loading-container {
+// Collapse Toggle Button - Larger and more prominent
+.collapse-toggle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  background: #ffffff;
-
-  .loading-spinner {
-    width: 48px;
-    height: 48px;
-    border: 4px solid rgba(59, 130, 246, 0.1);
-    border-radius: 50%;
-    border-top-color: #3b82f6;
-    animation: spin 1s ease-in-out infinite;
+  transition: all 0.3s;
+  z-index: 100;
+  
+  &:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 240, 255, 0.95));
+    transform: translateY(-50%) translateX(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+    border-color: rgba(102, 126, 234, 0.4);
   }
-
-  p {
-    margin-top: 1rem;
+  
+  svg {
+    width: 22px;
+    height: 22px;
     color: #6b7280;
-    font-size: 1rem;
+    transition: all 0.3s;
+  }
+  
+  &:hover svg {
+    color: #667eea;
+    transform: scale(1.1);
   }
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-// Layout Structure
-.profile-layout {
-  height: 100vh;
+// Collapsed Bar - Enhanced layout with larger elements
+.collapsed-bar {
   display: flex;
-  flex-direction: column;
-}
-
-// Container
-.profile-container {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-  max-width: 1400px;
-  width: 100%;
-  margin: 0 auto;
+  align-items: center;
+  gap: 14px;
+  animation: fadeIn 0.3s ease;
+  padding-right: 65px;
   position: relative;
-}
-
-// Mobile Menu Toggle
-.mobile-menu-toggle {
-  display: none;
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  z-index: 102;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 24px;
-  height: 18px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-
-  .bar {
-    width: 100%;
-    height: 2px;
-    background: #4b5563;
-    border-radius: 2px;
-    transition: all 0.3s ease;
-  }
-
-  &.active {
-    .bar:nth-child(1) {
-      transform: translateY(8px) rotate(45deg);
-    }
-
-    .bar:nth-child(2) {
+  height: 36px;
+  
+  @keyframes fadeIn {
+    from {
       opacity: 0;
+      transform: translateY(-10px);
     }
-
-    .bar:nth-child(3) {
-      transform: translateY(-8px) rotate(-45deg);
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  // Testament filter - larger buttons
+  .collapsed-testament-filter {
+    display: flex;
+    gap: 3px;
+    background: rgba(243, 244, 246, 0.9);
+    padding: 3px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    height: 32px;
+    
+    button {
+      padding: 6px 10px;
+      background: transparent;
+      border: none;
+      border-radius: 7px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 35px;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.7);
+        transform: scale(1.05);
+      }
+      
+      &.active {
+        background: white;
+        color: #667eea;
+        box-shadow: 0 2px 6px rgba(102, 126, 234, 0.15);
+      }
+    }
+  }
+  
+  // Book selector - enhanced styling
+  .collapsed-book-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    min-width: 150px;
+    flex-shrink: 0;
+    position: relative;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.95);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.15);
+      border-color: rgba(102, 126, 234, 0.4);
+    }
+    
+    .book-icon {
+      font-size: 16px;
+    }
+    
+    .book-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .dropdown-arrow {
+      font-size: 12px;
+      color: #6b7280;
+      transition: transform 0.3s;
+    }
+  }
+  
+  // Chapter selector wrapper for proper dropdown positioning
+  .chapter-selector-wrapper {
+    position: relative;
+  }
+  
+  // Chapter selector - enhanced
+  .collapsed-chapter-selector {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    min-width: 80px;
+    flex-shrink: 0;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.95);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.15);
+      border-color: rgba(102, 126, 234, 0.4);
+      
+      .dropdown-arrow {
+        color: #667eea;
+      }
+    }
+    
+    .chapter-text {
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+    }
+    
+    .dropdown-arrow {
+      font-size: 12px;
+      color: #6b7280;
+      transition: transform 0.3s, color 0.3s;
+      
+      &.open {
+        transform: rotate(180deg);
+        color: #667eea;
+      }
+    }
+  }
+  
+  // Chapter dropdown - positioned below and outside container
+  .chapter-dropdown-menu {
+    position: absolute;
+    top: 48px; // Position below the collapsed bar (36px height + 12px gap)
+    left: 0;
+    z-index: 10000; // Very high z-index
+    min-width: 180px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(229, 231, 235, 0.8);
+    animation: slideDown 0.2s ease;
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .chapter-dropdown-item {
+      padding: 10px 16px;
+      font-size: 13px;
+      color: #374151;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-bottom: 1px solid rgba(229, 231, 235, 0.3);
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      &:hover {
+        background: linear-gradient(90deg, #f0f9ff, #e0f2fe);
+        padding-left: 20px;
+      }
+      
+      &.current {
+        background: linear-gradient(135deg, #eff6ff, #dbeafe);
+        color: #2563eb;
+        font-weight: 600;
+        position: relative;
+        
+        &::before {
+          content: '•';
+          position: absolute;
+          left: 8px;
+          color: #2563eb;
+          font-size: 20px;
+          line-height: 1;
+        }
+      }
+    }
+    
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f9fafb;
+      border-radius: 4px;
+      margin: 8px 0;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #cbd5e1, #94a3b8);
+      border-radius: 4px;
+      
+      &:hover {
+        background: linear-gradient(180deg, #94a3b8, #64748b);
+      }
+    }
+  }
+  
+  // Progress bar - more prominent
+  .collapsed-progress-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    min-width: 140px;
+    height: 36px;
+    padding: 0 8px;
+    
+    .progress-track {
+      flex: 1;
+      height: 8px;
+      background: rgba(229, 231, 235, 0.6);
+      border-radius: 4px;
+      overflow: hidden;
+      width: 90px;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+      
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+        box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+      }
+    }
+    
+    .progress-text {
+      font-size: 12px;
+      font-weight: 700;
+      color: #374151;
+      min-width: 36px;
+    }
+  }
+  
+  // Jump button - enhanced
+  .collapsed-jump-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    height: 36px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    flex-shrink: 0;
+    
+    &:hover {
+      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      border-color: #667eea;
+      color: #667eea;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+      
+      svg {
+        transform: translateX(2px);
+      }
+    }
+    
+    svg {
+      width: 14px;
+      height: 14px;
+      transition: transform 0.2s;
+    }
+  }
+  
+  // Action buttons - larger
+  .btn-glass-action {
+    padding: 8px 14px;
+    height: 36px;
+    font-size: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s;
+    
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    &.toggle-text {
+      min-width: 120px;
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(102, 126, 234, 0.2);
+      color: #374151;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.95);
+        border-color: rgba(102, 126, 234, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+      }
+    }
+    
+    &.primary {
+      min-width: 140px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.25);
+      }
     }
   }
 }
 
+// Responsive adjustments
+@media (max-width: 1024px) {
+  .collapsed-bar {
+    gap: 10px;
+    
+    .collapsed-book-selector {
+      min-width: 130px;
+      
+      .book-name {
+        font-size: 12px;
+      }
+    }
+    
+    .collapsed-progress-bar {
+      min-width: 120px;
+      
+      .progress-track {
+        width: 70px;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .flow-header-glass {
+    &.collapsed {
+      padding: 10px 14px;
+      min-height: auto;
+    }
+  }
+  
+  .collapse-toggle {
+    width: 38px;
+    height: 38px;
+    
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+  
+  .collapsed-bar {
+    gap: 8px;
+    flex-wrap: wrap;
+    padding-right: 50px;
+    height: auto;
+    
+    .collapsed-testament-filter {
+      order: 1;
+      width: 100%;
+      margin-bottom: 6px;
+      height: 28px;
+      
+      button {
+        padding: 4px 8px;
+        font-size: 10px;
+        min-width: 30px;
+      }
+    }
+    
+    .collapsed-book-selector {
+      order: 2;
+      min-width: 120px;
+      height: 32px;
+      padding: 6px 10px;
+      
+      .book-icon {
+        font-size: 14px;
+      }
+      
+      .book-name {
+        font-size: 11px;
+      }
+    }
+    
+    .collapsed-chapter-selector {
+      order: 3;
+      height: 32px;
+      padding: 6px 10px;
+      min-width: 70px;
+      
+      .chapter-text {
+        font-size: 11px;
+      }
+    }
+    
+    .collapsed-progress-bar {
+      order: 4;
+      min-width: 100px;
+      height: 32px;
+      
+      .progress-track {
+        width: 60px;
+        height: 6px;
+      }
+      
+      .progress-text {
+        font-size: 11px;
+      }
+    }
+    
+    .collapsed-jump-btn {
+      order: 5;
+      padding: 6px 10px;
+      font-size: 11px;
+      height: 32px;
+      
+      span {
+        display: none; // Hide text on mobile
+      }
+    }
+    
+    .btn-glass-action {
+      order: 6;
+      padding: 6px 10px;
+      font-size: 11px;
+      height: 32px;
+      
+      &.toggle-text {
+        min-width: auto;
+        
+        span {
+          display: none; // Hide text on mobile
+        }
+      }
+      
+      &.primary {
+        min-width: 120px;
+        
+        span {
+          display: inline; // Keep text for primary button
+        }
+      }
+    }
+  }
+}
