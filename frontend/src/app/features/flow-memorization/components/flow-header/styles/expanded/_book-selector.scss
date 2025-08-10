@@ -1,43 +1,8 @@
-
 .book-selector-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   position: relative;
 }
 
-.testament-filter {
-  display: flex;
-  gap: 2px;
-  background: rgba(243, 244, 246, 0.8);
-  padding: 2px;
-  border-radius: 10px;
-  
-  button {
-    padding: 5px 9px;
-    background: transparent;
-    border: none;
-    border-radius: 8px;
-    font-size: 10px;
-    font-weight: 600;
-    color: #6b7280;
-    cursor: pointer;
-    transition: all 0.2s;
-    
-    &:hover {
-      background: rgba(255, 255, 255, 0.5);
-    }
-    
-    &.active {
-      background: white;
-      color: #667eea;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-  }
-}
-
 .book-selector-glass {
-  flex: 1;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -48,6 +13,7 @@
   cursor: pointer;
   transition: all 0.3s;
   border: 1px solid rgba(102, 126, 234, 0.2);
+  max-width: 240px; // Limit width to keep it compact
   
   &:hover {
     background: rgba(255, 255, 255, 0.85);
@@ -77,95 +43,126 @@
   }
 }
 
+// Book dropdown container - positioned below book selector
 .book-dropdown-container {
-  position: relative;
-  width: 100%;
-  margin-top: 8px;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 1000;
+}
+
+// Book dropdown menu - styled exactly like collapsed dropdown
+.book-dropdown-menu {
+  min-width: 280px;
+  max-height: 450px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  animation: slideDown 0.3s ease;
+  padding: 4px;
   
-  .book-dropdown {
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(229, 231, 235, 0.6);
-    max-height: 400px;
-    overflow-y: auto;
-    animation: slideDown 0.3s ease;
-    
-    &::-webkit-scrollbar {
-      width: 8px;
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
     }
-    
-    &::-webkit-scrollbar-track {
-      background: #f3f4f6;
-      border-radius: 8px;
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
+  }
+  
+  // Testament filter inside dropdown
+  .dropdown-testament-filter {
+    display: flex;
+    gap: 2px;
+    background: rgba(243, 244, 246, 0.8);
+    padding: 2px;
+    border-radius: 8px;
+    margin: 4px 4px 8px 4px;
     
-    &::-webkit-scrollbar-thumb {
-      background: #d1d5db;
-      border-radius: 8px;
+    button {
+      flex: 1;
+      padding: 6px 8px;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.2s;
       
       &:hover {
-        background: #9ca3af;
+        background: rgba(255, 255, 255, 0.5);
+      }
+      
+      &.active {
+        background: white;
+        color: #667eea;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
       }
     }
   }
-}
-
-.dropdown-section {
-  padding: 12px;
-  border-bottom: 1px solid #f3f4f6;
   
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.dropdown-header {
-  font-size: 12px;
-  font-weight: 600;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-  padding: 0 8px;
-}
-
-.book-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.book-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 12px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s;
-  
-  &:hover {
-    background: #f3f4f6;
+  // Section headers
+  .dropdown-header {
+    font-size: 10px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 6px 8px 4px 8px;
+    padding: 0;
   }
   
-  &.current {
-    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  // Book dropdown items
+  .book-dropdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
     
-    .book-name {
+    &:hover {
+      background: #f3f4f6;
+    }
+    
+    &.current {
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
       color: #2563eb;
       font-weight: 600;
     }
+    
+    .book-progress-badge {
+      font-size: 11px;
+      color: #9ca3af;
+      font-weight: 500;
+    }
   }
   
-  .book-name {
-    font-size: 14px;
-    color: #374151;
+  // Scrollbar styling
+  &::-webkit-scrollbar {
+    width: 6px;
   }
   
-  .book-progress {
-    font-size: 12px;
-    color: #9ca3af;
-    font-weight: 500;
+  &::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+    
+    &:hover {
+      background: #9ca3af;
+    }
   }
 }

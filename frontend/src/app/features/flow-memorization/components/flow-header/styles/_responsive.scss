@@ -82,3 +82,76 @@
     }
   }
 }
+
+
+// Responsive adjustments
+@media (max-width: 1024px) {
+  .collapsed-bar {
+    gap: 12px;
+    
+    .collapsed-book-selector {
+      min-width: 140px;
+      
+      .book-name {
+        font-size: 12px;
+      }
+    }
+    
+    .collapsed-progress-bar {
+      max-width: 160px;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .flow-header-glass {
+    &.collapsed {
+      padding: 0;
+      min-height: auto;
+    }
+  }
+  
+  .collapsed-bar {
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 12px 50px 12px 16px;
+    
+    .collapsed-book-selector {
+      min-width: 130px;
+      padding: 6px 10px;
+    }
+    
+    .collapsed-chapter-selector {
+      min-width: 60px;
+      padding: 6px 10px;
+    }
+    
+    .collapsed-progress-bar {
+      width: 100%;
+      max-width: none;
+      order: 3;
+      margin-top: 4px;
+    }
+    
+    .btn-glass-action.primary {
+      padding: 6px 12px;
+      font-size: 12px;
+      
+      svg {
+        width: 14px;
+        height: 14px;
+      }
+    }
+  }
+  
+  .collapse-toggle {
+    width: 32px;
+    height: 32px;
+    right: 12px;
+    
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+}

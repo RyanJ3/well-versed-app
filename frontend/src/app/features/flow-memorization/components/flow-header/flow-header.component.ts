@@ -95,20 +95,6 @@ export class FlowHeaderComponent implements OnInit {
     this.showBookDropdown = false; // Close book dropdown if open
   }
 
-  // Expand header and open book selector
-  expandAndOpenBookSelector(): void {
-    if (this.isCollapsed) {
-      this.isCollapsed = false;
-      this.saveCollapsedState();
-      // Small delay to let animation complete before opening dropdown
-      setTimeout(() => {
-        this.showBookDropdown = true;
-      }, 300);
-    } else {
-      this.showBookDropdown = !this.showBookDropdown;
-    }
-  }
-
   // Save collapsed state to localStorage
   private saveCollapsedState(): void {
     if (this.isBrowser) {
@@ -131,9 +117,9 @@ export class FlowHeaderComponent implements OnInit {
     }
   }
 
-  // Progress ring calculations for expanded view
+  // Progress ring calculations for expanded view (larger ring)
   get progressCircumference(): number {
-    return 2 * Math.PI * 45;
+    return 2 * Math.PI * 55; // Updated for 120px ring (radius 55)
   }
 
   get progressOffset(): number {
@@ -304,13 +290,8 @@ export class FlowHeaderComponent implements OnInit {
   }
 
   toggleBookDropdown(): void {
-    // If collapsed, expand first
-    if (this.isCollapsed) {
-      this.expandAndOpenBookSelector();
-    } else {
-      this.showBookDropdown = !this.showBookDropdown;
-      this.showChapterDropdown = false; // Close chapter dropdown if open
-    }
+    this.showBookDropdown = !this.showBookDropdown;
+    this.showChapterDropdown = false; // Close chapter dropdown if open
   }
 
   onChapterClick(chapterNumber: number): void {
