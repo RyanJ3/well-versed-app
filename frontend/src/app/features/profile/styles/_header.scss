@@ -2,19 +2,40 @@
 
 // Compact Header
 .profile-header {
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.8);
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  position: relative;
+  overflow: hidden;
+
+  // Subtle animated background pattern
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.03) 0%, transparent 70%);
+    animation: float 20s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+  }
 }
 
 .header-content {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 1rem 1.5rem;
+  padding: 1.25rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .header-left {
@@ -24,31 +45,43 @@
 }
 
 .user-avatar {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-weight: 600;
-  font-size: 1.25rem;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+  font-size: 1.375rem;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35);
+  }
 }
 
 .user-info {
   .page-title {
     margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #1f2937;
+    font-size: 1.625rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
   }
 
   .page-subtitle {
-    margin: 0.125rem 0 0;
-    font-size: 0.875rem;
+    margin: 0.25rem 0 0;
+    font-size: 0.9375rem;
     color: #6b7280;
+    font-weight: 400;
   }
 }
 
@@ -62,12 +95,23 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #f59e0b;
+  padding: 0.5rem 0.875rem;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.1));
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: 2rem;
+  color: #d97706;
   font-size: 0.875rem;
+  font-weight: 500;
+  animation: pulse 2s ease-in-out infinite;
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+  }
 
   svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
   }
 }
 
@@ -88,31 +132,34 @@
 
   .toggle-switch {
     position: relative;
-    width: 36px;
-    height: 20px;
-    background: #e5e7eb;
-    border-radius: 10px;
-    transition: background 0.2s ease;
+    width: 42px;
+    height: 24px;
+    background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 
     &::after {
       content: '';
       position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 16px;
-      height: 16px;
-      background: white;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      background: linear-gradient(135deg, #ffffff, #f9fafb);
       border-radius: 50%;
-      transition: transform 0.2s ease;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
     }
   }
 
   input:checked + .toggle-switch {
-    background: #3b82f6;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    box-shadow: inset 0 1px 3px rgba(102, 126, 234, 0.3);
 
     &::after {
-      transform: translateX(16px);
+      transform: translateX(18px);
+      background: linear-gradient(135deg, #ffffff, #f0f9ff);
     }
   }
 }
