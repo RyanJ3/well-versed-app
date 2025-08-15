@@ -52,17 +52,44 @@
 
   <div class="form-group" *ngIf="isEsvSelected">
     <label for="esvApiToken">ESV API Token <span class="required">*</span></label>
-    <input
-      type="text"
-      id="esvApiToken"
-      class="form-control monospace"
-      [ngModel]="esvTokenDisplay"
-      (ngModelChange)="onEsvTokenChange($event)"
-      (focus)="onEsvTokenFocus()"
-      name="esvApiToken"
-      placeholder="Enter your ESV API token"
-      required
-    >
+    
+    <!-- Token status display when token exists and input is hidden -->
+    <div *ngIf="hasExistingToken && !showTokenInput" class="token-status">
+      <div class="token-configured">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="check-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>API Token configured (••••{{ esvTokenDisplay.slice(-4) }})</span>
+      </div>
+      <button type="button" class="btn-link" (click)="onChangeTokenClick()">
+        Change Token
+      </button>
+    </div>
+
+    <!-- Token input field -->
+    <div *ngIf="!hasExistingToken || showTokenInput" class="token-input-wrapper">
+      <input
+        type="text"
+        id="esvApiToken"
+        class="form-control monospace"
+        [ngModel]="esvTokenDisplay"
+        (ngModelChange)="onEsvTokenChange($event)"
+        (focus)="onEsvTokenFocus()"
+        (blur)="onEsvTokenBlur()"
+        name="esvApiToken"
+        placeholder="Enter your ESV API token"
+        required
+      >
+      <button 
+        *ngIf="hasExistingToken && showTokenInput" 
+        type="button" 
+        class="btn-link cancel-btn"
+        (click)="onCancelTokenChange()"
+      >
+        Cancel
+      </button>
+    </div>
+    
     <small class="form-text">
       Get your token from <a href="https://api.esv.org/" target="_blank" rel="noopener">api.esv.org</a>
     </small>
