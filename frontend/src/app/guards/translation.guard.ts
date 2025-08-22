@@ -1,8 +1,8 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { CanActivate, Router, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree } from '@angular/router';
-import { Observable } from 'rxjs';
-import { map, take } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, take, filter, timeout, catchError } from 'rxjs/operators';
 import { UserService } from '@services/api/user.service';
 
 @Injectable({ providedIn: 'root' })
@@ -21,8 +21,9 @@ export class TranslationGuard implements CanActivate {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean | UrlTree> {
-    return this.userService.currentUser$.pipe(
-      take(1),
+    // Ensure user data is loaded from database before checking
+    return this.userService.ensureUserLoaded().pipe(
+      timeout(5000), // 5 second timeout
       map(user => {
         // Get values from user or fallback to localStorage
         let preferredBible = user?.preferredBible;
@@ -64,6 +65,32 @@ export class TranslationGuard implements CanActivate {
         }
 
         return true;
+      }),
+      catchError(error => {
+        console.error('Translation guard timeout or error:', error);
+        // On timeout or error, try localStorage as last resort
+        if (this.isBrowser) {
+          try {
+            const stored = localStorage.getItem('userPreferences');
+            if (stored) {
+              const prefs = JSON.parse(stored);
+              const preferredBible = prefs.preferredBible;
+              const esvApiToken = prefs.esvApiToken;
+              
+              if (preferredBible && (preferredBible !== 'ESV' || esvApiToken)) {
+                console.log('Translation guard: Using cached preferences due to timeout');
+                return of(true);
+              }
+            }
+          } catch (e) {
+            console.error('Error reading cached preferences on timeout:', e);
+          }
+        }
+        
+        // Redirect to profile if we can't determine translation status
+        return of(this.router.createUrlTree(['/profile'], {
+          queryParams: { setup: 'bible' }
+        }));
       })
     );
   }

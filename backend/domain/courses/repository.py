@@ -651,16 +651,33 @@ class CourseRepository:
 
     def _row_to_lesson_progress(self, row) -> UserLessonProgress:
         """Convert database row to UserLessonProgress"""
-        return UserLessonProgress(
-            user_id=row[0],
-            lesson_id=row[1],
-            course_id=row[2],
-            started_at=row[3].isoformat(),
-            completed_at=row[4].isoformat() if row[4] else None,
-            flashcards_required=row[5],
-            flashcards_completed=row[6],
-            is_unlocked=True,  # You might want to implement unlock logic
-            quiz_attempts=None,
-            best_score=None,
-            last_attempt=None
-        )
+        # Handle both dictionary (from fetch_one) and tuple (from direct cursor) formats
+        if isinstance(row, dict):
+            return UserLessonProgress(
+                user_id=row['user_id'],
+                lesson_id=row['lesson_id'],
+                course_id=row['course_id'],
+                started_at=row['started_at'].isoformat(),
+                completed_at=row['completed_at'].isoformat() if row['completed_at'] else None,
+                flashcards_required=row['flashcards_required'],
+                flashcards_completed=row['flashcards_completed'],
+                is_unlocked=True,  # You might want to implement unlock logic
+                quiz_attempts=None,
+                best_score=None,
+                last_attempt=None
+            )
+        else:
+            # Tuple format from direct cursor
+            return UserLessonProgress(
+                user_id=row[0],
+                lesson_id=row[1],
+                course_id=row[2],
+                started_at=row[3].isoformat(),
+                completed_at=row[4].isoformat() if row[4] else None,
+                flashcards_required=row[5],
+                flashcards_completed=row[6],
+                is_unlocked=True,  # You might want to implement unlock logic
+                quiz_attempts=None,
+                best_score=None,
+                last_attempt=None
+            )

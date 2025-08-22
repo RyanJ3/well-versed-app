@@ -54,7 +54,7 @@ export class UserService {
     }
 
     // Initial check to load current user
-    this.fetchCurrentUser();
+    this.loadCurrentUser();
   }
 
   private getBibleService() {
@@ -84,9 +84,9 @@ export class UserService {
     }
   }
 
-  fetchCurrentUser(): void {
+  fetchCurrentUser(): Observable<User | null> {
     // For testing, we'll use user ID 1
-    this.http.get<UserApiResponse>(`${this.apiUrl}/users/1`).pipe(
+    return this.http.get<UserApiResponse>(`${this.apiUrl}/users/1`).pipe(
       map(apiResponse => this.mapApiResponseToUser(apiResponse)),
       tap(user => {
         console.log('Fetched user from API:', user);
@@ -140,7 +140,12 @@ export class UserService {
         
         return of(null);
       })
-    ).subscribe();
+    );
+  }
+
+  // Legacy method for backwards compatibility
+  loadCurrentUser(): void {
+    this.fetchCurrentUser().subscribe();
   }
 
   getCurrentUser(): User | null {
@@ -239,7 +244,47 @@ export class UserService {
     );
   }
 
-  hasValidTranslation(): boolean {
+  hasValidTranslation(): Observable<boolean> {
+    return this.ensureUserLoaded().pipe(
+      map(user => {
+        // Try to get preferences from user or localStorage as fallback
+        let preferredBible = user?.preferredBible;
+        let esvApiToken = user?.esvApiToken;
+
+        if (this.isBrowser && (!preferredBible || (preferredBible === 'ESV' && !esvApiToken))) {
+          try {
+            const stored = localStorage.getItem('userPreferences');
+            if (stored) {
+              const prefs = JSON.parse(stored);
+              preferredBible = preferredBible || prefs.preferredBible;
+              esvApiToken = esvApiToken || prefs.esvApiToken;
+            }
+          } catch (e) {
+            console.error('Error reading cached preferences:', e);
+          }
+        }
+
+        // No Bible selected
+        if (!preferredBible || preferredBible === '') {
+          return false;
+        }
+
+        // ESV selected but no token
+        if (
+          preferredBible === 'ESV' &&
+          (!esvApiToken || esvApiToken.trim() === '')
+        ) {
+          return false;
+        }
+
+        return true;
+      }),
+      catchError(() => of(false))
+    );
+  }
+
+  // Legacy synchronous method for backwards compatibility
+  hasValidTranslationSync(): boolean {
     const user = this.currentUserSubject.value;
 
     // Try to get preferences from localStorage as fallback
@@ -280,7 +325,23 @@ export class UserService {
    */
   refreshUserData(): void {
     console.log('Forcing user data refresh...');
-    this.fetchCurrentUser();
+    this.loadCurrentUser();
+  }
+
+  /**
+   * Ensure user data is loaded, returns observable that completes when user is loaded
+   */
+  ensureUserLoaded(): Observable<User | null> {
+    const currentUser = this.currentUserSubject.value;
+    
+    // If user is already loaded, return immediately
+    if (currentUser) {
+      return of(currentUser);
+    }
+    
+    // If no user loaded, fetch from API
+    console.log('User not loaded, fetching from database...');
+    return this.fetchCurrentUser();
   }
 
   // Helper method to convert API response (snake_case) to User model (camelCase)
