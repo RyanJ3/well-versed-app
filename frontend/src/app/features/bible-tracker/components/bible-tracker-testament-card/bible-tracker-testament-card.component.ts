@@ -109,8 +109,13 @@ export class BibleTrackerTestamentCardComponent
           {
             data: chartData.data,
             backgroundColor: chartData.colors,
-            borderWidth: 2,
+            borderWidth: 3,
             borderColor: '#ffffff',
+            hoverBorderWidth: 4,
+            hoverBorderColor: '#ffffff',
+            hoverBackgroundColor: chartData.colors.map(color => 
+              this.adjustColorBrightness(color, 20)
+            ),
           },
         ],
       },
@@ -120,12 +125,15 @@ export class BibleTrackerTestamentCardComponent
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+            backgroundColor: 'rgba(255, 255, 255, 0.98)',
             titleColor: '#1f2937',
             bodyColor: '#1f2937',
             borderColor: '#e5e7eb',
             borderWidth: 1,
-            padding: 10,
+            cornerRadius: 8,
+            padding: 12,
+            titleFont: { weight: 600, size: 13 },
+            bodyFont: { weight: 500, size: 12 },
             callbacks: {
               label: (context: any) => {
                 const label = context.label || '';
@@ -135,13 +143,24 @@ export class BibleTrackerTestamentCardComponent
                   0,
                 );
                 const percentage = ((value / total) * 100).toFixed(1);
-                return `${label}: ${percentage}%`;
+                return `${label}: ${value.toLocaleString()} verses (${percentage}%)`;
               },
             },
           },
         },
-        cutout: '75%',
+        cutout: '72%',
         rotation: -90,
+        animation: {
+          animateRotate: true,
+          animateScale: true,
+          duration: 800,
+          easing: 'easeInOutQuart'
+        },
+        elements: {
+          arc: {
+            borderJoinStyle: 'round'
+          }
+        }
       },
     });
   }
@@ -179,5 +198,18 @@ export class BibleTrackerTestamentCardComponent
     }
 
     return { labels, data, colors };
+  }
+
+  private adjustColorBrightness(color: string, amount: number): string {
+    // Handle hex colors
+    if (color.startsWith('#')) {
+      const num = parseInt(color.slice(1), 16);
+      const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+      const g = Math.min(255, Math.max(0, (num >> 8 & 0x00FF) + amount));
+      const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+      return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+    }
+    // Return original color if not hex
+    return color;
   }
 }

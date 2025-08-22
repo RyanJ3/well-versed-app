@@ -1,74 +1,158 @@
 .card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #fcfcfd 100%);
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.04),
+    0 10px 15px rgba(0, 0, 0, 0.03),
+    0 0 0 1px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  margin-bottom: 2rem;
+  transition: all 0.3s ease;
+  position: relative;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      0 8px 15px rgba(0, 0, 0, 0.06),
+      0 15px 25px rgba(0, 0, 0, 0.04);
+  }
 }
 
 .card-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: #1f2937;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  position: relative;
+  padding-bottom: 0.5rem;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    border-radius: 1px;
+  }
 }
 
 .book-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1.25rem;
 }
 
 .book-card {
-  padding: 1rem;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+  border: 2px solid rgba(229, 231, 235, 0.6);
+  border-radius: 0.75rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: center;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    border-color: #3b82f6;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+    border-color: rgba(102, 126, 234, 0.3);
+    
+    &::before {
+      opacity: 1;
+    }
   }
 
   &.active {
-    border-color: #3b82f6;
-    background-color: #eff6ff;
+    border-color: #667eea;
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    transform: translateY(-2px);
+    
+    &::before {
+      opacity: 1;
+    }
   }
 
   &.apocryphal {
-    border-left: 3px solid #8b5cf6;
+    border-left: 4px solid #8b5cf6;
+    
+    &.active {
+      background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+    }
   }
 }
 
 .book-name {
-  font-weight: 600;
-  font-size: 0.875rem;
-  margin-bottom: 0.75rem;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  margin-bottom: 1rem;
+  color: #1f2937;
+  letter-spacing: -0.25px;
 }
 
 .book-progress {
-  height: 6px;
-  background: #e5e7eb;
-  border-radius: 3px;
-  margin-bottom: 0.75rem;
+  height: 8px;
+  background: linear-gradient(90deg, #f1f5f9, #e2e8f0);
+  border-radius: 4px;
+  margin-bottom: 1rem;
   overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .book-progress-bar {
   height: 100%;
-  border-radius: 3px;
-  transition: width 0.3s ease;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(102, 126, 234, 0.3);
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2) 50%, transparent);
+    animation: shimmer 2s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
 }
 
 .book-stats {
   display: flex;
   justify-content: space-between;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: #6b7280;
+  font-weight: 500;
+  
+  .stat-value {
+    color: #374151;
+    font-weight: 600;
+  }
 }
 
 @media (max-width: 768px) {
