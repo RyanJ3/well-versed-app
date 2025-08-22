@@ -3,6 +3,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { take } from 'rxjs/operators';
 import {
   CourseDetailResponse,
   CourseService,
@@ -111,6 +112,30 @@ import { Lesson } from '@models/course.model';
             (click)="enrollInCourse()"
           >
             Enroll in Course
+          </button>
+
+          <button
+            *ngIf="course.is_enrolled && currentUser && !course.user_progress"
+            class="btn-primary start-learning"
+            (click)="startLearning()"
+          >
+            Start Learning
+          </button>
+          
+          <button
+            *ngIf="course.is_enrolled && currentUser && course.user_progress && !isCompleted()"
+            class="btn-primary continue-learning"
+            (click)="continueLearning()"
+          >
+            Continue Learning
+          </button>
+          
+          <button
+            *ngIf="course.is_enrolled && currentUser && isCompleted()"
+            class="btn-success completed"
+            (click)="reviewCourse()"
+          >
+            Review Course
           </button>
 
           <button
@@ -225,14 +250,26 @@ import { Lesson } from '@models/course.model';
                       stroke-linejoin="round"
                     />
                   </svg>
+                  <svg
+                    *ngIf="lesson.content_type === 'quiz'"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <path d="M12 17h.01"></path>
+                  </svg>
                   {{ getLessonTypeLabel(lesson.content_type) }}
                 </span>
 
                 <span
                   class="lesson-duration"
-                  *ngIf="lesson.content_data.video_duration"
+                  *ngIf="lesson.content_data?.video_duration"
                 >
-                  {{ formatDuration(lesson.content_data.video_duration) }}
+                  {{ formatDuration(lesson.content_data?.video_duration!) }}
                 </span>
               </div>
             </div>
@@ -409,6 +446,36 @@ import { Lesson } from '@models/course.model';
 
       .btn-secondary:hover {
         background: #e5e7eb;
+      }
+      
+      .btn-success {
+        background: #10b981;
+        color: white;
+      }
+      
+      .btn-success:hover {
+        background: #059669;
+      }
+      
+      .start-learning,
+      .continue-learning {
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .start-learning::before {
+        content: '▶';
+        margin-right: 0.5rem;
+      }
+      
+      .continue-learning::before {
+        content: '⏵';
+        margin-right: 0.5rem;
+      }
+      
+      .completed::before {
+        content: '✓';
+        margin-right: 0.5rem;
       }
 
       /* Progress Section */
@@ -594,20 +661,25 @@ export class CourseDetailComponent implements OnInit {
   }
 
   loadCourse() {
-    const userId = this.currentUser
-      ? typeof this.currentUser.id === 'string'
-        ? parseInt(this.currentUser.id)
-        : this.currentUser.id
-      : undefined;
+    // Ensure we have the latest currentUser from the service
+    this.userService.currentUser$.pipe(take(1)).subscribe(user => {
+      this.currentUser = user;
+      
+      const userId = this.currentUser
+        ? typeof this.currentUser.id === 'string'
+          ? parseInt(this.currentUser.id)
+          : this.currentUser.id
+        : undefined;
 
-    this.courseService.getCourse(this.courseId, userId).subscribe({
-      next: (course) => {
-        this.course = course;
-      },
-      error: (error) => {
-        console.error('Error loading course:', error);
-        this.router.navigate(['/courses']);
-      },
+      this.courseService.getCourse(this.courseId, userId).subscribe({
+        next: (course) => {
+          this.course = course;
+        },
+        error: (error) => {
+          console.error('Error loading course:', error);
+          this.router.navigate(['/courses']);
+        },
+      });
     });
   }
 
@@ -623,14 +695,12 @@ export class CourseDetailComponent implements OnInit {
   enrollInCourse() {
     if (!this.currentUser || !this.course) return;
 
-    const userId =
-      typeof this.currentUser.id === 'string'
-        ? parseInt(this.currentUser.id)
-        : this.currentUser.id;
-
-    this.courseService.enrollInCourse(this.courseId, userId).subscribe({
+    this.courseService.enrollInCourse(this.courseId).subscribe({
       next: () => {
-        this.loadCourse();
+        // Small delay to ensure backend has processed the enrollment
+        setTimeout(() => {
+          this.loadCourse();
+        }, 100);
       },
       error: (error) => {
         console.error('Error enrolling in course:', error);
@@ -725,6 +795,8 @@ export class CourseDetailComponent implements OnInit {
         return 'Article';
       case 'external_link':
         return 'External Link';
+      case 'quiz':
+        return 'Quiz';
       default:
         return type;
     }
@@ -741,6 +813,32 @@ export class CourseDetailComponent implements OnInit {
       .split('-')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
+  }
+
+  startLearning() {
+    // Navigate to the first lesson
+    if (this.course?.lessons && this.course.lessons.length > 0) {
+      const firstLesson = this.course.lessons[0];
+      this.router.navigate(['/courses', this.courseId, 'lessons', firstLesson.id]);
+    }
+  }
+  
+  continueLearning() {
+    // Navigate to the current lesson based on progress
+    if (this.course?.user_progress) {
+      const currentLessonId = this.course.user_progress.current_lesson_id;
+      this.router.navigate(['/courses', this.courseId, 'lessons', currentLessonId]);
+    }
+  }
+  
+  reviewCourse() {
+    // Navigate to first lesson for review
+    this.startLearning();
+  }
+  
+  isCompleted(): boolean {
+    if (!this.course?.user_progress) return false;
+    return this.course.user_progress.lessons_completed >= this.course.lesson_count;
   }
 
   goBack() {

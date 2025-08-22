@@ -110,6 +110,10 @@ DATA_SQL_FILES = [
     {
         'file': '11-populate-journeys.sql',
         'description': 'Insert biblical journey data'
+    },
+    {
+        'file': '12-course-showcase-data.sql',
+        'description': 'Insert course data'
     }
 ]
 
