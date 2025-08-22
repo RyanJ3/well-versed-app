@@ -1,13 +1,38 @@
 <div class="atlas-explorer">
+  <!-- Unified Header -->
+  <app-atlas-header
+    [journeys]="journeys$ | async"
+    [currentJourney]="currentJourney$ | async"
+    [testament]="selectedTestament"
+    [currentView]="currentView"
+    [currentSegmentIndex]="(currentSegmentIndex$ | async) || 0"
+    [totalSegments]="(totalSegments$ | async) || 0"
+    [collapsed]="headerCollapsed"
+    (testamentChange)="onTestamentChange($event)"
+    (journeyChange)="onJourneyChange($event)"
+    (viewChange)="onViewChange($event)"
+    (previousSegment)="onPreviousSegment()"
+    (nextSegment)="onNextSegment()"
+    (resetView)="onResetView()"
+    (togglePanel)="toggleJourneyPanel()"
+    (collapsedChange)="headerCollapsed = $event">
+  </app-atlas-header>
+  
+  <!-- Journey Drawer Panel -->
   <app-journey-panel
+    #journeyPanel
     [testament]="selectedTestament"
     [journeys]="journeys$ | async"
     [currentJourney]="currentJourney$ | async"
+    [currentSegmentIndex]="(currentSegmentIndex$ | async) || 0"
+    [totalSegments]="(totalSegments$ | async) || 0"
+    [autoHide]="false"
     (testamentChange)="onTestamentChange($event)"
     (journeyChange)="onJourneyChange($event)">
   </app-journey-panel>
   
-  <div class="map-section">
+  <!-- Map Container -->
+  <div class="map-container" [class.header-collapsed]="headerCollapsed">
     <app-map-view
       [journey]="currentJourney$ | async"
       [currentSegmentIndex]="(currentSegmentIndex$ | async) || 0"
@@ -15,22 +40,25 @@
       (locationHover)="onLocationHover($event)">
     </app-map-view>
     
-    <app-map-controls
+    <!-- FAB Navigation (Mobile + Tablet) -->
+    <app-fab-navigation
       [currentSegmentIndex]="(currentSegmentIndex$ | async) || 0"
       [totalSegments]="(totalSegments$ | async) || 0"
-      [currentView]="currentView"
+      [hideOnDesktop]="true"
       (previousSegment)="onPreviousSegment()"
       (nextSegment)="onNextSegment()"
-      (viewChange)="onViewChange($event)"
       (resetView)="onResetView()">
-    </app-map-controls>
+    </app-fab-navigation>
     
+    <!-- Segment Details Bottom Sheet -->
     <app-segment-details
       [segment]="currentSegment$ | async"
       [collapsed]="segmentDetailsCollapsed"
-      (toggle)="segmentDetailsCollapsed = !segmentDetailsCollapsed">
+      (toggle)="segmentDetailsCollapsed = !segmentDetailsCollapsed"
+      (collapsedChange)="segmentDetailsCollapsed = $event">
     </app-segment-details>
     
+    <!-- Location Tooltip -->
     <div class="location-tooltip" 
          *ngIf="hoveredLocation"
          [style.left.px]="tooltipPosition.x" 
@@ -40,4 +68,10 @@
       <p *ngIf="hoveredLocation.distanceFromStart">Distance: {{ hoveredLocation.distanceFromStart }}km</p>
     </div>
   </div>
+  
+  <!-- Keyboard Help Dialog -->
+  <app-keyboard-help-dialog
+    [isOpen]="showKeyboardHelp"
+    (close)="closeKeyboardHelp()">
+  </app-keyboard-help-dialog>
 </div>

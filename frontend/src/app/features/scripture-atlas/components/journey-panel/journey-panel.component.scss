@@ -1,48 +1,96 @@
-.journey-panel {
-  width: 380px;
-  height: 100%;
-  background: white;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  position: relative;
+// Backdrop
+.journey-drawer-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  visibility: hidden;
   transition: all 0.3s ease;
-  z-index: 100;
+  z-index: 150;
   
-  &.collapsed {
-    width: 50px;
+  &.visible {
+    opacity: 1;
+    visibility: visible;
   }
 }
 
-.toggle-btn {
-  position: absolute;
-  right: 15px;
-  top: 15px;
-  width: 35px;
-  height: 35px;
+// Main Drawer
+.journey-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 380px;
+  height: 100%;
+  background: white;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 160;
+  display: flex;
+  flex-direction: column;
+  
+  &.open {
+    transform: translateX(0);
+  }
+  
+  &.auto-hide {
+    &:not(:hover) {
+      transform: translateX(-340px);
+      
+      &.open {
+        box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+}
+
+// Drawer Header
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 25px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.drawer-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.close-btn {
+  width: 32px;
+  height: 32px;
   border: none;
-  background: #f0f0f0;
-  color: #333;
+  background: white;
+  color: #666;
   border-radius: 8px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  z-index: 101;
   
   &:hover {
-    background: #e0e0e0;
+    background: #f0f0f0;
+    color: #333;
     transform: scale(1.05);
-  }
-  
-  .icon {
-    font-size: 18px;
   }
 }
 
-.panel-content {
-  padding: 60px 25px 25px;
-  height: 100%;
+// Drawer Content
+.drawer-content {
+  flex: 1;
+  padding: 25px;
   overflow-y: auto;
+  overflow-x: hidden;
   
   &::-webkit-scrollbar {
     width: 6px;
@@ -62,11 +110,35 @@
   }
 }
 
-.panel-title {
-  margin: 0 0 25px 0;
-  font-size: 24px;
-  font-weight: 600;
-  color: #2c3e50;
+// Floating Toggle Button
+.drawer-toggle {
+  position: fixed;
+  top: 100px; // Positioned below header
+  left: 20px;
+  padding: 12px 16px;
+  border: none;
+  background: white;
+  color: #4169E1;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  z-index: 140;
+  
+  &:hover {
+    background: #4169E1;
+    color: white;
+    transform: translateX(5px);
+    box-shadow: 0 6px 20px rgba(65, 105, 225, 0.3);
+  }
+  
+  .toggle-label {
+    font-size: 14px;
+    font-weight: 500;
+  }
 }
 
 .testament-selector {
@@ -223,19 +295,54 @@
   text-align: center;
 }
 
+// Animations
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 // Mobile responsiveness
 @media (max-width: 768px) {
-  .journey-panel {
-    position: absolute;
-    z-index: 200;
+  .journey-drawer {
+    width: 85%;
+    max-width: 320px;
+  }
+  
+  .drawer-toggle {
+    top: auto;
+    bottom: 80px;
+    left: 15px;
     
-    &.collapsed {
-      transform: translateX(-100%);
-      width: 380px;
-      
-      .toggle-btn {
-        right: -50px;
-      }
+    .toggle-label {
+      display: none;
     }
+  }
+  
+  .drawer-header {
+    padding: 16px 20px;
+  }
+  
+  .drawer-content {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .journey-drawer {
+    width: 100%;
+    max-width: none;
   }
 }

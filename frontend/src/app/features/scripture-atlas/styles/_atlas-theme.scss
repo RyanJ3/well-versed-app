@@ -1,0 +1,261 @@
+// Atlas Theme Variables
+$atlas-primary: #4169E1;
+$atlas-primary-light: #6495ED;
+$atlas-primary-dark: #2B4BC7;
+$atlas-accent: #6495ED;
+$atlas-success: #28a745;
+$atlas-warning: #ffc107;
+$atlas-danger: #dc3545;
+
+// Neutral Colors
+$atlas-bg: #f5f7fa;
+$atlas-surface: white;
+$atlas-border: #e0e0e0;
+$atlas-text: #2c3e50;
+$atlas-text-light: #666;
+$atlas-text-muted: #999;
+
+// Shadows
+$atlas-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08);
+$atlas-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+$atlas-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+$atlas-shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.2);
+
+// Border Radius
+$atlas-radius-sm: 6px;
+$atlas-radius-md: 8px;
+$atlas-radius-lg: 12px;
+$atlas-radius-xl: 20px;
+
+// Transitions
+$atlas-transition-fast: 0.2s ease;
+$atlas-transition-normal: 0.3s ease;
+$atlas-transition-slow: 0.5s ease;
+$atlas-transition-spring: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+// Z-index layers
+$atlas-z-base: 1;
+$atlas-z-dropdown: 50;
+$atlas-z-tooltip: 70;
+$atlas-z-modal-backdrop: 80;
+$atlas-z-modal: 90;
+$atlas-z-fab: 100;
+$atlas-z-drawer: 160;
+$atlas-z-header: 200;
+$atlas-z-notification: 300;
+
+// Breakpoints
+$atlas-mobile: 480px;
+$atlas-tablet: 768px;
+$atlas-desktop: 1024px;
+$atlas-wide: 1440px;
+
+// Spacing
+$atlas-spacing-xs: 4px;
+$atlas-spacing-sm: 8px;
+$atlas-spacing-md: 16px;
+$atlas-spacing-lg: 24px;
+$atlas-spacing-xl: 32px;
+
+// Typography
+$atlas-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+$atlas-font-size-xs: 12px;
+$atlas-font-size-sm: 13px;
+$atlas-font-size-base: 14px;
+$atlas-font-size-md: 16px;
+$atlas-font-size-lg: 18px;
+$atlas-font-size-xl: 20px;
+$atlas-font-size-2xl: 24px;
+
+// Common Mixins
+@mixin atlas-button {
+  padding: $atlas-spacing-sm $atlas-spacing-md;
+  border: none;
+  border-radius: $atlas-radius-md;
+  font-size: $atlas-font-size-base;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all $atlas-transition-fast;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $atlas-spacing-xs;
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: $atlas-shadow-md;
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@mixin atlas-button-primary {
+  @include atlas-button;
+  background: $atlas-primary;
+  color: white;
+  
+  &:hover:not(:disabled) {
+    background: $atlas-primary-dark;
+  }
+}
+
+@mixin atlas-button-secondary {
+  @include atlas-button;
+  background: $atlas-surface;
+  color: $atlas-primary;
+  border: 1px solid $atlas-border;
+  
+  &:hover:not(:disabled) {
+    background: rgba($atlas-primary, 0.05);
+    border-color: $atlas-primary;
+  }
+}
+
+@mixin atlas-card {
+  background: $atlas-surface;
+  border-radius: $atlas-radius-lg;
+  box-shadow: $atlas-shadow-md;
+  padding: $atlas-spacing-lg;
+}
+
+@mixin atlas-input {
+  width: 100%;
+  padding: $atlas-spacing-sm $atlas-spacing-md;
+  font-size: $atlas-font-size-base;
+  border: 1px solid $atlas-border;
+  border-radius: $atlas-radius-md;
+  background: $atlas-surface;
+  transition: all $atlas-transition-fast;
+  
+  &:hover {
+    border-color: $atlas-primary;
+  }
+  
+  &:focus {
+    outline: none;
+    border-color: $atlas-primary;
+    box-shadow: 0 0 0 3px rgba($atlas-primary, 0.1);
+  }
+  
+  &:disabled {
+    background: $atlas-bg;
+    cursor: not-allowed;
+  }
+}
+
+@mixin atlas-scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba($atlas-border, 0.3);
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba($atlas-text-muted, 0.5);
+    border-radius: 3px;
+    
+    &:hover {
+      background: rgba($atlas-text-muted, 0.7);
+    }
+  }
+}
+
+// Responsive Utilities
+@mixin atlas-mobile {
+  @media (max-width: $atlas-tablet) {
+    @content;
+  }
+}
+
+@mixin atlas-tablet {
+  @media (min-width: #{$atlas-tablet + 1px}) and (max-width: $atlas-desktop) {
+    @content;
+  }
+}
+
+@mixin atlas-desktop {
+  @media (min-width: #{$atlas-desktop + 1px}) {
+    @content;
+  }
+}
+
+// Animation Classes
+@keyframes atlas-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes atlas-slide-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes atlas-slide-down {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes atlas-scale-in {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Utility Classes
+.atlas-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.atlas-focus-visible {
+  &:focus-visible {
+    outline: 2px solid $atlas-primary;
+    outline-offset: 2px;
+  }
+}
+
+.atlas-no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}

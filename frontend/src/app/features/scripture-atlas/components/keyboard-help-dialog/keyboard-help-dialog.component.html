@@ -1,0 +1,63 @@
+<!-- Dialog Backdrop -->
+<div class="dialog-backdrop" 
+     [class.visible]="isOpen"
+     (click)="onBackdropClick($event)"
+     (keydown)="onKeyDown($event)">
+  
+  <!-- Dialog Content -->
+  <div class="dialog-content" [class.show]="isOpen">
+    <!-- Header -->
+    <div class="dialog-header">
+      <h2 class="dialog-title">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="10" rx="2" ry="2"></rect>
+          <path d="M7 7V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v2"></path>
+          <line x1="5" y1="12" x2="6" y2="12"></line>
+          <line x1="8" y1="12" x2="9" y2="12"></line>
+          <line x1="11" y1="12" x2="12" y2="12"></line>
+          <line x1="14" y1="12" x2="15" y2="12"></line>
+          <line x1="17" y1="12" x2="18" y2="12"></line>
+        </svg>
+        Keyboard Shortcuts
+      </h2>
+      <button class="close-btn" (click)="onClose()" aria-label="Close dialog">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Body -->
+    <div class="dialog-body">
+      <div class="shortcuts-container">
+        <div class="shortcut-group" *ngFor="let group of shortcutGroups">
+          <h3 class="group-title">{{ group.title }}</h3>
+          <div class="shortcuts-list">
+            <div class="shortcut-item" *ngFor="let shortcut of group.shortcuts">
+              <div class="shortcut-keys">
+                <kbd *ngFor="let key of shortcut.keys; let last = last">
+                  {{ key }}<span class="key-separator" *ngIf="!last">or</span>
+                </kbd>
+              </div>
+              <span class="shortcut-description">{{ shortcut.description }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="dialog-footer">
+      <div class="footer-tip">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span>Press <kbd>?</kbd> anytime to show this help</span>
+      </div>
+      <button class="btn-primary" (click)="onClose()">Got it!</button>
+    </div>
+  </div>
+</div>

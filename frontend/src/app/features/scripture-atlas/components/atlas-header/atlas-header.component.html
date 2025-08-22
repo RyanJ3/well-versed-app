@@ -1,0 +1,162 @@
+<header class="atlas-header" [class.collapsed]="collapsed">
+  <!-- Collapse/Expand Button -->
+  <button class="header-toggle" (click)="toggleCollapsed()" title="Toggle header">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline [attr.points]="collapsed ? '6 9 12 15 18 9' : '18 15 12 9 6 15'"></polyline>
+    </svg>
+  </button>
+  
+  <div class="header-content" *ngIf="!collapsed">
+    <!-- Left Section: Journey Selection -->
+    <div class="header-section journey-section">
+      <!-- Menu Toggle -->
+      <button class="panel-toggle" (click)="toggleJourneyPanel()" title="Toggle journey panel">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      
+      <!-- Testament Buttons -->
+      <div class="testament-toggle">
+        <button 
+          class="testament-btn"
+          [class.active]="testament === 'Old Testament'"
+          (click)="selectTestament('Old Testament')"
+          title="Old Testament">
+          OT
+        </button>
+        <button 
+          class="testament-btn"
+          [class.active]="testament === 'New Testament'"
+          (click)="selectTestament('New Testament')"
+          title="New Testament">
+          NT
+        </button>
+      </div>
+      
+      <!-- Journey Dropdown -->
+      <div class="journey-selector">
+        <select 
+          [value]="currentJourney?.journey_id || ''"
+          (change)="onJourneySelect($event)"
+          class="journey-select">
+          <option value="" disabled>Select journey...</option>
+          <option 
+            *ngFor="let journey of journeys" 
+            [value]="journey.journey_id">
+            {{ journey.name }}
+          </option>
+        </select>
+      </div>
+      
+      <!-- Current Journey Info -->
+      <div class="journey-info" *ngIf="currentJourney">
+        <span class="journey-name">{{ currentJourney.name }}</span>
+        <span class="journey-refs" *ngIf="currentJourney.scripture_refs">
+          {{ currentJourney.scripture_refs }}
+        </span>
+      </div>
+    </div>
+    
+    <!-- Center Section: View Controls -->
+    <div class="header-section view-section">
+      <div class="view-controls">
+        <button 
+          class="view-btn"
+          [class.active]="currentView === '2d'"
+          (click)="setView('2d')"
+          title="2D Map View">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="9" y1="21" x2="9" y2="9"></line>
+          </svg>
+          <span class="view-label">2D</span>
+        </button>
+        <button 
+          class="view-btn"
+          [class.active]="currentView === '3d'"
+          (click)="setView('3d')"
+          title="3D Terrain View">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+          <span class="view-label">3D</span>
+        </button>
+        <button 
+          class="view-btn"
+          [class.active]="currentView === 'historical'"
+          (click)="setView('historical')"
+          title="Historical View">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 21h18"></path>
+            <path d="M5 21V7l8-4v18"></path>
+            <path d="M19 21V11l-6-3"></path>
+          </svg>
+          <span class="view-label">Historical</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Right Section: Navigation Controls -->
+    <div class="header-section nav-section">
+      <!-- Progress Bar -->
+      <div class="progress-indicator" *ngIf="totalSegments > 0">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="progressPercentage"></div>
+        </div>
+        <span class="progress-text">
+          {{ currentSegmentIndex + 1 }} / {{ totalSegments }}
+        </span>
+      </div>
+      
+      <!-- Navigation Buttons -->
+      <div class="nav-controls">
+        <button 
+          class="nav-btn"
+          [disabled]="currentSegmentIndex === 0"
+          (click)="onPrevious()"
+          title="Previous segment (←)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+        <button 
+          class="nav-btn reset"
+          (click)="onReset()"
+          title="View entire journey (R)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="5" y="5" width="14" height="14" rx="2" ry="2"></rect>
+            <path d="M9 9h6v6h-6z"></path>
+          </svg>
+        </button>
+        <button 
+          class="nav-btn"
+          [disabled]="currentSegmentIndex >= totalSegments - 1"
+          (click)="onNext()"
+          title="Next segment (→)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Collapsed State -->
+  <div class="collapsed-content" *ngIf="collapsed">
+    <span class="collapsed-journey" *ngIf="currentJourney">
+      {{ currentJourney.name }}
+    </span>
+    <span class="collapsed-progress" *ngIf="totalSegments > 0">
+      {{ currentSegmentIndex + 1 }}/{{ totalSegments }}
+    </span>
+    <button class="expand-btn" (click)="toggleCollapsed()">
+      Expand
+    </button>
+  </div>
+</header>

@@ -1,53 +1,108 @@
-.segment-details {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
+// Details Panel Container  
+.details-panel {
+  // Ensure panel doesn't block map interactions when collapsed
+  pointer-events: auto;
+  position: fixed;
   background: white;
-  border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  width: 380px;
-  max-width: calc(100vw - 40px);
-  z-index: 40;
-  transition: all 0.3s ease;
+  z-index: 90;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
   
-  &.collapsed {
-    .details-content {
-      display: none;
+  // Desktop: Bottom-right panel
+  @media (min-width: 768px) {
+    bottom: 20px;
+    right: 20px;
+    width: 400px;
+    max-height: 60vh;
+    transform: translateY(calc(100% - 60px));
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px 12px 4px 4px;
+    
+    &.peek {
+      transform: translateY(calc(100% - 60px)); // Show header bar only
+      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    &.expanded {
+      transform: translateY(0);
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    // Hover effect when in peek mode
+    &.peek:hover {
+      transform: translateY(calc(100% - 120px));
+    }
+  }
+  
+  // Mobile: Bottom sheet
+  &.mobile {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 20px 20px 0 0;
+    max-height: 85vh;
+    transform: translateY(calc(100% - 80px));
+    
+    &.peek {
+      transform: translateY(calc(100% - 80px));
+    }
+    
+    &.expanded {
+      transform: translateY(0);
     }
   }
 }
 
-.toggle-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  width: 30px;
-  height: 30px;
-  border: none;
-  background: #f0f0f0;
-  border-radius: 50%;
-  cursor: pointer;
+// Drag Handle
+.drag-handle {
+  position: relative;
+  width: 100%;
+  padding: 12px;
+  cursor: grab;
+  touch-action: none;
   display: flex;
-  align-items: center;
   justify-content: center;
-  transition: all 0.2s;
-  z-index: 1;
+  align-items: center;
   
-  &:hover {
-    background: #e0e0e0;
-    transform: scale(1.1);
-  }
-  
-  svg {
-    width: 16px;
-    height: 16px;
-    color: #666;
+  &:active {
+    cursor: grabbing;
   }
 }
 
-.details-header {
-  padding: 20px 50px 15px 20px;
+.handle-bar {
+  width: 40px;
+  height: 4px;
+  background: #d0d0d0;
+  border-radius: 2px;
+  transition: all 0.2s;
+  
+  .drag-handle:hover & {
+    background: #999;
+    width: 60px;
+  }
+}
+
+// Sheet Header
+.sheet-header {
+  padding: 0 20px 15px;
   border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  
+  .bottom-sheet.expanded & {
+    cursor: default;
+  }
+}
+
+.header-content {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -60,6 +115,12 @@
   font-weight: 600;
   color: #2c3e50;
   flex: 1;
+  transition: all 0.2s ease; // Smooth title updates
+  
+  &.updating {
+    opacity: 0.6;
+    transform: translateY(2px);
+  }
 }
 
 .distance {
@@ -69,12 +130,46 @@
   padding: 4px 10px;
   border-radius: 12px;
   white-space: nowrap;
+  transition: all 0.2s ease; // Smooth distance updates
+  
+  &.updating {
+    opacity: 0.6;
+    transform: translateY(2px);
+  }
 }
 
-.details-content {
+// Sheet Content
+.sheet-content {
   padding: 20px;
-  max-height: 400px;
   overflow-y: auto;
+  flex: 1;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  
+  &.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  // Smooth content updates when segment changes
+  .segment-description,
+  .events-section,
+  .travel-info {
+    transition: all 0.2s ease;
+  }
+  
+  // Content updating state
+  &.updating {
+    .segment-title,
+    .distance,
+    .segment-description,
+    .events-section,
+    .travel-info {
+      opacity: 0.6;
+      transform: translateY(2px);
+    }
+  }
   
   &::-webkit-scrollbar {
     width: 6px;
@@ -206,46 +301,135 @@
   flex-shrink: 0;
 }
 
+// Expand Button
+.expand-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: rgba(65, 105, 225, 0.1);
+  color: #4169E1;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: rgba(65, 105, 225, 0.2);
+    transform: scale(1.05);
+  }
+}
+
+// Mobile FAB for Details
+.details-fab {
+  position: fixed;
+  bottom: 100px;
+  right: 20px; // Moved to right for consistency
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: #6495ED;
+  color: white;
+  box-shadow: 0 4px 12px rgba(100, 149, 237, 0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 70;
+  
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(100, 149, 237, 0.4);
+  }
+  
+  &.mobile-only {
+    @media (min-width: 768px) {
+      display: none;
+    }
+  }
+}
+
+// Peek Tab Indicator (Desktop) - Now at top of bottom panel
+@media (min-width: 768px) {
+  .details-panel.peek {
+    // Add subtle gradient at top to indicate more content
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #4169E1, #6495ED);
+      border-radius: 8px 8px 0 0;
+    }
+    
+    // Add expand indicator
+    &::before {
+      content: '⌃'; // Up arrow
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      color: #666;
+      font-size: 16px;
+      font-weight: bold;
+      z-index: 1;
+      pointer-events: none;
+    }
+  }
+  
+  .details-panel.expanded {
+    &::before {
+      content: '⌄'; // Down arrow
+    }
+  }
+}
+
+// Touch Gesture Support
+.details-panel {
+  &.mobile.dragging {
+    transition: none;
+  }
+}
+
 // Animations
-@keyframes slideInUp {
+@keyframes slideUp {
   from {
-    opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(100%);
   }
   to {
-    opacity: 1;
     transform: translateY(0);
   }
 }
 
-.segment-details {
-  animation: slideInUp 0.3s ease-out;
-}
-
-// Mobile responsiveness
-@media (max-width: 768px) {
-  .segment-details {
-    left: 10px;
-    right: 10px;
-    width: auto;
-    bottom: 100px; // Above navigation controls with more space
+@keyframes fadeIn {
+  from {
+    opacity: 0;
   }
-  
-  .details-content {
-    max-height: 300px;
+  to {
+    opacity: 1;
   }
 }
 
+// Responsive adjustments
 @media (max-width: 480px) {
-  .details-header {
-    padding: 15px 45px 12px 15px;
+  .sheet-header {
+    padding: 0 15px 12px;
   }
   
   .segment-title {
     font-size: 16px;
   }
   
-  .details-content {
+  .sheet-content {
     padding: 15px;
+  }
+  
+  .details-fab {
+    bottom: 80px;
+    right: 15px; // Moved to right
   }
 }

@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BiblicalJourney, Testament } from '../../models/journey.models';
@@ -16,11 +16,12 @@ export class JourneyPanelComponent implements OnInit {
   @Input() currentJourney: BiblicalJourney | null = null;
   @Input() currentSegmentIndex: number = 0;
   @Input() totalSegments: number = 0;
+  @Input() autoHide: boolean = false;
   
   @Output() testamentChange = new EventEmitter<Testament>();
   @Output() journeyChange = new EventEmitter<number>();
   
-  collapsed = false;
+  collapsed = true;
   
   get progressPercentage(): number {
     if (this.totalSegments === 0) return 0;
@@ -28,10 +29,8 @@ export class JourneyPanelComponent implements OnInit {
   }
   
   ngOnInit() {
-    // Check if mobile and start collapsed
-    if (window.innerWidth <= 768) {
-      this.collapsed = true;
-    }
+    // Start with drawer closed
+    this.collapsed = true;
   }
   
   selectTestament(testament: Testament) {
@@ -60,5 +59,25 @@ export class JourneyPanelComponent implements OnInit {
     }
     
     return `${formatYear(startYear)} - ${formatYear(endYear)}`;
+  }
+  
+  // Keyboard shortcuts
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    // Toggle drawer with 'J' key
+    if (event.key === 'j' || event.key === 'J') {
+      if (!event.ctrlKey && !event.altKey && !event.metaKey) {
+        // Don't trigger if user is typing in an input
+        const target = event.target as HTMLElement;
+        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+          event.preventDefault();
+          this.collapsed = !this.collapsed;
+        }
+      }
+    }
+    // Close drawer with Escape key
+    if (event.key === 'Escape' && !this.collapsed) {
+      this.collapsed = true;
+    }
   }
 }

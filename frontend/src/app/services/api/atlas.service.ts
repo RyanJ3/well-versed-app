@@ -4,14 +4,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
+import { BiblicalJourney } from '@features/scripture-atlas/models/journey.models';
 
-export interface Journey {
-  id: number;
-  name: string;
-  start_year?: number;
-  end_year?: number;
-  scripture_refs?: string;
-}
 
 export interface City {
   id: string;
@@ -27,7 +21,7 @@ export interface City {
 }
 
 export interface JourneyDetail {
-  journey: Journey;
+  journey: BiblicalJourney;
   cities: City[];
 }
 
@@ -37,8 +31,8 @@ export class AtlasService {
 
   constructor(private http: HttpClient) {}
 
-  getJourneys(): Observable<Journey[]> {
-    return this.http.get<Journey[]>(`${this.apiUrl}/journeys`);
+  getJourneys(): Observable<BiblicalJourney[]> {
+    return this.http.get<BiblicalJourney[]>(`${this.apiUrl}/journeys`);
   }
 
   getJourney(journeyId: number): Observable<JourneyDetail> {

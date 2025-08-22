@@ -1,20 +1,40 @@
-<div class="segment-details" [class.collapsed]="collapsed" *ngIf="segment">
-  <button class="toggle-btn" (click)="toggleCollapse()">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polyline [attr.points]="collapsed ? '6 9 12 15 18 9' : '18 15 12 9 6 15'"></polyline>
-    </svg>
-  </button>
+<!-- Side Panel for Desktop / Bottom Sheet for Mobile -->
+<div class="details-panel" 
+     [class.expanded]="!collapsed"
+     [class.peek]="collapsed && segment"
+     [class.mobile]="isMobile"
+     *ngIf="segment">
   
-  <div class="details-header">
-    <h3 class="segment-title">
-      {{ segment.from.location_name }} → {{ segment.to.location_name }}
-    </h3>
-    <span class="distance" *ngIf="segment.distance">
-      {{ segment.distance }} km
-    </span>
+  <!-- Drag Handle -->
+  <div class="drag-handle" 
+       (click)="toggleCollapse()"
+       (touchstart)="onTouchStart($event)"
+       (touchmove)="onTouchMove($event)"
+       (touchend)="onTouchEnd($event)">
+    <div class="handle-bar"></div>
   </div>
   
-  <div class="details-content" *ngIf="!collapsed">
+  <!-- Sheet Header -->
+  <div class="sheet-header" (click)="!collapsed && toggleCollapse()">
+    <div class="header-content">
+      <h3 class="segment-title" [class.updating]="isUpdating">
+        {{ segment.from.location_name }} → {{ segment.to.location_name }}
+      </h3>
+      <span class="distance" *ngIf="segment.distance" [class.updating]="isUpdating">
+        {{ segment.distance }} km
+      </span>
+    </div>
+    <button class="expand-btn" 
+            *ngIf="collapsed"
+            (click)="toggleCollapse(); $event.stopPropagation()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </button>
+  </div>
+  
+  <!-- Sheet Content -->
+  <div class="sheet-content" [class.visible]="!collapsed" [class.updating]="isUpdating">
     <!-- Segment Description -->
     <p class="segment-description" *ngIf="segment.description">
       {{ segment.description }}
@@ -64,3 +84,13 @@
     </div>
   </div>
 </div>
+
+<!-- Mobile FAB for Details -->
+<button class="details-fab" 
+        *ngIf="segment && collapsed"
+        (click)="toggleCollapse()"
+        class="mobile-only">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+  </svg>
+</button>

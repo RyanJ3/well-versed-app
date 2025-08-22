@@ -1,11 +1,21 @@
-<div class="journey-panel" [class.collapsed]="collapsed">
-  <button class="toggle-btn" (click)="collapsed = !collapsed">
-    <span class="icon">{{ collapsed ? '☰' : '✕' }}</span>
-  </button>
+<div class="journey-drawer-backdrop" 
+     [class.visible]="!collapsed" 
+     (click)="collapsed = true"></div>
+
+<div class="journey-drawer" 
+     [class.open]="!collapsed"
+     [class.auto-hide]="autoHide">
+  <div class="drawer-header">
+    <h2 class="drawer-title">Biblical Journeys</h2>
+    <button class="close-btn" (click)="collapsed = true" title="Close panel (Esc)">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
   
-  <div class="panel-content" *ngIf="!collapsed">
-    <h2 class="panel-title">Biblical Journeys</h2>
-    
+  <div class="drawer-content">
     <!-- Testament Filter -->
     <div class="testament-selector">
       <button 
@@ -77,3 +87,16 @@
     </div>
   </div>
 </div>
+
+<!-- Floating Toggle Button -->
+<button class="drawer-toggle" 
+        *ngIf="collapsed" 
+        (click)="collapsed = false"
+        title="Open journey panel (J)">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M3 12h18"></path>
+    <path d="M3 6h18"></path>
+    <path d="M3 18h18"></path>
+  </svg>
+  <span class="toggle-label">Journeys</span>
+</button>

@@ -1,0 +1,75 @@
+<div class="fab-navigation" [class.expanded]="isExpanded" [class.hide-desktop]="hideOnDesktop">
+  <!-- Main FAB Button -->
+  <button class="fab-main" 
+          (click)="toggleExpanded()"
+          [attr.aria-expanded]="isExpanded"
+          aria-label="Navigation menu">
+    <div class="fab-content">
+      <!-- Progress Ring -->
+      <svg class="progress-ring" width="56" height="56">
+        <circle class="progress-ring-bg"
+                cx="28" cy="28" r="24"
+                fill="none"
+                stroke-width="3"/>
+        <circle class="progress-ring-fill"
+                cx="28" cy="28" r="24"
+                fill="none"
+                stroke-width="3"
+                [style.stroke-dasharray]="'151 151'"
+                [style.stroke-dashoffset]="151 - (151 * progressPercentage / 100)"/>
+      </svg>
+      
+      <!-- Center Content -->
+      <div class="fab-center">
+        <span class="segment-count" *ngIf="!isExpanded">
+          {{ currentSegmentIndex + 1 }}/{{ totalSegments }}
+        </span>
+        <svg *ngIf="isExpanded" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </div>
+    </div>
+  </button>
+  
+  <!-- Expanded Actions -->
+  <div class="fab-actions" [class.visible]="isExpanded">
+    <!-- Previous Button -->
+    <button class="fab-action"
+            [disabled]="!canGoPrevious"
+            (click)="onPrevious()"
+            aria-label="Previous segment">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      <span class="fab-tooltip">Previous</span>
+    </button>
+    
+    <!-- Reset View Button -->
+    <button class="fab-action"
+            (click)="onReset()"
+            aria-label="View entire journey">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="5" y="5" width="14" height="14" rx="2" ry="2"></rect>
+        <path d="M9 9h6v6h-6z"></path>
+      </svg>
+      <span class="fab-tooltip">Full View</span>
+    </button>
+    
+    <!-- Next Button -->
+    <button class="fab-action"
+            [disabled]="!canGoNext"
+            (click)="onNext()"
+            aria-label="Next segment">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+      <span class="fab-tooltip">Next</span>
+    </button>
+  </div>
+  
+  <!-- Backdrop for mobile -->
+  <div class="fab-backdrop" 
+       [class.visible]="isExpanded"
+       (click)="isExpanded = false"></div>
+</div>
