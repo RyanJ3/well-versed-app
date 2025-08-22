@@ -10,8 +10,11 @@ import { DeckStudyComponent } from './features/decks/deck-study/deck-study.compo
 import { DeckListPageComponent } from './features/decks/pages/deck-list-page/deck-list-page.component';
 import { FeatureRequestComponent } from './features/feature-request/feature-request.component';
 import { CourseListComponent } from './features/courses/course-list.component';
+import { CourseDetailComponent } from './features/courses/detail/course-detail.component';
+import { LessonViewComponent } from './features/courses/lesson/lesson-view.component';
 import { CourseBuilderComponent } from './features/courses/course-builder/course-builder.component';
 import { LessonPracticeComponent } from './features/courses/lesson-practice/lesson-practice.component';
+import { QuizPracticeComponent } from './features/courses/quiz-practice/quiz-practice.component';
 import { ScriptureAtlasComponent } from './features/scripture-atlas/scripture-atlas.component';
 import { BibleTrackerComponent } from './features/bible-tracker/bible-tracker.component';
 import { TranslationGuard } from './guards/translation.guard';
@@ -32,6 +35,9 @@ export const routes: Routes = [
   { path: 'decks/study/:deckId', component: DeckStudyComponent, canActivate: [TranslationGuard] },
   { path: 'deck-editor/:deckId', component: DeckEditorPageComponent, canActivate: [TranslationGuard] },
   { path: 'courses/:courseId/lessons/:lessonId/practice', component: LessonPracticeComponent, canActivate: [TranslationGuard] },
+  { path: 'courses/:courseId/lessons/:lessonId/quiz', component: QuizPracticeComponent, canActivate: [TranslationGuard] },
+  { path: 'courses/:courseId/lessons/:lessonId', component: LessonViewComponent, canActivate: [TranslationGuard] },
+  { path: 'courses/:id', component: CourseDetailComponent, canActivate: [TranslationGuard] },
   {
     path: 'feature-requests',
     component: FeatureRequestComponent,

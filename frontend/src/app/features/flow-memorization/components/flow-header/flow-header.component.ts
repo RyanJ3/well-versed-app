@@ -119,7 +119,7 @@ export class FlowHeaderComponent implements OnInit {
 
   // Progress ring calculations for expanded view (larger ring)
   get progressCircumference(): number {
-    return 2 * Math.PI * 55; // Updated for 120px ring (radius 55)
+    return 2 * Math.PI * 64; // Updated for 140px ring (radius 64)
   }
 
   get progressOffset(): number {

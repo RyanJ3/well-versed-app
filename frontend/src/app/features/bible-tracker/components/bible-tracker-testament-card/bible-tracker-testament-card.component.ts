@@ -31,7 +31,10 @@ export class BibleTrackerTestamentCardComponent
   private chart: Chart | null = null;
 
   ngAfterViewInit() {
-    this.createChart();
+    // Small delay to ensure DOM is fully rendered
+    setTimeout(() => {
+      this.createChart();
+    }, 100);
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -94,31 +97,47 @@ export class BibleTrackerTestamentCardComponent
   private createChart(): void {
     const canvasId = this.getChartId();
     const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
-    if (!canvas) return;
+    if (!canvas) {
+      console.error('Canvas not found:', canvasId);
+      return;
+    }
+
+    // Set canvas dimensions explicitly
+    const container = canvas.parentElement;
+    if (container) {
+      canvas.width = container.offsetWidth;
+      canvas.height = container.offsetHeight;
+    }
 
     const existing = Chart.getChart(canvasId);
     existing?.destroy();
 
     const chartData = this.getChartData();
+    
+    if (chartData.data.length === 0) {
+      console.warn('No chart data available for:', this.testament.name);
+      return;
+    }
 
-    this.chart = new Chart(canvas, {
-      type: 'doughnut',
-      data: {
-        labels: chartData.labels,
-        datasets: [
-          {
-            data: chartData.data,
-            backgroundColor: chartData.colors,
-            borderWidth: 3,
-            borderColor: '#ffffff',
-            hoverBorderWidth: 4,
-            hoverBorderColor: '#ffffff',
-            hoverBackgroundColor: chartData.colors.map(color => 
-              this.adjustColorBrightness(color, 20)
-            ),
-          },
-        ],
-      },
+    try {
+      this.chart = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels: chartData.labels,
+          datasets: [
+            {
+              data: chartData.data,
+              backgroundColor: chartData.colors,
+              borderWidth: 3,
+              borderColor: '#ffffff',
+              hoverBorderWidth: 4,
+              hoverBorderColor: '#ffffff',
+              hoverBackgroundColor: chartData.colors.map(color => 
+                this.adjustColorBrightness(color, 20)
+              ),
+            },
+          ],
+        },
       options: {
         responsive: true,
         maintainAspectRatio: true,
@@ -161,8 +180,12 @@ export class BibleTrackerTestamentCardComponent
             borderJoinStyle: 'round'
           }
         }
-      },
+      }
     });
+      console.log('Chart created successfully for:', this.testament.name);
+    } catch (error) {
+      console.error('Error creating chart for', this.testament.name, error);
+    }
   }
 
   private updateChart(): void {
@@ -176,7 +199,7 @@ export class BibleTrackerTestamentCardComponent
   }
 
   private getChartData() {
-    const groups = this.testament.groups;
+    const groups = this.testament.groups || [];
     const labels: string[] = [];
     const data: number[] = [];
     const colors: string[] = [];
@@ -190,12 +213,21 @@ export class BibleTrackerTestamentCardComponent
     });
 
     const totalMemorized = data.reduce((a, b) => a + b, 0);
-    const notMemorized = this.testament.totalVerses - totalMemorized;
-    if (notMemorized > 0) {
+    const notMemorized = Math.max(0, (this.testament.totalVerses || 0) - totalMemorized);
+    
+    // Always ensure there's at least some data to display
+    if (data.length === 0) {
+      // If no memorized verses, show the full circle as "not memorized"
+      labels.push('Not Memorized');
+      data.push(this.testament.totalVerses || 1);
+      colors.push('#e5e7eb');
+    } else if (notMemorized > 0) {
       labels.push('Not Memorized');
       data.push(notMemorized);
       colors.push('#e5e7eb');
     }
+
+    console.log('Chart data for', this.testament.name, { labels, data, colors });
 
     return { labels, data, colors };
   }

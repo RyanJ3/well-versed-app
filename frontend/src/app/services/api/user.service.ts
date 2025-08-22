@@ -34,7 +34,22 @@ export class UserService {
           if (prefs.preferredBible) {
             this.syncBibleVersion(prefs);
           }
-        } catch (e) {}
+          // Pre-populate user with cached preferences if available
+          if (prefs.preferredBible || prefs.esvApiToken) {
+            const cachedUser: Partial<User> = {
+              preferredBible: prefs.preferredBible,
+              preferredLanguage: prefs.preferredLanguage,
+              useEsvApi: prefs.useEsvApi,
+              esvApiToken: prefs.esvApiToken
+            };
+            // Only set if we have meaningful data
+            if (prefs.esvApiToken || prefs.preferredBible) {
+              console.log('Loading cached user preferences:', cachedUser);
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing cached preferences:', e);
+        }
       }
     }
 
@@ -75,20 +90,54 @@ export class UserService {
       map(apiResponse => this.mapApiResponseToUser(apiResponse)),
       tap(user => {
         console.log('Fetched user from API:', user);
+        console.log('ESV API Token present:', !!(user?.esvApiToken));
         this.currentUserSubject.next(user);
 
         // Store preferences if in browser
         if (user && this.isBrowser) {
-          localStorage.setItem('userPreferences', JSON.stringify({
+          const preferences = {
             preferredBible: user.preferredBible,
             preferredLanguage: user.preferredLanguage,
-            useEsvApi: user.useEsvApi
-          }));
+            useEsvApi: user.useEsvApi,
+            esvApiToken: user.esvApiToken
+          };
+          console.log('Storing preferences to localStorage:', preferences);
+          localStorage.setItem('userPreferences', JSON.stringify(preferences));
           this.syncBibleVersion(user);
         }
       }),
       catchError(error => {
         console.error('Error fetching user:', error);
+        
+        // Try to restore from localStorage on error
+        if (this.isBrowser) {
+          try {
+            const stored = localStorage.getItem('userPreferences');
+            if (stored) {
+              const prefs = JSON.parse(stored);
+              console.log('Restoring user preferences from localStorage due to API error:', prefs);
+              // Create a minimal user object with cached preferences
+              const fallbackUser: Partial<User> = {
+                id: 1,
+                email: 'test@example.com',
+                name: 'Test User',
+                preferredBible: prefs.preferredBible,
+                preferredLanguage: prefs.preferredLanguage || 'eng',
+                useEsvApi: prefs.useEsvApi,
+                esvApiToken: prefs.esvApiToken,
+                includeApocrypha: false,
+                firstName: 'Test',
+                lastName: 'User',
+                createdAt: new Date()
+              };
+              this.currentUserSubject.next(fallbackUser as User);
+              return of(fallbackUser as User);
+            }
+          } catch (e) {
+            console.error('Error restoring from localStorage:', e);
+          }
+        }
+        
         return of(null);
       })
     ).subscribe();
@@ -96,6 +145,36 @@ export class UserService {
 
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
+  }
+
+  /**
+   * Get current user with localStorage fallback for missing data
+   */
+  getCurrentUserWithFallback(): User | null {
+    const user = this.currentUserSubject.value;
+    
+    if (!user) return null;
+
+    // If user is missing critical data, try to restore from localStorage
+    if (this.isBrowser && (!user.preferredBible || (user.preferredBible === 'ESV' && !user.esvApiToken))) {
+      try {
+        const stored = localStorage.getItem('userPreferences');
+        if (stored) {
+          const prefs = JSON.parse(stored);
+          return {
+            ...user,
+            preferredBible: user.preferredBible || prefs.preferredBible,
+            preferredLanguage: user.preferredLanguage || prefs.preferredLanguage,
+            useEsvApi: user.useEsvApi ?? prefs.useEsvApi,
+            esvApiToken: user.esvApiToken || prefs.esvApiToken
+          };
+        }
+      } catch (e) {
+        console.error('Error restoring user data from localStorage:', e);
+      }
+    }
+
+    return user;
   }
 
   updateUser(formData: any): Observable<User> {
@@ -125,14 +204,18 @@ export class UserService {
       map(apiResponse => this.mapApiResponseToUser(apiResponse)),
       tap(updatedUser => {
         console.log('User updated successfully, mapped response:', updatedUser);
+        console.log('Updated ESV API Token present:', !!(updatedUser?.esvApiToken));
         this.currentUserSubject.next(updatedUser);
 
         if (updatedUser && this.isBrowser) {
-          localStorage.setItem('userPreferences', JSON.stringify({
+          const preferences = {
             preferredBible: updatedUser.preferredBible,
             preferredLanguage: updatedUser.preferredLanguage,
-            useEsvApi: updatedUser.useEsvApi
-          }));
+            useEsvApi: updatedUser.useEsvApi,
+            esvApiToken: updatedUser.esvApiToken
+          };
+          console.log('Updating localStorage with new preferences:', preferences);
+          localStorage.setItem('userPreferences', JSON.stringify(preferences));
           this.syncBibleVersion(updatedUser);
         }
       }),
@@ -159,20 +242,45 @@ export class UserService {
   hasValidTranslation(): boolean {
     const user = this.currentUserSubject.value;
 
-    // No user or no Bible selected
-    if (!user?.preferredBible || user.preferredBible === '') {
+    // Try to get preferences from localStorage as fallback
+    let preferredBible = user?.preferredBible;
+    let esvApiToken = user?.esvApiToken;
+
+    if (this.isBrowser && (!preferredBible || (preferredBible === 'ESV' && !esvApiToken))) {
+      try {
+        const stored = localStorage.getItem('userPreferences');
+        if (stored) {
+          const prefs = JSON.parse(stored);
+          preferredBible = preferredBible || prefs.preferredBible;
+          esvApiToken = esvApiToken || prefs.esvApiToken;
+        }
+      } catch (e) {
+        console.error('Error reading cached preferences:', e);
+      }
+    }
+
+    // No Bible selected
+    if (!preferredBible || preferredBible === '') {
       return false;
     }
 
     // ESV selected but no token
     if (
-      user.preferredBible === 'ESV' &&
-      (!user.esvApiToken || user.esvApiToken.trim() === '')
+      preferredBible === 'ESV' &&
+      (!esvApiToken || esvApiToken.trim() === '')
     ) {
       return false;
     }
 
     return true;
+  }
+
+  /**
+   * Force refresh user data from API and sync with localStorage
+   */
+  refreshUserData(): void {
+    console.log('Forcing user data refresh...');
+    this.fetchCurrentUser();
   }
 
   // Helper method to convert API response (snake_case) to User model (camelCase)

@@ -7,11 +7,13 @@
 .flashcard-container {
   min-height: 100vh;
   background: $gradient-background;
+  padding-top: 2rem;
 }
 
 .page-header {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 0 1.5rem;
 }
 
 .page-title {
@@ -226,22 +228,15 @@
 
 // Decks Grid
 .decks-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.25rem;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
+  // Remove grid here since app-deck-list handles it
 }
 
 // Empty State
 .empty-state {
-  grid-column: 1 / -1;
   text-align: center;
   padding: 3rem 2rem;
   color: #64748b;
+  width: 100%;
 
   .empty-illustration {
     svg {

@@ -185,15 +185,15 @@
           <!-- Progress Ring with Verses Count -->
           <div class="progress-ring-section">
             <div class="progress-ring-large">
-              <svg width="120" height="120">
+              <svg width="140" height="140">
                 <defs>
                   <linearGradient id="gradient-ring" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stop-color="#34d399" />
                     <stop offset="100%" stop-color="#10b981" />
                   </linearGradient>
                 </defs>
-                <circle cx="60" cy="60" r="55" class="ring-bg"></circle>
-                <circle cx="60" cy="60" r="55" class="ring-fill" [attr.stroke-dasharray]="progressCircumference"
+                <circle cx="70" cy="70" r="64" class="ring-bg"></circle>
+                <circle cx="70" cy="70" r="64" class="ring-fill" [attr.stroke-dasharray]="progressCircumference"
                   [attr.stroke-dashoffset]="progressOffset"></circle>
               </svg>
               <div class="ring-percentage">{{ progressPercentage }}%</div>

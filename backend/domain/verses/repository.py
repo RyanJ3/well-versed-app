@@ -53,13 +53,14 @@ class VerseRepository(BaseRepository):
                 bv.verse_number,
                 bv.is_apocryphal,
                 uv.practice_count,
-                uv.confidence_score,
+                COALESCE(uvc.confidence_score, 0) as confidence_score,
                 uv.last_practiced,
-                uv.last_reviewed,
+                uvc.last_reviewed,
                 uv.created_at,
                 uv.updated_at
             FROM user_verses uv
             JOIN bible_verses bv ON uv.verse_id = bv.id
+            LEFT JOIN user_verse_confidence uvc ON uv.user_id = uvc.user_id AND uv.verse_id = uvc.verse_id
             WHERE uv.user_id = %s
         """
         if not include_apocrypha:

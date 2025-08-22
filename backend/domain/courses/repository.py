@@ -482,7 +482,7 @@ class CourseRepository:
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    INSERT INTO user_lesson_progress (user_id, lesson_id, course_id, flashcards_required)
+                    INSERT INTO lesson_progress (user_id, lesson_id, course_id, flashcards_required)
                     VALUES (%s, %s, %s, %s)
                     ON CONFLICT (user_id, lesson_id) DO UPDATE SET started_at = CURRENT_TIMESTAMP
                     RETURNING user_id, lesson_id, course_id, started_at, completed_at,
@@ -501,7 +501,7 @@ class CourseRepository:
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    UPDATE user_lesson_progress 
+                    UPDATE lesson_progress 
                     SET completed_at = CURRENT_TIMESTAMP, flashcards_completed = flashcards_required
                     WHERE user_id = %s AND lesson_id = %s
                     RETURNING user_id, lesson_id, course_id, started_at, completed_at,
@@ -531,7 +531,7 @@ class CourseRepository:
             """
             SELECT user_id, lesson_id, course_id, started_at, completed_at,
                    flashcards_required, flashcards_completed
-            FROM user_lesson_progress
+            FROM lesson_progress
             WHERE user_id = %s AND lesson_id = %s
             """,
             (user_id, lesson_id)
@@ -544,7 +544,7 @@ class CourseRepository:
         """Get flashcards for a lesson"""
         rows = self.db.fetch_all(
             """
-            SELECT flashcard_id, lesson_id, front, back, created_at
+            SELECT flashcard_id, lesson_id, front_content, back_content, created_at
             FROM lesson_flashcards
             WHERE lesson_id = %s
             ORDER BY flashcard_id
@@ -556,8 +556,8 @@ class CourseRepository:
             LessonFlashcard(
                 id=row["flashcard_id"],
                 lesson_id=row["lesson_id"],
-                front=row["front"],
-                back=row["back"],
+                front=row["front_content"],
+                back=row["back_content"],
                 created_at=row["created_at"].isoformat()
             )
             for row in rows
@@ -572,11 +572,11 @@ class CourseRepository:
                 for fc in flashcards:
                     cur.execute(
                         """
-                        INSERT INTO lesson_flashcards (lesson_id, front, back)
-                        VALUES (%s, %s, %s)
+                        INSERT INTO lesson_flashcards (lesson_id, front_content, back_content, card_type)
+                        VALUES (%s, %s, %s, %s)
                         RETURNING flashcard_id, created_at
                         """,
-                        (lesson_id, fc["front"], fc["back"])
+                        (lesson_id, fc["front"], fc["back"], fc.get("card_type", "basic"))
                     )
                     row = cur.fetchone()
                     created_flashcards.append(

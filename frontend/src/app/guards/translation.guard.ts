@@ -24,13 +24,31 @@ export class TranslationGuard implements CanActivate {
     return this.userService.currentUser$.pipe(
       take(1),
       map(user => {
+        // Get values from user or fallback to localStorage
+        let preferredBible = user?.preferredBible;
+        let esvApiToken = user?.esvApiToken;
+
+        // Try localStorage as fallback if user data is incomplete
+        if (this.isBrowser && (!preferredBible || (preferredBible === 'ESV' && !esvApiToken))) {
+          try {
+            const stored = localStorage.getItem('userPreferences');
+            if (stored) {
+              const prefs = JSON.parse(stored);
+              preferredBible = preferredBible || prefs.preferredBible;
+              esvApiToken = esvApiToken || prefs.esvApiToken;
+            }
+          } catch (e) {
+            console.error('Error reading cached preferences in guard:', e);
+          }
+        }
+
         // Check if no Bible selected
-        const noBibleSelected = !user?.preferredBible || user.preferredBible === '';
+        const noBibleSelected = !preferredBible || preferredBible === '';
 
         // Check if ESV is selected but token is missing
         const esvWithoutToken =
-          user?.preferredBible === 'ESV' &&
-          (!user.esvApiToken || user.esvApiToken.trim() === '');
+          preferredBible === 'ESV' &&
+          (!esvApiToken || esvApiToken.trim() === '');
 
         // Redirect if either condition is true
         if (noBibleSelected || esvWithoutToken) {
