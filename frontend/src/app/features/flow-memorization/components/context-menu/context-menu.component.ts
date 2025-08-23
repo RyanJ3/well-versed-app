@@ -19,8 +19,13 @@ export class FlowContextMenuComponent {
   @Output() markAsMemorized = new EventEmitter<void>();
   @Output() markAsUnmemorized = new EventEmitter<void>();
   @Output() addToDeck = new EventEmitter<string>();
+  @Output() createDeck = new EventEmitter<void>();
 
   addToFlashcardDeck(deck: string) {
     this.addToDeck.emit(deck);
+  }
+
+  createNewDeck() {
+    this.createDeck.emit();
   }
 }

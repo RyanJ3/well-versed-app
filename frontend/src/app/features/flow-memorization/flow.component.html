@@ -160,13 +160,14 @@
   <app-flow-context-menu
     *ngIf="contextMenu.visible"
     [contextMenu]="contextMenu"
-    [flashcardDecks]="flashcardDecks"
+    [flashcardDecks]="flashcardDeckNames"
     [selectedVerseIsMemorized]="selectedVerseIsMemorized"
     [shouldShowMarkAsMemorized]="shouldShowMarkAsMemorized"
     [shouldShowMarkAsUnmemorized]="shouldShowMarkAsUnmemorized"
     (markAsMemorized)="markSelectedAsMemorized()"
     (markAsUnmemorized)="markSelectedAsUnmemorized()"
     (addToDeck)="addToFlashcardDeck($event)"
+    (createDeck)="openCreateDeckModal()"
   ></app-flow-context-menu>
 
   <!-- Memorization Modal -->
@@ -178,4 +179,13 @@
     [verseCount]="modalVerses.length"
     (completed)="onModalCompleted($event)"
   ></app-memorization-modal>
+
+  <!-- Create Deck Modal -->
+  <app-create-deck-modal
+    *ngIf="showCreateDeckModal"
+    [show]="showCreateDeckModal"
+    [isLoading]="createDeckLoading"
+    (close)="closeCreateDeckModal()"
+    (create)="handleCreateDeck($event)"
+  ></app-create-deck-modal>
 </div>

@@ -130,10 +130,26 @@ import { User } from '@models/user';
         </div>
 
         <div class="quick-filters">
-          <button class="pill">All Courses</button>
-          <button class="pill">In Progress</button>
-          <button class="pill">Completed</button>
-          <button class="pill">Recommended</button>
+          <button 
+            class="pill" 
+            [class.selected]="activeFilter === 'all'"
+            (click)="setFilter('all')"
+          >All Courses</button>
+          <button 
+            class="pill" 
+            [class.selected]="activeFilter === 'in-progress'"
+            (click)="setFilter('in-progress')"
+          >In Progress</button>
+          <button 
+            class="pill" 
+            [class.selected]="activeFilter === 'completed'"
+            (click)="setFilter('completed')"
+          >Completed</button>
+          <button 
+            class="pill" 
+            [class.selected]="activeFilter === 'recommended'"
+            (click)="setFilter('recommended')"
+          >Recommended</button>
           <div class="divider"></div>
           <ng-container *ngFor="let tag of availableTags.slice(0, 5)">
             <button
@@ -433,6 +449,7 @@ import { User } from '@models/user';
 })
 export class CourseListComponent implements OnInit {
   courses: Course[] = [];
+  allCourses: Course[] = []; // Store all courses for filtering
   enrolledCourses: Map<number, EnrolledCourse> = new Map();
   loading = false;
   searchQuery = '';
@@ -447,6 +464,9 @@ export class CourseListComponent implements OnInit {
   expandedId: number | null = null;
   viewMode: 'list' | 'grid' = 'list';
   expandedCourseDetails: Map<number, CourseDetailResponse> = new Map();
+
+  // Filter states
+  activeFilter: 'all' | 'in-progress' | 'completed' | 'recommended' = 'all';
 
   constructor(
     private courseService: CourseService,
@@ -482,7 +502,8 @@ export class CourseListComponent implements OnInit {
       )
       .subscribe({
         next: (response) => {
-          this.courses = response.courses;
+          this.allCourses = response.courses;
+          this.applyFilters();
           this.totalPages = Math.ceil(response.total / this.perPage);
           this.loading = false;
         },
@@ -518,6 +539,66 @@ export class CourseListComponent implements OnInit {
     this.loadCourses();
   }
 
+  setFilter(filter: 'all' | 'in-progress' | 'completed' | 'recommended') {
+    this.activeFilter = filter;
+    this.currentPage = 1;
+    this.applyFilters();
+  }
+
+  applyFilters() {
+    let filteredCourses = [...this.allCourses];
+
+    // Apply main filter
+    switch (this.activeFilter) {
+      case 'in-progress':
+        filteredCourses = filteredCourses.filter(course => 
+          this.isEnrolled(course.id) && this.getProgress(course.id) > 0 && this.getProgress(course.id) < 100
+        );
+        break;
+      case 'completed':
+        filteredCourses = filteredCourses.filter(course => 
+          this.isEnrolled(course.id) && this.getProgress(course.id) === 100
+        );
+        break;
+      case 'recommended':
+        // Recommend courses based on tags of enrolled courses and high enrollment
+        filteredCourses = filteredCourses.filter(course => 
+          !this.isEnrolled(course.id) && (
+            course.enrolled_count > 10 || // Popular courses
+            this.hasMatchingTags(course) || // Similar to enrolled courses
+            course.tags.includes('foundation') || course.tags.includes('beginner') // Foundational courses
+          )
+        );
+        break;
+      case 'all':
+      default:
+        // Show all courses
+        break;
+    }
+
+    // Apply tag filters
+    if (this.selectedTags.length > 0) {
+      filteredCourses = filteredCourses.filter(course =>
+        this.selectedTags.some(tag => course.tags.includes(tag))
+      );
+    }
+
+    this.courses = filteredCourses;
+  }
+
+  hasMatchingTags(course: Course): boolean {
+    if (!this.currentUser) return false;
+    
+    // Get tags from enrolled courses
+    const enrolledTags = new Set<string>();
+    this.enrolledCourses.forEach(enrolledCourse => {
+      enrolledCourse.tags.forEach(tag => enrolledTags.add(tag));
+    });
+
+    // Check if course has any matching tags
+    return course.tags.some(tag => enrolledTags.has(tag));
+  }
+
   toggleTag(tag: string) {
     const index = this.selectedTags.indexOf(tag);
     if (index > -1) {
@@ -525,12 +606,12 @@ export class CourseListComponent implements OnInit {
     } else {
       this.selectedTags.push(tag);
     }
-    this.searchCourses();
+    this.applyFilters();
   }
 
   clearTags() {
     this.selectedTags = [];
-    this.searchCourses();
+    this.applyFilters();
   }
 
   formatTag(tag: string): string {

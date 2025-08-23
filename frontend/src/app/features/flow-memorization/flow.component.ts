@@ -7,6 +7,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 
 import { BibleService } from '@services/api/bible.service';
 import { UserService } from '@services/api/user.service';
+import { DeckService, DeckResponse, DeckCreate } from '@services/api/deck.service';
 import { NotificationService } from '@services/utils/notification.service';
 import { FlowStateService } from './services/flow-state.service';
 import { FlowMemorizationService } from './services/flow-memorization.service';
@@ -14,6 +15,7 @@ import { MemorizationModalComponent } from './memorization-modal/memorization-mo
 import { FiltersBarComponent } from './components/filters-bar/filters-bar.component';
 import { FlowContextMenuComponent } from './components/context-menu/context-menu.component';
 import { FlowHeaderComponent } from './components/flow-header/flow-header.component';
+import { CreateDeckModalComponent } from '../decks/components/create-deck-modal/create-deck-modal.component';
 
 import { BibleBook, BibleChapter, BibleVerse, BibleData } from '@models/bible';
 import { AppState } from '@state/app.state';
@@ -33,7 +35,8 @@ import { FlowSelectionService } from './services/flow-selection.service';
     MemorizationModalComponent,
     FiltersBarComponent,
     FlowContextMenuComponent,
-    FlowHeaderComponent
+    FlowHeaderComponent,
+    CreateDeckModalComponent
   ],
   providers: [FlowStateService, FlowMemorizationService, FlowSelectionService],
   templateUrl: './flow.component.html',
@@ -99,8 +102,13 @@ export class FlowComponent implements OnInit, OnDestroy {
   modalVerses: ModalVerse[] = [];
   modalChapterName = '';
 
+  // Create Deck Modal
+  showCreateDeckModal = false;
+  createDeckLoading = false;
+
   // Flashcard decks
-  flashcardDecks = ['Basic Deck', 'Review Deck', 'Difficult Verses'];
+  flashcardDecks: DeckResponse[] = [];
+  flashcardDeckNames: string[] = [];
 
   // Expose Math to template
   Math = Math;
@@ -157,6 +165,7 @@ export class FlowComponent implements OnInit, OnDestroy {
     private store: Store<AppState>,
     private bibleService: BibleService,
     private userService: UserService,
+    private deckService: DeckService,
     private flowStateService: FlowStateService,
     private flowMemorizationService: FlowMemorizationService,
     private notificationService: NotificationService,
@@ -176,6 +185,7 @@ export class FlowComponent implements OnInit, OnDestroy {
         if (user) {
           this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
           console.log('User ID set:', this.userId);
+          this.loadUserDecks();
         }
       });
 
@@ -641,15 +651,140 @@ export class FlowComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Create Deck Modal methods
+  openCreateDeckModal() {
+    this.showCreateDeckModal = true;
+    this.contextMenu.visible = false;
+  }
+
+  closeCreateDeckModal() {
+    this.showCreateDeckModal = false;
+    this.createDeckLoading = false;
+  }
+
+  handleCreateDeck(deckData: DeckCreate) {
+    this.createDeckLoading = true;
+    
+    this.deckService.createDeck(deckData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (createdDeck) => {
+          console.log('Deck created successfully:', createdDeck);
+          this.showEncouragement = `Deck "${deckData.name}" created successfully!`;
+          setTimeout(() => (this.showEncouragement = ''), 3000);
+          
+          // Reload user decks to include the new deck
+          this.loadUserDecks();
+          
+          // Close the modal
+          this.closeCreateDeckModal();
+        },
+        error: (error) => {
+          console.error('Error creating deck:', error);
+          this.showEncouragement = 'Error creating deck. Please try again.';
+          setTimeout(() => (this.showEncouragement = ''), 3000);
+          this.createDeckLoading = false;
+        }
+      });
+  }
+
+  // Load user's flashcard decks
+  loadUserDecks() {
+    if (!this.userId) return;
+    
+    this.deckService.getUserDecks(this.userId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          this.flashcardDecks = response.decks;
+          this.flashcardDeckNames = response.decks.map(deck => deck.name);
+          console.log('Loaded flashcard decks:', this.flashcardDeckNames);
+          
+          // If no decks exist, show a message or create a default deck
+          if (this.flashcardDecks.length === 0) {
+            this.flashcardDeckNames = ['Create a deck first'];
+          }
+        },
+        error: (error) => {
+          console.error('Error loading flashcard decks:', error);
+          this.flashcardDecks = [];
+          this.flashcardDeckNames = [];
+        }
+      });
+  }
+
   // Flashcard operations
-  addToFlashcardDeck(deck: string) {
+  addToFlashcardDeck(deckName: string) {
+    // Handle case where user needs to create a deck first
+    if (deckName === 'Create a deck first') {
+      this.router.navigate(['/decks']);
+      this.contextMenu.visible = false;
+      return;
+    }
+
     const versesToAdd = this.contextMenu.selectedCount > 0
       ? Array.from(this.selectionService.selectedVerses)
       : [this.contextMenu.verseId!];
-    console.log(`Adding ${versesToAdd.length} verses to ${deck}`);
-    this.showEncouragement = `Added ${versesToAdd.length} verse(s) to ${deck}!`;
-    this.contextMenu.visible = false;
-    setTimeout(() => (this.showEncouragement = ''), 3000);
+      
+    // Find the deck by name
+    const selectedDeck = this.flashcardDecks.find(deck => deck.name === deckName);
+    if (!selectedDeck) {
+      console.error('Deck not found:', deckName);
+      return;
+    }
+
+    // Ensure versesToAdd contains numbers
+    const numericVerseIndices = versesToAdd
+      .map(index => typeof index === 'number' ? index : parseInt(String(index)))
+      .filter(index => !isNaN(index));
+
+    if (numericVerseIndices.length === 0) {
+      console.error('No valid verse indices to add');
+      return;
+    }
+
+    // Convert verse indices to verse codes
+    const verseCodes = numericVerseIndices.map(verseIndex => {
+      const verse = this.verses[verseIndex];
+      return verse ? verse.verseCode : null;
+    }).filter(code => code !== null) as string[];
+
+    if (verseCodes.length === 0) {
+      console.error('No valid verses to add');
+      return;
+    }
+
+    // Create reference for the verses
+    const firstVerseIndex = Math.min(...numericVerseIndices);
+    const lastVerseIndex = Math.max(...numericVerseIndices);
+    const firstVerse = this.verses[firstVerseIndex];
+    const lastVerse = this.verses[lastVerseIndex];
+    
+    let reference = '';
+    if (this.currentBook && firstVerse && lastVerse) {
+      if (firstVerseIndex === lastVerseIndex) {
+        reference = `${this.currentBook.name} ${firstVerse.reference}`;
+      } else {
+        reference = `${this.currentBook.name} ${firstVerse.reference}-${lastVerse.reference}`;
+      }
+    }
+
+    // Add verses to the deck
+    this.deckService.addVersesToDeck(selectedDeck.deck_id, verseCodes, reference)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          console.log(`Added ${numericVerseIndices.length} verses to ${deckName}`);
+          this.showEncouragement = `Added ${numericVerseIndices.length} verse(s) to ${deckName}!`;
+          this.contextMenu.visible = false;
+          setTimeout(() => (this.showEncouragement = ''), 3000);
+        },
+        error: (error) => {
+          console.error('Error adding verses to deck:', error);
+          this.showEncouragement = 'Error adding verses to deck';
+          setTimeout(() => (this.showEncouragement = ''), 3000);
+        }
+      });
   }
 
   // Utility methods
