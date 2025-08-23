@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
+import { UserService } from '@services/api/user.service';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -101,7 +102,8 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
     private store: Store,
     private modalService: ModalService,
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    private userService: UserService
   ) {
     this.bibleData$ = this.store.select(selectBibleDataWithProgress);
     this.testaments$ = this.store.select(selectTestaments);
@@ -114,21 +116,30 @@ export class BibleTrackerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Initialize the feature
-    this.store.dispatch(BibleMemorizationActions.initialize());
-    
-    // Subscribe to bible data to set initial selections
-    this.bibleData$.pipe(takeUntil(this.destroy$)).subscribe(bibleData => {
-      this.currentBibleData = bibleData;
-      this.includeApocrypha = bibleData.includeApocrypha;
-
-      this.updateSelections(bibleData);
-    });
-    
-    // Get current user ID
-    this.store.select(selectUserId)
+    // Ensure user data is loaded from DB (including ESV API token)
+    this.userService.ensureUserLoaded()
       .pipe(takeUntil(this.destroy$))
-      .subscribe(userId => this.userId = userId);
+      .subscribe(user => {
+        if (user) {
+          console.log('Bible tracker: User loaded with ESV token present:', !!(user.esvApiToken));
+        }
+        
+        // Initialize the feature after user is loaded
+        this.store.dispatch(BibleMemorizationActions.initialize());
+        
+        // Subscribe to bible data to set initial selections
+        this.bibleData$.pipe(takeUntil(this.destroy$)).subscribe(bibleData => {
+          this.currentBibleData = bibleData;
+          this.includeApocrypha = bibleData.includeApocrypha;
+
+          this.updateSelections(bibleData);
+        });
+        
+        // Get current user ID
+        this.store.select(selectUserId)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(userId => this.userId = userId);
+      });
   }
 
   ngOnDestroy() {

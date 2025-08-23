@@ -327,6 +327,47 @@ export class UserService {
     console.log('Forcing user data refresh...');
     this.loadCurrentUser();
   }
+  
+  /**
+   * Check and refresh ESV API token if missing
+   * Call this when navigating to pages that need the ESV API
+   */
+  ensureEsvTokenLoaded(): Observable<boolean> {
+    const currentUser = this.currentUserSubject.value;
+    
+    if (!currentUser) {
+      // No user loaded, fetch from database
+      return this.fetchCurrentUser().pipe(
+        map(user => {
+          const hasToken = !!(user?.esvApiToken);
+          console.log('ESV token loaded from database:', hasToken);
+          return hasToken;
+        })
+      );
+    }
+    
+    const isEsvSelected = currentUser.preferredBible === 'ESV' || currentUser.useEsvApi;
+    
+    // If ESV is not selected, no token needed
+    if (!isEsvSelected) {
+      return of(true);
+    }
+    
+    // If ESV is selected but token is missing, refresh from database
+    if (!currentUser.esvApiToken) {
+      console.log('ESV selected but token missing, refreshing from database...');
+      return this.fetchCurrentUser().pipe(
+        map(user => {
+          const hasToken = !!(user?.esvApiToken);
+          console.log('ESV token refreshed from database:', hasToken);
+          return hasToken;
+        })
+      );
+    }
+    
+    // Token is already present
+    return of(true);
+  }
 
   /**
    * Ensure user data is loaded, returns observable that completes when user is loaded
@@ -334,8 +375,18 @@ export class UserService {
   ensureUserLoaded(): Observable<User | null> {
     const currentUser = this.currentUserSubject.value;
     
-    // If user is already loaded, return immediately
+    // Check if user exists but is missing critical data (ESV API token)
     if (currentUser) {
+      const isEsvSelected = currentUser.preferredBible === 'ESV' || currentUser.useEsvApi;
+      const missingEsvToken = isEsvSelected && !currentUser.esvApiToken;
+      
+      // If ESV is selected but token is missing, refetch from database
+      if (missingEsvToken) {
+        console.log('ESV selected but token missing, refetching user data from database...');
+        return this.fetchCurrentUser();
+      }
+      
+      // User data is complete, return immediately
       return of(currentUser);
     }
     
@@ -379,7 +430,7 @@ export class UserService {
       preferredLanguage: apiResponse.preferred_language || 'eng',
       includeApocrypha: includeApocrypha,
       useEsvApi: useEsvApi,
-      esvApiToken: apiResponse.esv_api_token ? "****" : "no token",
+      esvApiToken: apiResponse.esv_api_token,
 
       versesMemorized: apiResponse.verses_memorized || 0,
       streakDays: apiResponse.streak_days || 0,

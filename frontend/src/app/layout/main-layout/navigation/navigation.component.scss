@@ -31,11 +31,10 @@
   font-weight: 700;
 }
 
-.app-title-text {
-  background: linear-gradient(90deg, #1e3a8a, #3b82f6);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+.app-title-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   text-decoration: none;
   transition: all 0.3s ease;
   
@@ -43,6 +42,20 @@
     opacity: 0.85;
     transform: translateY(-1px);
   }
+}
+
+.app-logo {
+  height: 36px;
+  width: auto;
+  transition: all 0.3s ease;
+}
+
+.app-title-text {
+  background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  transition: all 0.3s ease;
 }
 
 // Navigation
@@ -376,5 +389,13 @@
 
   .app-title {
     font-size: 20px;
+  }
+
+  .app-logo {
+    height: 28px;
+  }
+
+  .app-title-link {
+    gap: 8px;
   }
 }

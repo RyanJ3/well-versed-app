@@ -105,6 +105,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   // Create Deck Modal
   showCreateDeckModal = false;
   createDeckLoading = false;
+  pendingVersesToAdd: string[] = [];
 
   // Flashcard decks
   flashcardDecks: DeckResponse[] = [];
@@ -178,15 +179,21 @@ export class FlowComponent implements OnInit, OnDestroy {
     // Load Bible data (structure only)
     this.loadBibleData();
 
-    // Get user ID
-    this.userService.currentUser$
+    // Ensure user data is loaded from DB (including ESV API token)
+    this.userService.ensureUserLoaded()
       .pipe(takeUntil(this.destroy$))
-      .subscribe(user => {
-        if (user) {
-          this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
-          console.log('User ID set:', this.userId);
-          this.loadUserDecks();
-        }
+      .subscribe(() => {
+        // Now subscribe to user changes
+        this.userService.currentUser$
+          .pipe(takeUntil(this.destroy$))
+          .subscribe(user => {
+            if (user) {
+              this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+              console.log('User ID set:', this.userId);
+              console.log('ESV API Token present:', !!(user.esvApiToken));
+              this.loadUserDecks();
+            }
+          });
       });
 
     // Load saved state
@@ -653,6 +660,11 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   // Create Deck Modal methods
   openCreateDeckModal() {
+    // Store the verses that should be added to the new deck
+    this.pendingVersesToAdd = this.contextMenu.selectedCount > 0
+      ? Array.from(this.selectionService.selectedVerses)
+      : [this.contextMenu.verseId!];
+    
     this.showCreateDeckModal = true;
     this.contextMenu.visible = false;
   }
@@ -660,6 +672,7 @@ export class FlowComponent implements OnInit, OnDestroy {
   closeCreateDeckModal() {
     this.showCreateDeckModal = false;
     this.createDeckLoading = false;
+    this.pendingVersesToAdd = []; // Clear pending verses when modal is closed
   }
 
   handleCreateDeck(deckData: DeckCreate) {
@@ -670,22 +683,82 @@ export class FlowComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (createdDeck) => {
           console.log('Deck created successfully:', createdDeck);
-          this.showEncouragement = `Deck "${deckData.name}" created successfully!`;
-          setTimeout(() => (this.showEncouragement = ''), 3000);
           
-          // Reload user decks to include the new deck
-          this.loadUserDecks();
-          
-          // Close the modal
-          this.closeCreateDeckModal();
+          // If there are pending verses to add, add them to the new deck
+          if (this.pendingVersesToAdd.length > 0) {
+            this.addVersesToNewDeck(createdDeck, deckData.name);
+          } else {
+            this.notificationService.success(`Deck "${deckData.name}" created successfully!`);
+            this.finalizeDeckCreation();
+          }
         },
         error: (error) => {
           console.error('Error creating deck:', error);
-          this.showEncouragement = 'Error creating deck. Please try again.';
-          setTimeout(() => (this.showEncouragement = ''), 3000);
+          this.notificationService.error('Error creating deck. Please try again.');
           this.createDeckLoading = false;
         }
       });
+  }
+
+  private addVersesToNewDeck(createdDeck: DeckResponse, deckName: string) {
+    // Convert verse codes to actual verse codes and create reference
+    const verseCodes = this.pendingVersesToAdd.map(verseId => {
+      // If verseId is already a verse code, use it; otherwise find the verse
+      if (verseId.includes('-')) {
+        return verseId;
+      } else {
+        const verse = this.verses.find(v => v.verseCode === verseId);
+        return verse ? verse.verseCode : null;
+      }
+    }).filter(code => code !== null) as string[];
+
+    if (verseCodes.length === 0) {
+      this.notificationService.success(`Deck "${deckName}" created successfully!`);
+      this.finalizeDeckCreation();
+      return;
+    }
+
+    // Create reference for the verses
+    const firstVerseCode = verseCodes[0];
+    const lastVerseCode = verseCodes[verseCodes.length - 1];
+    const firstVerse = this.verses.find(v => v.verseCode === firstVerseCode);
+    const lastVerse = this.verses.find(v => v.verseCode === lastVerseCode);
+    
+    let reference = '';
+    if (this.currentBook && firstVerse && lastVerse) {
+      if (verseCodes.length === 1) {
+        reference = `${this.currentBook.name} ${firstVerse.reference}`;
+      } else {
+        reference = `${this.currentBook.name} ${firstVerse.reference}-${lastVerse.reference}`;
+      }
+    }
+
+    // Add verses to the new deck
+    this.deckService.addVersesToDeck(createdDeck.deck_id, verseCodes, reference)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          console.log(`Added ${verseCodes.length} verses to ${deckName}`);
+          this.notificationService.success(`Deck "${deckName}" created with ${verseCodes.length} verse${verseCodes.length > 1 ? 's' : ''}!`);
+          this.finalizeDeckCreation();
+        },
+        error: (error) => {
+          console.error('Error adding verses to new deck:', error);
+          this.notificationService.warning(`Deck "${deckName}" created, but failed to add verses. You can add them manually.`);
+          this.finalizeDeckCreation();
+        }
+      });
+  }
+
+  private finalizeDeckCreation() {
+    // Clear pending verses
+    this.pendingVersesToAdd = [];
+    
+    // Reload user decks to include the new deck
+    this.loadUserDecks();
+    
+    // Close the modal
+    this.closeCreateDeckModal();
   }
 
   // Load user's flashcard decks
@@ -775,14 +848,12 @@ export class FlowComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           console.log(`Added ${numericVerseIndices.length} verses to ${deckName}`);
-          this.showEncouragement = `Added ${numericVerseIndices.length} verse(s) to ${deckName}!`;
+          this.notificationService.success(`Added ${numericVerseIndices.length} verse${numericVerseIndices.length > 1 ? 's' : ''} to "${deckName}"!`);
           this.contextMenu.visible = false;
-          setTimeout(() => (this.showEncouragement = ''), 3000);
         },
         error: (error) => {
           console.error('Error adding verses to deck:', error);
-          this.showEncouragement = 'Error adding verses to deck';
-          setTimeout(() => (this.showEncouragement = ''), 3000);
+          this.notificationService.error('Failed to add verses to deck. Please try again.');
         }
       });
   }

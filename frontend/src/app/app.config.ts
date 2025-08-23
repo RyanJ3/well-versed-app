@@ -18,6 +18,7 @@ import { practiceSessionReducer } from './state/practice-session/reducers/practi
 import { PracticeSessionEffects } from './state/practice-session/effects/practice-session.effects';
 import { uiReducer } from './state/ui/ui.reducer';
 import { ConfigService } from '@services/config/config.service';
+import { UserService } from '@services/api/user.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -30,6 +31,13 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       const configService = inject(ConfigService);
       return configService.loadConfig();
+    }),
+    
+    // Initialize user data on app startup
+    provideAppInitializer(() => {
+      const userService = inject(UserService);
+      // Ensure user data (including ESV API token) is loaded from DB
+      return userService.fetchCurrentUser().toPromise();
     }),
     
     // NgRx Store Configuration

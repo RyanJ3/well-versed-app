@@ -25,8 +25,15 @@ export class NavigationComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.userService.currentUser$.subscribe((user: User | null) => {
-      this.currentUser = user;
+    // Ensure user data is loaded from DB on navigation init
+    this.userService.ensureUserLoaded().subscribe(() => {
+      // Subscribe to user changes after ensuring data is loaded
+      this.userService.currentUser$.subscribe((user: User | null) => {
+        this.currentUser = user;
+        if (user) {
+          console.log('Navigation: User loaded with ESV token present:', !!(user.esvApiToken));
+        }
+      });
     });
   }
 

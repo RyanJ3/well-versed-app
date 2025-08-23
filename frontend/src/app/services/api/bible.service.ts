@@ -1,10 +1,11 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError, BehaviorSubject, Subject } from 'rxjs';
-import { tap, catchError, switchMap } from 'rxjs/operators';
+import { tap, catchError, switchMap, mergeMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { BibleData, UserVerseDetail, BibleBook } from '@models/bible';
 import { NotificationService } from '@services/utils/notification.service';
+import { UserService } from './user.service';
 import { environment } from '../../../environments/environment';
 
 // Bible version tracking for citations
@@ -57,7 +58,8 @@ export class BibleService {
   constructor(
     private http: HttpClient,
     @Inject(PLATFORM_ID) platformId: Object,
-    private notifications: NotificationService
+    private notifications: NotificationService,
+    private userService: UserService
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
     this.bibleData = new BibleData();
@@ -235,31 +237,36 @@ export class BibleService {
     if (cached) {
       return of(cached);
     }
+    
+    // Ensure ESV token is loaded before making the request
+    return this.userService.ensureEsvTokenLoaded().pipe(
+      mergeMap(() => {
+        const payload = {
+          verse_codes: verseCodes,
+          bible_id: bibleId,
+        };
 
-    const payload = {
-      verse_codes: verseCodes,
-      bible_id: bibleId,
-    };
-
-    return this.http.post<Record<string, string>>(`${this.apiUrl}/verses/texts`, payload).pipe(
-      tap((texts) => {
-        console.log(`Received texts for ${Object.keys(texts).length} verses`);
-        Object.entries(texts).forEach(([code, text]) => {
-          this.verseTextCache.set(code, text);
-        });
-      }),
-      catchError((error: HttpErrorResponse) => {
-        console.error('Error getting verse texts:', error);
-        if (error.status === 429) {
-          const wait = error.error?.wait_seconds ?? error.error?.detail?.wait_seconds;
-          if (wait) {
-            this.notifications.warning(`ESV API limit reached. Try again in ${wait} seconds.`);
-            this.esvRetrySubject.next(wait);
-          }
-        }
-        const emptyTexts: Record<string, string> = {};
-        verseCodes.forEach((code) => (emptyTexts[code] = ''));
-        return of(emptyTexts);
+        return this.http.post<Record<string, string>>(`${this.apiUrl}/verses/texts`, payload).pipe(
+          tap((texts) => {
+            console.log(`Received texts for ${Object.keys(texts).length} verses`);
+            Object.entries(texts).forEach(([code, text]) => {
+              this.verseTextCache.set(code, text);
+            });
+          }),
+          catchError((error: HttpErrorResponse) => {
+            console.error('Error getting verse texts:', error);
+            if (error.status === 429) {
+              const wait = error.error?.wait_seconds ?? error.error?.detail?.wait_seconds;
+              if (wait) {
+                this.notifications.warning(`ESV API limit reached. Try again in ${wait} seconds.`);
+                this.esvRetrySubject.next(wait);
+              }
+            }
+            const emptyTexts: Record<string, string> = {};
+            verseCodes.forEach((code) => (emptyTexts[code] = ''));
+            return of(emptyTexts);
+          })
+        );
       })
     );
   }
