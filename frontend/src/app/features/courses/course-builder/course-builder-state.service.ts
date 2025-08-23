@@ -1,6 +1,7 @@
 // frontend/src/app/features/courses/course-builder/course-builder-state.service.ts
 
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CourseService } from '@services/api/course.service';
@@ -35,6 +36,10 @@ export class CourseBuilderStateService {
 
   userId!: number;
 
+  private isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId);
+  }
+
   // Step navigation
   currentStep = 1;
   steps = [
@@ -49,6 +54,7 @@ export class CourseBuilderStateService {
     private courseService: CourseService,
     private userService: UserService,
     private modalService: ModalService,
+    @Inject(PLATFORM_ID) private platformId: Object,
   ) {
     this.initializeForms();
     
@@ -150,30 +156,32 @@ export class CourseBuilderStateService {
     this.availableTags = this.courseService.getSuggestedTags();
 
     // Load draft from localStorage if available (only in create mode)
-    const draftRaw = localStorage.getItem('courseBuilderDraft');
-    if (draftRaw) {
-      try {
-        const draft = JSON.parse(draftRaw);
-        if (draft.courseForm) {
-          this.courseForm.patchValue(draft.courseForm);
+    if (this.isBrowser()) {
+      const draftRaw = localStorage.getItem('courseBuilderDraft');
+      if (draftRaw) {
+        try {
+          const draft = JSON.parse(draftRaw);
+          if (draft.courseForm) {
+            this.courseForm.patchValue(draft.courseForm);
+          }
+          if (Array.isArray(draft.selectedTags)) {
+            this.selectedTags = draft.selectedTags;
+          }
+          if (Array.isArray(draft.lessons)) {
+            this.lessons = draft.lessons;
+          }
+          if (typeof draft.currentStep === 'number') {
+            this.currentStep = draft.currentStep;
+          }
+          if (
+            typeof draft.selectedLessonIndex === 'number' &&
+            draft.selectedLessonIndex < this.lessons.length
+          ) {
+            this.selectLesson(draft.selectedLessonIndex);
+          }
+        } catch (e) {
+          console.error('Failed to load draft', e);
         }
-        if (Array.isArray(draft.selectedTags)) {
-          this.selectedTags = draft.selectedTags;
-        }
-        if (Array.isArray(draft.lessons)) {
-          this.lessons = draft.lessons;
-        }
-        if (typeof draft.currentStep === 'number') {
-          this.currentStep = draft.currentStep;
-        }
-        if (
-          typeof draft.selectedLessonIndex === 'number' &&
-          draft.selectedLessonIndex < this.lessons.length
-        ) {
-          this.selectLesson(draft.selectedLessonIndex);
-        }
-      } catch (e) {
-        console.error('Failed to load draft', e);
       }
     }
     
@@ -824,7 +832,9 @@ export class CourseBuilderStateService {
           .toPromise();
         // Update lessons would go here
         this.modalService.success('Success', 'Course updated successfully!');
-        localStorage.removeItem('courseBuilderDraft');
+        if (this.isBrowser()) {
+          localStorage.removeItem('courseBuilderDraft');
+        }
       } else {
         const course = await this.courseService
           .createCourse(courseData)
@@ -844,7 +854,9 @@ export class CourseBuilderStateService {
         }
 
         this.modalService.success('Success', 'Course created successfully!');
-        localStorage.removeItem('courseBuilderDraft');
+        if (this.isBrowser()) {
+          localStorage.removeItem('courseBuilderDraft');
+        }
         this.router.navigate(['/courses', course!.id]);
       }
     } catch (error) {
@@ -888,14 +900,16 @@ export class CourseBuilderStateService {
 
 
   autoSave() {
-    const state = {
-      courseForm: this.courseForm.value,
-      lessons: this.lessons,
-      selectedTags: this.selectedTags,
-      currentStep: this.currentStep,
-      selectedLessonIndex: this.selectedLessonIndex,
-    };
-    localStorage.setItem('courseBuilderDraft', JSON.stringify(state));
+    if (this.isBrowser()) {
+      const state = {
+        courseForm: this.courseForm.value,
+        lessons: this.lessons,
+        selectedTags: this.selectedTags,
+        currentStep: this.currentStep,
+        selectedLessonIndex: this.selectedLessonIndex,
+      };
+      localStorage.setItem('courseBuilderDraft', JSON.stringify(state));
+    }
   }
 
   cancel() {
@@ -947,7 +961,9 @@ export class CourseBuilderStateService {
           this.currentStep = 1;
           
           // Clear localStorage draft
-          localStorage.removeItem('courseBuilderDraft');
+          if (this.isBrowser()) {
+            localStorage.removeItem('courseBuilderDraft');
+          }
           
           // Reset drag states
           this.draggedLessonIndex = null;

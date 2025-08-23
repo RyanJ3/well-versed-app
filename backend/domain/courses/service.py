@@ -8,6 +8,7 @@ from .models import (
     CourseResponse,
     CourseListResponse,
     CourseDetailResponse,
+    EnrolledCourseResponse,
     UserCourseProgress,
     LessonCreate,
     LessonUpdate,
@@ -63,6 +64,10 @@ class CourseService:
     def list_enrolled_courses(self, user_id: int) -> List[CourseResponse]:
         """List all courses a user is enrolled in"""
         return self.repository.get_enrolled_courses(user_id)
+        
+    def list_enrolled_courses_with_progress(self, user_id: int) -> List[EnrolledCourseResponse]:
+        """List all courses a user is enrolled in with progress data"""
+        return self.repository.get_enrolled_courses_with_progress(user_id)
 
     def get_course_detail(self, course_id: int, user_id: Optional[int] = None) -> CourseDetailResponse:
         """Get course details including lessons and enrollment status"""

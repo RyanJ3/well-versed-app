@@ -29,6 +29,14 @@ export interface CourseDetailResponse extends Course {
   user_progress?: UserCourseProgress;
 }
 
+export interface EnrolledCourse extends Course {
+  progress_percentage: number;
+  lessons_completed: number;
+  current_lesson_position: number;
+  last_accessed?: string;
+  enrolled_at?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -82,7 +90,7 @@ export class CourseService {
     );
   }
 
-  // Get enrolled courses for a user
+  // Get enrolled courses for a user (basic list)
   getEnrolledCourses(userId: number): Observable<Course[]> {
     const uid = this.normalizeUserId(userId);
     console.log(`Fetching enrolled courses for user ${uid}`);
@@ -92,6 +100,18 @@ export class CourseService {
         this.enrolledCoursesSubject.next(courses);
       }),
       catchError(err => { console.error('Error loading enrolled courses', err); throw err; })
+    );
+  }
+
+  // Get enrolled courses for a user with progress data
+  getEnrolledCoursesWithProgress(userId: number): Observable<EnrolledCourse[]> {
+    const uid = this.normalizeUserId(userId);
+    console.log(`Fetching enrolled courses with progress for user ${uid}`);
+    return this.http.get<EnrolledCourse[]>(`${this.apiUrl}/enrolled/${uid}/progress`).pipe(
+      tap(courses => {
+        console.log(`Loaded ${courses.length} enrolled courses with progress`);
+      }),
+      catchError(err => { console.error('Error loading enrolled courses with progress', err); throw err; })
     );
   }
 

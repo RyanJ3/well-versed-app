@@ -379,7 +379,7 @@ export class UserService {
       preferredLanguage: apiResponse.preferred_language || 'eng',
       includeApocrypha: includeApocrypha,
       useEsvApi: useEsvApi,
-      esvApiToken: apiResponse.esv_api_token,
+      esvApiToken: apiResponse.esv_api_token ? "****" : "no token",
 
       versesMemorized: apiResponse.verses_memorized || 0,
       streakDays: apiResponse.streak_days || 0,

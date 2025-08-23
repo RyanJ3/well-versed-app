@@ -1,5 +1,5 @@
 -- =====================================================
--- 07-create-courses.sql
+-- 07-create-courses-new.sql
 -- Improved course system with separate lesson type tables
 -- =====================================================
 SET search_path TO wellversed01DEV;
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS quiz_lessons (
     CONSTRAINT quiz_time_limit_positive CHECK (time_limit_minutes IS NULL OR time_limit_minutes > 0)
 );
 
--- Quiz flashcards (replacing the old lesson_flashcards table)
+-- Quiz flashcards (moved from lesson_flashcards to be quiz-specific)
 CREATE TABLE IF NOT EXISTS quiz_flashcards (
     flashcard_id SERIAL PRIMARY KEY,
     lesson_id INTEGER NOT NULL REFERENCES quiz_lessons(lesson_id) ON DELETE CASCADE,
@@ -254,7 +254,7 @@ SELECT
     COALESCE(lesson_counts.article_lessons, 0) as article_lessons,
     COALESCE(lesson_counts.external_lessons, 0) as external_lessons,
     COALESCE(lesson_counts.quiz_lessons, 0) as quiz_lessons,
-    u.name as creator_name
+    u.username as creator_username
 FROM courses c
 LEFT JOIN users u ON c.user_id = u.user_id
 LEFT JOIN (

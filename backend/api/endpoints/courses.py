@@ -10,6 +10,7 @@ from domain.courses import (
     CourseResponse,
     CourseListResponse,
     CourseDetailResponse,
+    EnrolledCourseResponse,
     CourseEnrollment,
     UserCourseProgress,
     LessonCreate,
@@ -71,6 +72,15 @@ def list_enrolled_courses(
 ):
     """List all courses a user is enrolled in"""
     return service.list_enrolled_courses(user_id)
+
+
+@router.get("/enrolled/{user_id}/progress", response_model=List[EnrolledCourseResponse])
+def list_enrolled_courses_with_progress(
+    user_id: int,
+    service: CourseService = Depends(get_course_service)
+):
+    """List all courses a user is enrolled in with progress data"""
+    return service.list_enrolled_courses_with_progress(user_id)
 
 
 @router.get("/{course_id}", response_model=CourseDetailResponse)

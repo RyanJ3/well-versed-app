@@ -375,9 +375,13 @@ def verify_setup(conn):
         ('feature_request_comments', 'Feature Request Comments'),
         ('courses', 'Courses'),
         ('course_lessons', 'Course Lessons'),
+        ('video_lessons', 'Video Lessons'),
+        ('article_lessons', 'Article Lessons'),
+        ('external_lessons', 'External Lessons'),
+        ('quiz_lessons', 'Quiz Lessons'),
+        ('quiz_flashcards', 'Quiz Flashcards'),
         ('course_enrollments', 'Course Enrollments'),
         ('lesson_progress', 'Lesson Progress'),
-        ('lesson_flashcards', 'Lesson Flashcards'),
         ('biblical_journeys', 'Biblical Journeys'),
         ('journey_waypoints', 'Journey Waypoints')
     ]
@@ -402,32 +406,53 @@ def verify_setup(conn):
     logger.info("\nData Verification:")
     logger.info("-" * 50)
     
-    # Check for test user
-    cur.execute("SELECT COUNT(*) FROM users WHERE email = 'test@example.com'")
-    test_user_count = cur.fetchone()[0]
-    if test_user_count > 0:
-        logger.success("Test user exists")
-    else:
-        logger.warning("Test user not found")
-    
-    # Check Bible data
-    cur.execute("SELECT COUNT(DISTINCT book_id) FROM bible_verses")
-    book_count = cur.fetchone()[0]
-    logger.info(f"  Bible books with verses: {book_count}")
-    
-    # Sample verses
-    cur.execute("""
-        SELECT bb.book_name, COUNT(*) as verse_count
-        FROM bible_verses bv
-        JOIN bible_books bb ON bv.book_id = bb.book_id
-        GROUP BY bb.book_id, bb.book_name
-        ORDER BY bb.book_id
-        LIMIT 5
-    """)
-    
-    logger.info("\n  Sample books:")
-    for book_name, verse_count in cur.fetchall():
-        logger.info(f"    - {book_name}: {verse_count} verses")
+    try:
+        # Check for test user
+        cur.execute("SELECT COUNT(*) FROM users WHERE email = 'test@example.com'")
+        test_user_count = cur.fetchone()[0]
+        if test_user_count > 0:
+            logger.success("Test user exists")
+        else:
+            logger.warning("Test user not found")
+        
+        # Check Bible data
+        cur.execute("SELECT COUNT(DISTINCT book_id) FROM bible_verses")
+        book_count = cur.fetchone()[0]
+        logger.info(f"  Bible books with verses: {book_count}")
+        
+        # Sample verses
+        cur.execute("""
+            SELECT bb.book_name, COUNT(*) as verse_count
+            FROM bible_verses bv
+            JOIN bible_books bb ON bv.book_id = bb.book_id
+            GROUP BY bb.book_id, bb.book_name
+            ORDER BY bb.book_id
+            LIMIT 5
+        """)
+        
+        logger.info("\n  Sample books:")
+        for book_name, verse_count in cur.fetchall():
+            logger.info(f"    - {book_name}: {verse_count} verses")
+            
+        # Check new lesson structure
+        cur.execute("SELECT COUNT(*) FROM video_lessons")
+        video_count = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM article_lessons")  
+        article_count = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM quiz_lessons")
+        quiz_count = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM external_lessons")
+        external_count = cur.fetchone()[0]
+        
+        logger.info(f"\n  Lesson breakdown:")
+        logger.info(f"    - Video lessons: {video_count}")
+        logger.info(f"    - Article lessons: {article_count}")
+        logger.info(f"    - Quiz lessons: {quiz_count}")
+        logger.info(f"    - External lessons: {external_count}")
+        
+    except Exception as e:
+        logger.error(f"Unexpected error during data verification: {e}")
+        all_good = False
     
     cur.close()
     return all_good

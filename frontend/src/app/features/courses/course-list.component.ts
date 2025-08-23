@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { CourseService, CourseDetailResponse } from '@services/api/course.service';
+import { CourseService, CourseDetailResponse, EnrolledCourse } from '@services/api/course.service';
 import { UserService } from '@services/api/user.service';
 import { Course } from '@models/course.model';
 import { User } from '@models/user';
@@ -433,7 +433,7 @@ import { User } from '@models/user';
 })
 export class CourseListComponent implements OnInit {
   courses: Course[] = [];
-  enrolledCourses: Map<number, any> = new Map();
+  enrolledCourses: Map<number, EnrolledCourse> = new Map();
   loading = false;
   searchQuery = '';
   selectedTags: string[] = [];
@@ -501,15 +501,15 @@ export class CourseListComponent implements OnInit {
         ? parseInt(this.currentUser.id)
         : this.currentUser.id;
 
-    this.courseService.getEnrolledCourses(userId).subscribe({
+    this.courseService.getEnrolledCoursesWithProgress(userId).subscribe({
       next: (courses) => {
-        courses.forEach((w) => {
-          this.enrolledCourses.set(w.id, {
-            progress: 0,
-            completedLessons: 0,
-          });
+        courses.forEach((course) => {
+          this.enrolledCourses.set(course.id, course);
         });
       },
+      error: (error) => {
+        console.error('Error loading enrolled courses with progress:', error);
+      }
     });
   }
 
@@ -556,11 +556,11 @@ export class CourseListComponent implements OnInit {
   }
 
   getProgress(courseId: number): number {
-    return this.enrolledCourses.get(courseId)?.progress || 0;
+    return this.enrolledCourses.get(courseId)?.progress_percentage || 0;
   }
 
   getCompletedLessons(courseId: number): number {
-    return this.enrolledCourses.get(courseId)?.completedLessons || 0;
+    return this.enrolledCourses.get(courseId)?.lessons_completed || 0;
   }
 
   getDuration(course: Course): string {
@@ -591,12 +591,13 @@ export class CourseListComponent implements OnInit {
 
       this.courseService.enrollInCourse(course.id).subscribe({
         next: () => {
-          this.enrolledCourses.set(course.id, {
-            progress: 0,
-            completedLessons: 0,
-          });
+          // Reload enrolled courses to get updated progress data
+          this.loadEnrolledCourses();
           this.viewCourse(course);
         },
+        error: (error) => {
+          console.error('Error enrolling in course:', error);
+        }
       });
     }
   }

@@ -51,6 +51,29 @@ class CourseListResponse(BaseModel):
     per_page: int
 
 
+class EnrolledCourseResponse(BaseModel):
+    """Course response with enrollment and progress data"""
+    id: int
+    creator_id: int
+    creator_name: str
+    title: str
+    description: Optional[str]
+    thumbnail_url: Optional[str] = None
+    is_public: bool
+    created_at: str
+    updated_at: str
+    lesson_count: int = 0
+    enrolled_count: int = 0
+    tags: List[str] = []
+    
+    # Progress data
+    progress_percentage: int = 0
+    lessons_completed: int = 0
+    current_lesson_position: int = 1
+    last_accessed: Optional[str] = None
+    enrolled_at: Optional[str] = None
+
+
 # ========== Lesson Models ==========
 
 class LessonCreate(BaseModel):
