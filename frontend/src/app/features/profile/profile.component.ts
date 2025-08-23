@@ -255,19 +255,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
   loadUserProfile(): void {
     this.isLoading = true;
 
-    this.userService.currentUser$
+    // Always fetch fresh user data from database when loading profile
+    console.log('Profile page: Fetching fresh user data from database...');
+    this.userService.fetchCurrentUser()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (user: any) => {
           if (!user) {
-            console.log('No user data yet, waiting...');
+            console.log('No user data received from database');
+            this.isLoading = false;
             return;
           }
 
-          // Only process user data once
-          if (this.userDataLoaded) return;
-
-          console.log('Received user data:', user);
+          console.log('Profile page: Received fresh user data from database:', user);
+          console.log('Profile page: ESV API Token present:', !!(user?.esvApiToken));
+          
           this.userDataLoaded = true;
           this.user = user;
 
@@ -280,17 +282,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
           this.isLoading = false;
         },
         error: (error: any) => {
-          console.error('Error loading user profile:', error);
+          console.error('Error loading user profile from database:', error);
           this.isLoading = false;
         }
       });
-
-    // Ensure we fetch the current user
-    this.userService.fetchCurrentUser();
   }
 
   initializeForm(user: any): void {
-    console.log('Initializing form with user:', user);
+    console.log('Profile page: Initializing form with user:', user);
+    console.log('Profile page: User ESV token from database:', user.esvApiToken);
 
     this.profileForm = {
       firstName: user.firstName || '',

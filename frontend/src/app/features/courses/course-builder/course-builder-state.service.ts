@@ -7,7 +7,6 @@ import { CourseService } from '@services/api/course.service';
 import { UserService } from '@services/api/user.service';
 import { ModalService } from '@services/utils/modal.service';
 
-import { LessonContent } from '@models/course.model';
 import { VerseSelection } from '../../../components/bible/verse-range-picker/verse-range-picker.component';
 import { Lesson } from './models/course-builder.types';
 
@@ -46,19 +45,111 @@ export class CourseBuilderStateService {
 
   constructor(
     private fb: FormBuilder,
-    private route: ActivatedRoute,
     private router: Router,
     private courseService: CourseService,
     private userService: UserService,
     private modalService: ModalService,
   ) {
     this.initializeForms();
+    
+    // Subscribe to user changes
+    this.userService.currentUser$.subscribe((user) => {
+      console.log('CourseBuilder: User subscription fired, user:', user);
+      if (user) {
+        this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+        console.log('CourseBuilder: UserId set to:', this.userId);
+        // If we have courseId set and are in edit mode, load the course now that user is available
+        if (this.courseId && this.isEditMode) {
+          console.log('CourseBuilder: User available, loading course now');
+          this.loadCourse();
+        }
+      } else {
+        console.log('CourseBuilder: No user, redirecting to login');
+        this.router.navigate(['/login']);
+      }
+    });
+  }
+
+  initForEdit(courseId: number) {
+    console.log('CourseBuilder: Initializing for EDIT mode, courseId:', courseId);
+    
+    // Reset state for fresh initialization
+    this.isEditMode = true;
+    this.courseId = courseId;
+    this.lessons = [];
+    this.selectedLessonIndex = null;
+    this.selectedTags = [];
+    this.currentStep = 1;
+    
+    // Reset forms to default values
+    this.courseForm.reset({
+      title: '',
+      description: '',
+      thumbnail_url: '',
+      is_public: true
+    });
+    
+    this.lessonForm.reset({
+      title: '',
+      description: '',
+      content_type: '',
+      youtube_url: '',
+      article_text: '',
+      external_url: '',
+      external_title: '',
+      quiz_verse_count: 5,
+      quiz_pass_threshold: 85,
+      quiz_randomize: true
+    });
+    
+    this.availableTags = this.courseService.getSuggestedTags();
+    
+    // Load the course data
+    if (this.userId) {
+      this.loadCourse();
+    } else {
+      console.log('CourseBuilder: Waiting for user to be loaded before loading course...');
+    }
+    
+    // Set up form subscriptions
+    this.setupFormSubscriptions();
   }
 
   init() {
+    console.log('CourseBuilder: Initializing for CREATE mode');
+    
+    // Reset state for fresh initialization
+    this.isEditMode = false;
+    this.courseId = undefined;
+    this.lessons = [];
+    this.selectedLessonIndex = null;
+    this.selectedTags = [];
+    this.currentStep = 1;
+    
+    // Reset forms to default values
+    this.courseForm.reset({
+      title: '',
+      description: '',
+      thumbnail_url: '',
+      is_public: true
+    });
+    
+    this.lessonForm.reset({
+      title: '',
+      description: '',
+      content_type: '',
+      youtube_url: '',
+      article_text: '',
+      external_url: '',
+      external_title: '',
+      quiz_verse_count: 5,
+      quiz_pass_threshold: 85,
+      quiz_randomize: true
+    });
+    
     this.availableTags = this.courseService.getSuggestedTags();
 
-    // Load draft from localStorage if available
+    // Load draft from localStorage if available (only in create mode)
     const draftRaw = localStorage.getItem('courseBuilderDraft');
     if (draftRaw) {
       try {
@@ -85,7 +176,12 @@ export class CourseBuilderStateService {
         console.error('Failed to load draft', e);
       }
     }
+    
+    // Set up form subscriptions  
+    this.setupFormSubscriptions();
+  }
 
+  private setupFormSubscriptions() {
     this.courseForm.valueChanges.subscribe(() => this.autoSave());
 
     this.lessonForm.valueChanges.subscribe(() => {
@@ -95,23 +191,21 @@ export class CourseBuilderStateService {
         this.autoSave();
       }
     });
-
-    this.userService.currentUser$.subscribe((user) => {
-      if (user) {
-        this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
-      } else {
-        this.router.navigate(['/login']);
-      }
-    });
-
-    this.route.params.subscribe((params) => {
-      if (params['id']) {
-        this.courseId = +params['id'];
-        this.isEditMode = true;
-        this.loadCourse();
-      }
-    });
   }
+
+  // Route params are now handled in init() method to avoid conflicts
+  // this.route.params.subscribe((params) => {
+  //   console.log('CourseBuilder: Route params:', params);
+  //   if (params['id'] || params['courseId']) {
+  //     this.courseId = +(params['id'] || params['courseId']);
+  //     this.isEditMode = true;
+  //     console.log('CourseBuilder: Edit mode detected, courseId:', this.courseId, 'userId:', this.userId);
+  //     // Only load course if userId is already available, otherwise wait for user subscription
+  //     if (this.userId) {
+  //       this.loadCourse();
+  //     }
+  //   }
+  // });
 
   initializeForms() {
     this.courseForm = this.fb.group({
@@ -301,14 +395,31 @@ export class CourseBuilderStateService {
   }
 
   loadCourse() {
-    if (!this.courseId) return;
+    if (!this.courseId) {
+      console.log('CourseBuilder: No courseId, skipping loadCourse');
+      return;
+    }
 
-    this.courseService.getCourse(this.courseId).subscribe({
+    console.log('CourseBuilder: Loading course', this.courseId, 'for user', this.userId);
+
+    this.courseService.getCourse(this.courseId, this.userId).subscribe({
       next: (course) => {
+        console.log('CourseBuilder: Received course data:', course);
+        
         if (course.creator_id !== this.userId) {
+          console.log('CourseBuilder: User is not creator, redirecting');
           this.router.navigate(['/courses', this.courseId]);
           return;
         }
+
+        console.log('CourseBuilder: User is creator, loading course data into forms');
+
+        console.log('CourseBuilder: About to patch courseForm with:', {
+          title: course.title,
+          description: course.description,
+          thumbnail_url: course.thumbnail_url,
+          is_public: course.is_public,
+        });
 
         this.courseForm.patchValue({
           title: course.title,
@@ -316,6 +427,8 @@ export class CourseBuilderStateService {
           thumbnail_url: course.thumbnail_url,
           is_public: course.is_public,
         });
+
+        console.log('CourseBuilder: After patching, courseForm title value:', this.courseForm.get('title')?.value);
 
         this.selectedTags = [...course.tags];
         this.lessons = course.lessons.map((lesson, index) => ({
@@ -335,7 +448,12 @@ export class CourseBuilderStateService {
         if (this.lessons.length > 0) {
           this.selectLesson(0);
         }
+
+        console.log('CourseBuilder: Course loaded successfully. Lessons:', this.lessons.length);
       },
+      error: (error) => {
+        console.error('CourseBuilder: Error loading course:', error);
+      }
     });
   }
 
@@ -806,5 +924,40 @@ export class CourseBuilderStateService {
     } else {
       this.router.navigate(['/courses']);
     }
+  }
+
+  resetCourse() {
+    this.modalService
+      .confirm({
+        title: 'Reset Course',
+        message: 'This will clear all course information and lessons. Are you sure you want to reset?',
+        type: 'warning',
+        confirmText: 'Reset',
+        showCancel: true,
+      })
+      .then((result) => {
+        if (result.confirmed) {
+          // Reset all form data
+          this.initializeForms();
+          
+          // Reset course state
+          this.lessons = [];
+          this.selectedLessonIndex = null;
+          this.selectedTags = [];
+          this.currentStep = 1;
+          
+          // Clear localStorage draft
+          localStorage.removeItem('courseBuilderDraft');
+          
+          // Reset drag states
+          this.draggedLessonIndex = null;
+          this.originalLessons = null;
+          this.draggedCardIndex = null;
+          this.originalQuizCards = null;
+          this.dropHandled = false;
+          
+          console.log('Course builder reset successfully');
+        }
+      });
   }
 }

@@ -34,6 +34,8 @@ export const routes: Routes = [
   { path: 'decks', component: DeckListPageComponent, canActivate: [TranslationGuard] },
   { path: 'decks/study/:deckId', component: DeckStudyComponent, canActivate: [TranslationGuard] },
   { path: 'deck-editor/:deckId', component: DeckEditorPageComponent, canActivate: [TranslationGuard] },
+  { path: 'courses/create', component: CourseBuilderComponent, canActivate: [TranslationGuard] },
+  { path: 'courses/:courseId/edit', component: CourseBuilderComponent, canActivate: [TranslationGuard] },
   { path: 'courses/:courseId/lessons/:lessonId/practice', component: LessonPracticeComponent, canActivate: [TranslationGuard] },
   { path: 'courses/:courseId/lessons/:lessonId/quiz', component: QuizPracticeComponent, canActivate: [TranslationGuard] },
   { path: 'courses/:courseId/lessons/:lessonId', component: LessonViewComponent, canActivate: [TranslationGuard] },
@@ -43,7 +45,6 @@ export const routes: Routes = [
     component: FeatureRequestComponent,
     title: 'Feature Requests & Bug Reports',
   },
-  { path: 'courses/create', component: CourseBuilderComponent, canActivate: [TranslationGuard] },
   { path: 'courses', component: CourseListComponent, canActivate: [TranslationGuard] },
   {
     path: 'atlas',

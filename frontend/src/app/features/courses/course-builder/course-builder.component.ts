@@ -20,7 +20,16 @@ export class CourseBuilderComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.state.init();
+    // Get the route params directly in the component
+    const courseId = this.route.snapshot.params['courseId'];
+    console.log('CourseBuilderComponent: Route params:', this.route.snapshot.params);
+    console.log('CourseBuilderComponent: CourseId from route:', courseId);
+    
+    if (courseId) {
+      this.state.initForEdit(+courseId);
+    } else {
+      this.state.init();
+    }
   }
 
   get courseForm() {
@@ -65,6 +74,12 @@ export class CourseBuilderComponent implements OnInit {
 
   get estimatedDuration() {
     return this.state.estimatedDuration;
+  }
+
+  get courseTitle() {
+    const title = this.state.courseForm.get('title')?.value || '';
+    console.log('CourseBuilder: courseTitle getter called, returning:', title);
+    return title;
   }
 
   get pieSlices() {
@@ -201,6 +216,10 @@ export class CourseBuilderComponent implements OnInit {
 
   cancel() {
     this.state.cancel();
+  }
+
+  resetCourse() {
+    this.state.resetCourse();
   }
 
   @HostListener('document:click', ['$event'])

@@ -122,3 +122,12 @@
   }
 }
 
+.btn-warning {
+  background: #f59e0b;
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: #d97706;
+  }
+}
+

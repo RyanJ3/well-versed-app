@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { CourseService } from '@services/api/course.service';
+import { CourseService, CourseDetailResponse } from '@services/api/course.service';
 import { UserService } from '@services/api/user.service';
 import { Course } from '@models/course.model';
 import { User } from '@models/user';
@@ -349,27 +349,31 @@ import { User } from '@models/user';
             <div class="expanded-content">
               <div class="lesson-overview">
                 <h4>Lesson Overview</h4>
+                <div *ngIf="getLessonsForCourse(course.id).length === 0" class="loading-lessons">
+                  Loading lessons...
+                </div>
                 <div
                   class="lesson"
-                  *ngFor="let n of [1, 2, 3, 4]; let i = index"
+                  *ngFor="let lesson of getLessonsForCourse(course.id); let i = index"
                 >
                   <div
                     class="lesson-number"
-                    [class.done]="isEnrolled(course.id) && i < 2"
+                    [class.done]="isEnrolled(course.id) && i < getCompletedLessons(course.id)"
                   >
-                    {{ isEnrolled(course.id) && i < 2 ? '✓' : i + 1 }}
+                    {{ isEnrolled(course.id) && i < getCompletedLessons(course.id) ? '✓' : i + 1 }}
                   </div>
-                  <span [class.strike]="isEnrolled(course.id) && i < 2"
-                    >Lesson {{ i + 1 }}</span
+                  <span [class.strike]="isEnrolled(course.id) && i < getCompletedLessons(course.id)"
+                    >{{ lesson.title }}</span
                   >
+                </div>
+                <div *ngIf="hasMoreLessons(course.id)" class="more-lessons">
+                  +{{ getMoreLessonsCount(course.id) }} more lessons
                 </div>
               </div>
               <div class="learn-overview">
                 <h4>What You'll Learn</h4>
                 <ul>
-                  <li>Core theological concepts</li>
-                  <li>Historical context</li>
-                  <li>Practical application</li>
+                  <li *ngFor="let objective of getLearningObjectives(course.id)">{{ objective }}</li>
                 </ul>
               </div>
             </div>
@@ -442,6 +446,7 @@ export class CourseListComponent implements OnInit {
 
   expandedId: number | null = null;
   viewMode: 'list' | 'grid' = 'list';
+  expandedCourseDetails: Map<number, CourseDetailResponse> = new Map();
 
   constructor(
     private courseService: CourseService,
@@ -606,10 +611,103 @@ export class CourseListComponent implements OnInit {
   }
 
   toggleExpanded(id: number) {
-    this.expandedId = this.expandedId === id ? null : id;
+    if (this.expandedId === id) {
+      this.expandedId = null;
+    } else {
+      this.expandedId = id;
+      // Load course details if not already loaded
+      if (!this.expandedCourseDetails.has(id)) {
+        const userId = this.currentUser ? 
+          (typeof this.currentUser.id === 'string' ? parseInt(this.currentUser.id) : this.currentUser.id) : 
+          undefined;
+        
+        this.courseService.getCourse(id, userId).subscribe({
+          next: (courseDetails) => {
+            this.expandedCourseDetails.set(id, courseDetails);
+          },
+          error: (error) => {
+            console.error('Error loading course details:', error);
+          }
+        });
+      }
+    }
   }
 
   toggleView(mode: 'list' | 'grid') {
     this.viewMode = mode;
+  }
+
+  getExpandedCourseDetails(courseId: number): CourseDetailResponse | null {
+    return this.expandedCourseDetails.get(courseId) || null;
+  }
+
+  getLessonsForCourse(courseId: number): any[] {
+    const details = this.expandedCourseDetails.get(courseId);
+    if (details && details.lessons) {
+      return details.lessons.slice(0, 5); // Show first 5 lessons
+    }
+    return [];
+  }
+
+  getLearningObjectives(courseId: number): string[] {
+    const details = this.expandedCourseDetails.get(courseId);
+    if (!details || !details.lessons || details.lessons.length === 0) {
+      return ['Loading course details...'];
+    }
+
+    // Generate learning objectives based on content types
+    const objectives: string[] = [];
+    const contentTypes = new Set(details.lessons.map(l => l.content_type));
+    
+    if (contentTypes.has('video')) {
+      objectives.push('Video-based learning experiences');
+    }
+    if (contentTypes.has('article')) {
+      objectives.push('In-depth written content and studies');
+    }
+    if (contentTypes.has('quiz')) {
+      objectives.push('Interactive assessments and practice');
+    }
+    if (contentTypes.has('external_link')) {
+      objectives.push('External resources and references');
+    }
+
+    // Add course-specific objectives based on title/description
+    const title = details.title.toLowerCase();
+    const desc = details.description.toLowerCase();
+    
+    if (title.includes('foundation') || desc.includes('foundation')) {
+      objectives.push('Fundamental biblical principles');
+    }
+    if (title.includes('memorization') || desc.includes('memorization')) {
+      objectives.push('Scripture memorization techniques');
+    }
+    if (title.includes('testament') || desc.includes('testament')) {
+      objectives.push('Biblical books and themes');
+    }
+    if (title.includes('worship') || desc.includes('worship') || title.includes('devotional')) {
+      objectives.push('Spiritual growth and worship practices');
+    }
+    if (desc.includes('context') || desc.includes('interpretation')) {
+      objectives.push('Biblical interpretation and context');
+    }
+    if (desc.includes('application') || desc.includes('practical')) {
+      objectives.push('Practical application of scripture');
+    }
+
+    return objectives.length > 0 ? objectives : ['Comprehensive biblical study'];
+  }
+
+  hasMoreLessons(courseId: number): boolean {
+    const details = this.expandedCourseDetails.get(courseId);
+    return (details && details.lessons && details.lessons.length > 5)!!;
+  }
+
+  getMoreLessonsCount(courseId: number): number {
+    const details = this.expandedCourseDetails.get(courseId);
+    if (details && details.lessons && details.lessons.length > 5) {
+      return details.lessons.length - 5;
+    }
+    return 0;
   }
 }

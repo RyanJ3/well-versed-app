@@ -2,9 +2,14 @@
 <div class="course-builder">
   <!-- Header -->
   <div class="builder-header">
-    <h1>{{ isEditMode ? "Edit Course" : "Create New Course" }}</h1>
+    <h1>{{ isEditMode ? "Edit Course: " + (courseTitle || "Loading...") : "Create New Course" }}</h1>
+    <!-- Debug info -->
+    <div style="font-size: 12px; color: #666; margin-bottom: 10px;">
+      Debug: isEditMode={{ isEditMode }}, courseTitle="{{ courseTitle }}", lessons={{ lessons.length }}
+    </div>
     <div class="header-actions">
       <button class="btn btn-secondary" (click)="cancel()">Cancel</button>
+      <button class="btn btn-warning" (click)="resetCourse()" *ngIf="!isEditMode">Reset</button>
       <button
         class="btn btn-primary"
         (click)="saveCourse()"

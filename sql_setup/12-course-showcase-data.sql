@@ -1,6 +1,6 @@
 -- Course Showcase Data - 4 Courses with 10 Lessons Each
 -- This SQL creates sample courses to demonstrate the courses component
-SET search_path TO wellversed01DEV;
+SET search_path TO wellversed01dev;
 
 -- Insert 4 showcase courses
 INSERT INTO courses (course_id, user_id, name, description, thumbnail_url, is_public, created_at, updated_at) VALUES
@@ -77,3 +77,7 @@ INSERT INTO course_enrollments (user_id, course_id, current_lesson_id, current_l
 (1, 2, 12, 2, 2, NOW() - INTERVAL '7 days', NOW() - INTERVAL '6 days'),
 (1, 3, NULL, 1, 0, NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
 (1, 4, NULL, 1, 0, NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day');
+
+-- Fix sequence values after manual inserts
+SELECT setval('courses_course_id_seq', (SELECT MAX(course_id) FROM courses));
+SELECT setval('course_lessons_lesson_id_seq', (SELECT MAX(lesson_id) FROM course_lessons));
