@@ -224,10 +224,11 @@ export class BibleMemorizationEffects extends BaseEffects {
       ofType(BibleMemorizationActions.updateApocryphaPreference),
       withLatestFrom(this.store.select(selectUserId)),
       tap(([action, userId]) => {
-        // Update user preference in service
-        this.userService.updateUser({ 
-          includeApocrypha: action.includeApocrypha 
-        }).subscribe();
+        // Update user preference in service - using safe method that preserves ESV token
+        this.userService.updateApocryphaPreference(action.includeApocrypha).subscribe({
+          next: () => console.log('Apocrypha preference updated successfully'),
+          error: (error) => console.error('Failed to update apocrypha preference:', error)
+        });
       }),
       // Reload data with new preference
       map(([_, userId]) => BibleMemorizationActions.loadMemorizationProgress({ 

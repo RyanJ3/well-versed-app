@@ -1,6 +1,6 @@
 // src/app/services/api/user.service.ts
 import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { catchError, map, tap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
@@ -185,22 +185,37 @@ export class UserService {
   updateUser(formData: any): Observable<User> {
     console.log('Updating user with form data:', formData);
 
+    // Get current user to preserve existing values
+    const currentUser = this.currentUserSubject.value;
+    
+    // Merge with existing user data to prevent data loss
+    const mergedData = currentUser ? {
+      firstName: formData.firstName ?? currentUser.firstName,
+      lastName: formData.lastName ?? currentUser.lastName,
+      denomination: formData.denomination ?? currentUser.denomination,
+      preferredBible: formData.preferredBible ?? currentUser.preferredBible,
+      preferredLanguage: formData.preferredLanguage ?? currentUser.preferredLanguage,
+      includeApocrypha: formData.includeApocrypha ?? currentUser.includeApocrypha,
+      useEsvApi: formData.useEsvApi ?? currentUser.useEsvApi,
+      esvApiToken: formData.esvApiToken ?? currentUser.esvApiToken
+    } : formData;
+
     // Ensure includeApocrypha is a proper boolean
-    const includeApocrypha = formData.includeApocrypha === true;
+    const includeApocrypha = mergedData.includeApocrypha === true;
     
     // Determine if ESV is selected
-    const isEsvSelected = formData.preferredBible === 'ESV' || formData.useEsvApi === true;
+    const isEsvSelected = mergedData.preferredBible === 'ESV' || mergedData.useEsvApi === true;
 
     // Convert camelCase form data to snake_case for API
     const apiRequestData: UserProfileUpdate = {
-      first_name: formData.firstName || formData.first_name,
-      last_name: formData.lastName || formData.last_name,
-      denomination: formData.denomination,
-      preferred_bible: formData.preferredBible || formData.preferred_bible,
-      preferred_language: formData.preferredLanguage || formData.preferred_language,
+      first_name: mergedData.firstName || mergedData.first_name,
+      last_name: mergedData.lastName || mergedData.last_name,
+      denomination: mergedData.denomination,
+      preferred_bible: mergedData.preferredBible || mergedData.preferred_bible,
+      preferred_language: mergedData.preferredLanguage || mergedData.preferred_language,
       include_apocrypha: includeApocrypha,
       use_esv_api: isEsvSelected,
-      esv_api_token: isEsvSelected ? formData.esvApiToken : null
+      esv_api_token: isEsvSelected ? mergedData.esvApiToken : null
     };
 
     console.log('Converted to API format:', apiRequestData);
@@ -229,6 +244,29 @@ export class UserService {
         throw error;
       })
     );
+  }
+
+  /**
+   * Update only the apocrypha preference without affecting other user data
+   */
+  updateApocryphaPreference(includeApocrypha: boolean): Observable<User> {
+    const currentUser = this.currentUserSubject.value;
+    if (!currentUser) {
+      console.error('Cannot update apocrypha preference: no user loaded');
+      return throwError(() => new Error('No user loaded'));
+    }
+
+    // Only update the apocrypha field, preserve all other data
+    return this.updateUser({
+      firstName: currentUser.firstName,
+      lastName: currentUser.lastName,
+      denomination: currentUser.denomination,
+      preferredBible: currentUser.preferredBible,
+      preferredLanguage: currentUser.preferredLanguage,
+      includeApocrypha: includeApocrypha,
+      useEsvApi: currentUser.useEsvApi,
+      esvApiToken: currentUser.esvApiToken
+    });
   }
 
   logout(): void {
