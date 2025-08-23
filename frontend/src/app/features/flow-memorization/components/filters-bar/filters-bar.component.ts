@@ -9,15 +9,21 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./filters-bar.component.scss']
 })
 export class FiltersBarComponent {
-  @Input() activeFilter: 'all' | 'unmemorized' | 'needsReview' | 'sections' = 'all';
+  @Input() activeFilter: 'all' | 'unmemorized' | 'needsReview' = 'all';
   @Input() totalVerses = 0;
   @Input() unmemorizedCount = 0;
   @Input() needsReviewCount = 0;
-  @Input() sectionCount = 0;
+  @Input() mode: 'memorization' | 'crossReferences' | 'topical' = 'memorization';
+  @Input() showReviewFilter = true;
 
-  @Output() filterChange = new EventEmitter<'all' | 'unmemorized' | 'needsReview' | 'sections'>();
+  @Output() filterChange = new EventEmitter<'all' | 'unmemorized' | 'needsReview'>();
+  @Output() modeChange = new EventEmitter<'memorization' | 'crossReferences' | 'topical'>();
 
-  setFilter(filter: 'all' | 'unmemorized' | 'needsReview' | 'sections') {
+  setFilter(filter: 'all' | 'unmemorized' | 'needsReview') {
     this.filterChange.emit(filter);
+  }
+  
+  setMode(mode: 'memorization' | 'crossReferences' | 'topical') {
+    this.modeChange.emit(mode);
   }
 }

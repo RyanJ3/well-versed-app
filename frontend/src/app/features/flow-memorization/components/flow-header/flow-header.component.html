@@ -1,29 +1,21 @@
-<div class="flow-header-glass" [class.collapsed]="isCollapsed">
+<div class="flow-header-glass" [class.cross-ref-mode]="mode === 'crossReferences'">
   <!-- Subtle animated mesh background -->
   <div class="animated-mesh"></div>
-
-  <!-- Collapse/Expand Toggle Button -->
-  <button class="collapse-toggle" (click)="toggleCollapse()"
-    [attr.aria-label]="isCollapsed ? 'Expand header' : 'Collapse header'">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <polyline [attr.points]="isCollapsed ? '6 9 12 15 18 9' : '6 15 12 9 18 15'"></polyline>
-    </svg>
-  </button>
 
   <!-- Main header content -->
   <div class="header-glass-container">
 
-    <!-- Collapsed State Bar - Minimal design with vertical centering -->
-    <div class="collapsed-bar" *ngIf="isCollapsed">
+    <!-- Header Bar - Always visible, no collapse -->
+    <div class="header-bar">
       <!-- Book Selector with dropdown -->
       <div class="book-selector-wrapper">
-        <div class="collapsed-book-selector" (click)="toggleBookDropdown(); $event.stopPropagation()">
+        <div class="book-selector" (click)="toggleBookDropdown(); $event.stopPropagation()">
           <span class="book-icon">📖</span>
           <span class="book-name">{{ currentBook?.name || 'Genesis' }}</span>
           <span class="dropdown-arrow" [class.open]="showBookDropdown">▼</span>
         </div>
 
-        <!-- Book dropdown menu - exactly like chapter dropdown -->
+        <!-- Book dropdown menu -->
         <div class="book-dropdown-menu" *ngIf="showBookDropdown" (click)="$event.stopPropagation()">
           <!-- Testament filter inside dropdown -->
           <div class="dropdown-testament-filter">
@@ -72,280 +64,66 @@
         </div>
       </div>
 
-      <!-- Chapter Selector with dropdown -->
+      <!-- Chapter Selector -->
       <div class="chapter-selector-wrapper">
-        <div class="collapsed-chapter-selector" (click)="toggleChapterDropdown($event)">
+        <div class="chapter-selector" (click)="toggleChapterDropdown($event)">
           <span class="chapter-text">Ch {{ currentChapter }}</span>
           <span class="dropdown-arrow" [class.open]="showChapterDropdown">▼</span>
         </div>
 
         <!-- Chapter dropdown menu -->
         <div class="chapter-dropdown-menu" *ngIf="showChapterDropdown" (click)="$event.stopPropagation()">
-          <div *ngFor="let chapter of availableChapters" class="chapter-dropdown-item"
-            [class.current]="chapter.chapterNumber === currentChapter"
-            (click)="onChapterClick(chapter.chapterNumber); showChapterDropdown = false; $event.stopPropagation()">
-            <span>Chapter {{ chapter.chapterNumber }}</span>
-            <span class="chapter-progress-badge" *ngIf="getChapterProgress(chapter) > 0">
-              {{ getChapterProgress(chapter) }}%
+          <div *ngFor="let ch of availableChapters"
+            class="chapter-dropdown-item"
+            [class.current]="ch.chapterNumber === currentChapter"
+            (click)="onChapterClick(ch.chapterNumber); showChapterDropdown = false; $event.stopPropagation()">
+            <span>Chapter {{ ch.chapterNumber }}</span>
+            <span class="chapter-progress-badge">
+              {{ getChapterProgress(ch) }}%
             </span>
           </div>
         </div>
       </div>
 
       <!-- Chapter Progress Bar -->
-      <div class="collapsed-progress-bar">
+      <div class="header-progress-bar">
         <div class="progress-track">
           <div class="progress-fill" [style.width.%]="chapterProgressPercentage"></div>
         </div>
         <span class="progress-text">{{ chapterProgressPercentage }}%</span>
       </div>
-
-      <!-- Primary Action Button -->
-      <button class="btn-glass-action primary" (click)="onStartButtonClick(); $event.stopPropagation()">
-        <svg *ngIf="selectedVersesCount === 0" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8 5v14l11-7z" />
-        </svg>
-        <svg *ngIf="selectedVersesCount > 0" width="18" height="18" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2">
-          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-        </svg>
-        <span *ngIf="selectedVersesCount === 0">Start</span>
-        <span *ngIf="selectedVersesCount > 0">Study {{ selectedVersesCount }}</span>
-      </button>
-    </div>
-
-    <!-- Expanded State Content (unchanged) -->
-    <div class="expanded-content" *ngIf="!isCollapsed">
-      <!-- Left Section: Book Info & Progress -->
-      <div class="header-left-section">
-
-        <!-- Book Selector without external Testament Filter -->
-        <div class="book-selector-wrapper">
-          <!-- Book Selector -->
-          <div class="book-selector-glass" (click)="toggleBookDropdown()">
-            <span class="book-icon">📚</span>
-            <span class="book-title">{{ currentBook?.name || 'Genesis' }}</span>
-            <span class="dropdown-arrow" [class.open]="showBookDropdown">▼</span>
-          </div>
-
-          <!-- Book Dropdown - positioned below selector (styled like collapsed dropdown) -->
-          <div class="book-dropdown-container" *ngIf="showBookDropdown" (click)="$event.stopPropagation()">
-            <div class="book-dropdown-menu">
-              <!-- Testament filter inside dropdown -->
-              <div class="dropdown-testament-filter">
-                <button [class.active]="testamentFilter === 'ALL'"
-                  (click)="setTestamentFilter('ALL'); $event.stopPropagation()">ALL</button>
-                <button [class.active]="testamentFilter === 'OT'"
-                  (click)="setTestamentFilter('OT'); $event.stopPropagation()">OT</button>
-                <button [class.active]="testamentFilter === 'NT'"
-                  (click)="setTestamentFilter('NT'); $event.stopPropagation()">NT</button>
-                <button [class.active]="testamentFilter === 'APO'"
-                  (click)="setTestamentFilter('APO'); $event.stopPropagation()">APO</button>
-              </div>
-
-              <!-- Old Testament Books -->
-              <div *ngIf="booksByTestament.OT.length > 0">
-                <div class="dropdown-header">Old Testament</div>
-                <div *ngFor="let book of booksByTestament.OT" class="book-dropdown-item"
-                  [class.current]="book.id === currentBook?.id"
-                  (click)="onBookSelect(book.id); showBookDropdown = false; $event.stopPropagation()">
-                  <span>{{ book.name }}</span>
-                  <span class="book-progress-badge">{{ getBookProgress(book) }}%</span>
-                </div>
-              </div>
-
-              <!-- New Testament Books -->
-              <div *ngIf="booksByTestament.NT.length > 0">
-                <div class="dropdown-header">New Testament</div>
-                <div *ngFor="let book of booksByTestament.NT" class="book-dropdown-item"
-                  [class.current]="book.id === currentBook?.id"
-                  (click)="onBookSelect(book.id); showBookDropdown = false; $event.stopPropagation()">
-                  <span>{{ book.name }}</span>
-                  <span class="book-progress-badge">{{ getBookProgress(book) }}%</span>
-                </div>
-              </div>
-
-              <!-- Apocrypha Books -->
-              <div *ngIf="booksByTestament.APO.length > 0">
-                <div class="dropdown-header">Apocrypha</div>
-                <div *ngFor="let book of booksByTestament.APO" class="book-dropdown-item"
-                  [class.current]="book.id === currentBook?.id"
-                  (click)="onBookSelect(book.id); showBookDropdown = false; $event.stopPropagation()">
-                  <span>{{ book.name }}</span>
-                  <span class="book-progress-badge">{{ getBookProgress(book) }}%</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Progress Container -->
-        <div class="progress-stats-container">
-          <!-- Progress Ring with Verses Count -->
-          <div class="progress-ring-section">
-            <div class="progress-ring-large">
-              <svg width="140" height="140">
-                <defs>
-                  <linearGradient id="gradient-ring" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#34d399" />
-                    <stop offset="100%" stop-color="#10b981" />
-                  </linearGradient>
-                </defs>
-                <circle cx="70" cy="70" r="64" class="ring-bg"></circle>
-                <circle cx="70" cy="70" r="64" class="ring-fill" [attr.stroke-dasharray]="progressCircumference"
-                  [attr.stroke-dashoffset]="progressOffset"></circle>
-              </svg>
-              <div class="ring-percentage">{{ progressPercentage }}%</div>
-            </div>
-            <!-- Verses count moved under the pie chart -->
-            <div class="verses-count-label">
-              Verses
-              <span class="verses-count-value">{{ memorizedBookVerses }} / {{ totalBookVerses }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="action-buttons-glass">
-          <button class="btn-glass-action toggle-text" (click)="toggleTextMode.emit()">
-            <svg *ngIf="!showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-            <svg *ngIf="showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2">
-              <path
-                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
-              </path>
-              <line x1="1" y1="1" x2="23" y2="23"></line>
-            </svg>
-            {{ showFullText ? 'Show FLOW' : 'Show Full Text' }}
-          </button>
-
-          <button class="btn-glass-action primary" (click)="onStartButtonClick()">
-            <svg *ngIf="selectedVersesCount === 0" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-            <svg *ngIf="selectedVersesCount > 0" width="18" height="18" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="2">
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-            </svg>
-            <span *ngIf="selectedVersesCount === 0">Start Full Chapter</span>
-            <span *ngIf="selectedVersesCount > 0">Study {{ selectedVersesCount }} Selected</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Right Section: Chapters Grid -->
-      <div class="chapters-section">
-
-        <!-- Filter Controls -->
-        <div class="chapters-controls-bar">
-          <div class="filter-pills">
-            <button class="filter-pill" [class.active]="activeChapterFilter === 'all'"
-              (click)="setChapterFilter('all')">
-              All
-            </button>
-            <button class="filter-pill" [class.active]="activeChapterFilter === 'inProgress'"
-              (click)="setChapterFilter('inProgress')">
-              In Progress
-            </button>
-            <button class="filter-pill" [class.active]="activeChapterFilter === 'completed'"
-              (click)="setChapterFilter('completed')">
-              Completed
-            </button>
-          </div>
-
-          <div class="chapter-controls-right">
-            <button class="jump-to-furthest-btn" (click)="jumpToFurthestIncomplete()"
-              title="Jump to first incomplete chapter">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M13 17l5-5-5-5M6 17l5-5-5-5" />
-              </svg>
-              Jump to Next
-            </button>
-            <span class="chapter-count">{{ filteredChapters.length }} chapters</span>
-            <button class="view-toggle-btn" (click)="toggleChapterView()" title="Change view">
-              {{ getViewModeIcon() }}
-            </button>
-          </div>
-        </div>
-
-        <!-- Chapters Grid View -->
-        <div class="chapters-grid-glass" *ngIf="chapterViewMode === 'grid'">
-          <div *ngFor="let chapter of visibleChapters" class="chapter-card-glass"
-            [class.current]="isCurrentChapter(chapter)" [class.completed]="isChapterCompleted(chapter)"
-            (click)="onChapterClick(chapter.chapterNumber)">
-            <div class="completed-icon" *ngIf="isChapterCompleted(chapter)">✓</div>
-            <div class="ch-number">Ch {{ chapter.chapterNumber }}</div>
-
-            <!-- PIE CHART for grid mode -->
-            <div class="chapter-pie-chart">
-              <svg width="36" height="36">
-                <defs>
-                  <linearGradient [id]="'ch-gradient-' + chapter.chapterNumber" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" [attr.stop-color]="isCurrentChapter(chapter) ? '#fff' : '#667eea'" />
-                    <stop offset="100%" [attr.stop-color]="isCurrentChapter(chapter) ? '#fff' : '#764ba2'" />
-                  </linearGradient>
-                </defs>
-                <circle cx="18" cy="18" r="16" class="pie-bg"></circle>
-                <circle cx="18" cy="18" r="16" class="pie-fill"
-                  [attr.stroke]="isCurrentChapter(chapter) ? '#fff' : 'url(#ch-gradient-' + chapter.chapterNumber + ')'"
-                  [attr.stroke-dasharray]="getChapterPieCircumference()"
-                  [attr.stroke-dashoffset]="getChapterPieOffset(getChapterProgress(chapter))"></circle>
-              </svg>
-              <div class="pie-percentage">{{ getChapterProgress(chapter) }}%</div>
-            </div>
-
-            <div class="ch-verses">
-              {{ chapter.memorizedVerses }}/{{ chapter.totalVerses }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Chapters Row View -->
-        <div class="chapters-list-glass" *ngIf="chapterViewMode === 'row'">
-          <div *ngFor="let chapter of visibleChapters" class="chapter-row" [class.current]="isCurrentChapter(chapter)"
-            [class.completed]="isChapterCompleted(chapter)" (click)="onChapterClick(chapter.chapterNumber)">
-            <div class="row-number">Ch {{ chapter.chapterNumber }}</div>
-            <div class="row-progress">
-              <div class="progress-bar-row">
-                <div class="progress-fill-row" [style.width.%]="getChapterProgress(chapter)"></div>
-              </div>
-            </div>
-            <div class="row-stats">
-              <span class="verses-count">{{ chapter.memorizedVerses }}/{{ chapter.totalVerses }}</span>
-              <span class="percentage">{{ getChapterProgress(chapter) }}%</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Chapters List View -->
-        <div class="chapters-detailed-glass" *ngIf="chapterViewMode === 'list'">
-          <div *ngFor="let chapter of visibleChapters" class="chapter-list-item"
-            [class.current]="isCurrentChapter(chapter)" [class.completed]="isChapterCompleted(chapter)"
-            (click)="onChapterClick(chapter.chapterNumber)">
-            <div class="list-header">
-              <span class="list-number">Chapter {{ chapter.chapterNumber }}</span>
-              <span class="list-badge" *ngIf="isCurrentChapter(chapter)">Current</span>
-              <span class="list-badge completed" *ngIf="isChapterCompleted(chapter)">Complete</span>
-            </div>
-            <div class="list-progress">
-              <div class="progress-bar-list">
-                <div class="progress-fill-list" [style.width.%]="getChapterProgress(chapter)"></div>
-              </div>
-            </div>
-            <div class="list-footer">
-              <span>{{ chapter.memorizedVerses }} of {{ chapter.totalVerses }} verses ({{ getChapterProgress(chapter)
-                }}%)</span>
-            </div>
-          </div>
-        </div>
+      
+      <!-- Action Buttons -->
+      <div class="header-actions">
+        <!-- Toggle Text Mode Button -->
+        <button class="btn-glass-action secondary" (click)="toggleTextMode.emit()" title="Toggle text mode">
+          <svg *ngIf="!showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <svg *ngIf="showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+          </svg>
+          <span class="button-text">{{ showFullText ? 'FLOW' : 'Full' }}</span>
+        </button>
+        
+        <!-- Primary Action Button -->
+        <button class="btn-glass-action primary" (click)="onStartButtonClick()">
+          <svg *ngIf="selectedVersesCount === 0" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          <svg *ngIf="selectedVersesCount > 0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+          </svg>
+          <span *ngIf="selectedVersesCount === 0">Start Chapter</span>
+          <span *ngIf="selectedVersesCount > 0">Study {{ selectedVersesCount }}</span>
+        </button>
       </div>
     </div>
 
+    <!-- Verse Picker for Cross References Mode -->
+    <ng-content select="app-verse-picker"></ng-content>
   </div>
 </div>

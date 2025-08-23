@@ -36,27 +36,17 @@ export class FlowHeaderComponent implements OnInit {
   showBookDropdown = false;
   showChapterDropdown = false;
   
-  // Collapse state
-  isCollapsed = false;
-  private readonly COLLAPSED_STATE_KEY = 'flow-header-collapsed';
+  // Browser check
   private readonly isBrowser = typeof window !== 'undefined';
+  
+  // Cross-references mode
+  @Input() mode: 'memorization' | 'crossReferences' = 'memorization';
 
   constructor(private elementRef: ElementRef) {}
 
   ngOnInit() {
-    // Load collapsed state from localStorage
-    this.loadCollapsedState();
-    
-    // On mobile, default to collapsed unless user has explicitly expanded
-    if (this.isBrowser && window.innerWidth <= 768) {
-      const hasUserPreference = localStorage.getItem(this.COLLAPSED_STATE_KEY) !== null;
-      if (!hasUserPreference) {
-        this.isCollapsed = true;
-      }
-    }
-    
+    // Initialize component
     console.log('FlowHeaderComponent initialized');
-    console.log('Collapsed state:', this.isCollapsed);
     console.log('Available chapters:', this.availableChapters.length);
   }
 
@@ -68,25 +58,7 @@ export class FlowHeaderComponent implements OnInit {
     }
   }
 
-  @HostListener('window:resize', ['$event'])
-  onWindowResize(event: Event) {
-    // Auto-collapse on mobile if window is resized to mobile size
-    if (this.isBrowser && window.innerWidth <= 768) {
-      const hasUserPreference = localStorage.getItem(this.COLLAPSED_STATE_KEY) !== null;
-      if (!hasUserPreference) {
-        this.isCollapsed = true;
-      }
-    }
-  }
 
-  // Toggle collapse/expand
-  toggleCollapse(): void {
-    this.isCollapsed = !this.isCollapsed;
-    this.saveCollapsedState();
-    // Close any open dropdowns when collapsing/expanding
-    this.showBookDropdown = false;
-    this.showChapterDropdown = false;
-  }
 
   // Toggle chapter dropdown
   toggleChapterDropdown(event: MouseEvent): void {
@@ -95,27 +67,6 @@ export class FlowHeaderComponent implements OnInit {
     this.showBookDropdown = false; // Close book dropdown if open
   }
 
-  // Save collapsed state to localStorage
-  private saveCollapsedState(): void {
-    if (this.isBrowser) {
-      localStorage.setItem(this.COLLAPSED_STATE_KEY, JSON.stringify(this.isCollapsed));
-    }
-  }
-
-  // Load collapsed state from localStorage
-  private loadCollapsedState(): void {
-    if (this.isBrowser) {
-      const savedState = localStorage.getItem(this.COLLAPSED_STATE_KEY);
-      if (savedState !== null) {
-        try {
-          this.isCollapsed = JSON.parse(savedState);
-        } catch (e) {
-          console.error('Error parsing collapsed state:', e);
-          this.isCollapsed = false;
-        }
-      }
-    }
-  }
 
   // Progress ring calculations for expanded view (larger ring)
   get progressCircumference(): number {

@@ -1,0 +1,220 @@
+.topic-picker {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  border-radius: 16px;
+  padding: 24px;
+  margin: 16px 0;
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  .topic-picker-header {
+    text-align: center;
+    margin-bottom: 24px;
+
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #1f2937;
+    }
+
+    p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 14px;
+    }
+  }
+
+  .search-section {
+    margin-bottom: 20px;
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 14px;
+      transition: all 0.2s;
+      background: rgba(255, 255, 255, 0.8);
+
+      &:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        background: white;
+      }
+
+      &::placeholder {
+        color: #9ca3af;
+      }
+    }
+  }
+
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 8px;
+
+    // Custom scrollbar
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 3px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.3);
+      border-radius: 3px;
+
+      &:hover {
+        background: rgba(99, 102, 241, 0.5);
+      }
+    }
+  }
+
+  .topic-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.8) 100%);
+    border: 2px solid rgba(226, 232, 240, 0.4);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+
+    &:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.15);
+    }
+
+    &.selected {
+      border-color: #6366f1;
+      background: linear-gradient(145deg, rgba(99, 102, 241, 0.05) 0%, rgba(79, 70, 229, 0.05) 100%);
+      box-shadow: 
+        0 0 0 1px rgba(99, 102, 241, 0.2),
+        0 8px 20px -4px rgba(99, 102, 241, 0.2);
+    }
+
+    .topic-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+
+      h4 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #1f2937;
+        flex: 1;
+      }
+
+      .verse-count {
+        font-size: 12px;
+        font-weight: 500;
+        color: #6366f1;
+        background: rgba(99, 102, 241, 0.1);
+        padding: 4px 8px;
+        border-radius: 6px;
+        margin-left: 12px;
+        flex-shrink: 0;
+      }
+    }
+
+    .topic-description {
+      margin: 0 0 12px 0;
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
+    .topic-category {
+      .category-tag {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 500;
+        color: #059669;
+        background: rgba(5, 150, 105, 0.1);
+        padding: 3px 8px;
+        border-radius: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+
+  .loading-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e5e7eb;
+      border-top: 3px solid #6366f1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px auto;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+    }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #9ca3af;
+
+    p {
+      margin: 0;
+      font-size: 14px;
+    }
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  // Responsive adjustments
+  @media (max-width: 768px) {
+    padding: 16px;
+
+    .topics-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .topic-card {
+      padding: 12px;
+
+      .topic-header {
+        h4 {
+          font-size: 15px;
+        }
+
+        .verse-count {
+          font-size: 11px;
+          padding: 3px 6px;
+        }
+      }
+
+      .topic-description {
+        font-size: 12px;
+      }
+    }
+  }
+}

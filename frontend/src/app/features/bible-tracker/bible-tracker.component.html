@@ -52,9 +52,10 @@
     (bookSelected)="setBook($event)">
   </app-bible-tracker-book-grid>
 
-  <!-- Chapter Heatmap -->
+  <!-- Chapter Grid (formerly Heatmap) -->
   <app-bible-tracker-chapter-heatmap
     [selectedBook]="selectedBook"
+    [selectedChapter]="selectedChapter"
     [includeApocrypha]="includeApocrypha"
     [isLoading]="(isLoading$ | async) || false"
     [isSavingBulk]="(isSavingBulk$ | async) || false"

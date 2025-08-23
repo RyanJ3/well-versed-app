@@ -88,4 +88,12 @@ export class FlowSelectionService {
   isVerseSelected(verse: FlowVerse): boolean {
     return this.selectedVerses.has(verse.verseCode);
   }
+  
+  addToSelection(verse: FlowVerse) {
+    this.selectedVerses.add(verse.verseCode);
+  }
+  
+  removeFromSelection(verse: FlowVerse) {
+    this.selectedVerses.delete(verse.verseCode);
+  }
 }

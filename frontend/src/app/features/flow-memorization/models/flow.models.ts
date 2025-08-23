@@ -9,6 +9,22 @@ export interface FlowVerse {
   chapter: number;
   verse: number;
   isSaving?: boolean;
+  // Cross-reference specific fields
+  fullReference?: string;
+  verseNumber?: number;
+  index?: number;
+  practiceCount?: number;
+  confidenceScore?: number;
+  crossRefConfidence?: number;
+  direction?: 'from' | 'to';
+  // Topical verses specific fields
+  topicRelevance?: number;
+  topicName?: string;
+  // Additional fields for unified interface
+  verseId?: number;
+  displayText?: string;
+  isNewSentence?: boolean;
+  isNewParagraph?: boolean;
 }
 
 export class FlowVerseImpl implements FlowVerse {
@@ -22,6 +38,8 @@ export class FlowVerseImpl implements FlowVerse {
   chapter: number;
   verse: number;
   isSaving?: boolean;
+  isNewParagraph?: boolean;
+  isNewSentence?: boolean;
 
   constructor(data: FlowVerse) {
     this.verseCode = data.verseCode;
@@ -34,9 +52,11 @@ export class FlowVerseImpl implements FlowVerse {
     this.chapter = data.chapter;
     this.verse = data.verse;
     this.isSaving = data.isSaving || false;
+    this.isNewParagraph = data.isNewParagraph || this.checkIsNewParagraph();
+    this.isNewSentence = data.isNewSentence || false;
   }
 
-  isNewParagraph(): boolean {
+  private checkIsNewParagraph(): boolean {
     return this.text.startsWith('¶') || this.text.includes('**¶');
   }
 }

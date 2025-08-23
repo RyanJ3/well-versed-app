@@ -16,33 +16,129 @@
     (startStudySession)="startStudySession()"
     (changeChapter)="changeChapter($event)"
     (changeBook)="changeBook($event)"
-  ></app-flow-header>
+    [class.cross-ref-mode]="mode === 'crossReferences'"
+  >
+    <!-- Verse Picker for Cross References Mode -->
+    <app-verse-picker
+      *ngIf="mode === 'crossReferences'"
+      [books]="allBooks"
+      [currentBookId]="currentBook?.id"
+      [currentChapter]="currentChapter"
+      [crossReferenceCount]="crossReferenceCount"
+      (verseSelected)="onCrossRefVerseSelected($event)"
+    ></app-verse-picker>
+  </app-flow-header>
 
-  <!-- Encouragement Message (keep as is) -->
-  <div class="encouragement-message" *ngIf="showEncouragement" [@fadeInOut]>
-    {{ showEncouragement }}
-  </div>
+  <!-- Topic Picker for Topical Mode (moved outside header for better visibility) -->
+  <app-topic-picker
+    *ngIf="mode === 'topical'"
+    [selectedTopicId]="selectedTopic?.topicId"
+    (topicSelected)="onTopicSelected($event)"
+  ></app-topic-picker>
 
-  <!-- Quick Filters (keep as is) -->
-  <app-filters-bar
-    [activeFilter]="activeFilter"
-    [totalVerses]="verses.length"
-    [unmemorizedCount]="unmemorizedVersesCount"
-    [needsReviewCount]="needsReviewCount"
-    [sectionCount]="verseSections.length"
-    (filterChange)="activeFilter = $event"
-  ></app-filters-bar>
+  <!-- Main Layout with Sidebar -->
+  <div class="main-layout">
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+      <!-- Quick Filters with Mode Toggle -->
+      <app-filters-bar
+        [activeFilter]="activeFilter"
+        [totalVerses]="mode === 'memorization' ? verses.length : (mode === 'crossReferences' ? crossReferenceVerses.length : (mode === 'topical' ? topicalVerses.length : 0))"
+        [unmemorizedCount]="mode === 'memorization' ? unmemorizedVersesCount : (mode === 'crossReferences' ? getUnmemorizedCrossRefCount() : (mode === 'topical' ? getUnmemorizedTopicalCount() : 0))"
+        [needsReviewCount]="needsReviewCount"
+        [mode]="mode"
+        [showReviewFilter]="mode === 'memorization'"
+        (filterChange)="activeFilter = $event"
+        (modeChange)="onModeChange($event)"
+      ></app-filters-bar>
 
-  <!-- Selection Info -->
-  <div class="selection-info">
-    <span>{{ selectionService.selectedVerses.size }} verses selected • Shift+Click for range • Ctrl/Cmd+A to select all</span>
-    <button (click)="selectionService.clearSelection()" class="clear-selection-btn">
-      Clear selection (Esc)
-    </button>
-  </div>
+      <!-- Selection Info -->
+      <div class="selection-info">
+        <div class="selection-text">
+          <span>{{ selectionService.selectedVerses.size }} verses selected</span>
+          <small>Shift+Click for range • Ctrl/Cmd+A for all</small>
+        </div>
 
-  <!-- Main Content Area -->
-  <div class="verses-container" #versesContainer>
+        <!-- Action Buttons -->
+        <div class="action-buttons" *ngIf="selectionService.selectedVerses.size > 0">
+          <!-- Memorization Actions -->
+          <button 
+            *ngIf="shouldShowMarkAsMemorized"
+            (click)="markSelectedAsMemorized()" 
+            class="action-btn memorize-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            Mark as Memorized
+          </button>
+
+          <button 
+            *ngIf="shouldShowMarkAsUnmemorized"
+            (click)="markSelectedAsUnmemorized()" 
+            class="action-btn unmemorize-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="15" y1="9" x2="9" y2="15"></line>
+              <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>
+            Mark as Unmemorized
+          </button>
+
+          <!-- Study Action -->
+          <button 
+            (click)="startStudySession()" 
+            class="action-btn study-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9,22 9,12 15,12 15,22"></polyline>
+            </svg>
+            Study Selected
+          </button>
+
+          <!-- Deck Actions -->
+          <div class="deck-actions">
+            <button 
+              *ngFor="let deckName of flashcardDeckNames" 
+              (click)="addToFlashcardDeck(deckName)"
+              class="action-btn deck-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14,2 14,8 20,8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10,9 9,9 8,9"></polyline>
+              </svg>
+              Add to {{ deckName }}
+            </button>
+
+            <button 
+              (click)="openCreateDeckModal()" 
+              class="action-btn create-deck-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="16"></line>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+              </svg>
+              Create New Deck
+            </button>
+          </div>
+        </div>
+
+        <button (click)="selectionService.clearSelection()" class="clear-selection-btn">
+          Clear (Esc)
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="content-area">
+      <!-- Encouragement Message -->
+      <div class="encouragement-message" *ngIf="showEncouragement" [@fadeInOut]>
+        {{ showEncouragement }}
+      </div>
+      
+      <!-- Verses Container -->
+      <div class="verses-container" #versesContainer>
     <div class="instructions" *ngIf="verses.length === 0 && !isLoading">
       Right-click for options • Space to select • Enter to study • Arrow keys to navigate
     </div>
@@ -53,68 +149,9 @@
       <p>Loading verses...</p>
     </div>
 
-    <!-- Section View -->
-    <div *ngIf="activeFilter === 'sections' && !isLoading" class="sections-view">
-      <div *ngFor="let section of verseSections; let sectionIdx = index" class="section-group">
-        <div
-          class="section-header"
-          (mouseenter)="hoveredSection = sectionIdx"
-          (mouseleave)="hoveredSection = -1"
-          (click)="selectSection(section)"
-        >
-          <h3>{{ section.name }}</h3>
-          <div class="section-divider"></div>
-          <span class="section-range">Verses {{ section.start + 1 }}-{{ section.end + 1 }}</span>
-          <button *ngIf="hoveredSection === sectionIdx" class="select-all-btn">
-            Select All
-          </button>
-        </div>
 
-        <div class="verses-grid">
-          <div
-            *ngFor="let verse of verses.slice(section.start, section.end + 1); let i = index"
-            [class]="getVerseState(verse, section.start + i)"
-            [style.fontSize.px]="fontSize"
-            (click)="handleVerseClick(section.start + i, $event)"
-            (dblclick)="handleVerseDoubleClick(verse)"
-            (mousedown)="handleMouseDown(section.start + i)"
-            (mouseenter)="handleMouseEnter(section.start + i)"
-            (contextmenu)="handleContextMenu($event, verse)"
-          >
-            <div class="new-paragraph-marker" *ngIf="isNewParagraph(verse)">
-              ¶ New paragraph
-            </div>
-
-            <div class="verse-checkmark" *ngIf="verse.isMemorized">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-
-            <div class="verse-selected-check" *ngIf="isVerseSelected(verse) && !verse.isMemorized">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-
-            <div class="review-indicator" *ngIf="needsReview(verse.verseCode) && verse.isMemorized">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14" fill="none" stroke="white" stroke-width="2"></polyline>
-              </svg>
-            </div>
-
-            <div class="verse-ref">v{{ verse.verse }}</div>
-            <div class="verse-text" [class.full-text]="showFullText">
-              {{ getVerseDisplay(verse) }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Regular Grid View -->
-    <div *ngIf="activeFilter !== 'sections' && !isLoading && verses.length > 0" class="verses-grid">
+    <!-- Regular Grid View (only in memorization mode) -->
+    <div *ngIf="mode === 'memorization' && !isLoading && verses.length > 0" class="verses-grid">
       <div
         *ngFor="let verse of getFilteredVerses(); let i = index"
         [class]="getVerseState(verse, i)"
@@ -129,7 +166,7 @@
           ¶ New paragraph
         </div>
 
-        <div class="verse-checkmark" *ngIf="verse.isMemorized">
+        <div class="verse-checkmark" *ngIf="verse.isMemorized" (click)="toggleMemorized(verse); $event.stopPropagation(); $event.preventDefault()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
@@ -148,13 +185,179 @@
           </svg>
         </div>
 
-        <div class="verse-ref">v{{ verse.verse }}</div>
+        <div class="verse-ref">v{{ verse.verseNumber }}</div>
         <div class="verse-text" [class.full-text]="showFullText">
           {{ getVerseDisplay(verse) }}
         </div>
       </div>
     </div>
-  </div>
+    
+    <!-- Cross-References View (replaces all verses when in this mode) -->
+    <div *ngIf="mode === 'crossReferences'" class="cross-references-container">
+      
+      <!-- Cross-references grid -->
+      <div *ngIf="!loadingCrossReferences && crossReferenceVerses.length > 0" class="verses-grid cross-references-grid">
+      <!-- Selected Verse Card (highlighted) -->
+      <div class="selected-verse-card" *ngIf="selectedCrossRefVerse">
+        <div class="card-header">
+          <span class="card-label">Selected Verse</span>
+          <span class="card-reference">{{ selectedCrossRefVerse.displayText }}</span>
+        </div>
+        <div class="card-text">{{ selectedCrossRefVerse.text || 'Loading verse text...' }}</div>
+      </div>
+      
+      <!-- Cross-Reference Cards -->
+      <div
+        *ngFor="let verse of getFilteredCrossReferences(); let i = index"
+        class="verse-block cross-ref-card"
+        [class.memorized]="verse.isMemorized"
+        [class.selected]="isVerseSelected(verse)"
+        [style.fontSize.px]="fontSize"
+        (click)="handleCrossRefClick(verse, $event)"
+        (dblclick)="navigateToVerse(verse)"
+        (contextmenu)="handleContextMenu($event, verse)"
+      >
+        <!-- Full verse reference in top left -->
+        <div class="verse-full-reference">
+          {{ verse.fullReference }}
+        </div>
+        
+        <div class="verse-checkmark" *ngIf="verse.isMemorized" (click)="toggleMemorized(verse); $event.stopPropagation(); $event.preventDefault()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        
+        <div class="verse-selected-check" *ngIf="isVerseSelected(verse) && !verse.isMemorized">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        
+        <div class="cross-ref-confidence">
+          <span class="confidence-dots">
+            <span *ngFor="let dot of [1,2,3,4,5]" 
+                  class="dot" 
+                  [class.filled]="(verse.crossRefConfidence || 0) >= (dot * 0.2)">
+              •
+            </span>
+          </span>
+        </div>
+        
+        <!-- Direction indicator -->
+        <div class="cross-ref-indicator">
+          <span class="ref-direction" [class.from]="verse.direction === 'from'" [class.to]="verse.direction === 'to'">
+            {{ verse.direction === 'from' ? 'Referenced by' : 'References' }}
+          </span>
+        </div>
+        <div class="verse-text" [class.full-text]="showFullText">
+          {{ verse.text }}
+        </div>
+      </div>
+      </div>
+      
+      <!-- Empty State for Cross-References -->
+      <div *ngIf="!loadingCrossReferences && crossReferenceVerses.length === 0 && selectedCrossRefVerse" class="empty-state">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+        </svg>
+        <p>No cross-references found for this verse</p>
+      </div>
+      
+      <!-- Loading state -->
+      <div *ngIf="loadingCrossReferences" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading cross-references...</p>
+      </div>
+    </div>
+
+    <!-- Topical Verses View -->
+    <div *ngIf="mode === 'topical'" class="topical-verses-container">
+      
+      <!-- Selected Topic Info -->
+      <div class="selected-topic-card" *ngIf="selectedTopic">
+        <div class="card-header">
+          <span class="card-label">Selected Topic</span>
+          <span class="card-topic">{{ selectedTopic.topicName }}</span>
+        </div>
+        <div class="card-description" *ngIf="selectedTopic.description">{{ selectedTopic.description }}</div>
+        <div class="card-stats">
+          <span class="verse-count">{{ selectedTopic.verseCount }} verses</span>
+          <span class="category-tag" *ngIf="selectedTopic.category">{{ selectedTopic.category }}</span>
+        </div>
+      </div>
+      
+      <!-- Topical verses grid -->
+      <div *ngIf="!loadingTopicalVerses && topicalVerses.length > 0" class="verses-grid topical-verses-grid">
+        <div
+          *ngFor="let verse of getFilteredTopicalVerses(); let i = index"
+          class="verse-block topical-card"
+          [class.memorized]="verse.isMemorized"
+          [class.selected]="isVerseSelected(verse)"
+          [style.fontSize.px]="fontSize"
+          (click)="handleTopicalClick(verse, $event)"
+          (dblclick)="navigateToVerse(verse)"
+          (contextmenu)="handleContextMenu($event, verse)"
+        >
+          <!-- Full verse reference -->
+          <div class="verse-full-reference">
+            {{ verse.fullReference }}
+          </div>
+          
+          <div class="verse-checkmark" *ngIf="verse.isMemorized" (click)="toggleMemorized(verse); $event.stopPropagation(); $event.preventDefault()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          
+          <div class="verse-selected-check" *ngIf="isVerseSelected(verse) && !verse.isMemorized">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          
+          <!-- Topic relevance indicator -->
+          <div class="topic-relevance">
+            <span class="relevance-dots">
+              <span *ngFor="let dot of [1,2,3,4,5]" 
+                    class="dot" 
+                    [class.filled]="(verse.topicRelevance || 0) >= (dot * 0.2)">
+                •
+              </span>
+            </span>
+          </div>
+          
+          <div class="verse-text" [class.full-text]="showFullText">
+            {{ verse.text }}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Empty State for No Topic Selected -->
+      <div *ngIf="!loadingTopicalVerses && !selectedTopic" class="empty-state">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+        </svg>
+        <p>Select a topic above to explore verses organized by biblical themes</p>
+      </div>
+      
+      <!-- Empty State for No Verses Found -->
+      <div *ngIf="!loadingTopicalVerses && selectedTopic && topicalVerses.length === 0" class="empty-state">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p>No verses found for "{{ selectedTopic?.topicName }}"</p>
+      </div>
+      
+      <!-- Loading state -->
+      <div *ngIf="loadingTopicalVerses" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading topical verses...</p>
+      </div>
+    </div>
+      </div> <!-- Close verses-container -->
+    </div> <!-- Close content-area -->
+  </div> <!-- Close main-layout -->
 
   <!-- Context Menu -->
   <app-flow-context-menu
@@ -168,6 +371,7 @@
     (markAsUnmemorized)="markSelectedAsUnmemorized()"
     (addToDeck)="addToFlashcardDeck($event)"
     (createDeck)="openCreateDeckModal()"
+    (jumpToCrossReferences)="jumpToCrossReferencesFromContextMenu()"
   ></app-flow-context-menu>
 
   <!-- Memorization Modal -->

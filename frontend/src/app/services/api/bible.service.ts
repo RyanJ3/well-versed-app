@@ -351,4 +351,74 @@ export class BibleService {
     return of(void 0);
   }
 
+  // ----- Cross-References Methods -----
+  
+  getCrossReferences(verseId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/verses/${verseId}/cross-references`).pipe(
+      catchError(error => {
+        console.error('Error fetching cross-references:', error);
+        return of([]);
+      })
+    );
+  }
+  
+  getCrossReferencesForVerse(bookId: number, chapter: number, verse: number): Observable<any[]> {
+    // First get the verse ID
+    return this.http.get<any>(`${this.apiUrl}/verses/lookup`, {
+      params: {
+        book_id: bookId.toString(),
+        chapter: chapter.toString(),
+        verse: verse.toString()
+      }
+    }).pipe(
+      switchMap(verseData => {
+        if (verseData && verseData.id) {
+          return this.getCrossReferences(verseData.id);
+        }
+        return of([]);
+      }),
+      catchError(error => {
+        console.error('Error fetching cross-references:', error);
+        return of([]);
+      })
+    );
+  }
+
+  // ----- Topical Verses Methods -----
+  
+  getTopics(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/topical/topics`).pipe(
+      catchError(error => {
+        console.error('Error fetching topics:', error);
+        return of([]);
+      })
+    );
+  }
+  
+  getTopicalVerses(topicId: number, limit: number = 50): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/topical/topics/${topicId}/verses`, {
+      params: {
+        limit: limit.toString()
+      }
+    }).pipe(
+      catchError(error => {
+        console.error('Error fetching topical verses:', error);
+        return of([]);
+      })
+    );
+  }
+  
+  searchTopics(query: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/topical/search`, {
+      params: {
+        query: query
+      }
+    }).pipe(
+      catchError(error => {
+        console.error('Error searching topics:', error);
+        return of([]);
+      })
+    );
+  }
+
 }

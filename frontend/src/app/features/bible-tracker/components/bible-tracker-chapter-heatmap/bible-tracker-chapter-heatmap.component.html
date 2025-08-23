@@ -1,33 +1,108 @@
-<div class="card" *ngIf="selectedBook">
-  <h3 class="card-title">{{ selectedBook.name }} - Chapter Progress Heatmap</h3>
-  <div class="heatmap">
-    <ng-container *ngFor="let chapter of selectedBook.chapters">
-      <div *ngIf="isChapterVisible(chapter)"
-           [class]="getHeatmapClass(chapter)"
+<div class="card chapter-grid-container" *ngIf="selectedBook">
+  <!-- Header with Progress Circle and Verse Count -->
+  <div class="chapter-grid-header">
+    <!-- Progress Circle -->
+    <div class="progress-circle-section">
+      <div class="progress-ring">
+        <svg width="80" height="80">
+          <defs>
+            <linearGradient id="gradient-ring" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#34d399" />
+              <stop offset="100%" stop-color="#10b981" />
+            </linearGradient>
+          </defs>
+          <circle cx="40" cy="40" r="36" class="ring-bg"></circle>
+          <circle cx="40" cy="40" r="36" class="ring-fill" 
+                  [attr.stroke-dasharray]="progressCircumference"
+                  [attr.stroke-dashoffset]="progressOffset"></circle>
+        </svg>
+        <div class="ring-percentage">{{ bookProgressPercentage }}%</div>
+      </div>
+      <!-- Verses count -->
+      <div class="verses-count-label">
+        <div class="verses-label">Verses</div>
+        <div class="verses-count">{{ memorizedBookVerses }} / {{ totalBookVerses }}</div>
+      </div>
+    </div>
+    
+    <!-- Book Title -->
+    <h3 class="card-title">{{ selectedBook.name }} - Chapter Progress</h3>
+    
+    <!-- View Mode Toggle -->
+    <button class="view-toggle-btn" (click)="toggleViewMode()" title="Toggle view">
+      {{ getViewModeIcon() }}
+    </button>
+  </div>
+  
+  <!-- Filter Controls -->
+  <div class="filter-controls">
+    <div class="filter-pills">
+      <button class="filter-pill" [class.active]="activeFilter === 'all'"
+              (click)="setFilter('all')">
+        All ({{ selectedBook.chapters.length }})
+      </button>
+      <button class="filter-pill" [class.active]="activeFilter === 'inProgress'"
+              (click)="setFilter('inProgress')">
+        In Progress
+      </button>
+      <button class="filter-pill" [class.active]="activeFilter === 'completed'"
+              (click)="setFilter('completed')">
+        Completed
+      </button>
+    </div>
+    <div class="filter-info">
+      <span>{{ filteredChapters.length }} chapters</span>
+    </div>
+  </div>
+  
+  <!-- Chapter Grid View -->
+  <div class="chapters-grid" *ngIf="viewMode === 'grid'">
+    <ng-container *ngFor="let chapter of filteredChapters">
+      <div
+           class="chapter-card"
+           [class.current]="selectedChapter?.chapterNumber === chapter.chapterNumber"
+           [class.completed]="chapter.percentComplete === 100"
            [title]="'Chapter ' + chapter.chapterNumber + ': ' + chapter.percentComplete + '%'"
            (click)="selectChapter(chapter)">
-        {{ chapter.chapterNumber }}
+        <div class="completed-icon" *ngIf="chapter.percentComplete === 100">✓</div>
+        <div class="ch-number">Ch {{ chapter.chapterNumber }}</div>
+        
+        <!-- Progress percentage -->
+        <div class="ch-progress">{{ chapter.percentComplete }}%</div>
+        
+        <!-- Verse count -->
+        <div class="ch-verses">
+          {{ chapter.memorizedVerses }}/{{ chapter.totalVerses }}
+        </div>
       </div>
     </ng-container>
   </div>
-  <div class="legend">
-    <div class="legend-item">
-      <div class="legend-color heat-0"></div>
-      <span>0%</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-color heat-2"></div>
-      <span>1-40%</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-color heat-4"></div>
-      <span>41-80%</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-color heat-complete"></div>
-      <span>81-100%</span>
-    </div>
+  
+  <!-- Chapter List View -->
+  <div class="chapters-list" *ngIf="viewMode === 'list'">
+    <ng-container *ngFor="let chapter of filteredChapters">
+      <div
+           class="chapter-list-item"
+           [class.current]="selectedChapter?.chapterNumber === chapter.chapterNumber"
+           [class.completed]="chapter.percentComplete === 100"
+           (click)="selectChapter(chapter)">
+        <div class="list-header">
+          <span class="list-number">Chapter {{ chapter.chapterNumber }}</span>
+          <span class="list-badge current-badge" *ngIf="selectedChapter?.chapterNumber === chapter.chapterNumber">Current</span>
+          <span class="list-badge completed-badge" *ngIf="chapter.percentComplete === 100">Complete</span>
+        </div>
+        <div class="list-progress">
+          <div class="progress-bar-list">
+            <div class="progress-fill-list" [style.width.%]="chapter.percentComplete"></div>
+          </div>
+        </div>
+        <div class="list-footer">
+          <span>{{ chapter.memorizedVerses }} of {{ chapter.totalVerses }} verses ({{ chapter.percentComplete }}%)</span>
+        </div>
+      </div>
+    </ng-container>
   </div>
+  
   <div class="action-container">
     <div class="left-actions">
       <button (click)="clearAllChapters.emit()"
