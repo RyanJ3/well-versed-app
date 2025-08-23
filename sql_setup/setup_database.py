@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 setup_database.py - Database setup script for Well Versed
-Updated to work with reorganized SQL file structure
+Updated to work with reorganized SQL file structure and OpenBible data import
 """
 import psycopg2
 from psycopg2.extras import execute_values
@@ -10,6 +10,7 @@ import logging
 import os
 import sys
 import time
+import csv
 from pathlib import Path
 from dotenv import load_dotenv
 from datetime import datetime
@@ -97,6 +98,10 @@ SCHEMA_SQL_FILES = [
     {
         'file': '08-create-biblical-journeys.sql',
         'description': 'Create biblical journey tables'
+    },
+    {
+        'file': '09-create-cross-references-topics.sql',
+        'description': 'Create cross-references and topics tables'
     }
 ]
 
@@ -348,6 +353,212 @@ def populate_bible_data(conn):
     finally:
         cur.close()
 
+def import_openbible_topics(conn):
+    """Import topic-verse mappings from OpenBible data"""
+    logger.info("\n" + "="*50)
+    logger.info("Importing OpenBible Topics", Colors.BOLD)
+    logger.info("="*50)
+    
+    topics_file = 'bible-verse-scores/topic_scores.txt'
+    if not os.path.exists(topics_file):
+        logger.warning(f"{topics_file} not found, skipping topics import")
+        return False
+    
+    cur = conn.cursor()
+    cur.execute("SET search_path TO wellversed01DEV")
+    
+    try:
+        logger.info("\nReading topic scores file...")
+        topics_cache = {}  # Cache topic_name -> topic_id
+        batch_mappings = []
+        lines_processed = 0
+        
+        with open(topics_file, 'r', encoding='utf-8') as f:
+            reader = csv.reader(f, delimiter='\t')
+            next(reader)  # Skip header
+            
+            for row in reader:
+                if len(row) < 4:
+                    continue
+                    
+                topic_name = row[0].strip()
+                osis_ref = row[1].strip()  # OSIS format like Gen.1.1 or Gen.1.1-Gen.1.5
+                votes = int(row[2]) if len(row) > 2 and row[2].strip() else 0
+                
+                # Get or create topic
+                if topic_name not in topics_cache:
+                    cur.execute("""
+                        INSERT INTO topics (topic_name) 
+                        VALUES (%s) 
+                        ON CONFLICT (topic_name) DO UPDATE 
+                        SET topic_name = EXCLUDED.topic_name
+                        RETURNING topic_id
+                    """, (topic_name,))
+                    topics_cache[topic_name] = cur.fetchone()[0]
+                
+                topic_id = topics_cache[topic_name]
+                
+                # Get verse IDs for the OSIS reference (handles both single verses and ranges)
+                cur.execute("SELECT * FROM get_osis_verse_range(%s)", (osis_ref,))
+                verse_ids = cur.fetchall()
+                
+                # Add mappings for each verse in range
+                for verse_row in verse_ids:
+                    verse_id = verse_row[0] if verse_row else None
+                    if verse_id:
+                        # Normalize confidence score (max votes seen is around 300)
+                        confidence = min(votes / 300.0, 1.0)
+                        batch_mappings.append((verse_id, topic_id, votes, confidence))
+                
+                lines_processed += 1
+                
+                # Insert in batches
+                if len(batch_mappings) >= 1000:
+                    execute_values(
+                        cur,
+                        """
+                        INSERT INTO verse_topics (verse_id, topic_id, votes, confidence_score)
+                        VALUES %s
+                        ON CONFLICT (verse_id, topic_id) DO UPDATE
+                        SET votes = EXCLUDED.votes,
+                            confidence_score = EXCLUDED.confidence_score
+                        """,
+                        batch_mappings,
+                        template="(%s, %s, %s, %s)"
+                    )
+                    conn.commit()
+                    sys.stdout.write(f"\r  Progress: {lines_processed} lines processed, {len(batch_mappings)} mappings...")
+                    sys.stdout.flush()
+                    batch_mappings = []
+        
+        # Insert remaining batch
+        if batch_mappings:
+            execute_values(
+                cur,
+                """
+                INSERT INTO verse_topics (verse_id, topic_id, votes, confidence_score)
+                VALUES %s
+                ON CONFLICT (verse_id, topic_id) DO UPDATE
+                SET votes = EXCLUDED.votes,
+                    confidence_score = EXCLUDED.confidence_score
+                """,
+                batch_mappings,
+                template="(%s, %s, %s, %s)"
+            )
+            conn.commit()
+        
+        print()  # New line after progress
+        logger.success(f"Imported {len(topics_cache)} topics with {lines_processed} mappings")
+        return True
+        
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Error importing topics: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+    finally:
+        cur.close()
+
+def import_openbible_cross_references(conn):
+    """Import cross-references from OpenBible data"""
+    logger.info("\n" + "="*50)
+    logger.info("Importing OpenBible Cross-References", Colors.BOLD)
+    logger.info("="*50)
+    
+    refs_file = 'bible-verse-scores/cross_references.txt'
+    if not os.path.exists(refs_file):
+        logger.warning(f"{refs_file} not found, skipping cross-references import")
+        return False
+    
+    cur = conn.cursor()
+    cur.execute("SET search_path TO wellversed01DEV")
+    
+    try:
+        logger.info("\nReading cross-references file...")
+        batch_refs = []
+        lines_processed = 0
+        skipped = 0
+        
+        with open(refs_file, 'r', encoding='utf-8') as f:
+            reader = csv.reader(f, delimiter='\t')
+            next(reader)  # Skip header if present
+            
+            for row in reader:
+                if len(row) < 3:
+                    continue
+                
+                from_verse = row[0].strip()
+                to_verse = row[1].strip()
+                votes = int(row[2]) if row[2].strip() else 0
+                
+                if from_verse and to_verse:
+                    # Get verse IDs using OSIS format
+                    cur.execute("SELECT get_verse_id_from_osis(%s)", (from_verse,))
+                    from_result = cur.fetchone()
+                    from_id = from_result[0] if from_result else None
+                    
+                    cur.execute("SELECT get_verse_id_from_osis(%s)", (to_verse,))
+                    to_result = cur.fetchone()
+                    to_id = to_result[0] if to_result else None
+                    
+                    if from_id and to_id and from_id != to_id:
+                        # Normalize confidence score (max votes seen is around 100)
+                        confidence = min(votes / 100.0, 1.0)
+                        batch_refs.append((from_id, to_id, votes, confidence))
+                    else:
+                        skipped += 1
+                
+                lines_processed += 1
+                
+                # Insert in batches
+                if len(batch_refs) >= 1000:
+                    execute_values(
+                        cur,
+                        """
+                        INSERT INTO cross_references (from_verse_id, to_verse_id, votes, confidence_score)
+                        VALUES %s
+                        ON CONFLICT (from_verse_id, to_verse_id) DO UPDATE
+                        SET votes = EXCLUDED.votes,
+                            confidence_score = EXCLUDED.confidence_score
+                        """,
+                        batch_refs,
+                        template="(%s, %s, %s, %s)"
+                    )
+                    conn.commit()
+                    sys.stdout.write(f"\r  Progress: {lines_processed} lines, {len(batch_refs)} references...")
+                    sys.stdout.flush()
+                    batch_refs = []
+        
+        # Insert remaining batch
+        if batch_refs:
+            execute_values(
+                cur,
+                """
+                INSERT INTO cross_references (from_verse_id, to_verse_id, votes, confidence_score)
+                VALUES %s
+                ON CONFLICT (from_verse_id, to_verse_id) DO UPDATE
+                SET votes = EXCLUDED.votes,
+                    confidence_score = EXCLUDED.confidence_score
+                """,
+                batch_refs,
+                template="(%s, %s, %s, %s)"
+            )
+            conn.commit()
+        
+        print()  # New line after progress
+        logger.success(f"Imported {lines_processed - skipped} cross-references ({skipped} skipped)")
+        return True
+        
+    except Exception as e:
+        conn.rollback()
+        logger.error(f"Error importing cross-references: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+    finally:
+        cur.close()
+
 def verify_setup(conn):
     """Verify the database setup"""
     logger.info("\n" + "="*50)
@@ -383,7 +594,10 @@ def verify_setup(conn):
         ('course_enrollments', 'Course Enrollments'),
         ('lesson_progress', 'Lesson Progress'),
         ('biblical_journeys', 'Biblical Journeys'),
-        ('journey_waypoints', 'Journey Waypoints')
+        ('journey_waypoints', 'Journey Waypoints'),
+        ('topics', 'Topics'),
+        ('verse_topics', 'Verse Topics'),
+        ('cross_references', 'Cross References')
     ]
     
     logger.info("\nTable Status:")
@@ -450,6 +664,23 @@ def verify_setup(conn):
         logger.info(f"    - Quiz lessons: {quiz_count}")
         logger.info(f"    - External lessons: {external_count}")
         
+        # Check OpenBible data if tables exist
+        try:
+            cur.execute("SELECT COUNT(*) FROM topics")
+            topic_count = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM verse_topics")
+            verse_topic_count = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM cross_references")
+            cross_ref_count = cur.fetchone()[0]
+            
+            if topic_count > 0 or verse_topic_count > 0 or cross_ref_count > 0:
+                logger.info(f"\n  OpenBible data:")
+                logger.info(f"    - Topics: {topic_count}")
+                logger.info(f"    - Verse-topic mappings: {verse_topic_count}")
+                logger.info(f"    - Cross-references: {cross_ref_count}")
+        except:
+            pass  # Tables might not exist yet
+        
     except Exception as e:
         logger.error(f"Unexpected error during data verification: {e}")
         all_good = False
@@ -464,6 +695,7 @@ def print_usage():
     print(f"\n{Colors.BOLD}Options:{Colors.RESET}")
     print(f"  --drop            Drop existing schema before setup")
     print(f"  --no-test-data    Skip inserting test data")
+    print(f"  --no-openbible    Skip importing OpenBible data")
     print(f"  --verify-only     Only verify existing setup")
     print(f"  --help            Show this help message")
     print()
@@ -497,6 +729,7 @@ def main():
         # Check for flags
         drop_schema = '--drop' in args or '-d' in args
         skip_test_data = '--no-test-data' in args
+        skip_openbible = '--no-openbible' in args
         
         if drop_schema:
             print(f"\n{Colors.YELLOW}{Colors.BOLD}⚠️  WARNING: This will DROP the existing schema!{Colors.RESET}")
@@ -557,6 +790,22 @@ def main():
                     if response.lower() != 'y':
                         logger.error("Setup aborted due to error")
                         return
+        
+        # Import OpenBible data if not skipped
+        if all_successful and not skip_openbible:
+            logger.info(f"\n{Colors.BOLD}Importing OpenBible Data...{Colors.RESET}\n")
+            
+            # Import topics
+            success = import_openbible_topics(conn)
+            if not success:
+                logger.warning("Topics import failed, but continuing...")
+            
+            # Import cross-references
+            success = import_openbible_cross_references(conn)
+            if not success:
+                logger.warning("Cross-references import failed, but continuing...")
+        elif skip_openbible:
+            logger.info("\nSkipping OpenBible data import (--no-openbible flag provided)")
         
         # Verify setup
         if all_successful:

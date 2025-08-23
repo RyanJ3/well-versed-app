@@ -554,6 +554,11 @@ import { Lesson } from '@models/course.model';
         border-color: #e5e7eb;
         transform: translateX(4px);
       }
+      
+      .lesson-card.completed:hover {
+        border-color: #10b981; // Keep green border on hover for completed lessons
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1), 0 2px 4px -1px rgba(16, 185, 129, 0.06);
+      }
 
       .lesson-card.current {
         background: #eff6ff;
@@ -561,12 +566,27 @@ import { Lesson } from '@models/course.model';
       }
 
       .lesson-card.completed {
-        opacity: 0.7;
+        background-color: white;
+        border-color: #10b981; // Same green as memorized verses
+        opacity: 1; // No opacity reduction - keep it fully visible
+      }
+      
+      .lesson-card.completed .lesson-number {
+        background-color: #10b981;
+        color: white;
       }
 
       .lesson-card.locked {
         opacity: 0.5;
         cursor: not-allowed;
+      }
+      
+      .lesson-card.completed .lesson-title {
+        color: #1f2937; // Keep normal title color
+      }
+      
+      .lesson-card.completed .lesson-description {
+        color: #6b7280; // Keep normal description color
       }
 
       .lesson-number {

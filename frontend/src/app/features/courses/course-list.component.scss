@@ -289,12 +289,22 @@
 }
 
 .lesson-number.done {
-  background: #d1fae5;
-  color: #065f46;
+  background: #10b981; // Green background matching FLOW page
+  color: white;
+  font-weight: 600;
 }
 
+.lesson.completed {
+  .lesson-number {
+    background: #10b981;
+    color: white;
+  }
+}
+
+// Remove strike-through for completed lessons - keep text normal
 .strike {
-  text-decoration: line-through;
+  text-decoration: none; // No strike-through
+  color: inherit; // Keep normal text color
 }
 
 .learn-overview ul {
