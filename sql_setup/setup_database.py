@@ -119,6 +119,11 @@ DATA_SQL_FILES = [
     {
         'file': '12-course-showcase-data.sql',
         'description': 'Insert course data'
+    },
+    {
+        'file': '13-additional-test-decks.sql',
+        'description': 'Insert additional test decks with varied content',
+        'skip_if_no_test_data': True
     }
 ]
 
@@ -370,7 +375,7 @@ def import_openbible_topics(conn):
     try:
         logger.info("\nReading topic scores file...")
         topics_cache = {}  # Cache topic_name -> topic_id
-        batch_mappings = []
+        batch_mappings = {}  # Use dict to avoid duplicates: (verse_id, topic_id) -> (votes, confidence)
         lines_processed = 0
         
         with open(topics_file, 'r', encoding='utf-8') as f:
@@ -378,7 +383,7 @@ def import_openbible_topics(conn):
             next(reader)  # Skip header
             
             for row in reader:
-                if len(row) < 4:
+                if len(row) < 3:  # Changed from 4 to 3 since data rows have 3 columns
                     continue
                     
                 topic_name = row[0].strip()
@@ -408,12 +413,17 @@ def import_openbible_topics(conn):
                     if verse_id:
                         # Normalize confidence score (max votes seen is around 300)
                         confidence = min(votes / 300.0, 1.0)
-                        batch_mappings.append((verse_id, topic_id, votes, confidence))
+                        key = (verse_id, topic_id)
+                        # If we already have this mapping, keep the one with higher votes
+                        if key not in batch_mappings or batch_mappings[key][0] < votes:
+                            batch_mappings[key] = (votes, confidence)
                 
                 lines_processed += 1
                 
                 # Insert in batches
                 if len(batch_mappings) >= 1000:
+                    # Convert dict to list for execute_values
+                    mappings_list = [(k[0], k[1], v[0], v[1]) for k, v in batch_mappings.items()]
                     execute_values(
                         cur,
                         """
@@ -423,16 +433,18 @@ def import_openbible_topics(conn):
                         SET votes = EXCLUDED.votes,
                             confidence_score = EXCLUDED.confidence_score
                         """,
-                        batch_mappings,
+                        mappings_list,
                         template="(%s, %s, %s, %s)"
                     )
                     conn.commit()
-                    sys.stdout.write(f"\r  Progress: {lines_processed} lines processed, {len(batch_mappings)} mappings...")
+                    sys.stdout.write(f"\r  Progress: {lines_processed} lines processed, {len(topics_cache)} topics...")
                     sys.stdout.flush()
-                    batch_mappings = []
+                    batch_mappings = {}
         
         # Insert remaining batch
         if batch_mappings:
+            # Convert dict to list for execute_values
+            mappings_list = [(k[0], k[1], v[0], v[1]) for k, v in batch_mappings.items()]
             execute_values(
                 cur,
                 """
@@ -442,7 +454,7 @@ def import_openbible_topics(conn):
                 SET votes = EXCLUDED.votes,
                     confidence_score = EXCLUDED.confidence_score
                 """,
-                batch_mappings,
+                mappings_list,
                 template="(%s, %s, %s, %s)"
             )
             conn.commit()

@@ -634,4 +634,88 @@
   }
 }
 
+// Verse range indicator
+.verse-range-indicator {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: normal;
+  font-style: italic;
+  margin-left: 0.5rem;
+}
+
+// Cross-reference metadata
+.cross-ref-metadata {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.625rem;
+  
+  .ref-direction {
+    padding: 0.125rem 0.375rem;
+    border-radius: 3px;
+    background: #f3f4f6;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    font-weight: 600;
+    
+    &.from {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    
+    &.to {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+  }
+  
+  .confidence-dots {
+    display: flex;
+    gap: 0.125rem;
+    
+    .dot {
+      color: #e5e7eb;
+      font-size: 0.75rem;
+      
+      &.filled {
+        color: #fbbf24;
+      }
+    }
+  }
+}
+
+// Topic metadata
+.topic-metadata {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  
+  .relevance-bar {
+    height: 3px;
+    background: #e5e7eb;
+    border-radius: 2px;
+    overflow: hidden;
+    
+    .relevance-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #22c55e);
+      transition: width 0.3s ease;
+    }
+  }
+}
+
+// Adjust verse-text padding when metadata is present
+.cross-references-grid,
+.topical-verses-grid {
+  .verse-text {
+    padding-bottom: 2rem; // Extra space for metadata
+  }
+}
+
 // Sections View

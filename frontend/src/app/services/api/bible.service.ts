@@ -363,6 +363,14 @@ export class BibleService {
   }
   
   getCrossReferencesForVerse(bookId: number, chapter: number, verse: number): Observable<any[]> {
+    // Validate inputs
+    if (bookId === undefined || bookId === null || 
+        chapter === undefined || chapter === null || 
+        verse === undefined || verse === null) {
+      console.error('Invalid parameters for getCrossReferencesForVerse:', { bookId, chapter, verse });
+      return of([]);
+    }
+    
     // First get the verse ID
     return this.http.get<any>(`${this.apiUrl}/verses/lookup`, {
       params: {

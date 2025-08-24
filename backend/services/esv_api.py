@@ -37,7 +37,21 @@ class VerseCache:
         """Load half-book chapter limits from bible_base_data.json."""
         limits: Dict[str, int] = {}
         try:
-            path = Path(__file__).resolve().parents[2] / "sql_setup" / "bible_base_data.json"
+            # Try multiple paths to find the file
+            possible_paths = [
+                Path(__file__).resolve().parents[1] / "bible_base_data.json",  # In Docker container
+                Path(__file__).resolve().parents[2] / "sql_setup" / "bible_base_data.json",  # Development
+            ]
+            
+            path = None
+            for p in possible_paths:
+                if p.exists():
+                    path = p
+                    break
+            
+            if not path:
+                raise FileNotFoundError(f"bible_base_data.json not found in any of: {possible_paths}")
+                
             with open(path) as f:
                 data = json.load(f)
             for book in data.get("books", []):

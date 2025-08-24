@@ -15,7 +15,6 @@ import { FiltersBarComponent } from './components/filters-bar/filters-bar.compon
 import { FlowContextMenuComponent } from './components/context-menu/context-menu.component';
 import { FlowHeaderComponent } from './components/flow-header/flow-header.component';
 import { CreateDeckModalComponent } from '../decks/components/create-deck-modal/create-deck-modal.component';
-import { VersePickerComponent } from './components/verse-picker/verse-picker.component';
 import { TopicPickerComponent } from './components/topic-picker/topic-picker.component';
 
 import { BibleBook, BibleChapter, BibleVerse, BibleData } from '@models/bible';
@@ -34,7 +33,6 @@ import { FlowSelectionService } from './services/flow-selection.service';
     FlowContextMenuComponent,
     FlowHeaderComponent,
     CreateDeckModalComponent,
-    VersePickerComponent,
     TopicPickerComponent
   ],
   providers: [FlowStateService, FlowMemorizationService, FlowSelectionService],
@@ -169,11 +167,41 @@ export class FlowComponent implements OnInit, OnDestroy {
   }
 
   get shouldShowMarkAsMemorized(): boolean {
-    return !this.selectedVerseIsMemorized || this.contextMenu.selectedCount > 0;
+    if (this.contextMenu.selectedCount > 0) {
+      // Check if at least one selected verse is not memorized
+      const selectedVerses = Array.from(this.selectionService.selectedVerses);
+      const verses = this.getCurrentVerses();
+      return selectedVerses.some(verseCode => {
+        const verse = verses.find(v => v.verseCode === verseCode);
+        return verse && !verse.isMemorized;
+      });
+    }
+    return !this.selectedVerseIsMemorized;
   }
 
   get shouldShowMarkAsUnmemorized(): boolean {
-    return this.selectedVerseIsMemorized || this.contextMenu.selectedCount > 0;
+    if (this.contextMenu.selectedCount > 0) {
+      // Check if at least one selected verse is memorized
+      const selectedVerses = Array.from(this.selectionService.selectedVerses);
+      const verses = this.getCurrentVerses();
+      return selectedVerses.some(verseCode => {
+        const verse = verses.find(v => v.verseCode === verseCode);
+        return verse && verse.isMemorized;
+      });
+    }
+    return this.selectedVerseIsMemorized;
+  }
+  
+  private getCurrentVerses(): FlowVerse[] {
+    // Return the appropriate verse array based on current mode
+    switch (this.mode) {
+      case 'crossReferences':
+        return this.crossReferenceVerses;
+      case 'topical':
+        return this.topicalVerses;
+      default:
+        return this.verses;
+    }
   }
 
   constructor(
@@ -263,10 +291,7 @@ export class FlowComponent implements OnInit, OnDestroy {
     if (event.key === 'Escape') {
       this.selectionService.clearSelection();
       this.contextMenu.visible = false;
-      // Exit cross-references mode if active
-      if (this.mode === 'crossReferences') {
-        this.mode = 'memorization';
-      }
+      // Only clear selections and hide context menu - don't change mode
     } else if (event.key === 'Enter') {
       if (this.mode === 'crossReferences' && this.selectionService.selectedVerses.size === 1) {
         // Navigate to selected cross-reference
@@ -542,8 +567,9 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   markSelectedAsMemorized() {
     let changedCount = 0;
+    const verses = this.getCurrentVerses();
     this.selectionService.selectedVerses.forEach(verseCode => {
-      const verse = this.verses.find(v => v.verseCode === verseCode);
+      const verse = verses.find(v => v.verseCode === verseCode);
       if (verse && !verse.isMemorized) {
         this.toggleMemorized(verse);
         changedCount++;
@@ -558,8 +584,9 @@ export class FlowComponent implements OnInit, OnDestroy {
 
   markSelectedAsUnmemorized() {
     let changedCount = 0;
+    const verses = this.getCurrentVerses();
     this.selectionService.selectedVerses.forEach(verseCode => {
-      const verse = this.verses.find(v => v.verseCode === verseCode);
+      const verse = verses.find(v => v.verseCode === verseCode);
       if (verse && verse.isMemorized) {
         this.toggleMemorized(verse);
         changedCount++;
@@ -920,16 +947,34 @@ export class FlowComponent implements OnInit, OnDestroy {
       // Clear current verses when switching to cross-references mode
       this.activeFilter = 'all';
       // If no verse is selected, select the first verse of current chapter
-      if (!this.selectedCrossRefVerse && this.verses.length > 0) {
-        const firstVerse = this.verses[0];
-        this.onCrossRefVerseSelected({
-          bookId: this.currentBook?.id || 1,
-          bookName: this.currentBook?.name || '',
-          chapter: this.currentChapter,
-          verse: firstVerse.verseNumber,
-          verseCode: firstVerse.verseCode,
-          displayText: `${this.currentBook?.name} ${this.currentChapter}:${firstVerse.verseNumber}`
-        });
+      if (!this.selectedCrossRefVerse) {
+        // Ensure we have valid book and chapter values
+        const bookId = this.currentBook?.id || 1;
+        const bookName = this.currentBook?.name || 'Genesis';
+        const chapter = this.currentChapter || 1;
+        
+        if (this.verses && this.verses.length > 0) {
+          const firstVerse = this.verses[0];
+          const verseNum = firstVerse.verseNumber || 1;
+          this.onCrossRefVerseSelected({
+            bookId: bookId,
+            bookName: bookName,
+            chapter: chapter,
+            verse: verseNum,
+            verseCode: firstVerse.verseCode || `${bookId}-${chapter}-${verseNum}`,
+            displayText: `${bookName} ${chapter}:${verseNum}`
+          });
+        } else {
+          // If no verses are loaded, default to verse 1 of current chapter
+          this.onCrossRefVerseSelected({
+            bookId: bookId,
+            bookName: bookName,
+            chapter: chapter,
+            verse: 1,
+            verseCode: `${bookId}-${chapter}-1`,
+            displayText: `${bookName} ${chapter}:1`
+          });
+        }
       }
     } else if (newMode === 'topical') {
       // Switch to topical mode
@@ -948,7 +993,31 @@ export class FlowComponent implements OnInit, OnDestroy {
   }
   
   onCrossRefVerseSelected(verse: any) {
+    // Validate verse object
+    if (!verse || verse.bookId === undefined || verse.chapter === undefined || verse.verse === undefined) {
+      console.error('Invalid verse object passed to onCrossRefVerseSelected:', verse);
+      this.loadingCrossReferences = false;
+      return;
+    }
+    
     this.selectedCrossRefVerse = verse;
+    
+    // Fetch the verse text for the selected verse
+    const verseCode = `${verse.bookId}-${verse.chapter}-${verse.verse}`;
+    this.bibleService.getVerseTexts(this.userId, [verseCode])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (verseTexts) => {
+          // Add the text to the selected verse object
+          if (this.selectedCrossRefVerse && verseTexts[verseCode]) {
+            this.selectedCrossRefVerse.text = verseTexts[verseCode];
+          }
+        },
+        error: (error) => {
+          console.error('Error loading selected verse text:', error);
+        }
+      });
+    
     this.loadCrossReferences(verse.bookId, verse.chapter, verse.verse);
   }
   
@@ -959,36 +1028,109 @@ export class FlowComponent implements OnInit, OnDestroy {
     this.bibleService.getCrossReferencesForVerse(bookId, chapter, verse)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (references) => {
+        next: async (references) => {
           console.log('Loaded cross-references:', references);
           this.crossReferenceCount = references.length;
           
-          // Convert cross-references to FlowVerse format
-          this.crossReferenceVerses = references.map((ref, index) => ({
-            index: index,
-            verseNumber: ref.verse_number,
-            verseCode: ref.verse_code,
-            reference: `${ref.book_name} ${ref.chapter}:${ref.verse_number}`,
-            fullReference: `${ref.book_name} ${ref.chapter}:${ref.verse_number}`,
-            text: ref.verse_text || '',
-            firstLetters: '',  // Not needed for cross-references
-            isMemorized: ref.is_memorized || false,
-            isFifth: false,  // Not relevant for cross-references
-            isNewSentence: false,
-            isNewParagraph: false,
-            bookName: ref.book_name || '',
-            chapter: ref.chapter || 0,
-            verse: ref.verse_number || 0,
-            verseId: ref.verse_id,
-            displayText: ref.verse_text || '',
-            practiceCount: ref.practice_count || 0,
-            confidenceScore: ref.confidence_score || 0,
-            crossRefConfidence: ref.cross_ref_confidence || 0,
-            direction: ref.direction || 'from'
-          } as FlowVerse));
+          if (references.length === 0) {
+            this.loadingCrossReferences = false;
+            return;
+          }
           
-          // Sort by confidence score
-          this.crossReferenceVerses.sort((a, b) => (b.crossRefConfidence || 0) - (a.crossRefConfidence || 0));
+          // Backend now returns pre-grouped references with range info
+          // Get only the first verse code for each reference to fetch texts
+          const verseCodesToFetch = references.map(ref => ref.verse_code);
+          
+          try {
+            // Fetch verse texts from ESV API (only first verse of each range)
+            const verseTexts = await firstValueFrom(
+              this.bibleService.getVerseTexts(this.userId, verseCodesToFetch)
+            );
+            
+            // Convert cross-references to FlowVerse format
+            this.crossReferenceVerses = references.map((ref, index) => {
+              // Use the display_reference from backend if available
+              const reference = ref.display_reference || `${ref.book_name} ${ref.chapter}:${ref.verse_number}`;
+              
+              // Get text for display (only first verse, with ellipsis if range)
+              let displayText = verseTexts[ref.verse_code] || 'Loading verse text...';
+              if (ref.is_range && displayText !== 'Loading verse text...') {
+                // Add ellipsis for ranges to indicate more text exists
+                displayText = displayText.trim() + ' ...';
+              }
+              
+              return {
+                index: index,
+                verseNumber: ref.verse_number,
+                verseCode: ref.verse_code,
+                reference: reference,
+                fullReference: reference,
+                text: displayText,
+                firstLetters: '',
+                isMemorized: ref.is_memorized,
+                isFifth: false,
+                isNewSentence: false,
+                isNewParagraph: false,
+                bookName: ref.book_name || '',
+                chapter: ref.chapter || 0,
+                verse: ref.verse_number || 0,
+                verseId: ref.verse_id,
+                displayText: displayText,
+                practiceCount: ref.practice_count || 0,
+                confidenceScore: ref.confidence_score || 0,
+                crossRefConfidence: ref.cross_ref_confidence || 0,
+                direction: ref.direction || 'from',
+                // Add properties to track if this is a range
+                isRange: ref.is_range || false,
+                endVerse: ref.end_verse_number,
+                endChapter: ref.end_chapter,
+                verseCount: ref.is_range ? 
+                  (ref.end_chapter && ref.end_chapter !== ref.chapter ? 
+                    999 : // Use a large number for cross-chapter ranges
+                    (ref.end_verse_number - ref.verse_number + 1)) : 1
+              } as FlowVerse;
+            });
+            
+          } catch (error) {
+            console.error('Error fetching verse texts:', error);
+            // Fallback: create verses without texts
+            this.crossReferenceVerses = references.map((ref, index) => {
+              const reference = ref.display_reference || `${ref.book_name} ${ref.chapter}:${ref.verse_number}`;
+              
+              return {
+                index: index,
+                verseNumber: ref.verse_number,
+                verseCode: ref.verse_code,
+                reference: reference,
+                fullReference: reference,
+                text: 'Failed to load verse text',
+                firstLetters: '',
+                isMemorized: ref.is_memorized,
+                isFifth: false,
+                isNewSentence: false,
+                isNewParagraph: false,
+                bookName: ref.book_name || '',
+                chapter: ref.chapter || 0,
+                verse: ref.verse_number || 0,
+                verseId: ref.verse_id,
+                displayText: 'Failed to load verse text',
+                practiceCount: ref.practice_count || 0,
+                confidenceScore: ref.confidence_score || 0,
+                crossRefConfidence: ref.cross_ref_confidence || 0,
+                direction: ref.direction || 'from',
+                isRange: ref.is_range || false,
+                endVerse: ref.end_verse_number,
+                endChapter: ref.end_chapter,
+                verseCount: ref.is_range ? 
+                  (ref.end_chapter && ref.end_chapter !== ref.chapter ? 
+                    999 : // Use a large number for cross-chapter ranges
+                    (ref.end_verse_number - ref.verse_number + 1)) : 1
+              } as FlowVerse;
+            });
+          }
+          
+          // Already sorted by backend, but we can re-sort if needed
+          // this.crossReferenceVerses.sort((a, b) => (b.crossRefConfidence || 0) - (a.crossRefConfidence || 0));
           
           this.loadingCrossReferences = false;
         },
@@ -998,6 +1140,93 @@ export class FlowComponent implements OnInit, OnDestroy {
           this.loadingCrossReferences = false;
         }
       });
+  }
+  
+  // Helper method to group consecutive cross-reference verses into ranges
+  private groupCrossReferencesIntoRanges(references: any[]): { verses: any[] }[] {
+    if (!references || references.length === 0) {
+      return [];
+    }
+    
+    // First, group by direction and confidence to preserve logical groupings
+    const groupMap = new Map<string, any[]>();
+    
+    references.forEach(ref => {
+      // Create a key based on direction and rounded confidence (to nearest 0.1)
+      const confidenceKey = Math.round((ref.cross_ref_confidence || 0) * 10) / 10;
+      const key = `${ref.direction}_${confidenceKey}`;
+      
+      if (!groupMap.has(key)) {
+        groupMap.set(key, []);
+      }
+      groupMap.get(key)!.push(ref);
+    });
+    
+    const allGroups: { verses: any[] }[] = [];
+    
+    // Process each direction/confidence group separately
+    groupMap.forEach(refs => {
+      // Sort references within this group by book, chapter, and verse
+      const sortedRefs = [...refs].sort((a, b) => {
+        // First sort by book ID or name
+        if (a.book_name !== b.book_name) {
+          return a.book_name.localeCompare(b.book_name);
+        }
+        if (a.chapter !== b.chapter) {
+          return a.chapter - b.chapter;
+        }
+        return a.verse_number - b.verse_number;
+      });
+      
+      // Group consecutive verses within this sorted list
+      let currentGroup: any[] = [sortedRefs[0]];
+      
+      for (let i = 1; i < sortedRefs.length; i++) {
+        const prev = sortedRefs[i - 1];
+        const curr = sortedRefs[i];
+        
+        // Check if verses are consecutive (same book, same or adjacent chapter, consecutive within chapter)
+        const sameBook = prev.book_name === curr.book_name;
+        const sameChapter = prev.chapter === curr.chapter;
+        const consecutiveInChapter = sameChapter && curr.verse_number === prev.verse_number + 1;
+        const crossChapterBoundary = !sameChapter && 
+          curr.chapter === prev.chapter + 1 && 
+          curr.verse_number === 1;
+        
+        if (sameBook && (consecutiveInChapter || crossChapterBoundary)) {
+          // Add to current group
+          currentGroup.push(curr);
+        } else {
+          // Start a new group
+          if (currentGroup.length > 0) {
+            allGroups.push({ verses: currentGroup });
+          }
+          currentGroup = [curr];
+        }
+      }
+      
+      // Add the last group
+      if (currentGroup.length > 0) {
+        allGroups.push({ verses: currentGroup });
+      }
+    });
+    
+    // Sort all groups by their first verse's confidence (highest first)
+    allGroups.sort((a, b) => {
+      const aConf = a.verses[0].cross_ref_confidence || 0;
+      const bConf = b.verses[0].cross_ref_confidence || 0;
+      return bConf - aConf;
+    });
+    
+    console.log('Grouped references:', allGroups.map(g => ({
+      count: g.verses.length,
+      first: `${g.verses[0].book_name} ${g.verses[0].chapter}:${g.verses[0].verse_number}`,
+      last: g.verses.length > 1 ? `${g.verses[g.verses.length - 1].chapter}:${g.verses[g.verses.length - 1].verse_number}` : null,
+      direction: g.verses[0].direction,
+      confidence: g.verses[0].cross_ref_confidence
+    })));
+    
+    return allGroups;
   }
   
   // Utility methods
@@ -1031,10 +1260,29 @@ export class FlowComponent implements OnInit, OnDestroy {
       } else {
         this.selectionService.addToSelection(verse);
       }
-    } else {
-      // Single selection
+    } else if (!this.selectionService.isDragging) {
+      // Single selection (only if not drag selecting)
       this.selectionService.clearSelection();
       this.selectionService.addToSelection(verse);
+    }
+  }
+  
+  handleCrossRefMouseDown(index: number) {
+    const filteredVerses = this.getFilteredCrossReferences();
+    if (index >= 0 && index < filteredVerses.length) {
+      const verse = filteredVerses[index];
+      // Find actual index in crossReferenceVerses array
+      const actualIndex = this.crossReferenceVerses.findIndex(v => v.verseCode === verse.verseCode);
+      this.selectionService.handleMouseDown(actualIndex);
+    }
+  }
+
+  handleCrossRefMouseEnter(index: number) {
+    const filteredVerses = this.getFilteredCrossReferences();
+    if (index >= 0 && index < filteredVerses.length && this.selectionService.isDragging) {
+      const verse = filteredVerses[index];
+      const actualIndex = this.crossReferenceVerses.findIndex(v => v.verseCode === verse.verseCode);
+      this.selectionService.handleMouseMove(actualIndex, this.crossReferenceVerses);
     }
   }
   
@@ -1112,35 +1360,100 @@ export class FlowComponent implements OnInit, OnDestroy {
     this.bibleService.getTopicalVerses(topicId, 100)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (verses) => {
+        next: async (verses) => {
           console.log('Loaded topical verses:', verses);
           this.topicalVerseCount = verses.length;
           
-          // Transform to FlowVerse format
-          this.topicalVerses = verses.map((verse, index) => ({
-            verseId: verse.verse_id,
-            verseCode: verse.verse_code,
-            verseNumber: verse.verse_number,
-            reference: `${verse.book_name} ${verse.chapter}:${verse.verse_number}`,
-            text: verse.verse_text || '',
-            firstLetters: this.generateFirstLetters(verse.verse_text || ''),
-            displayText: verse.verse_text || '',
-            isMemorized: verse.is_memorized,
-            isNewSentence: false,
-            isNewParagraph: false,
-            isFifth: false,
-            bookName: verse.book_name,
-            chapter: verse.chapter,
-            verse: verse.verse_number,
-            fullReference: `${verse.book_name} ${verse.chapter}:${verse.verse_number}`,
-            topicRelevance: verse.topic_relevance || 0.0,
-            topicName: verse.topic_name,
-            practiceCount: verse.practice_count || 0,
-            confidenceScore: verse.confidence_score || 0.0
-          }));
+          // Get verse codes for fetching texts
+          const verseCodes = verses.map(v => v.verse_code);
           
-          // Sort by relevance (highest first)
-          this.topicalVerses.sort((a, b) => (b.topicRelevance || 0) - (a.topicRelevance || 0));
+          try {
+            // Fetch verse texts from ESV API
+            const verseTexts = await firstValueFrom(
+              this.bibleService.getVerseTexts(this.userId, verseCodes)
+            );
+            
+            // Transform to FlowVerse format with actual verse texts
+            this.topicalVerses = verses.map((verse, index) => {
+              // Use the display_reference from backend if available
+              const reference = verse.display_reference || `${verse.book_name} ${verse.chapter}:${verse.verse_number}`;
+              
+              // Get text for display (only first verse, with ellipsis if range)
+              let displayText = verseTexts[verse.verse_code] || '';
+              if (verse.is_range && displayText) {
+                // Add ellipsis for ranges to indicate more text exists
+                displayText = displayText.trim() + ' ...';
+              }
+              
+              return {
+                verseId: verse.verse_id,
+                verseCode: verse.verse_code,
+                verseNumber: verse.verse_number,
+                reference: reference,
+                text: displayText,
+                firstLetters: this.generateFirstLetters(displayText),
+                displayText: displayText,
+                isMemorized: verse.is_memorized,
+                isNewSentence: false,
+                isNewParagraph: false,
+                isFifth: false,
+                bookName: verse.book_name,
+                chapter: verse.chapter,
+                verse: verse.verse_number,
+                fullReference: reference,
+                topicRelevance: verse.topic_relevance || 0.0,
+                topicName: verse.topic_name,
+                practiceCount: verse.practice_count || 0,
+                confidenceScore: verse.confidence_score || 0.0,
+                // Add properties to track if this is a range
+                isRange: verse.is_range || false,
+                endVerse: verse.end_verse_number,
+                endChapter: verse.end_chapter,
+                verseCount: verse.is_range ? 
+                  (verse.end_chapter && verse.end_chapter !== verse.chapter ? 
+                    999 : // Use a large number for cross-chapter ranges
+                    (verse.end_verse_number - verse.verse_number + 1)) : 1
+              };
+            });
+            
+            // Sort by relevance (highest first)
+            this.topicalVerses.sort((a, b) => (b.topicRelevance || 0) - (a.topicRelevance || 0));
+            
+          } catch (error) {
+            console.error('Error loading verse texts for topical verses:', error);
+            // Create verses without texts as fallback
+            this.topicalVerses = verses.map((verse, index) => {
+              const reference = verse.display_reference || `${verse.book_name} ${verse.chapter}:${verse.verse_number}`;
+              return {
+                verseId: verse.verse_id,
+                verseCode: verse.verse_code,
+                verseNumber: verse.verse_number,
+                reference: reference,
+                text: 'Loading verse text...',
+                firstLetters: '',
+                displayText: 'Loading verse text...',
+                isMemorized: verse.is_memorized,
+                isNewSentence: false,
+                isNewParagraph: false,
+                isFifth: false,
+                bookName: verse.book_name,
+                chapter: verse.chapter,
+                verse: verse.verse_number,
+                fullReference: reference,
+                topicRelevance: verse.topic_relevance || 0.0,
+                topicName: verse.topic_name,
+                practiceCount: verse.practice_count || 0,
+                confidenceScore: verse.confidence_score || 0.0,
+                isRange: verse.is_range || false,
+                endVerse: verse.end_verse_number,
+                endChapter: verse.end_chapter,
+                verseCount: verse.is_range ? 
+                  (verse.end_chapter && verse.end_chapter !== verse.chapter ? 
+                    999 : // Use a large number for cross-chapter ranges
+                    (verse.end_verse_number - verse.verse_number + 1)) : 1
+              };
+            });
+          }
           
           this.loadingTopicalVerses = false;
         },
@@ -1173,10 +1486,29 @@ export class FlowComponent implements OnInit, OnDestroy {
       } else {
         this.selectionService.addToSelection(verse);
       }
-    } else {
-      // Single selection
+    } else if (!this.selectionService.isDragging) {
+      // Single selection (only if not drag selecting)
       this.selectionService.clearSelection();
       this.selectionService.addToSelection(verse);
+    }
+  }
+  
+  handleTopicalMouseDown(index: number) {
+    const filteredVerses = this.getFilteredTopicalVerses();
+    if (index >= 0 && index < filteredVerses.length) {
+      const verse = filteredVerses[index];
+      // Find actual index in topicalVerses array
+      const actualIndex = this.topicalVerses.findIndex(v => v.verseCode === verse.verseCode);
+      this.selectionService.handleMouseDown(actualIndex);
+    }
+  }
+
+  handleTopicalMouseEnter(index: number) {
+    const filteredVerses = this.getFilteredTopicalVerses();
+    if (index >= 0 && index < filteredVerses.length && this.selectionService.isDragging) {
+      const verse = filteredVerses[index];
+      const actualIndex = this.topicalVerses.findIndex(v => v.verseCode === verse.verseCode);
+      this.selectionService.handleMouseMove(actualIndex, this.topicalVerses);
     }
   }
 

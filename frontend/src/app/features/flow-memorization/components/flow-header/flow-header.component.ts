@@ -39,8 +39,8 @@ export class FlowHeaderComponent implements OnInit {
   // Browser check
   private readonly isBrowser = typeof window !== 'undefined';
   
-  // Cross-references mode
-  @Input() mode: 'memorization' | 'crossReferences' = 'memorization';
+  // Mode - includes memorization, cross-references, and topical
+  @Input() mode: 'memorization' | 'crossReferences' | 'topical' = 'memorization';
 
   constructor(private elementRef: ElementRef) {}
 
@@ -240,7 +240,10 @@ export class FlowHeaderComponent implements OnInit {
     this.chapterViewMode = modes[(currentIndex + 1) % 3];
   }
 
-  toggleBookDropdown(): void {
+  toggleBookDropdown(event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
     this.showBookDropdown = !this.showBookDropdown;
     this.showChapterDropdown = false; // Close chapter dropdown if open
   }

@@ -1,6 +1,7 @@
 <div class="flow-memorization-container" (mouseup)="handleMouseUp()">
   <!-- NEW Glassmorphism Header Component (includes chapter navigation) -->
   <app-flow-header
+    *ngIf="mode !== 'topical'"
     [currentBook]="currentBook"
     [currentChapter]="currentChapter"
     [totalChapters]="currentBook?.totalChapters || 50"
@@ -18,15 +19,6 @@
     (changeBook)="changeBook($event)"
     [class.cross-ref-mode]="mode === 'crossReferences'"
   >
-    <!-- Verse Picker for Cross References Mode -->
-    <app-verse-picker
-      *ngIf="mode === 'crossReferences'"
-      [books]="allBooks"
-      [currentBookId]="currentBook?.id"
-      [currentChapter]="currentChapter"
-      [crossReferenceCount]="crossReferenceCount"
-      (verseSelected)="onCrossRefVerseSelected($event)"
-    ></app-verse-picker>
   </app-flow-header>
 
   <!-- Topic Picker for Topical Mode (moved outside header for better visibility) -->
@@ -52,8 +44,8 @@
         (modeChange)="onModeChange($event)"
       ></app-filters-bar>
 
-      <!-- Selection Info -->
-      <div class="selection-info">
+      <!-- Selection Info (only in memorization mode) -->
+      <div class="selection-info" *ngIf="mode === 'memorization'">
         <div class="selection-text">
           <span>{{ selectionService.selectedVerses.size }} verses selected</span>
           <small>Shift+Click for range • Ctrl/Cmd+A for all</small>
@@ -209,19 +201,16 @@
       <!-- Cross-Reference Cards -->
       <div
         *ngFor="let verse of getFilteredCrossReferences(); let i = index"
-        class="verse-block cross-ref-card"
+        class="verse-block"
         [class.memorized]="verse.isMemorized"
         [class.selected]="isVerseSelected(verse)"
         [style.fontSize.px]="fontSize"
         (click)="handleCrossRefClick(verse, $event)"
         (dblclick)="navigateToVerse(verse)"
         (contextmenu)="handleContextMenu($event, verse)"
+        (mousedown)="handleCrossRefMouseDown(i)"
+        (mouseenter)="handleCrossRefMouseEnter(i)"
       >
-        <!-- Full verse reference in top left -->
-        <div class="verse-full-reference">
-          {{ verse.fullReference }}
-        </div>
-        
         <div class="verse-checkmark" *ngIf="verse.isMemorized" (click)="toggleMemorized(verse); $event.stopPropagation(); $event.preventDefault()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
             <polyline points="20 6 9 17 4 12"></polyline>
@@ -234,7 +223,21 @@
           </svg>
         </div>
         
-        <div class="cross-ref-confidence">
+        <div class="verse-ref">
+          {{ verse.fullReference }}
+          <span *ngIf="verse.isRange" class="verse-range-indicator" title="{{ verse.verseCount }} verses">
+            ({{ verse.verseCount }} verses)
+          </span>
+        </div>
+        <div class="verse-text" [class.full-text]="showFullText">
+          {{ verse.text }}
+        </div>
+        
+        <!-- Additional metadata -->
+        <div class="cross-ref-metadata">
+          <span class="ref-direction" [class.from]="verse.direction === 'from'" [class.to]="verse.direction === 'to'">
+            {{ verse.direction === 'from' ? '← Referenced by' : '→ References' }}
+          </span>
           <span class="confidence-dots">
             <span *ngFor="let dot of [1,2,3,4,5]" 
                   class="dot" 
@@ -242,16 +245,6 @@
               •
             </span>
           </span>
-        </div>
-        
-        <!-- Direction indicator -->
-        <div class="cross-ref-indicator">
-          <span class="ref-direction" [class.from]="verse.direction === 'from'" [class.to]="verse.direction === 'to'">
-            {{ verse.direction === 'from' ? 'Referenced by' : 'References' }}
-          </span>
-        </div>
-        <div class="verse-text" [class.full-text]="showFullText">
-          {{ verse.text }}
         </div>
       </div>
       </div>
@@ -274,36 +267,21 @@
     <!-- Topical Verses View -->
     <div *ngIf="mode === 'topical'" class="topical-verses-container">
       
-      <!-- Selected Topic Info -->
-      <div class="selected-topic-card" *ngIf="selectedTopic">
-        <div class="card-header">
-          <span class="card-label">Selected Topic</span>
-          <span class="card-topic">{{ selectedTopic.topicName }}</span>
-        </div>
-        <div class="card-description" *ngIf="selectedTopic.description">{{ selectedTopic.description }}</div>
-        <div class="card-stats">
-          <span class="verse-count">{{ selectedTopic.verseCount }} verses</span>
-          <span class="category-tag" *ngIf="selectedTopic.category">{{ selectedTopic.category }}</span>
-        </div>
-      </div>
       
       <!-- Topical verses grid -->
       <div *ngIf="!loadingTopicalVerses && topicalVerses.length > 0" class="verses-grid topical-verses-grid">
         <div
           *ngFor="let verse of getFilteredTopicalVerses(); let i = index"
-          class="verse-block topical-card"
+          class="verse-block"
           [class.memorized]="verse.isMemorized"
           [class.selected]="isVerseSelected(verse)"
           [style.fontSize.px]="fontSize"
           (click)="handleTopicalClick(verse, $event)"
           (dblclick)="navigateToVerse(verse)"
           (contextmenu)="handleContextMenu($event, verse)"
+          (mousedown)="handleTopicalMouseDown(i)"
+          (mouseenter)="handleTopicalMouseEnter(i)"
         >
-          <!-- Full verse reference -->
-          <div class="verse-full-reference">
-            {{ verse.fullReference }}
-          </div>
-          
           <div class="verse-checkmark" *ngIf="verse.isMemorized" (click)="toggleMemorized(verse); $event.stopPropagation(); $event.preventDefault()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
               <polyline points="20 6 9 17 4 12"></polyline>
@@ -316,43 +294,36 @@
             </svg>
           </div>
           
-          <!-- Topic relevance indicator -->
-          <div class="topic-relevance">
-            <span class="relevance-dots">
-              <span *ngFor="let dot of [1,2,3,4,5]" 
-                    class="dot" 
-                    [class.filled]="(verse.topicRelevance || 0) >= (dot * 0.2)">
-                •
-              </span>
-            </span>
-          </div>
-          
+          <div class="verse-ref">{{ verse.fullReference }}</div>
           <div class="verse-text" [class.full-text]="showFullText">
             {{ verse.text }}
+          </div>
+          
+          <!-- Relevance indicator -->
+          <div class="topic-metadata">
+            <div class="relevance-bar">
+              <div class="relevance-fill" [style.width.%]="(verse.topicRelevance || 0) * 100"></div>
+            </div>
           </div>
         </div>
       </div>
       
       <!-- Empty State for No Topic Selected -->
       <div *ngIf="!loadingTopicalVerses && !selectedTopic" class="empty-state">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-        </svg>
-        <p>Select a topic above to explore verses organized by biblical themes</p>
+        <div class="empty-icon">📖</div>
+        <p>Select a topic above to explore verses</p>
       </div>
       
       <!-- Empty State for No Verses Found -->
       <div *ngIf="!loadingTopicalVerses && selectedTopic && topicalVerses.length === 0" class="empty-state">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
+        <div class="empty-icon">🔍</div>
         <p>No verses found for "{{ selectedTopic?.topicName }}"</p>
       </div>
       
       <!-- Loading state -->
       <div *ngIf="loadingTopicalVerses" class="loading-state">
         <div class="spinner"></div>
-        <p>Loading topical verses...</p>
+        <p>Loading verses...</p>
       </div>
     </div>
       </div> <!-- Close verses-container -->

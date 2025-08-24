@@ -7,9 +7,9 @@
 
     <!-- Header Bar - Always visible, no collapse -->
     <div class="header-bar">
-      <!-- Book Selector with dropdown -->
-      <div class="book-selector-wrapper">
-        <div class="book-selector" (click)="toggleBookDropdown(); $event.stopPropagation()">
+      <!-- Book Selector with dropdown (hidden in topical mode) -->
+      <div class="book-selector-wrapper" *ngIf="mode !== 'topical'">
+        <div class="book-selector" (click)="toggleBookDropdown($event)">
           <span class="book-icon">📖</span>
           <span class="book-name">{{ currentBook?.name || 'Genesis' }}</span>
           <span class="dropdown-arrow" [class.open]="showBookDropdown">▼</span>
@@ -64,8 +64,8 @@
         </div>
       </div>
 
-      <!-- Chapter Selector -->
-      <div class="chapter-selector-wrapper">
+      <!-- Chapter Selector (hidden in topical mode) -->
+      <div class="chapter-selector-wrapper" *ngIf="mode !== 'topical'">
         <div class="chapter-selector" (click)="toggleChapterDropdown($event)">
           <span class="chapter-text">Ch {{ currentChapter }}</span>
           <span class="dropdown-arrow" [class.open]="showChapterDropdown">▼</span>
@@ -85,16 +85,24 @@
         </div>
       </div>
 
-      <!-- Chapter Progress Bar -->
-      <div class="header-progress-bar">
+      <!-- Chapter Progress Bar (hidden in topical mode) -->
+      <div class="header-progress-bar" *ngIf="mode !== 'topical'">
         <div class="progress-track">
           <div class="progress-fill" [style.width.%]="chapterProgressPercentage"></div>
         </div>
         <span class="progress-text">{{ chapterProgressPercentage }}%</span>
       </div>
       
-      <!-- Action Buttons -->
-      <div class="header-actions">
+      <!-- Topical Mode Label -->
+      <div class="mode-indicator" *ngIf="mode === 'topical'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>Topical Study Mode</span>
+      </div>
+      
+      <!-- Action Buttons (only in memorization mode) -->
+      <div class="header-actions" *ngIf="mode === 'memorization'">
         <!-- Toggle Text Mode Button -->
         <button class="btn-glass-action secondary" (click)="toggleTextMode.emit()" title="Toggle text mode">
           <svg *ngIf="!showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -119,6 +127,38 @@
           </svg>
           <span *ngIf="selectedVersesCount === 0">Start Chapter</span>
           <span *ngIf="selectedVersesCount > 0">Study {{ selectedVersesCount }}</span>
+        </button>
+      </div>
+      
+      <!-- Cross-References Mode Actions -->
+      <div class="header-actions" *ngIf="mode === 'crossReferences'">
+        <!-- Toggle Text Mode Button -->
+        <button class="btn-glass-action secondary" (click)="toggleTextMode.emit()" title="Toggle text mode">
+          <svg *ngIf="!showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <svg *ngIf="showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+          </svg>
+          <span class="button-text">{{ showFullText ? 'FLOW' : 'Full' }}</span>
+        </button>
+      </div>
+      
+      <!-- Topical Mode Actions -->
+      <div class="header-actions" *ngIf="mode === 'topical'">
+        <!-- Toggle Text Mode Button -->
+        <button class="btn-glass-action secondary" (click)="toggleTextMode.emit()" title="Toggle text mode">
+          <svg *ngIf="!showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <svg *ngIf="showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+          </svg>
+          <span class="button-text">{{ showFullText ? 'FLOW' : 'Full' }}</span>
         </button>
       </div>
     </div>

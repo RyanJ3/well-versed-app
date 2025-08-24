@@ -166,8 +166,16 @@ DECLARE
     range_parts TEXT[];
     start_ref VARCHAR;
     end_ref VARCHAR;
-    start_id INT;
-    end_id INT;
+    start_parts TEXT[];
+    end_parts TEXT[];
+    start_book VARCHAR;
+    end_book VARCHAR;
+    start_chapter INT;
+    end_chapter INT;
+    start_verse INT;
+    end_verse INT;
+    start_book_id INT;
+    end_book_id INT;
 BEGIN
     -- Check if it's a range or single verse
     IF position('-' in osis_range) > 0 THEN
@@ -176,20 +184,91 @@ BEGIN
         start_ref := range_parts[1];
         end_ref := range_parts[2];
         
-        -- Get start and end verse IDs
-        start_id := get_verse_id_from_osis(start_ref);
-        end_id := get_verse_id_from_osis(end_ref);
+        -- Parse start reference
+        start_parts := string_to_array(start_ref, '.');
+        IF array_length(start_parts, 1) != 3 THEN
+            RETURN;
+        END IF;
+        start_book := start_parts[1];
+        start_chapter := start_parts[2]::INT;
+        start_verse := start_parts[3]::INT;
         
-        IF start_id IS NULL OR end_id IS NULL THEN
+        -- Parse end reference
+        end_parts := string_to_array(end_ref, '.');
+        IF array_length(end_parts, 1) != 3 THEN
+            RETURN;
+        END IF;
+        end_book := end_parts[1];
+        end_chapter := end_parts[2]::INT;
+        end_verse := end_parts[3]::INT;
+        
+        -- Get book IDs
+        start_book_id := CASE start_book
+            WHEN 'Gen' THEN 1 WHEN 'Exod' THEN 2 WHEN 'Lev' THEN 3 WHEN 'Num' THEN 4
+            WHEN 'Deut' THEN 5 WHEN 'Josh' THEN 6 WHEN 'Judg' THEN 7 WHEN 'Ruth' THEN 8
+            WHEN '1Sam' THEN 9 WHEN '2Sam' THEN 10 WHEN '1Kgs' THEN 11 WHEN '2Kgs' THEN 12
+            WHEN '1Chr' THEN 13 WHEN '2Chr' THEN 14 WHEN 'Ezra' THEN 15 WHEN 'Neh' THEN 16
+            WHEN 'Esth' THEN 17 WHEN 'Job' THEN 18 WHEN 'Ps' THEN 19 WHEN 'Prov' THEN 20
+            WHEN 'Eccl' THEN 21 WHEN 'Song' THEN 22 WHEN 'Isa' THEN 23 WHEN 'Jer' THEN 24
+            WHEN 'Lam' THEN 25 WHEN 'Ezek' THEN 26 WHEN 'Dan' THEN 27 WHEN 'Hos' THEN 28
+            WHEN 'Joel' THEN 29 WHEN 'Amos' THEN 30 WHEN 'Obad' THEN 31 WHEN 'Jonah' THEN 32
+            WHEN 'Mic' THEN 33 WHEN 'Nah' THEN 34 WHEN 'Hab' THEN 35 WHEN 'Zeph' THEN 36
+            WHEN 'Hag' THEN 37 WHEN 'Zech' THEN 38 WHEN 'Mal' THEN 39 WHEN 'Matt' THEN 40
+            WHEN 'Mark' THEN 41 WHEN 'Luke' THEN 42 WHEN 'John' THEN 43 WHEN 'Acts' THEN 44
+            WHEN 'Rom' THEN 45 WHEN '1Cor' THEN 46 WHEN '2Cor' THEN 47 WHEN 'Gal' THEN 48
+            WHEN 'Eph' THEN 49 WHEN 'Phil' THEN 50 WHEN 'Col' THEN 51 WHEN '1Thess' THEN 52
+            WHEN '2Thess' THEN 53 WHEN '1Tim' THEN 54 WHEN '2Tim' THEN 55 WHEN 'Titus' THEN 56
+            WHEN 'Phlm' THEN 57 WHEN 'Heb' THEN 58 WHEN 'Jas' THEN 59 WHEN '1Pet' THEN 60
+            WHEN '2Pet' THEN 61 WHEN '1John' THEN 62 WHEN '2John' THEN 63 WHEN '3John' THEN 64
+            WHEN 'Jude' THEN 65 WHEN 'Rev' THEN 66
+            ELSE NULL
+        END;
+        
+        end_book_id := CASE end_book
+            WHEN 'Gen' THEN 1 WHEN 'Exod' THEN 2 WHEN 'Lev' THEN 3 WHEN 'Num' THEN 4
+            WHEN 'Deut' THEN 5 WHEN 'Josh' THEN 6 WHEN 'Judg' THEN 7 WHEN 'Ruth' THEN 8
+            WHEN '1Sam' THEN 9 WHEN '2Sam' THEN 10 WHEN '1Kgs' THEN 11 WHEN '2Kgs' THEN 12
+            WHEN '1Chr' THEN 13 WHEN '2Chr' THEN 14 WHEN 'Ezra' THEN 15 WHEN 'Neh' THEN 16
+            WHEN 'Esth' THEN 17 WHEN 'Job' THEN 18 WHEN 'Ps' THEN 19 WHEN 'Prov' THEN 20
+            WHEN 'Eccl' THEN 21 WHEN 'Song' THEN 22 WHEN 'Isa' THEN 23 WHEN 'Jer' THEN 24
+            WHEN 'Lam' THEN 25 WHEN 'Ezek' THEN 26 WHEN 'Dan' THEN 27 WHEN 'Hos' THEN 28
+            WHEN 'Joel' THEN 29 WHEN 'Amos' THEN 30 WHEN 'Obad' THEN 31 WHEN 'Jonah' THEN 32
+            WHEN 'Mic' THEN 33 WHEN 'Nah' THEN 34 WHEN 'Hab' THEN 35 WHEN 'Zeph' THEN 36
+            WHEN 'Hag' THEN 37 WHEN 'Zech' THEN 38 WHEN 'Mal' THEN 39 WHEN 'Matt' THEN 40
+            WHEN 'Mark' THEN 41 WHEN 'Luke' THEN 42 WHEN 'John' THEN 43 WHEN 'Acts' THEN 44
+            WHEN 'Rom' THEN 45 WHEN '1Cor' THEN 46 WHEN '2Cor' THEN 47 WHEN 'Gal' THEN 48
+            WHEN 'Eph' THEN 49 WHEN 'Phil' THEN 50 WHEN 'Col' THEN 51 WHEN '1Thess' THEN 52
+            WHEN '2Thess' THEN 53 WHEN '1Tim' THEN 54 WHEN '2Tim' THEN 55 WHEN 'Titus' THEN 56
+            WHEN 'Phlm' THEN 57 WHEN 'Heb' THEN 58 WHEN 'Jas' THEN 59 WHEN '1Pet' THEN 60
+            WHEN '2Pet' THEN 61 WHEN '1John' THEN 62 WHEN '2John' THEN 63 WHEN '3John' THEN 64
+            WHEN 'Jude' THEN 65 WHEN 'Rev' THEN 66
+            ELSE NULL
+        END;
+        
+        IF start_book_id IS NULL OR end_book_id IS NULL THEN
             RETURN;
         END IF;
         
-        -- Return all verses in the range
+        -- Return all verses in the range using proper book/chapter/verse logic
         RETURN QUERY
         SELECT bv.id 
         FROM bible_verses bv
-        WHERE bv.id >= start_id AND bv.id <= end_id
-        ORDER BY bv.id;
+        WHERE (
+            -- Same book range
+            (bv.book_id = start_book_id AND bv.book_id = end_book_id 
+             AND ((bv.chapter_number = start_chapter AND bv.verse_number >= start_verse)
+                  OR (bv.chapter_number > start_chapter AND bv.chapter_number < end_chapter)
+                  OR (bv.chapter_number = end_chapter AND bv.verse_number <= end_verse)))
+            -- Cross-book range
+            OR (start_book_id != end_book_id AND (
+                (bv.book_id = start_book_id AND (bv.chapter_number > start_chapter 
+                                                  OR (bv.chapter_number = start_chapter AND bv.verse_number >= start_verse)))
+                OR (bv.book_id > start_book_id AND bv.book_id < end_book_id)
+                OR (bv.book_id = end_book_id AND (bv.chapter_number < end_chapter 
+                                                   OR (bv.chapter_number = end_chapter AND bv.verse_number <= end_verse)))
+            ))
+        )
+        ORDER BY bv.book_id, bv.chapter_number, bv.verse_number;
     ELSE
         -- Single verse
         RETURN QUERY

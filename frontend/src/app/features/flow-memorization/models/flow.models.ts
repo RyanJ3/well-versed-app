@@ -25,6 +25,11 @@ export interface FlowVerse {
   displayText?: string;
   isNewSentence?: boolean;
   isNewParagraph?: boolean;
+  // Fields for verse ranges
+  isRange?: boolean;
+  endVerse?: number;
+  endChapter?: number;
+  verseCount?: number;
 }
 
 export class FlowVerseImpl implements FlowVerse {

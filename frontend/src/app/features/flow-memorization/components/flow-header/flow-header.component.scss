@@ -181,6 +181,26 @@
   }
 }
 
+// Mode indicator for topical mode
+.mode-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.05));
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 10px;
+  color: #7c3aed;
+  font-size: 0.875rem;
+  font-weight: 600;
+  
+  svg {
+    width: 16px;
+    height: 16px;
+    color: #8b5cf6;
+  }
+}
+
 // Action buttons in collapsed style
 .header-actions {
   display: flex;
