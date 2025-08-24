@@ -5,7 +5,8 @@
       "Bash(docker compose logs:*)",
       "Bash(grep:*)",
       "Read(//mnt/c/Users/Owner/OneDrive/Pictures/Screenshots 1/**)",
-      "Bash(sass:*)"
+      "Bash(sass:*)",
+      "Bash(find:*)"
     ],
     "defaultMode": "acceptEdits"
   },
