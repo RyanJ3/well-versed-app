@@ -1,0 +1,138 @@
+<div class="memorization-flow-container">
+  <!-- Quick Filters Bar -->
+  <div class="filters-bar">
+    <div class="filter-buttons">
+      <button 
+        class="filter-btn"
+        [class.active]="showMemorizedOnly"
+        (click)="toggleFilter('memorized')">
+        <span class="icon">✓</span>
+        Memorized ({{ memorizedCount }})
+      </button>
+      
+      <button 
+        class="filter-btn"
+        [class.active]="showToLearnOnly"
+        (click)="toggleFilter('toLearn')">
+        <span class="icon">📚</span>
+        To Learn ({{ totalCount - memorizedCount }})
+      </button>
+      
+      <button 
+        class="filter-btn"
+        [class.active]="showReviewOnly"
+        (click)="toggleFilter('review')">
+        <span class="icon">🔄</span>
+        Review
+      </button>
+    </div>
+    
+    <div class="progress-info">
+      <span class="progress-text">{{ memorizedCount }} / {{ totalCount }}</span>
+      <div class="progress-bar-mini">
+        <div class="progress-fill" [style.width.%]="progressPercentage"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Verses Grid -->
+  <div 
+    class="verses-grid"
+    [class.single-layout]="layoutMode === 'single'"
+    [class.grid-layout]="layoutMode === 'grid'"
+    (mouseup)="handleMouseUp()">
+    
+    <div
+      *ngFor="let verse of getFilteredVerses(); let i = index; trackBy: trackByVerseCode"
+      [class]="getVerseClasses(verse, i).join(' ')"
+      [style.fontSize.px]="fontSize"
+      (click)="handleVerseClick(verse, $event)"
+      (dblclick)="handleVerseDoubleClick(verse)"
+      (mousedown)="handleMouseDown(i)"
+      (mouseenter)="handleMouseEnter(i)"
+      (contextmenu)="handleContextMenu($event, verse)">
+      
+      <!-- Memorized Checkmark -->
+      <div 
+        class="verse-checkmark" 
+        *ngIf="verse.isMemorized"
+        (click)="handleToggleMemorized(verse, $event)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      
+      <!-- Selection Checkmark -->
+      <div 
+        class="verse-selected-check" 
+        *ngIf="isVerseSelected(verse) && !verse.isMemorized">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      
+      <!-- Review Indicator -->
+      <div 
+        class="review-indicator" 
+        *ngIf="verse.isMemorized && needsReview(verse)"
+        title="Due for review">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14" fill="none" stroke="white" stroke-width="2"></polyline>
+        </svg>
+      </div>
+      
+      <!-- Verse Reference -->
+      <div class="verse-reference">
+        {{ verse.displayReference || verse.reference }}
+      </div>
+      
+      <!-- Verse Text -->
+      <div class="verse-text" [class.full-text]="showFullText">
+        {{ verse.text }}
+      </div>
+      
+      <!-- Chapter Boundary Marker -->
+      <div class="chapter-boundary" *ngIf="verse.isLastInChapter">
+        End of Chapter {{ verse.chapter }}
+      </div>
+    </div>
+  </div>
+  
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="getFilteredVerses().length === 0 && !stateManager.currentUIState.isLoading">
+    <div class="empty-icon">📖</div>
+    <p class="empty-message">
+      <ng-container *ngIf="showMemorizedOnly">No memorized verses yet</ng-container>
+      <ng-container *ngIf="showToLearnOnly">All verses have been memorized!</ng-container>
+      <ng-container *ngIf="showReviewOnly">No verses need review</ng-container>
+      <ng-container *ngIf="!showMemorizedOnly && !showToLearnOnly && !showReviewOnly">
+        No verses found
+      </ng-container>
+    </p>
+  </div>
+  
+  <!-- Selection Actions Bar -->
+  <div class="selection-actions" *ngIf="selectedVerses.size > 0">
+    <div class="selection-info">
+      {{ selectedVerses.size }} verse{{ selectedVerses.size > 1 ? 's' : '' }} selected
+    </div>
+    
+    <div class="selection-buttons">
+      <button class="action-btn primary" (click)="startStudySession()">
+        <span class="icon">📖</span>
+        Study Selected
+      </button>
+      
+      <button class="action-btn" (click)="addSelectedToDeck('Review')">
+        <span class="icon">📚</span>
+        Add to Deck
+      </button>
+      
+      <button class="action-btn danger" (click)="stateManager.clearSelection()">
+        <span class="icon">✕</span>
+        Clear
+      </button>
+    </div>
+  </div>
+</div>
