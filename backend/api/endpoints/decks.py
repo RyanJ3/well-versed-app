@@ -68,3 +68,17 @@ async def delete_deck(deck_id: int, deck_service: DeckService = Depends(get_deck
         return await deck_service.delete_deck(deck_id)
     except DeckNotFoundError:
         raise HTTPException(status_code=404, detail="Deck not found")
+
+
+@router.get("/{deck_id}/memorization-stats")
+async def get_deck_memorization_stats(
+    deck_id: int, 
+    user_id: int,
+    deck_service: DeckService = Depends(get_deck_service)
+):
+    """Get memorization statistics for a deck"""
+    try:
+        stats = await deck_service.get_deck_memorization_stats(deck_id, user_id)
+        return stats
+    except DeckNotFoundError:
+        raise HTTPException(status_code=404, detail="Deck not found")
