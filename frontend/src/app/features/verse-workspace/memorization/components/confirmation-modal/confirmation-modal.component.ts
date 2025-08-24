@@ -15,7 +15,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
     ])
   ],
   templateUrl: './confirmation-modal.component.html',
-  styleUrls: ['./confirmation-modal.component.css']
+  styleUrls: ['./confirmation-modal.component.scss']
 })
 export class ConfirmationModalComponent {
   @Input() show = false;

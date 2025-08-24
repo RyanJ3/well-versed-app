@@ -6,7 +6,9 @@
       "Bash(grep:*)",
       "Read(//mnt/c/Users/Owner/OneDrive/Pictures/Screenshots 1/**)",
       "Bash(sass:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(tree:*)",
+      "Bash(npx tsc:*)"
     ],
     "defaultMode": "acceptEdits"
   },

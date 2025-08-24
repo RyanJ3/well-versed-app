@@ -10,7 +10,7 @@ import { Subject, takeUntil } from 'rxjs';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './navigation-controls.component.html',
-  styleUrls: ['./navigation-controls.component.css'],
+  styleUrls: ['./navigation-controls.component.scss'],
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [

@@ -1,6 +1,6 @@
 <div class="verse-workspace-container" (mouseup)="handleMouseUp()">
   <!-- NEW Glassmorphism Header Component (includes chapter navigation) -->
-  <app-flow-header
+  <app-workspace-header
     *ngIf="mode !== 'topical'"
     [currentBook]="currentBook"
     [currentChapter]="currentChapter"
@@ -19,7 +19,7 @@
     (changeBook)="changeBook($event)"
     [class.cross-ref-mode]="mode === 'crossReferences'"
   >
-  </app-flow-header>
+  </app-workspace-header>
 
   <!-- Topic Picker for Topical Mode (moved outside header for better visibility) -->
   <app-topic-picker
@@ -33,7 +33,7 @@
     <!-- Left Sidebar -->
     <div class="sidebar">
       <!-- Quick Filters with Mode Toggle -->
-      <app-filters-bar
+      <app-workspace-filters
         [activeFilter]="activeFilter"
         [totalVerses]="mode === 'memorization' ? verses.length : (mode === 'crossReferences' ? crossReferenceVerses.length : (mode === 'topical' ? topicalVerses.length : 0))"
         [unmemorizedCount]="mode === 'memorization' ? unmemorizedVersesCount : (mode === 'crossReferences' ? getUnmemorizedCrossRefCount() : (mode === 'topical' ? getUnmemorizedTopicalCount() : 0))"
@@ -42,7 +42,7 @@
         [showReviewFilter]="mode === 'memorization'"
         (filterChange)="uiStateService.setActiveFilter($event)"
         (modeChange)="onModeChange($event)"
-      ></app-filters-bar>
+      ></app-workspace-filters>
 
       <!-- Chapter Actions Section (only in memorization mode) -->
       <div class="chapter-actions-section" *ngIf="mode === 'memorization'">
@@ -344,7 +344,7 @@
   </div> <!-- Close main-layout -->
 
   <!-- Context Menu -->
-  <app-flow-context-menu
+  <app-workspace-context-menu
     *ngIf="contextMenu.visible"
     [contextMenu]="contextMenu"
     [flashcardDecks]="flashcardDeckNames"
@@ -356,7 +356,7 @@
     (addToDeck)="addToFlashcardDeck($event)"
     (createDeck)="openCreateDeckModal()"
     (jumpToCrossReferences)="jumpToCrossReferencesFromContextMenu()"
-  ></app-flow-context-menu>
+  ></app-workspace-context-menu>
 
   <!-- Memorization Modal -->
   <app-memorization-modal

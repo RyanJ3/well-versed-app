@@ -246,12 +246,17 @@ export class DeckListPageComponent implements OnInit {
   }
 
   private loadMemorizationCount(deck: DeckWithCounts) {
-    // This would require a new API endpoint to get memorization statistics
-    // For now, we'll simulate with random data
-    // TODO: Replace with actual API call when endpoint is available
-    setTimeout(() => {
-      deck.memorized_count = Math.floor(Math.random() * deck.card_count);
-    }, 500);
+    // Load memorization statistics for the deck
+    this.deckService.getDeckMemorizationStats(deck.deck_id, this.userId).subscribe({
+      next: (stats: any) => {
+        deck.memorized_count = stats.memorized_count || 0;
+        console.log(`Loaded memorization stats for deck ${deck.deck_id}:`, stats);
+      },
+      error: (error: any) => {
+        console.error(`Error loading memorization stats for deck ${deck.deck_id}:`, error);
+        deck.memorized_count = 0;
+      }
+    });
   }
 
   // Tag Management

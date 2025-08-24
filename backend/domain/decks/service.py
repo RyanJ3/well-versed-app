@@ -158,3 +158,52 @@ class DeckService:
                 raise e
             logger.error(f"Error getting verse texts: {e}")
             return {code: "" for code in verse_codes}
+    
+    async def get_deck_memorization_stats(self, deck_id: int, user_id: int) -> dict:
+        """Get memorization statistics for a deck"""
+        try:
+            # Get all verse IDs in the deck
+            deck_verses_query = """
+                SELECT DISTINCT cv.verse_id, bv.verse_code
+                FROM deck_cards dc
+                JOIN card_verses cv ON dc.card_id = cv.card_id
+                JOIN bible_verses bv ON cv.verse_id = bv.id
+                WHERE dc.deck_id = %s
+            """
+            deck_verses = self.repo.db.fetch_all(deck_verses_query, (deck_id,))
+            
+            if not deck_verses:
+                return {
+                    "deck_id": deck_id,
+                    "total_verses": 0,
+                    "memorized_count": 0,
+                    "percentage": 0
+                }
+            
+            verse_ids = [v['verse_id'] for v in deck_verses]
+            
+            # Get memorized verses for this user
+            memorized_query = """
+                SELECT verse_id 
+                FROM user_verses 
+                WHERE user_id = %s AND verse_id = ANY(%s)
+            """
+            memorized_verses = self.repo.db.fetch_all(memorized_query, (user_id, verse_ids))
+            memorized_count = len(memorized_verses)
+            total_verses = len(deck_verses)
+            
+            return {
+                "deck_id": deck_id,
+                "total_verses": total_verses,
+                "memorized_count": memorized_count,
+                "percentage": round((memorized_count / total_verses * 100) if total_verses > 0 else 0, 1)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting deck memorization stats: {e}")
+            return {
+                "deck_id": deck_id,
+                "total_verses": 0,
+                "memorized_count": 0,
+                "percentage": 0
+            }

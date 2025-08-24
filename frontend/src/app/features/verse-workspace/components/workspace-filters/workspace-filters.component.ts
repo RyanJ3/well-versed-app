@@ -2,13 +2,13 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-filters-bar',
+  selector: 'app-workspace-filters',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './filters-bar.component.html',
-  styleUrls: ['./filters-bar.component.scss']
+  templateUrl: './workspace-filters.component.html',
+  styleUrls: ['./workspace-filters.component.scss']
 })
-export class FiltersBarComponent {
+export class WorkspaceFiltersComponent {
   @Input() activeFilter: 'all' | 'unmemorized' | 'needsReview' = 'all';
   @Input() totalVerses = 0;
   @Input() unmemorizedCount = 0;

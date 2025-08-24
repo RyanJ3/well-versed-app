@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import { BibleBook, BibleChapter } from '@models/bible';
 
 @Component({
-  selector: 'app-flow-header',
+  selector: 'app-workspace-header',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './flow-header.component.html',
-  styleUrls: ['./flow-header.component.scss']
+  templateUrl: './workspace-header.component.html',
+  styleUrls: ['./workspace-header.component.scss']
 })
-export class FlowHeaderComponent implements OnInit {
+export class WorkspaceHeaderComponent implements OnInit {
   // Inputs from parent FlowComponent
   @Input() currentBook: BibleBook | null = null;
   @Input() currentChapter = 1;
@@ -46,7 +46,7 @@ export class FlowHeaderComponent implements OnInit {
 
   ngOnInit() {
     // Initialize component
-    console.log('FlowHeaderComponent initialized');
+    console.log('WorkspaceHeaderComponent initialized');
     console.log('Available chapters:', this.availableChapters.length);
   }
 

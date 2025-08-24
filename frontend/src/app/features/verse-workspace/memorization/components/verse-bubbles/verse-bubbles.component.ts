@@ -24,7 +24,7 @@ export interface Verse {
     ])
   ],
   templateUrl: './verse-bubbles.component.html',
-  styleUrls: ['./verse-bubbles.component.css']
+  styleUrls: ['./verse-bubbles.component.scss']
 })
 export class VerseBubblesComponent implements AfterViewChecked {
   @ViewChild('verseBubblesContainer') verseBubblesContainer!: ElementRef<HTMLDivElement>;

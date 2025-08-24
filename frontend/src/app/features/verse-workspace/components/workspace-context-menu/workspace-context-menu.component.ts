@@ -4,13 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { ContextMenuData } from '../../models/context-menu-data.model';
 
 @Component({
-  selector: 'app-flow-context-menu',
+  selector: 'app-workspace-context-menu',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './context-menu.component.html',
-  styleUrls: ['./context-menu.component.scss']
+  templateUrl: './workspace-context-menu.component.html',
+  styleUrls: ['./workspace-context-menu.component.scss']
 })
-export class FlowContextMenuComponent {
+export class WorkspaceContextMenuComponent {
   @Input() contextMenu!: ContextMenuData;
   @Input() flashcardDecks: string[] = [];
   @Input() selectedVerseIsMemorized = false;

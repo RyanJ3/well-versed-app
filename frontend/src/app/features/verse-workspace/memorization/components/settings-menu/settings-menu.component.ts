@@ -11,7 +11,7 @@ export interface PracticeSettings {
   standalone: true,
   imports: [CommonModule],
   templateUrl: './settings-menu.component.html',
-  styleUrls: ['./settings-menu.component.css']
+  styleUrls: ['./settings-menu.component.scss']
 })
 export class SettingsMenuComponent {
   @Input() practiceSettings: PracticeSettings = {

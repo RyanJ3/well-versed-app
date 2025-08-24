@@ -265,4 +265,22 @@ export class DeckService {
   completeStudySession(result: StudySessionResult): Observable<Partial<Deck>> {
     return of({});
   }
+
+  getDeckMemorizationStats(deckId: number, userId: number): Observable<any> {
+    const uid = this.normalizeUserId(userId);
+    console.log(`Fetching memorization stats for deck ${deckId}, user ${uid}`);
+    return this.http.get(`${this.apiUrl}/${deckId}/memorization-stats?user_id=${uid}`).pipe(
+      tap(res => console.log('Loaded memorization stats', res)),
+      catchError(err => { 
+        console.error('Error loading memorization stats', err); 
+        // Return default stats on error
+        return of({
+          deck_id: deckId,
+          total_verses: 0,
+          memorized_count: 0,
+          percentage: 0
+        });
+      })
+    );
+  }
 }

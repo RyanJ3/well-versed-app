@@ -20,10 +20,10 @@ import { FlowDeckManagementService } from './services/flow-deck-management.servi
 import { FlowUIStateService } from './services/flow-ui-state.service';
 
 // Components
-import { MemorizationModalComponent } from './memorization-modal/memorization-modal.component';
-import { FiltersBarComponent } from './components/filters-bar/filters-bar.component';
-import { FlowContextMenuComponent } from './components/context-menu/context-menu.component';
-import { FlowHeaderComponent } from './components/flow-header/flow-header.component';
+import { MemorizationModalComponent } from './memorization/memorization-modal.component';
+import { WorkspaceFiltersComponent } from './components/workspace-filters/workspace-filters.component';
+import { WorkspaceContextMenuComponent } from './components/workspace-context-menu/workspace-context-menu.component';
+import { WorkspaceHeaderComponent } from './components/workspace-header/workspace-header.component';
 import { CreateDeckModalComponent } from '../decks/components/create-deck-modal/create-deck-modal.component';
 import { TopicPickerComponent } from './components/topic-picker/topic-picker.component';
 
@@ -41,9 +41,9 @@ import { FlowVerseUtils } from './utils/flow-verse.utils';
   imports: [
     CommonModule,
     MemorizationModalComponent,
-    FiltersBarComponent,
-    FlowContextMenuComponent,
-    FlowHeaderComponent,
+    WorkspaceFiltersComponent,
+    WorkspaceContextMenuComponent,
+    WorkspaceHeaderComponent,
     CreateDeckModalComponent,
     TopicPickerComponent
   ],

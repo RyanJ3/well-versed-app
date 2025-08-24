@@ -6,10 +6,10 @@ import { takeUntil } from 'rxjs/operators';
 import { FlowMemorizationFacade } from '../../facades/flow-memorization.facade';
 import { BaseVerse } from '../../models/verse-types.model';
 import { VerseGridComponent } from '../../components/verse-grid/verse-grid.component';
-import { FlowHeaderComponent } from '../../components/flow-header/flow-header.component';
-import { FlowFiltersComponent } from '../../components/flow-filters/flow-filters.component';
-import { StudyModalComponent } from '../../components/study-modal/study-modal.component';
-import { ContextMenuComponent } from '../../components/context-menu/context-menu.component';
+import { WorkspaceHeaderComponent } from '../../components/workspace-header/workspace-header.component';
+import { WorkspaceFiltersComponent } from '../../components/workspace-filters/workspace-filters.component';
+// import { StudyModalComponent } from '../../components/study-modal/study-modal.component'; // TODO: Fix or remove
+import { WorkspaceContextMenuComponent } from '../../components/workspace-context-menu/workspace-context-menu.component';
 
 /**
  * Smart Container Component
@@ -21,15 +21,15 @@ import { ContextMenuComponent } from '../../components/context-menu/context-menu
   imports: [
     CommonModule,
     VerseGridComponent,
-    FlowHeaderComponent,
-    FlowFiltersComponent,
-    StudyModalComponent,
-    ContextMenuComponent
+    WorkspaceHeaderComponent,
+    WorkspaceFiltersComponent,
+    // StudyModalComponent, // TODO: Fix or remove
+    WorkspaceContextMenuComponent
   ],
   template: `
     <div class="flow-container" [attr.data-mode]="mode$ | async">
       <!-- Header -->
-      <app-flow-header
+      <app-workspace-header
         [currentBook]="currentBook$ | async"
         [currentChapter]="currentChapter$ | async"
         [progress]="memorizationProgress$ | async"

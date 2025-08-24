@@ -47,7 +47,7 @@ export interface ProgressMarker {
     ])
   ],
   templateUrl: './progress-journey.component.html',
-  styleUrls: ['./progress-journey.component.css']
+  styleUrls: ['./progress-journey.component.scss']
 })
 export class ProgressJourneyComponent implements OnChanges {
   @Input() progressPercentage = 0;
