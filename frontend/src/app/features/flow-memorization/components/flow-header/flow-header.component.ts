@@ -63,8 +63,96 @@ export class FlowHeaderComponent implements OnInit {
   // Toggle chapter dropdown
   toggleChapterDropdown(event: MouseEvent): void {
     event.stopPropagation();
+    const target = event.currentTarget as HTMLElement;
+    
+    // Ensure we have the button element
+    if (!target) {
+      console.error('No target element found for chapter dropdown');
+      return;
+    }
+    
+    const rect = target.getBoundingClientRect();
+    console.log('Chapter button clicked:', target, 'Rect:', rect);
+    
     this.showChapterDropdown = !this.showChapterDropdown;
     this.showBookDropdown = false; // Close book dropdown if open
+    
+    if (this.showChapterDropdown) {
+      // Use requestAnimationFrame instead of setTimeout for better timing
+      requestAnimationFrame(() => {
+        this.positionDropdownWithRect('chapter', rect);
+      });
+    }
+  }
+  
+  private positionDropdown(type: 'book' | 'chapter', event: MouseEvent): void {
+    const target = event.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    this.positionDropdownWithRect(type, rect);
+  }
+  
+  private positionDropdownWithRect(type: 'book' | 'chapter', rect: DOMRect): void {
+    const dropdown = type === 'book' 
+      ? document.querySelector('.book-dropdown-menu') as HTMLElement
+      : document.querySelector('.chapter-dropdown-menu') as HTMLElement;
+    
+    if (!dropdown) {
+      console.error(`${type} dropdown element not found`);
+      return;
+    }
+    
+    // Clear any existing inline styles first
+    dropdown.style.cssText = '';
+    
+    // Force recalculation of dropdown dimensions
+    dropdown.style.visibility = 'hidden';
+    dropdown.style.display = 'block';
+    
+    // Get actual dropdown dimensions
+    const dropdownRect = dropdown.getBoundingClientRect();
+    const dropdownWidth = dropdownRect.width || 280; // Fallback to min-width
+    
+    // Calculate positions
+    const viewportWidth = window.innerWidth;
+    let leftPos = rect.left;
+    let topPos = rect.bottom + 2; // Small gap below button
+    
+    // Adjust horizontal position if dropdown would go off-screen
+    if (leftPos + dropdownWidth > viewportWidth - 10) {
+      // Align to right edge of button if it would overflow
+      leftPos = Math.max(10, rect.right - dropdownWidth);
+    }
+    
+    // Ensure dropdown doesn't go off the left edge
+    leftPos = Math.max(10, leftPos);
+    
+    // Apply final positioning
+    dropdown.style.cssText = `
+      position: fixed !important;
+      top: ${topPos}px !important;
+      left: ${leftPos}px !important;
+      z-index: 99999 !important;
+      visibility: visible !important;
+      display: block !important;
+    `;
+    
+    // Log for debugging
+    console.log(`${type} dropdown positioned:`, {
+      buttonRect: {
+        top: rect.top,
+        bottom: rect.bottom,
+        left: rect.left,
+        right: rect.right,
+        width: rect.width,
+        height: rect.height
+      },
+      dropdownPosition: {
+        top: topPos,
+        left: leftPos,
+        width: dropdownWidth
+      },
+      dropdown: dropdown
+    });
   }
 
 
@@ -243,9 +331,30 @@ export class FlowHeaderComponent implements OnInit {
   toggleBookDropdown(event?: MouseEvent): void {
     if (event) {
       event.stopPropagation();
+      const target = event.currentTarget as HTMLElement;
+      
+      // Ensure we have the button element
+      if (!target) {
+        console.error('No target element found for book dropdown');
+        return;
+      }
+      
+      const rect = target.getBoundingClientRect();
+      console.log('Book button clicked:', target, 'Rect:', rect);
+      
+      this.showBookDropdown = !this.showBookDropdown;
+      this.showChapterDropdown = false; // Close chapter dropdown if open
+      
+      if (this.showBookDropdown) {
+        // Use requestAnimationFrame instead of setTimeout for better timing
+        requestAnimationFrame(() => {
+          this.positionDropdownWithRect('book', rect);
+        });
+      }
+    } else {
+      this.showBookDropdown = !this.showBookDropdown;
+      this.showChapterDropdown = false;
     }
-    this.showBookDropdown = !this.showBookDropdown;
-    this.showChapterDropdown = false; // Close chapter dropdown if open
   }
 
   onChapterClick(chapterNumber: number): void {

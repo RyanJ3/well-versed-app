@@ -164,12 +164,12 @@ export class FlowComponent implements OnInit, OnDestroy {
   get showFullText(): boolean { return this.uiStateService.currentState.showFullText; }
   get fontSize(): number { return this.uiStateService.currentState.fontSize; }
   get layoutMode(): 'grid' | 'single' { return this.uiStateService.currentState.layoutMode; }
-  get activeFilter(): string { return this.uiStateService.currentState.activeFilter; }
+  get activeFilter(): 'all' | 'unmemorized' | 'needsReview' { return this.uiStateService.currentState.activeFilter as 'all' | 'unmemorized' | 'needsReview'; }
   get showSettings(): boolean { return this.uiStateService.currentState.showSettings; }
   get isGearSpinning(): boolean { return this.uiStateService.currentState.isGearSpinning; }
   get showEncouragement(): string { return this.uiStateService.currentState.showEncouragement; }
   get isLoading(): boolean { return this.uiStateService.currentState.isLoading; }
-  get mode(): string { return this.uiStateService.currentState.mode; }
+  get mode(): 'memorization' | 'crossReferences' | 'topical' { return this.uiStateService.currentState.mode as 'memorization' | 'crossReferences' | 'topical'; }
   get contextMenu(): any { return this.uiStateService.currentState.contextMenu; }
   get showModal(): boolean { return this.uiStateService.currentState.showModal; }
   get modalChapterName(): string { return this.uiStateService.currentState.modalChapterName; }
@@ -365,6 +365,7 @@ export class FlowComponent implements OnInit, OnDestroy {
         return {
           verseCode: code,
           reference: this.currentBook!.chapters.length === 1 ? `v${verseNum}` : `${chapterNum}:${verseNum}`,
+          fullReference: `${this.currentBook!.name} ${chapterNum}:${verseNum}`,
           text: text,
           firstLetters: this.flowParsingService.extractFirstLetters(text),
           isMemorized: isMemorized,
@@ -372,6 +373,7 @@ export class FlowComponent implements OnInit, OnDestroy {
           bookName: this.currentBook!.name,
           chapter: chapterNum,
           verse: verseNum,
+          verseNumber: verseNum,
           isSaving: false
         } as FlowVerse;
       });

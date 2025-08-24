@@ -26,6 +26,54 @@
     overflow-y: auto;
     z-index: 10;
     
+    // Chapter Actions Section
+    .chapter-actions-section {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(226, 232, 240, 0.4);
+      margin-top: 16px;
+      
+      .section-title {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6b7280;
+        margin-bottom: 12px;
+      }
+      
+      .start-chapter-btn {
+        width: 100%;
+        padding: 12px 16px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        
+        svg {
+          width: 18px;
+          height: 18px;
+        }
+        
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(102, 126, 234, 0.25);
+        }
+        
+        &:active {
+          transform: translateY(0);
+        }
+      }
+    }
+    
     // Updated selection info for sidebar
     .selection-info {
       padding: 16px 20px;

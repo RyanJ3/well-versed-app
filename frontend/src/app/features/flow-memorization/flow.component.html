@@ -40,9 +40,22 @@
         [needsReviewCount]="needsReviewCount"
         [mode]="mode"
         [showReviewFilter]="mode === 'memorization'"
-        (filterChange)="activeFilter = $event"
+        (filterChange)="uiStateService.setActiveFilter($event)"
         (modeChange)="onModeChange($event)"
       ></app-filters-bar>
+
+      <!-- Chapter Actions Section (only in memorization mode) -->
+      <div class="chapter-actions-section" *ngIf="mode === 'memorization'">
+        <h3 class="section-title">Actions</h3>
+        
+        <!-- Start Chapter Button -->
+        <button class="action-btn start-chapter-btn" (click)="startFullChapter()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8 5v14l11-7z" />
+          </svg>
+          Start Full Chapter
+        </button>
+      </div>
 
       <!-- Selection Info (only in memorization mode) -->
       <div class="selection-info" *ngIf="mode === 'memorization'">
@@ -177,7 +190,7 @@
           </svg>
         </div>
 
-        <div class="verse-ref">v{{ verse.verseNumber }}</div>
+        <div class="verse-ref">{{ verse.fullReference || (currentBook?.name + ' ' + verse.reference) }}</div>
         <div class="verse-text" [class.full-text]="showFullText">
           {{ getVerseDisplay(verse) }}
         </div>

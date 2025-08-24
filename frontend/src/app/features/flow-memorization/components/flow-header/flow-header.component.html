@@ -15,53 +15,7 @@
           <span class="dropdown-arrow" [class.open]="showBookDropdown">▼</span>
         </div>
 
-        <!-- Book dropdown menu -->
-        <div class="book-dropdown-menu" *ngIf="showBookDropdown" (click)="$event.stopPropagation()">
-          <!-- Testament filter inside dropdown -->
-          <div class="dropdown-testament-filter">
-            <button [class.active]="testamentFilter === 'ALL'"
-              (click)="setTestamentFilter('ALL'); $event.stopPropagation()">ALL</button>
-            <button [class.active]="testamentFilter === 'OT'"
-              (click)="setTestamentFilter('OT'); $event.stopPropagation()">OT</button>
-            <button [class.active]="testamentFilter === 'NT'"
-              (click)="setTestamentFilter('NT'); $event.stopPropagation()">NT</button>
-            <button [class.active]="testamentFilter === 'APO'"
-              (click)="setTestamentFilter('APO'); $event.stopPropagation()">APO</button>
-          </div>
-          
-          <!-- Old Testament Books -->
-          <div *ngIf="booksByTestament.OT.length > 0">
-            <div class="dropdown-header">Old Testament</div>
-            <div *ngFor="let book of booksByTestament.OT" class="book-dropdown-item"
-              [class.current]="book.id === currentBook?.id"
-              (click)="onBookSelect(book.id); showBookDropdown = false; $event.stopPropagation()">
-              <span>{{ book.name }}</span>
-              <span class="book-progress-badge">{{ getBookProgress(book) }}%</span>
-            </div>
-          </div>
-
-          <!-- New Testament Books -->
-          <div *ngIf="booksByTestament.NT.length > 0">
-            <div class="dropdown-header">New Testament</div>
-            <div *ngFor="let book of booksByTestament.NT" class="book-dropdown-item"
-              [class.current]="book.id === currentBook?.id"
-              (click)="onBookSelect(book.id); showBookDropdown = false; $event.stopPropagation()">
-              <span>{{ book.name }}</span>
-              <span class="book-progress-badge">{{ getBookProgress(book) }}%</span>
-            </div>
-          </div>
-
-          <!-- Apocrypha Books -->
-          <div *ngIf="booksByTestament.APO.length > 0">
-            <div class="dropdown-header">Apocrypha</div>
-            <div *ngFor="let book of booksByTestament.APO" class="book-dropdown-item"
-              [class.current]="book.id === currentBook?.id"
-              (click)="onBookSelect(book.id); showBookDropdown = false; $event.stopPropagation()">
-              <span>{{ book.name }}</span>
-              <span class="book-progress-badge">{{ getBookProgress(book) }}%</span>
-            </div>
-          </div>
-        </div>
+        <!-- Book dropdown will be positioned absolutely -->
       </div>
 
       <!-- Chapter Selector (hidden in topical mode) -->
@@ -71,18 +25,7 @@
           <span class="dropdown-arrow" [class.open]="showChapterDropdown">▼</span>
         </div>
 
-        <!-- Chapter dropdown menu -->
-        <div class="chapter-dropdown-menu" *ngIf="showChapterDropdown" (click)="$event.stopPropagation()">
-          <div *ngFor="let ch of availableChapters"
-            class="chapter-dropdown-item"
-            [class.current]="ch.chapterNumber === currentChapter"
-            (click)="onChapterClick(ch.chapterNumber); showChapterDropdown = false; $event.stopPropagation()">
-            <span>Chapter {{ ch.chapterNumber }}</span>
-            <span class="chapter-progress-badge">
-              {{ getChapterProgress(ch) }}%
-            </span>
-          </div>
-        </div>
+        <!-- Chapter dropdown will be positioned absolutely -->
       </div>
 
       <!-- Chapter Progress Bar (hidden in topical mode) -->
@@ -101,69 +44,76 @@
         <span>Topical Study Mode</span>
       </div>
       
-      <!-- Action Buttons (only in memorization mode) -->
-      <div class="header-actions" *ngIf="mode === 'memorization'">
-        <!-- Toggle Text Mode Button -->
-        <button class="btn-glass-action secondary" (click)="toggleTextMode.emit()" title="Toggle text mode">
-          <svg *ngIf="!showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-          <svg *ngIf="showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-            <line x1="1" y1="1" x2="23" y2="23"></line>
-          </svg>
-          <span class="button-text">{{ showFullText ? 'FLOW' : 'Full' }}</span>
-        </button>
-        
-        <!-- Primary Action Button -->
-        <button class="btn-glass-action primary" (click)="onStartButtonClick()">
-          <svg *ngIf="selectedVersesCount === 0" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M8 5v14l11-7z" />
-          </svg>
-          <svg *ngIf="selectedVersesCount > 0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-          </svg>
-          <span *ngIf="selectedVersesCount === 0">Start Chapter</span>
-          <span *ngIf="selectedVersesCount > 0">Study {{ selectedVersesCount }}</span>
-        </button>
-      </div>
+      <!-- Empty action buttons for memorization mode - moved to sidebar -->
       
-      <!-- Cross-References Mode Actions -->
-      <div class="header-actions" *ngIf="mode === 'crossReferences'">
-        <!-- Toggle Text Mode Button -->
-        <button class="btn-glass-action secondary" (click)="toggleTextMode.emit()" title="Toggle text mode">
-          <svg *ngIf="!showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-          <svg *ngIf="showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-            <line x1="1" y1="1" x2="23" y2="23"></line>
-          </svg>
-          <span class="button-text">{{ showFullText ? 'FLOW' : 'Full' }}</span>
-        </button>
-      </div>
+      <!-- Empty action buttons for cross-references mode -->
       
-      <!-- Topical Mode Actions -->
-      <div class="header-actions" *ngIf="mode === 'topical'">
-        <!-- Toggle Text Mode Button -->
-        <button class="btn-glass-action secondary" (click)="toggleTextMode.emit()" title="Toggle text mode">
-          <svg *ngIf="!showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-          <svg *ngIf="showFullText" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-            <line x1="1" y1="1" x2="23" y2="23"></line>
-          </svg>
-          <span class="button-text">{{ showFullText ? 'FLOW' : 'Full' }}</span>
-        </button>
-      </div>
+      <!-- Empty action buttons for topical mode -->
     </div>
 
     <!-- Verse Picker for Cross References Mode -->
     <ng-content select="app-verse-picker"></ng-content>
+  </div>
+  
+  <!-- Dropdowns positioned outside main container -->
+  <!-- Book dropdown menu -->
+  <div class="book-dropdown-menu" *ngIf="showBookDropdown" (click)="$event.stopPropagation()">
+    <!-- Testament filter inside dropdown -->
+    <div class="dropdown-testament-filter">
+      <button [class.active]="testamentFilter === 'ALL'"
+        (click)="setTestamentFilter('ALL'); $event.stopPropagation()">ALL</button>
+      <button [class.active]="testamentFilter === 'OT'"
+        (click)="setTestamentFilter('OT'); $event.stopPropagation()">OT</button>
+      <button [class.active]="testamentFilter === 'NT'"
+        (click)="setTestamentFilter('NT'); $event.stopPropagation()">NT</button>
+      <button [class.active]="testamentFilter === 'APO'"
+        (click)="setTestamentFilter('APO'); $event.stopPropagation()">APO</button>
+    </div>
+    
+    <!-- Old Testament Books -->
+    <div *ngIf="booksByTestament.OT.length > 0">
+      <div class="dropdown-header">Old Testament</div>
+      <div *ngFor="let book of booksByTestament.OT" class="book-dropdown-item"
+        [class.current]="book.id === currentBook?.id"
+        (click)="onBookSelect(book.id); showBookDropdown = false; $event.stopPropagation()">
+        <span>{{ book.name }}</span>
+        <span class="book-progress-badge">{{ getBookProgress(book) }}%</span>
+      </div>
+    </div>
+
+    <!-- New Testament Books -->
+    <div *ngIf="booksByTestament.NT.length > 0">
+      <div class="dropdown-header">New Testament</div>
+      <div *ngFor="let book of booksByTestament.NT" class="book-dropdown-item"
+        [class.current]="book.id === currentBook?.id"
+        (click)="onBookSelect(book.id); showBookDropdown = false; $event.stopPropagation()">
+        <span>{{ book.name }}</span>
+        <span class="book-progress-badge">{{ getBookProgress(book) }}%</span>
+      </div>
+    </div>
+
+    <!-- Apocrypha Books -->
+    <div *ngIf="booksByTestament.APO.length > 0">
+      <div class="dropdown-header">Apocrypha</div>
+      <div *ngFor="let book of booksByTestament.APO" class="book-dropdown-item"
+        [class.current]="book.id === currentBook?.id"
+        (click)="onBookSelect(book.id); showBookDropdown = false; $event.stopPropagation()">
+        <span>{{ book.name }}</span>
+        <span class="book-progress-badge">{{ getBookProgress(book) }}%</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Chapter dropdown menu -->
+  <div class="chapter-dropdown-menu" *ngIf="showChapterDropdown" (click)="$event.stopPropagation()">
+    <div *ngFor="let ch of availableChapters"
+      class="chapter-dropdown-item"
+      [class.current]="ch.chapterNumber === currentChapter"
+      (click)="onChapterClick(ch.chapterNumber); showChapterDropdown = false; $event.stopPropagation()">
+      <span>Chapter {{ ch.chapterNumber }}</span>
+      <span class="chapter-progress-badge">
+        {{ getChapterProgress(ch) }}%
+      </span>
+    </div>
   </div>
 </div>

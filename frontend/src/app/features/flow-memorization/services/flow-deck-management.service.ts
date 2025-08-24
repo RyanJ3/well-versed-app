@@ -136,7 +136,7 @@ export class FlowDeckManagementService {
 
     if (verseCodes.length === 0) {
       this.notificationService.success(`Deck "${deckName}" created successfully!`);
-      this.finalizeDeckCreation(createdDeck.user_id);
+      this.finalizeDeckCreation(createdDeck.creator_id);
       return;
     }
 
@@ -152,14 +152,14 @@ export class FlowDeckManagementService {
           this.notificationService.success(
             `Deck "${deckName}" created with ${verseCodes.length} verse${verseCodes.length > 1 ? 's' : ''}!`
           );
-          this.finalizeDeckCreation(createdDeck.user_id);
+          this.finalizeDeckCreation(createdDeck.creator_id);
         },
         error: (error) => {
           console.error('Error adding verses to new deck:', error);
           this.notificationService.warning(
             `Deck "${deckName}" created, but failed to add verses. You can add them manually.`
           );
-          this.finalizeDeckCreation(createdDeck.user_id);
+          this.finalizeDeckCreation(createdDeck.creator_id);
         }
       });
   }
