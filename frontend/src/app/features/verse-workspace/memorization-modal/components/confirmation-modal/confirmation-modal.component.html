@@ -1,0 +1,21 @@
+<div
+  class="confirm-modal-overlay"
+  *ngIf="show"
+  (click)="cancel.emit()"
+>
+  <div class="confirm-modal" (click)="$event.stopPropagation()" @slideUp>
+    <h3>{{ title }}</h3>
+    <p>{{ message }}</p>
+    <div class="confirm-buttons">
+      <button class="secondary-btn" (click)="cancel.emit()">
+        {{ cancelText }}
+      </button>
+      <button 
+        [class]="confirmClass" 
+        (click)="confirm.emit()"
+      >
+        {{ confirmText }}
+      </button>
+    </div>
+  </div>
+</div>

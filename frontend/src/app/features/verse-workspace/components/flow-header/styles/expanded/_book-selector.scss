@@ -1,0 +1,168 @@
+.book-selector-wrapper {
+  position: relative;
+}
+
+.book-selector-glass {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  max-width: 240px; // Limit width to keep it compact
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.85);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.1);
+  }
+  
+  .book-icon {
+    font-size: 18px;
+  }
+  
+  .book-title {
+    font-size: 16px;
+    font-weight: 600;
+    flex: 1;
+    color: #374151;
+  }
+  
+  .dropdown-arrow {
+    color: #6b7280;
+    transition: transform 0.3s;
+    font-size: 12px;
+    
+    &.open {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+// Book dropdown container - positioned below book selector
+.book-dropdown-container {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 1000;
+}
+
+// Book dropdown menu - styled exactly like collapsed dropdown
+.book-dropdown-menu {
+  min-width: 280px;
+  max-height: 450px;
+  overflow-y: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  animation: slideDown 0.3s ease;
+  padding: 4px;
+  
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  // Testament filter inside dropdown
+  .dropdown-testament-filter {
+    display: flex;
+    gap: 2px;
+    background: rgba(243, 244, 246, 0.8);
+    padding: 2px;
+    border-radius: 8px;
+    margin: 4px 4px 8px 4px;
+    
+    button {
+      flex: 1;
+      padding: 6px 8px;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.2s;
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.5);
+      }
+      
+      &.active {
+        background: white;
+        color: #667eea;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+    }
+  }
+  
+  // Section headers
+  .dropdown-header {
+    font-size: 10px;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 6px 8px 4px 8px;
+    padding: 0;
+  }
+  
+  // Book dropdown items
+  .book-dropdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    
+    &:hover {
+      background: #f3f4f6;
+    }
+    
+    &.current {
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      color: #2563eb;
+      font-weight: 600;
+    }
+    
+    .book-progress-badge {
+      font-size: 11px;
+      color: #9ca3af;
+      font-weight: 500;
+    }
+  }
+  
+  // Scrollbar styling
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+    
+    &:hover {
+      background: #9ca3af;
+    }
+  }
+}

@@ -45,9 +45,9 @@ export class HomeComponent {
       color: '#3b82f6'
     },
     {
-      title: 'FLOW Method',
-      subtitle: 'First Letter Hints',
-      description: 'Recall long passages 📝',
+      title: 'Verse Workspace',
+      subtitle: 'Memorization Tools',
+      description: 'Master long passages 📝',
       icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
       </svg>`,
@@ -56,7 +56,7 @@ export class HomeComponent {
         'Save confidence',
         'Grid or list view'
       ],
-      route: '/flow',
+      route: '/verse-workspace',
       color: '#10b981'
     },
     {

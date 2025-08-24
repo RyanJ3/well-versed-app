@@ -21,9 +21,9 @@
   <div class="action-container">
     <div class="left-actions">
       <a class="action-btn secondary"
-         [routerLink]="'/flow'"
+         [routerLink]="'/verse-workspace'"
          [queryParams]="{ bookId: selectedBook!.id, chapter: selectedChapter!.chapterNumber }">
-        Practice in FLOW
+        Practice in Verse Workspace
       </a>
       <button (click)="clearAllVerses.emit()"
               class="action-btn secondary"

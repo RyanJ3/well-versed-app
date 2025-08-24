@@ -1,0 +1,94 @@
+<div class="progress-journey">
+  <div class="journey-path">
+    <svg class="path-svg" viewBox="0 0 100 20" preserveAspectRatio="none">
+      <path
+        class="path-bg"
+        d="M 0 10 Q 25 5, 50 10 T 100 10"
+        stroke="#e5e7eb"
+        stroke-width="4"
+        fill="none"
+      />
+      <path
+        class="path-progress"
+        d="M 0 10 Q 25 5, 50 10 T 100 10"
+        [attr.stroke]="getProgressColor()"
+        stroke-width="4"
+        fill="none"
+        [style.stroke-dasharray]="'100'"
+        [style.stroke-dashoffset]="100 - progressPercentage"
+        [style.opacity]="progressPercentage > 0 ? 1 : 0"
+        @progressPath
+      />
+    </svg>
+    <div
+      class="progress-shimmer"
+      *ngIf="progressPercentage > 0"
+      [style.width.%]="progressPercentage"
+    ></div>
+  </div>
+  <div class="progress-markers">
+    <div
+      *ngFor="let marker of progressMarkers"
+      class="marker"
+      [class.star-marker]="marker.type === 'star'"
+      [class.flag-marker]="marker.type === 'flag'"
+      [class.finish-marker]="marker.type === 'finish'"
+      [style.left.%]="marker.position"
+      [id]="marker.id"
+    >
+      <!-- Star Marker -->
+      <div *ngIf="marker.type === 'star'" class="star-container">
+        <svg
+          class="star-outline"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+          <path
+            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+            stroke="#9ca3af"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <svg
+          *ngIf="marker.completed"
+          class="star-filled"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="#fbbf24"
+          @starFill
+        >
+          <path
+            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+          />
+        </svg>
+      </div>
+
+      <!-- Flag Marker -->
+      <div *ngIf="marker.type === 'flag'" class="flag-container">
+        <div
+          class="flag"
+          [class.completed]="marker.completed"
+          *ngIf="marker.completed"
+          @flagRaise
+        >
+          🚩
+        </div>
+        <div class="flag-pole" [class.completed]="marker.completed"></div>
+        <span class="flag-label">{{ marker.label }}</span>
+      </div>
+
+      <!-- Finish Marker -->
+      <div *ngIf="marker.type === 'finish'" class="finish-container">
+        <div class="finish-icon" [class.completed]="marker.completed">
+          <span *ngIf="!marker.completed">🏁</span>
+          <span *ngIf="marker.completed" @trophyBounce>🏆</span>
+        </div>
+        <span class="finish-label">{{ marker.label }}</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './pages/home/home.component';
 import { ProfileComponent } from './features/profile/profile.component';
 
-import { FlowComponent } from './features/flow-memorization/flow.component';
+import { VerseWorkspaceComponent } from './features/verse-workspace/verse-workspace.component';
 import { StatsComponent } from './features/stats/stats.component';
 import { DeckEditorPageComponent } from './features/decks/pages/deck-editor-page/deck-editor-page.component';
 import { DeckStudyComponent } from './features/decks/deck-study/deck-study.component';
@@ -54,6 +54,6 @@ export const routes: Routes = [
       ),
     canActivate: [TranslationGuard],
   },
-  { path: 'flow', component: FlowComponent, canActivate: [TranslationGuard] },
+  { path: 'verse-workspace', component: VerseWorkspaceComponent, canActivate: [TranslationGuard] },
   { path: '**', redirectTo: '' },
 ];
