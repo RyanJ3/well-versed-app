@@ -9,7 +9,9 @@
       "Bash(find:*)",
       "Bash(tree:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx ng build:*)"
+      "Bash(npx ng build:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm start)"
     ],
     "defaultMode": "acceptEdits"
   },

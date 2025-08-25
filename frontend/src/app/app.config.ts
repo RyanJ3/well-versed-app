@@ -17,6 +17,15 @@ import { DeckEffects } from './state/decks/effects/deck.effects';
 import { practiceSessionReducer } from './state/practice-session/reducers/practice-session.reducer';
 import { PracticeSessionEffects } from './state/practice-session/effects/practice-session.effects';
 import { uiReducer } from './state/ui/ui.reducer';
+import { verseWorkspaceReducer } from './features/verse-workspace/state/verse-workspace.reducer';
+import { VerseWorkspaceEffects } from './features/verse-workspace/state/verse-workspace.effects';
+import { authReducer } from './state/auth/reducers/auth.reducer';
+import { courseReducer } from './state/courses/reducers/course.reducer';
+import { CourseEffects } from './state/courses/effects/course.effects';
+import { featureRequestReducer } from './state/feature-requests/reducers/feature-request.reducer';
+import { FeatureRequestEffects } from './state/feature-requests/effects/feature-request.effects';
+import { atlasReducer } from './state/atlas/reducers/atlas.reducer';
+import { AtlasEffects } from './state/atlas/effects/atlas.effects';
 import { ConfigService } from '@services/config/config.service';
 import { UserService } from '@services/api/user.service';
 
@@ -44,10 +53,15 @@ export const appConfig: ApplicationConfig = {
     provideStore(
       {
         router: routerReducer,
+        auth: authReducer,
         bibleMemorization: bibleMemorizationReducer,
         decks: decksReducer,
         practiceSession: practiceSessionReducer,
+        courses: courseReducer,
+        featureRequests: featureRequestReducer,
+        atlas: atlasReducer,
         ui: uiReducer,
+        verseWorkspace: verseWorkspaceReducer,
       },
       {
         metaReducers: isDevMode() ? metaReducers : [],
@@ -67,6 +81,10 @@ export const appConfig: ApplicationConfig = {
       DeckEffects,
       BibleMemorizationEffects,
       PracticeSessionEffects,
+      CourseEffects,
+      FeatureRequestEffects,
+      AtlasEffects,
+      VerseWorkspaceEffects,
     ]),
 
     // Router Store

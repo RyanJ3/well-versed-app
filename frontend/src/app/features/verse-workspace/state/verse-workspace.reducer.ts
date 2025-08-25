@@ -184,7 +184,7 @@ export const verseWorkspaceReducer = createReducer(
     ...state,
     ui: {
       ...state.ui,
-      viewType: state.ui.viewType === 'grid' ? 'list' : 'grid'
+      viewType: (state.ui.viewType === 'grid' ? 'list' : 'grid') as 'grid' | 'list'
     }
   })),
   
