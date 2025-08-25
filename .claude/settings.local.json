@@ -8,7 +8,8 @@
       "Bash(sass:*)",
       "Bash(find:*)",
       "Bash(tree:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npx ng build:*)"
     ],
     "defaultMode": "acceptEdits"
   },
