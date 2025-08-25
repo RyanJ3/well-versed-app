@@ -8,16 +8,16 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { BibleService } from '@services/api/bible.service';
 import { UserService } from '@services/api/user.service';
 import { NotificationService } from '@services/utils/notification.service';
-import { FlowStateService } from './services/flow-state.service';
-import { FlowMemorizationService } from './services/flow-memorization.service';
-import { FlowSelectionService } from './services/flow-selection.service';
-import { FlowParsingService } from '@services/utils/flow-parsing.service';
+import { WorkspaceStateService } from './services/workspace-state.service';
+import { WorkspaceMemorizationService } from './services/workspace-memorization.service';
+import { WorkspaceSelectionService } from './services/workspace-selection.service';
+import { WorkspaceParsingService } from '@services/utils/workspace-parsing.service';
 
 // New Services
-import { FlowCrossReferencesService } from './services/flow-cross-references.service';
-import { FlowTopicalService } from './services/flow-topical.service';
-import { FlowDeckManagementService } from './services/flow-deck-management.service';
-import { FlowUIStateService } from './services/flow-ui-state.service';
+import { WorkspaceCrossReferencesService } from './services/workspace-cross-references.service';
+import { WorkspaceTopicalService } from './services/workspace-topical.service';
+import { WorkspaceDeckManagementService } from './services/workspace-deck-management.service';
+import { WorkspaceUIStateService } from './services/workspace-ui-state.service';
 
 // Components
 import { MemorizationModalComponent } from './memorization/memorization-modal.component';
@@ -26,14 +26,15 @@ import { WorkspaceContextMenuComponent } from './components/workspace-context-me
 import { WorkspaceHeaderComponent } from './components/workspace-header/workspace-header.component';
 import { CreateDeckModalComponent } from '../decks/components/create-deck-modal/create-deck-modal.component';
 import { TopicPickerComponent } from './components/topic-picker/topic-picker.component';
+import { VerseListComponent } from './components/verse-list/verse-list.component';
 
 // Models
 import { BibleBook, BibleChapter, BibleData } from '@models/bible';
-import { FlowVerse, ModalVerse } from './models/flow.models';
+import { WorkspaceVerse, ModalVerse } from './models/workspace.models';
 import { DeckCreate } from '@services/api/deck.service';
 
 // Utils
-import { FlowVerseUtils } from './utils/flow-verse.utils';
+import { WorkspaceVerseUtils } from './utils/workspace-verse.utils';
 
 @Component({
   selector: 'app-verse-workspace',
@@ -45,16 +46,17 @@ import { FlowVerseUtils } from './utils/flow-verse.utils';
     WorkspaceContextMenuComponent,
     WorkspaceHeaderComponent,
     CreateDeckModalComponent,
-    TopicPickerComponent
+    TopicPickerComponent,
+    VerseListComponent
   ],
   providers: [
-    FlowStateService, 
-    FlowMemorizationService, 
-    FlowSelectionService,
-    FlowCrossReferencesService,
-    FlowTopicalService,
-    FlowDeckManagementService,
-    FlowUIStateService
+    WorkspaceStateService, 
+    WorkspaceMemorizationService, 
+    WorkspaceSelectionService,
+    WorkspaceCrossReferencesService,
+    WorkspaceTopicalService,
+    WorkspaceDeckManagementService,
+    WorkspaceUIStateService
   ],
   templateUrl: './verse-workspace.component.html',
   styleUrls: ['./verse-workspace.component.scss'],
@@ -73,10 +75,10 @@ import { FlowVerseUtils } from './utils/flow-verse.utils';
 export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   @ViewChild('versesContainer') versesContainer!: ElementRef;
 
-  private flowParsingService = inject(FlowParsingService);
+  private workspaceParsingService = inject(WorkspaceParsingService);
 
   // Core data
-  verses: FlowVerse[] = [];
+  verses: WorkspaceVerse[] = [];
   
   // Bible models
   bibleData: BibleData | null = null;
@@ -94,29 +96,29 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
   // Expose utilities to template
   Math = Math;
-  verseUtils = FlowVerseUtils;
+  verseUtils = WorkspaceVerseUtils;
 
   private destroy$ = new Subject<void>();
-  private saveQueue$ = new Subject<FlowVerse>();
+  private saveQueue$ = new Subject<WorkspaceVerse>();
   private userId = 1;
   private progressLoaded = false;
 
   // Computed properties
   get memorizedVersesCount(): number {
-    return FlowVerseUtils.getVerseCounts(this.verses).memorized;
+    return WorkspaceVerseUtils.getVerseCounts(this.verses).memorized;
   }
 
   get unmemorizedVersesCount(): number {
-    return FlowVerseUtils.getVerseCounts(this.verses).unmemorized;
+    return WorkspaceVerseUtils.getVerseCounts(this.verses).unmemorized;
   }
 
   get needsReviewCount(): number {
-    return FlowVerseUtils.getVerseCounts(this.verses, this.verseReviewData).needsReview;
+    return WorkspaceVerseUtils.getVerseCounts(this.verses, this.verseReviewData).needsReview;
   }
 
   get progressPercentage(): number {
     if (!this.currentBook) return 0;
-    return FlowVerseUtils.calculateProgress(
+    return WorkspaceVerseUtils.calculateProgress(
       this.currentBook.memorizedVerses,
       this.currentBook.totalVerses
     );
@@ -124,7 +126,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
   get progressBarWidth(): number {
     if (this.verses.length === 0) return 0;
-    return FlowVerseUtils.calculateProgress(this.memorizedVersesCount, this.verses.length);
+    return WorkspaceVerseUtils.calculateProgress(this.memorizedVersesCount, this.verses.length);
   }
 
   get selectedVerseIsMemorized(): boolean {
@@ -175,13 +177,13 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   get modalChapterName(): string { return this.uiStateService.currentState.modalChapterName; }
 
   // Cross-references getters
-  get crossReferenceVerses(): FlowVerse[] { return this.crossReferencesService.verses; }
+  get crossReferenceVerses(): WorkspaceVerse[] { return this.crossReferencesService.verses; }
   get selectedCrossRefVerse(): any { return this.crossReferencesService.selectedVerse; }
   get crossReferenceCount(): number { return this.crossReferencesService.count; }
   get loadingCrossReferences(): boolean { return this.crossReferencesService.isLoading; }
 
   // Topical getters
-  get topicalVerses(): FlowVerse[] { return this.topicalService.verses; }
+  get topicalVerses(): WorkspaceVerse[] { return this.topicalService.verses; }
   get selectedTopic(): any { return this.topicalService.selectedTopic; }
   get topicalVerseCount(): number { return this.topicalService.count; }
   get loadingTopicalVerses(): boolean { return this.topicalService.isLoading; }
@@ -198,18 +200,18 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     private router: Router,
     private bibleService: BibleService,
     private userService: UserService,
-    private flowStateService: FlowStateService,
-    private flowMemorizationService: FlowMemorizationService,
+    private workspaceStateService: WorkspaceStateService,
+    private workspaceMemorizationService: WorkspaceMemorizationService,
     private notificationService: NotificationService,
-    public selectionService: FlowSelectionService,
-    private crossReferencesService: FlowCrossReferencesService,
-    private topicalService: FlowTopicalService,
-    private deckManagementService: FlowDeckManagementService,
-    public uiStateService: FlowUIStateService
+    public selectionService: WorkspaceSelectionService,
+    private crossReferencesService: WorkspaceCrossReferencesService,
+    private topicalService: WorkspaceTopicalService,
+    private deckManagementService: WorkspaceDeckManagementService,
+    public uiStateService: WorkspaceUIStateService
   ) {}
 
   ngOnInit() {
-    console.log('FlowComponent initializing...');
+    console.log('VerseWorkspaceComponent initializing...');
 
     // Load Bible data
     this.loadBibleData();
@@ -273,7 +275,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   private subscribeToSaveNotifications() {
-    this.flowMemorizationService.savedNotification$
+    this.workspaceMemorizationService.savedNotification$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.uiStateService.showEncouragement('Progress saved!', 2000);
@@ -367,7 +369,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
           reference: this.currentBook!.chapters.length === 1 ? `v${verseNum}` : `${chapterNum}:${verseNum}`,
           fullReference: `${this.currentBook!.name} ${chapterNum}:${verseNum}`,
           text: text,
-          firstLetters: this.flowParsingService.extractFirstLetters(text),
+          firstLetters: this.workspaceParsingService.extractFirstLetters(text),
           isMemorized: isMemorized,
           isFifth: (index + 1) % 5 === 0,
           bookName: this.currentBook!.name,
@@ -375,7 +377,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
           verse: verseNum,
           verseNumber: verseNum,
           isSaving: false
-        } as FlowVerse;
+        } as WorkspaceVerse;
       });
 
       // Initialize review data for memorized verses
@@ -438,7 +440,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     this.saveQueue$
       .pipe(debounceTime(300), takeUntil(this.destroy$))
       .subscribe(verse => {
-        this.flowMemorizationService.queueVerseSave(verse, this.userId);
+        this.workspaceMemorizationService.queueVerseSave(verse, this.userId);
       });
   }
 
@@ -462,7 +464,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     this.onModeChange(newMode);
   }
 
-  private getCurrentVerses(): FlowVerse[] {
+  private getCurrentVerses(): WorkspaceVerse[] {
     switch (this.uiStateService.currentState.mode) {
       case 'crossReferences':
         return this.crossReferenceVerses;
@@ -481,11 +483,11 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     this.selectionService.handleVerseClick(actualIndex, event, this.verses);
   }
 
-  handleVerseDoubleClick(verse: FlowVerse) {
+  handleVerseDoubleClick(verse: WorkspaceVerse) {
     this.toggleMemorized(verse);
   }
 
-  handleContextMenu(event: MouseEvent, verse: FlowVerse) {
+  handleContextMenu(event: MouseEvent, verse: WorkspaceVerse) {
     event.preventDefault();
     event.stopPropagation();
     
@@ -508,7 +510,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
   handleMouseEnter(index: number) {
     const actualIndex = this.getActualIndex(index);
-    this.selectionService.handleMouseMove(actualIndex, this.verses);
+    this.selectionService.handleMouseMove(actualIndex, this.verses, this.getFilteredVerses());
   }
 
   handleMouseUp() {
@@ -516,14 +518,14 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   private getActualIndex(filteredIndex: number): number {
-    return FlowVerseUtils.getActualIndex(
+    return WorkspaceVerseUtils.getActualIndex(
       filteredIndex,
       this.getFilteredVerses(),
       this.verses
     );
   }
 
-  toggleMemorized(verse: FlowVerse) {
+  toggleMemorized(verse: WorkspaceVerse) {
     const wasMemorized = verse.isMemorized;
     verse.isMemorized = !verse.isMemorized;
     verse.isSaving = true;
@@ -642,8 +644,8 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   // Filtering
-  getFilteredVerses(): FlowVerse[] {
-    return FlowVerseUtils.filterVerses(
+  getFilteredVerses(): WorkspaceVerse[] {
+    return WorkspaceVerseUtils.filterVerses(
       this.verses,
       this.uiStateService.currentState.activeFilter,
       this.verseReviewData
@@ -651,11 +653,11 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   needsReview(verseCode: string): boolean {
-    return FlowVerseUtils.needsReview(verseCode, this.verseReviewData);
+    return WorkspaceVerseUtils.needsReview(verseCode, this.verseReviewData);
   }
 
-  getVerseDisplay(verse: FlowVerse): string {
-    return FlowVerseUtils.getVerseDisplay(verse, this.showFullText);
+  getVerseDisplay(verse: WorkspaceVerse): string {
+    return WorkspaceVerseUtils.getVerseDisplay(verse, this.showFullText);
   }
 
   // Study session
@@ -769,7 +771,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   // Cross-reference methods
-  getFilteredCrossReferences(): FlowVerse[] {
+  getFilteredCrossReferences(): WorkspaceVerse[] {
     return this.crossReferencesService.getFilteredVerses(
       this.uiStateService.currentState.activeFilter as 'all' | 'unmemorized'
     );
@@ -779,7 +781,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     return this.crossReferencesService.getUnmemorizedCount();
   }
 
-  handleCrossRefClick(verse: FlowVerse, event: MouseEvent) {
+  handleCrossRefClick(verse: WorkspaceVerse, event: MouseEvent) {
     if (event.ctrlKey || event.metaKey) {
       if (this.isVerseSelected(verse)) {
         this.selectionService.removeFromSelection(verse);
@@ -806,11 +808,11 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     if (index >= 0 && index < filteredVerses.length && this.selectionService.isDragging) {
       const verse = filteredVerses[index];
       const actualIndex = this.crossReferenceVerses.findIndex(v => v.verseCode === verse.verseCode);
-      this.selectionService.handleMouseMove(actualIndex, this.crossReferenceVerses);
+      this.selectionService.handleMouseMove(actualIndex, this.crossReferenceVerses, filteredVerses);
     }
   }
 
-  navigateToVerse(verse: FlowVerse) {
+  navigateToVerse(verse: WorkspaceVerse) {
     const [bookId, chapter, verseNum] = verse.verseCode.split('-').map(Number);
     
     this.uiStateService.setTargetVerse(verseNum);
@@ -847,7 +849,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   // Topical methods
-  getFilteredTopicalVerses(): FlowVerse[] {
+  getFilteredTopicalVerses(): WorkspaceVerse[] {
     return this.topicalService.getFilteredVerses(
       this.uiStateService.currentState.activeFilter as 'all' | 'unmemorized'
     );
@@ -857,7 +859,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     return this.topicalService.getUnmemorizedCount();
   }
 
-  handleTopicalClick(verse: FlowVerse, event: MouseEvent) {
+  handleTopicalClick(verse: WorkspaceVerse, event: MouseEvent) {
     if (event.ctrlKey || event.metaKey) {
       if (this.isVerseSelected(verse)) {
         this.selectionService.removeFromSelection(verse);
@@ -884,14 +886,14 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     if (index >= 0 && index < filteredVerses.length && this.selectionService.isDragging) {
       const verse = filteredVerses[index];
       const actualIndex = this.topicalVerses.findIndex(v => v.verseCode === verse.verseCode);
-      this.selectionService.handleMouseMove(actualIndex, this.topicalVerses);
+      this.selectionService.handleMouseMove(actualIndex, this.topicalVerses, filteredVerses);
     }
   }
 
   jumpToCrossReferencesFromContextMenu() {
     this.uiStateService.hideContextMenu();
     
-    let targetVerse: FlowVerse | null = null;
+    let targetVerse: WorkspaceVerse | null = null;
     
     if (this.selectionService.selectedVerses.size === 1) {
       const selectedVerseCode = Array.from(this.selectionService.selectedVerses)[0];
@@ -930,16 +932,16 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   // Utility methods
-  isVerseSelected(verse: FlowVerse): boolean {
+  isVerseSelected(verse: WorkspaceVerse): boolean {
     return this.selectionService.isVerseSelected(verse);
   }
 
-  isNewParagraph(verse: FlowVerse): boolean {
-    return FlowVerseUtils.isNewParagraph(verse);
+  isNewParagraph(verse: WorkspaceVerse): boolean {
+    return WorkspaceVerseUtils.isNewParagraph(verse);
   }
 
-  getVerseState(verse: FlowVerse, index: number): string {
-    return FlowVerseUtils.getVerseClasses(
+  getVerseState(verse: WorkspaceVerse, index: number): string {
+    return WorkspaceVerseUtils.getVerseClasses(
       verse,
       this.isVerseSelected(verse),
       this.needsReview(verse.verseCode)
@@ -947,6 +949,6 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   isMilestoneAchieved(milestone: number): boolean {
-    return FlowVerseUtils.isMilestoneAchieved(this.progressPercentage, milestone);
+    return WorkspaceVerseUtils.isMilestoneAchieved(this.progressPercentage, milestone);
   }
 }

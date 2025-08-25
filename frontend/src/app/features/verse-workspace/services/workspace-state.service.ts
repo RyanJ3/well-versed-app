@@ -1,23 +1,23 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { FlowState, FlowViewSettings } from '../models/flow.models';
+import { WorkspaceState, WorkspaceViewSettings } from '../models/workspace.models';
 
 @Injectable()
-export class FlowStateService {
+export class WorkspaceStateService {
   private readonly LOCAL_KEY = 'flowState';
   private readonly isBrowser = typeof window !== 'undefined';
   
-  private stateSubject = new BehaviorSubject<FlowState>(this.getDefaultState());
+  private stateSubject = new BehaviorSubject<WorkspaceState>(this.getDefaultState());
   state$ = this.stateSubject.asObservable();
   
-  private viewSettingsSubject = new BehaviorSubject<FlowViewSettings>(this.getDefaultViewSettings());
+  private viewSettingsSubject = new BehaviorSubject<WorkspaceViewSettings>(this.getDefaultViewSettings());
   viewSettings$ = this.viewSettingsSubject.asObservable();
 
   constructor() {
     this.loadSavedState();
   }
 
-  private getDefaultState(): FlowState {
+  private getDefaultState(): WorkspaceState {
     return {
       layoutMode: 'grid',
       isTextMode: false,
@@ -27,7 +27,7 @@ export class FlowStateService {
     };
   }
 
-  private getDefaultViewSettings(): FlowViewSettings {
+  private getDefaultViewSettings(): WorkspaceViewSettings {
     const state = this.stateSubject.value;
     return {
       layoutMode: state.layoutMode,
@@ -38,7 +38,7 @@ export class FlowStateService {
     };
   }
 
-  updateViewSettings(settings: Partial<FlowViewSettings>) {
+  updateViewSettings(settings: Partial<WorkspaceViewSettings>) {
     const current = this.viewSettingsSubject.value;
     const updated = { ...current, ...settings };
     this.viewSettingsSubject.next(updated);
@@ -48,7 +48,7 @@ export class FlowStateService {
     this.saveState();
   }
 
-  updateState(state: Partial<FlowState>) {
+  updateState(state: Partial<WorkspaceState>) {
     const current = this.stateSubject.value;
     const updated = { ...current, ...state };
     this.stateSubject.next(updated);
@@ -72,11 +72,11 @@ export class FlowStateService {
     } catch {}
   }
 
-  getState(): FlowState {
+  getState(): WorkspaceState {
     return this.stateSubject.value;
   }
 
-  getViewSettings(): FlowViewSettings {
+  getViewSettings(): WorkspaceViewSettings {
     return this.viewSettingsSubject.value;
   }
 }

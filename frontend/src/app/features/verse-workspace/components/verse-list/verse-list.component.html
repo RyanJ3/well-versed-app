@@ -1,0 +1,38 @@
+<div class="verses-grid" [class.layout-single]="layoutMode === 'single'">
+  <div
+    *ngFor="let verse of filteredVerses; let i = index"
+    class="verse-block"
+    [class]="getVerseClasses(verse)"
+    [class.new-paragraph]="isNewParagraph(verse)"
+    [style.font-size.px]="fontSize"
+    (click)="onVerseClick(verse, $event, i)"
+    (dblclick)="onVerseDoubleClick(verse)"
+    (contextmenu)="onVerseContextMenu(verse, $event)"
+    (mousedown)="onVerseMouseDown(i)"
+    (mouseenter)="onVerseMouseEnter(i)"
+    (mouseup)="onVerseMouseUp()">
+    
+    <!-- Checkmark for memorized verses -->
+    <div class="verse-checkmark" *ngIf="verse.isMemorized" (click)="$event.stopPropagation(); $event.preventDefault()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    
+    <!-- Selection check -->
+    <div class="verse-selected-check" *ngIf="isVerseSelected(verse) && !verse.isMemorized">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    
+    <div class="verse-ref">{{ verse.reference }}</div>
+    <div class="verse-text" [class.full-text]="showFullText">
+      {{ getVerseDisplay(verse) }}
+    </div>
+    
+    <span *ngIf="verse.isSaving" class="saving-indicator">
+      <i class="fas fa-spinner fa-spin"></i>
+    </span>
+  </div>
+</div>

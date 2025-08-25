@@ -1,4 +1,4 @@
-export interface FlowVerse {
+export interface WorkspaceVerse {
   verseCode: string;
   reference: string;
   text: string;
@@ -32,7 +32,7 @@ export interface FlowVerse {
   verseCount?: number;
 }
 
-export class FlowVerseImpl implements FlowVerse {
+export class WorkspaceVerseImpl implements WorkspaceVerse {
   verseCode: string;
   reference: string;
   text: string;
@@ -46,7 +46,7 @@ export class FlowVerseImpl implements FlowVerse {
   isNewParagraph?: boolean;
   isNewSentence?: boolean;
 
-  constructor(data: FlowVerse) {
+  constructor(data: WorkspaceVerse) {
     this.verseCode = data.verseCode;
     this.reference = data.reference;
     this.text = data.text;
@@ -75,7 +75,7 @@ export interface ModalVerse {
   verse: number;
 }
 
-export interface FlowState {
+export interface WorkspaceState {
   bookId?: number;
   chapter?: number;
   layoutMode: 'grid' | 'single';
@@ -85,7 +85,7 @@ export interface FlowState {
   fontSize: number;
 }
 
-export interface FlowViewSettings {
+export interface WorkspaceViewSettings {
   layoutMode: 'grid' | 'single';
   isTextMode: boolean;
   highlightFifthVerse: boolean;

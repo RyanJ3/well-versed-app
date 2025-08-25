@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
-import { FlowParsingService } from '@services/utils/flow-parsing.service';
+import { WorkspaceParsingService } from '@services/utils/workspace-parsing.service';
 
 export interface Verse {
   code: string;
@@ -40,7 +40,7 @@ export class PracticeStageComponent {
     layoutMode: 'column'
   };
 
-  constructor(private flowParsingService: FlowParsingService) {}
+  constructor(private workspaceParsingService: WorkspaceParsingService) {}
 
   getVerseDisplay(v: Verse): string {
     if (this.currentStepIndex === 0) {
@@ -49,9 +49,9 @@ export class PracticeStageComponent {
     }
     if (this.currentStepIndex === 1) {
       // FLOW mode - first letters only
-      return this.flowParsingService.extractFirstLetters(v.text);
+      return this.workspaceParsingService.extractFirstLetters(v.text);
     }
     // Memory mode - show dots
-    return this.flowParsingService.getMemoryModeDisplay(v.text);
+    return this.workspaceParsingService.getMemoryModeDisplay(v.text);
   }
 }

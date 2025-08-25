@@ -16,7 +16,7 @@ import { WorkspaceContextMenuComponent } from '../../components/workspace-contex
  * Manages state and business logic, delegates presentation to dumb components
  */
 @Component({
-  selector: 'app-flow-container',
+  selector: 'app-workspace-container',
   standalone: true,
   imports: [
     CommonModule,
@@ -27,7 +27,7 @@ import { WorkspaceContextMenuComponent } from '../../components/workspace-contex
     WorkspaceContextMenuComponent
   ],
   template: `
-    <div class="flow-container" [attr.data-mode]="mode$ | async">
+    <div class="workspace-container" [attr.data-mode]="mode$ | async">
       <!-- Header -->
       <app-workspace-header
         [currentBook]="currentBook$ | async"
@@ -105,9 +105,9 @@ import { WorkspaceContextMenuComponent } from '../../components/workspace-contex
       />
     </div>
   `,
-  styleUrls: ['./flow-container.component.scss']
+  styleUrls: ['./workspace-container.component.scss']
 })
-export class FlowContainerComponent implements OnInit, OnDestroy {
+export class WorkspaceContainerComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   
   // Observable streams from facade

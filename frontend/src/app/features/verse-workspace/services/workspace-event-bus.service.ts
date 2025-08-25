@@ -107,7 +107,7 @@ export interface ErrorPayload {
 @Injectable({
   providedIn: 'root'
 })
-export class FlowEventBusService {
+export class WorkspaceEventBusService {
   private eventBus$ = new Subject<FlowEvent>();
   private eventHistory: FlowEvent[] = [];
   private maxHistorySize = 100;

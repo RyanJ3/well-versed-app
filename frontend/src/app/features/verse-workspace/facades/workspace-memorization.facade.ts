@@ -18,7 +18,7 @@ import { BaseVerse, MemorizationVerse, CrossReferenceVerse, TopicalVerse } from 
 @Injectable({
   providedIn: 'root'
 })
-export class FlowMemorizationFacade {
+export class WorkspaceMemorizationFacade {
   // ===== Observable Streams =====
   
   // Verse streams

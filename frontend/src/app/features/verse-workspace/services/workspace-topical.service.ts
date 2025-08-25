@@ -4,11 +4,11 @@ import { firstValueFrom } from 'rxjs';
 
 import { BibleService } from '@services/api/bible.service';
 import { NotificationService } from '@services/utils/notification.service';
-import { FlowParsingService } from '@services/utils/flow-parsing.service';
-import { FlowVerse } from '../models/flow.models';
+import { WorkspaceParsingService } from '@services/utils/workspace-parsing.service';
+import { WorkspaceVerse } from '../models/workspace.models';
 
 export interface TopicalState {
-  verses: FlowVerse[];
+  verses: WorkspaceVerse[];
   selectedTopic: any;
   availableTopics: any[];
   count: number;
@@ -17,7 +17,7 @@ export interface TopicalState {
 }
 
 @Injectable()
-export class FlowTopicalService {
+export class WorkspaceTopicalService {
   private topicalState = new BehaviorSubject<TopicalState>({
     verses: [],
     selectedTopic: null,
@@ -32,14 +32,14 @@ export class FlowTopicalService {
   constructor(
     private bibleService: BibleService,
     private notificationService: NotificationService,
-    private flowParsingService: FlowParsingService
+    private workspaceParsingService: WorkspaceParsingService
   ) {}
 
   get currentState(): TopicalState {
     return this.topicalState.value;
   }
 
-  get verses(): FlowVerse[] {
+  get verses(): WorkspaceVerse[] {
     return this.topicalState.value.verses;
   }
 
@@ -102,7 +102,7 @@ export class FlowTopicalService {
           this.bibleService.getVerseTexts(userId, verseCodes)
         );
         
-        // Transform to FlowVerse format with actual verse texts
+        // Transform to WorkspaceVerse format with actual verse texts
         const topicalVerses = verses.map((verse, index) => {
           const reference = verse.display_reference || `${verse.book_name} ${verse.chapter}:${verse.verse_number}`;
           
@@ -139,7 +139,7 @@ export class FlowTopicalService {
               (verse.end_chapter && verse.end_chapter !== verse.chapter ? 
                 999 : // Use a large number for cross-chapter ranges
                 (verse.end_verse_number - verse.verse_number + 1)) : 1
-          } as FlowVerse;
+          } as WorkspaceVerse;
         });
         
         // Sort by relevance (highest first)
@@ -162,7 +162,7 @@ export class FlowTopicalService {
     }
   }
 
-  private createFallbackVerse(verse: any, index: number): FlowVerse {
+  private createFallbackVerse(verse: any, index: number): WorkspaceVerse {
     const reference = verse.display_reference || `${verse.book_name} ${verse.chapter}:${verse.verse_number}`;
     
     return {
@@ -192,7 +192,7 @@ export class FlowTopicalService {
         (verse.end_chapter && verse.end_chapter !== verse.chapter ? 
           999 : 
           (verse.end_verse_number - verse.verse_number + 1)) : 1
-    } as FlowVerse;
+    } as WorkspaceVerse;
   }
 
   private generateFirstLetters(text: string): string {
@@ -205,7 +205,7 @@ export class FlowTopicalService {
       .join('');
   }
 
-  getFilteredVerses(filter: 'all' | 'unmemorized'): FlowVerse[] {
+  getFilteredVerses(filter: 'all' | 'unmemorized'): WorkspaceVerse[] {
     const verses = this.topicalState.value.verses;
     if (filter === 'all') {
       return verses;

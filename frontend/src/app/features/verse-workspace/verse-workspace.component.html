@@ -156,46 +156,23 @@
 
 
     <!-- Regular Grid View (only in memorization mode) -->
-    <div *ngIf="mode === 'memorization' && !isLoading && verses.length > 0" class="verses-grid">
-      <div
-        *ngFor="let verse of getFilteredVerses(); let i = index"
-        [class]="getVerseState(verse, i)"
-        [style.fontSize.px]="fontSize"
-        (click)="handleVerseClick(i, $event)"
-        (dblclick)="handleVerseDoubleClick(verse)"
-        (mousedown)="handleMouseDown(i)"
-        (mouseenter)="handleMouseEnter(i)"
-        (contextmenu)="handleContextMenu($event, verse)"
-      >
-        <div class="new-paragraph-marker" *ngIf="isNewParagraph(verse)">
-          ¶ New paragraph
-        </div>
-
-        <div class="verse-checkmark" *ngIf="verse.isMemorized" (click)="toggleMemorized(verse); $event.stopPropagation(); $event.preventDefault()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-        </div>
-
-        <div class="verse-selected-check" *ngIf="isVerseSelected(verse) && !verse.isMemorized">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-        </div>
-
-        <div class="review-indicator" *ngIf="needsReview(verse.verseCode) && verse.isMemorized">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14" fill="none" stroke="white" stroke-width="2"></polyline>
-          </svg>
-        </div>
-
-        <div class="verse-ref">{{ verse.fullReference || (currentBook?.name + ' ' + verse.reference) }}</div>
-        <div class="verse-text" [class.full-text]="showFullText">
-          {{ getVerseDisplay(verse) }}
-        </div>
-      </div>
-    </div>
+    <app-verse-list
+      *ngIf="mode === 'memorization' && !isLoading && verses.length > 0"
+      [verses]="verses"
+      [filteredVerses]="getFilteredVerses()"
+      [selectedVerses]="selectionService.selectedVerses"
+      [showFullText]="showFullText"
+      [fontSize]="fontSize"
+      [layoutMode]="layoutMode"
+      [verseReviewData]="verseReviewData"
+      [mode]="mode"
+      (verseClick)="handleVerseClick($event.index, $event.event)"
+      (verseDoubleClick)="handleVerseDoubleClick($event)"
+      (verseContextMenu)="handleContextMenu($event.event, $event.verse)"
+      (verseMouseDown)="handleMouseDown($event)"
+      (verseMouseEnter)="handleMouseEnter($event)"
+      (verseMouseUp)="handleMouseUp()"
+    ></app-verse-list>
     
     <!-- Cross-References View (replaces all verses when in this mode) -->
     <div *ngIf="mode === 'crossReferences'" class="cross-references-container">

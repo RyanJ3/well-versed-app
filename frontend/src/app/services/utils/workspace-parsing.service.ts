@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 @Injectable({
   providedIn: 'root'
 })
-export class FlowParsingService {
+export class WorkspaceParsingService {
   
   /**
    * Extracts the first letters of each word from the given text.

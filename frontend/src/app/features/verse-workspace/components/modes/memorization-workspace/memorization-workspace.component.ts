@@ -1,20 +1,20 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { BaseFlowComponent } from '../base-flow.component';
+import { BaseWorkspaceComponent } from '../base-workspace.component';
 import { MemorizationVerse } from '../../../models/verse-types.model';
-import { FlowStateManagerService } from '../../../services/flow-state-manager.service';
+import { WorkspaceStateManagerService } from '../../../services/workspace-state-manager.service';
 import { VerseTransformationService } from '../../../services/verse-transformation.service';
 import { BibleMemorizationService } from '../../../../../services/bible-memorization.service';
 import { takeUntil } from 'rxjs/operators';
 
 @Component({
-  selector: 'app-memorization-flow',
+  selector: 'app-memorization-workspace',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './memorization-flow.component.html',
-  styleUrls: ['./memorization-flow.component.scss']
+  templateUrl: './memorization-workspace.component.html',
+  styleUrls: ['./memorization-workspace.component.scss']
 })
-export class MemorizationFlowComponent extends BaseFlowComponent<MemorizationVerse> implements OnInit {
+export class MemorizationWorkspaceComponent extends BaseWorkspaceComponent<MemorizationVerse> implements OnInit {
   @Input() bookId = 1;
   @Input() chapter = 1;
   

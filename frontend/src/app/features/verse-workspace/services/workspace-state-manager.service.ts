@@ -88,7 +88,7 @@ export interface FlowSettingsState {
 @Injectable({
   providedIn: 'root'
 })
-export class FlowStateManagerService {
+export class WorkspaceStateManagerService {
   // State subjects
   private uiState$ = new BehaviorSubject<FlowUIState>(this.getInitialUIState());
   private dataState$ = new BehaviorSubject<FlowDataState>(this.getInitialDataState());

@@ -5,18 +5,18 @@ import { firstValueFrom } from 'rxjs';
 
 import { BibleService } from '@services/api/bible.service';
 import { NotificationService } from '@services/utils/notification.service';
-import { FlowParsingService } from '@services/utils/flow-parsing.service';
-import { FlowVerse } from '../models/flow.models';
+import { WorkspaceParsingService } from '@services/utils/workspace-parsing.service';
+import { WorkspaceVerse } from '../models/workspace.models';
 
 export interface CrossReferenceState {
-  verses: FlowVerse[];
+  verses: WorkspaceVerse[];
   selectedVerse: any;
   count: number;
   loading: boolean;
 }
 
 @Injectable()
-export class FlowCrossReferencesService {
+export class WorkspaceCrossReferencesService {
   private crossReferenceState = new BehaviorSubject<CrossReferenceState>({
     verses: [],
     selectedVerse: null,
@@ -29,14 +29,14 @@ export class FlowCrossReferencesService {
   constructor(
     private bibleService: BibleService,
     private notificationService: NotificationService,
-    private flowParsingService: FlowParsingService
+    private workspaceParsingService: WorkspaceParsingService
   ) {}
 
   get currentState(): CrossReferenceState {
     return this.crossReferenceState.value;
   }
 
-  get verses(): FlowVerse[] {
+  get verses(): WorkspaceVerse[] {
     return this.crossReferenceState.value.verses;
   }
 
@@ -107,7 +107,7 @@ export class FlowCrossReferencesService {
           this.bibleService.getVerseTexts(userId, verseCodesToFetch)
         );
         
-        // Convert cross-references to FlowVerse format
+        // Convert cross-references to WorkspaceVerse format
         const crossReferenceVerses = references.map((ref, index) => {
           const reference = ref.display_reference || `${ref.book_name} ${ref.chapter}:${ref.verse_number}`;
           
@@ -145,7 +145,7 @@ export class FlowCrossReferencesService {
               (ref.end_chapter && ref.end_chapter !== ref.chapter ? 
                 999 : // Use a large number for cross-chapter ranges
                 (ref.end_verse_number - ref.verse_number + 1)) : 1
-          } as FlowVerse;
+          } as WorkspaceVerse;
         });
         
         this.updateState({ verses: crossReferenceVerses });
@@ -166,7 +166,7 @@ export class FlowCrossReferencesService {
     }
   }
 
-  private createFallbackVerse(ref: any, index: number): FlowVerse {
+  private createFallbackVerse(ref: any, index: number): WorkspaceVerse {
     const reference = ref.display_reference || `${ref.book_name} ${ref.chapter}:${ref.verse_number}`;
     
     return {
@@ -197,10 +197,10 @@ export class FlowCrossReferencesService {
         (ref.end_chapter && ref.end_chapter !== ref.chapter ? 
           999 : 
           (ref.end_verse_number - ref.verse_number + 1)) : 1
-    } as FlowVerse;
+    } as WorkspaceVerse;
   }
 
-  getFilteredVerses(filter: 'all' | 'unmemorized'): FlowVerse[] {
+  getFilteredVerses(filter: 'all' | 'unmemorized'): WorkspaceVerse[] {
     const verses = this.crossReferenceState.value.verses;
     if (filter === 'all') {
       return verses;

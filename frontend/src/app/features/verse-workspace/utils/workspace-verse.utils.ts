@@ -1,10 +1,10 @@
-import { FlowVerse } from '../models/flow.models';
+import { WorkspaceVerse } from '../models/workspace.models';
 
-export class FlowVerseUtils {
+export class WorkspaceVerseUtils {
   /**
    * Get display text for a verse (full text or first letters)
    */
-  static getVerseDisplay(verse: FlowVerse, showFullText: boolean): string {
+  static getVerseDisplay(verse: WorkspaceVerse, showFullText: boolean): string {
     if (!verse) return '';
     const text = showFullText ? verse.text : verse.firstLetters;
     // Remove a leading pilcrow so we don't double-signal when the label shows
@@ -28,7 +28,7 @@ export class FlowVerseUtils {
   /**
    * Check if verse starts a new paragraph
    */
-  static isNewParagraph(verse: FlowVerse): boolean {
+  static isNewParagraph(verse: WorkspaceVerse): boolean {
     return verse.text.indexOf('¶') > 0;
   }
 
@@ -36,7 +36,7 @@ export class FlowVerseUtils {
    * Get CSS classes for verse display state
    */
   static getVerseClasses(
-    verse: FlowVerse,
+    verse: WorkspaceVerse,
     isSelected: boolean,
     needsReview: boolean
   ): string {
@@ -69,10 +69,10 @@ export class FlowVerseUtils {
    * Filter verses based on filter type
    */
   static filterVerses(
-    verses: FlowVerse[],
+    verses: WorkspaceVerse[],
     filter: 'all' | 'unmemorized' | 'needsReview',
     reviewData?: Record<string, { lastReviewed: number; strength: number }>
-  ): FlowVerse[] {
+  ): WorkspaceVerse[] {
     if (!verses || verses.length === 0) {
       return [];
     }
@@ -92,7 +92,7 @@ export class FlowVerseUtils {
    * Get count statistics for verses
    */
   static getVerseCounts(
-    verses: FlowVerse[],
+    verses: WorkspaceVerse[],
     reviewData?: Record<string, { lastReviewed: number; strength: number }>
   ): {
     total: number;
@@ -129,8 +129,8 @@ export class FlowVerseUtils {
    */
   static getActualIndex(
     filteredIndex: number,
-    filteredVerses: FlowVerse[],
-    allVerses: FlowVerse[]
+    filteredVerses: WorkspaceVerse[],
+    allVerses: WorkspaceVerse[]
   ): number {
     if (filteredIndex >= 0 && filteredIndex < filteredVerses.length) {
       const verse = filteredVerses[filteredIndex];
@@ -144,7 +144,7 @@ export class FlowVerseUtils {
    */
   static createVerseReference(
     verseCodes: string[],
-    verses: FlowVerse[],
+    verses: WorkspaceVerse[],
     bookName: string
   ): string {
     if (verseCodes.length === 0 || !bookName) return '';
@@ -204,7 +204,7 @@ export class FlowVerseUtils {
   /**
    * Convert verse indices/codes to verse codes
    */
-  static convertToVerseCodes(items: (string | number)[], verses: FlowVerse[]): string[] {
+  static convertToVerseCodes(items: (string | number)[], verses: WorkspaceVerse[]): string[] {
     const verseCodes: string[] = [];
     
     for (const item of items) {

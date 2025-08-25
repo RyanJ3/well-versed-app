@@ -112,7 +112,7 @@
 
   // Selected state - ALWAYS blue border regardless of other states
   &.selected {
-    background-color: #eff6ff; // Light blue background
+    background-color: #eff6ff !important; // Light blue background - important to override all other states
     border-color: #3b82f6 !important; // Blue border - important to override all other states
     box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1);
 

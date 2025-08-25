@@ -1,7 +1,7 @@
 import { Component, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { FlowStateManagerService } from '../../services/flow-state-manager.service';
+import { WorkspaceStateManagerService } from '../../services/flow-state-manager.service';
 import { VerseTransformationService } from '../../services/verse-transformation.service';
 import { BaseVerse } from '../../models/verse-types.model';
 
@@ -9,7 +9,7 @@ import { BaseVerse } from '../../models/verse-types.model';
  * Base component for all flow modes
  * Provides shared functionality and common patterns
  */
-export abstract class BaseFlowComponent<T extends BaseVerse> implements OnDestroy {
+export abstract class BaseWorkspaceComponent<T extends BaseVerse> implements OnDestroy {
   @Input() verses: T[] = [];
   @Input() fontSize = 16;
   @Input() layoutMode: 'grid' | 'single' = 'grid';
@@ -27,7 +27,7 @@ export abstract class BaseFlowComponent<T extends BaseVerse> implements OnDestro
   protected isSelecting = false;
   
   constructor(
-    protected stateManager: FlowStateManagerService,
+    protected stateManager: WorkspaceStateManagerService,
     protected verseTransformer: VerseTransformationService
   ) {
     this.subscribeToState();

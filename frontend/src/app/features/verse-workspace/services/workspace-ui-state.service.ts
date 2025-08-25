@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { FlowStateService } from './flow-state.service';
+import { WorkspaceStateService } from './workspace-state.service';
 import { ContextMenuData } from '../models/context-menu-data.model';
 
 export interface UIState {
@@ -20,7 +20,7 @@ export interface UIState {
 }
 
 @Injectable()
-export class FlowUIStateService {
+export class WorkspaceUIStateService {
   private uiState = new BehaviorSubject<UIState>({
     showFullText: false,
     fontSize: 16,
@@ -45,7 +45,7 @@ export class FlowUIStateService {
 
   public readonly state$ = this.uiState.asObservable();
 
-  constructor(private flowStateService: FlowStateService) {
+  constructor(private flowStateService: WorkspaceStateService) {
     this.loadSavedState();
   }
 

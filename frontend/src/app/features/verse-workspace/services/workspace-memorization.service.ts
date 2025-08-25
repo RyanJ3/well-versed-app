@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Subject, debounceTime } from 'rxjs';
 import { BibleService } from '@services/api/bible.service';
-import { FlowVerse } from '../models/flow.models';
+import { WorkspaceVerse } from '../models/workspace.models';
 
 @Injectable()
-export class FlowMemorizationService {
-  private saveQueue$ = new Subject<{ verse: FlowVerse; userId: number }>();
+export class WorkspaceMemorizationService {
+  private saveQueue$ = new Subject<{ verse: WorkspaceVerse; userId: number }>();
   savedNotification$ = new Subject<void>();
 
   constructor(private bibleService: BibleService) {
@@ -16,11 +16,11 @@ export class FlowMemorizationService {
       });
   }
 
-  queueVerseSave(verse: FlowVerse, userId: number) {
+  queueVerseSave(verse: WorkspaceVerse, userId: number) {
     this.saveQueue$.next({ verse, userId });
   }
 
-  private saveVerseToBackend(verse: FlowVerse, userId: number) {
+  private saveVerseToBackend(verse: WorkspaceVerse, userId: number) {
     const [bookId, chapter, verseNum] = verse.verseCode.split('-').map(Number);
 
     if (verse.isMemorized) {
@@ -54,7 +54,7 @@ export class FlowMemorizationService {
     }
   }
 
-  async markAllMemorized(verses: FlowVerse[], bookId: number, userId: number): Promise<void> {
+  async markAllMemorized(verses: WorkspaceVerse[], bookId: number, userId: number): Promise<void> {
     const chapterGroups = new Map<number, number[]>();
 
     verses.forEach((verse) => {
@@ -82,7 +82,7 @@ export class FlowMemorizationService {
     this.savedNotification$.next();
   }
 
-  async deselectAllVerses(verses: FlowVerse[], bookId: number, userId: number): Promise<void> {
+  async deselectAllVerses(verses: WorkspaceVerse[], bookId: number, userId: number): Promise<void> {
     const chapterGroups = new Map<number, number[]>();
 
     verses.forEach((verse) => {

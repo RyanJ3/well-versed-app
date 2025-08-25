@@ -5,7 +5,7 @@ import { takeUntil } from 'rxjs/operators';
 import { DeckService, DeckResponse, DeckCreate } from '@services/api/deck.service';
 import { NotificationService } from '@services/utils/notification.service';
 import { Router } from '@angular/router';
-import { FlowVerse } from '../models/flow.models';
+import { WorkspaceVerse } from '../models/workspace.models';
 import { BibleBook } from '@models/bible';
 
 export interface DeckManagementState {
@@ -17,7 +17,7 @@ export interface DeckManagementState {
 }
 
 @Injectable()
-export class FlowDeckManagementService {
+export class WorkspaceDeckManagementService {
   private deckState = new BehaviorSubject<DeckManagementState>({
     decks: [],
     deckNames: [],
@@ -90,7 +90,7 @@ export class FlowDeckManagementService {
     });
   }
 
-  createDeck(deckData: DeckCreate, verses: FlowVerse[], currentBook: BibleBook | null, userId: number): void {
+  createDeck(deckData: DeckCreate, verses: WorkspaceVerse[], currentBook: BibleBook | null, userId: number): void {
     this.updateState({ createLoading: true });
     
     this.deckService.createDeck(deckData)
@@ -118,7 +118,7 @@ export class FlowDeckManagementService {
   private addVersesToNewDeck(
     createdDeck: DeckResponse, 
     deckName: string, 
-    verses: FlowVerse[], 
+    verses: WorkspaceVerse[], 
     currentBook: BibleBook | null
   ): void {
     const pendingVerses = this.deckState.value.pendingVersesToAdd;
@@ -167,7 +167,7 @@ export class FlowDeckManagementService {
   addVersesToDeck(
     deckName: string, 
     versesToAdd: string[], 
-    verses: FlowVerse[], 
+    verses: WorkspaceVerse[], 
     currentBook: BibleBook | null
   ): void {
     // Handle case where user needs to create a deck first
@@ -211,7 +211,7 @@ export class FlowDeckManagementService {
       });
   }
 
-  private convertToVerseCodes(versesToAdd: string[], verses: FlowVerse[]): string[] {
+  private convertToVerseCodes(versesToAdd: string[], verses: WorkspaceVerse[]): string[] {
     // Handle both verse codes and indices
     const verseCodes: string[] = [];
     
@@ -233,7 +233,7 @@ export class FlowDeckManagementService {
 
   private createVerseReference(
     verseCodes: string[], 
-    verses: FlowVerse[], 
+    verses: WorkspaceVerse[], 
     currentBook: BibleBook | null
   ): string {
     if (verseCodes.length === 0 || !currentBook) return '';
