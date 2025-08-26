@@ -1,8 +1,9 @@
 // app.config.ts
 import { ApplicationConfig, isDevMode, provideAppInitializer, inject } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { authInterceptor } from './interceptors/auth.interceptor';
 import { bibleMemorizationReducer } from "./state/bible-tracker/reducers/bible-memorization.reducer";
 import { BibleMemorizationEffects } from "./state/bible-tracker/effects/bible-memorization.effects";
 import { provideClientHydration } from '@angular/platform-browser';
@@ -32,7 +33,10 @@ import { UserService } from '@services/api/user.service';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient(withFetch()),
+    provideHttpClient(
+      withFetch(),
+      withInterceptors([authInterceptor])
+    ),
     provideAnimations(),
     provideClientHydration(),
     

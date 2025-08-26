@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { UserService } from '@services/api/user.service';
+import { AuthService } from '@services/auth/auth.service';
 import { User } from '@models/user';
 
 @Component({
@@ -21,7 +22,8 @@ export class NavigationComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private userService: UserService
+    private userService: UserService,
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
@@ -128,8 +130,9 @@ export class NavigationComponent implements OnInit {
   }
 
   logout() {
-    this.userService.logout();
     this.closeMenu();
-    this.router.navigate(['/']);
+    this.authService.logout().subscribe(() => {
+      // AuthService handles navigation to /login
+    });
   }
 }
