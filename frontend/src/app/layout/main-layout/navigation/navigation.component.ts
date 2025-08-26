@@ -1,9 +1,12 @@
 // frontend/src/app/layouts/components/main-layout/navigation/navigation.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { UserService } from '@services/api/user.service';
+import { AuthService, User as AuthUser } from '@services/auth/auth.service';
 import { User } from '@models/user';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-navigation',
@@ -12,29 +15,58 @@ import { User } from '@models/user';
   templateUrl: './navigation.component.html',
   styleUrls: ['./navigation.component.scss']
 })
-export class NavigationComponent implements OnInit {
+export class NavigationComponent implements OnInit, OnDestroy {
   menuActive = false;
   memorizeMenuActive = false;
   learningMenuActive = false;
   profileMenuActive = false;
   currentUser: User | null = null;
+  authUser: AuthUser | null = null;
+  isAuthenticated = false;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
-    private userService: UserService
+    private userService: UserService,
+    private authService: AuthService
   ) { }
 
   ngOnInit() {
-    // Ensure user data is loaded from DB on navigation init
-    this.userService.ensureUserLoaded().subscribe(() => {
-      // Subscribe to user changes after ensuring data is loaded
-      this.userService.currentUser$.subscribe((user: User | null) => {
-        this.currentUser = user;
-        if (user) {
-          console.log('Navigation: User loaded with ESV token present:', !!(user.esvApiToken));
+    // Subscribe to authentication state
+    this.authService.isAuthenticated$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(isAuth => {
+        this.isAuthenticated = isAuth;
+        
+        // Only load user data when authenticated and not on login page
+        if (isAuth && !this.router.url.includes('/login')) {
+          // Add a small delay to ensure auth is fully settled
+          setTimeout(() => {
+            this.userService.ensureUserLoaded().subscribe(() => {
+              // Subscribe to user changes after ensuring data is loaded
+              this.userService.currentUser$
+                .pipe(takeUntil(this.destroy$))
+                .subscribe((user: User | null) => {
+                  this.currentUser = user;
+                  console.log('Navigation: User data loaded', user);
+                });
+            });
+          }, 500);
+        } else {
+          this.currentUser = null;
         }
       });
-    });
+
+    this.authService.currentUser$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(authUser => {
+        this.authUser = authUser;
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   toggleMenu() {
@@ -111,6 +143,13 @@ export class NavigationComponent implements OnInit {
   }
 
   hasTranslation(): boolean {
+    // In local/dev mode with auth, assume translation is available
+    if (this.isAuthenticated && !this.currentUser) {
+      // User is authenticated but user preferences haven't loaded yet
+      // Default to true to allow memorization features
+      return true;
+    }
+    
     // Check basic translation
     if (!this.currentUser?.preferredBible) {
       return false;
@@ -128,8 +167,7 @@ export class NavigationComponent implements OnInit {
   }
 
   logout() {
-    this.userService.logout();
     this.closeMenu();
-    this.router.navigate(['/']);
+    this.authService.logout(); // This will navigate to /login automatically
   }
 }

@@ -1,0 +1,126 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <img src="/assets/logo.png" alt="Well Versed" class="logo">
+      <h1>Welcome to Well Versed</h1>
+      <p>Sign in to continue your Bible study journey</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      @if (errorMessage) {
+        <div class="error-message" [class.warning]="attemptsRemaining === 1" [class.locked]="isAccountLocked">
+          {{ errorMessage }}
+        </div>
+      }
+      
+      @if (attemptsRemaining < 3 && attemptsRemaining > 0 && !isAccountLocked) {
+        <div class="attempts-warning">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          {{ attemptsRemaining }} login attempt{{ attemptsRemaining === 1 ? '' : 's' }} remaining
+        </div>
+      }
+
+      <div class="form-group">
+        <label for="username">Email Address</label>
+        <input
+          type="email"
+          id="username"
+          formControlName="username"
+          placeholder="Enter your email"
+          class="form-control"
+          [class.is-invalid]="loginForm.get('username')?.invalid && loginForm.get('username')?.touched"
+        >
+        @if (loginForm.get('username')?.invalid && loginForm.get('username')?.touched) {
+          <div class="invalid-feedback">
+            @if (loginForm.get('username')?.errors?.['required']) {
+              Email is required
+            }
+            @if (loginForm.get('username')?.errors?.['email']) {
+              Please enter a valid email address
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-input-wrapper">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            formControlName="password"
+            placeholder="Enter your password"
+            class="form-control"
+            [class.is-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+          >
+          <button
+            type="button"
+            class="password-toggle"
+            (click)="togglePasswordVisibility()"
+            tabindex="-1"
+          >
+            @if (showPassword) {
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            } @else {
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            }
+          </button>
+        </div>
+        @if (loginForm.get('password')?.invalid && loginForm.get('password')?.touched) {
+          <div class="invalid-feedback">
+            @if (loginForm.get('password')?.errors?.['required']) {
+              Password is required
+            }
+            @if (loginForm.get('password')?.errors?.['minlength']) {
+              Password must be at least 8 characters
+            }
+          </div>
+        }
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="isLoading || loginForm.invalid || isAccountLocked"
+        >
+          @if (isLoading) {
+            <span class="spinner"></span>
+            Signing in...
+          } @else {
+            Sign In
+          }
+        </button>
+      </div>
+
+      <div class="form-footer">
+        <a href="#" class="link">Forgot your password?</a>
+        <span class="separator">•</span>
+        <a href="#" class="link">Create an account</a>
+      </div>
+
+      <!-- Local testing helper - only in development -->
+      @if (isDevelopment && !isLoading) {
+        <div class="test-helper">
+          <button
+            type="button"
+            class="btn-link"
+            (click)="useTestAccount()"
+          >
+            Development Mode - See docs for test credentials
+          </button>
+        </div>
+      }
+    </form>
+  </div>
+</div>

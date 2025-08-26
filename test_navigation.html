@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Navigation Translation Detection</title>
+</head>
+<body>
+    <h1>Navigation Translation Test</h1>
+    <p>This page will test if the navigation properly detects Bible translations after login.</p>
+    
+    <button onclick="testFlow()">Run Test</button>
+    <div id="results"></div>
+    
+    <script>
+        async function testFlow() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Testing...</p>';
+            
+            // Note: In a real scenario, this would need to be passed from backend
+            // For testing, you should set LOCAL_TEST_PASSWORD in your .env file
+            const testPassword = prompt('Enter test password (from LOCAL_TEST_PASSWORD env var):', 'ChangeMe123!');
+            
+            try {
+                // Step 1: Login
+                const loginRes = await fetch('http://localhost:4200/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'test@example.com',
+                        password: testPassword
+                    })
+                });
+                
+                const loginData = await loginRes.json();
+                const token = loginData.access_token;
+                
+                // Step 2: Get user preferences
+                const userRes = await fetch('http://localhost:4200/api/users/1', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const userData = await userRes.json();
+                
+                results.innerHTML = `
+                    <h3>Results:</h3>
+                    <p>✅ Login successful</p>
+                    <p>User: ${userData.name}</p>
+                    <p>Preferred Bible: ${userData.preferred_bible}</p>
+                    <p>Has ESV Token: ${!!userData.esv_api_token}</p>
+                    <p>Should show memorize menu: <strong>${userData.preferred_bible && (userData.preferred_bible !== 'ESV' || userData.esv_api_token) ? 'YES' : 'NO'}</strong></p>
+                    <br>
+                    <p><strong>Next Steps:</strong></p>
+                    <ol>
+                        <li>Open http://localhost:4200 in a new tab</li>
+                        <li>Login with test credentials</li>
+                        <li>Check if "Memorize" menu is accessible</li>
+                        <li>The menu should work since user has ESV selected with valid token</li>
+                    </ol>
+                `;
+            } catch (error) {
+                results.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

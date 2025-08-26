@@ -1,8 +1,9 @@
 // app.config.ts
 import { ApplicationConfig, isDevMode, provideAppInitializer, inject } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { bibleMemorizationReducer } from "./state/bible-tracker/reducers/bible-memorization.reducer";
 import { BibleMemorizationEffects } from "./state/bible-tracker/effects/bible-memorization.effects";
 import { provideClientHydration } from '@angular/platform-browser';
@@ -36,18 +37,16 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     provideClientHydration(),
     
+    // Register Auth Interceptor
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    
     // Add your app initializer
     provideAppInitializer(() => {
       const configService = inject(ConfigService);
       return configService.loadConfig();
     }),
     
-    // Initialize user data on app startup
-    provideAppInitializer(() => {
-      const userService = inject(UserService);
-      // Ensure user data (including ESV API token) is loaded from DB
-      return userService.fetchCurrentUser().toPromise();
-    }),
+    // Removed user initialization - handled by auth now
     
     // NgRx Store Configuration
     provideStore(

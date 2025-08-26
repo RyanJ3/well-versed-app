@@ -11,7 +11,9 @@
       "Bash(npx tsc:*)",
       "Bash(npx ng build:*)",
       "Bash(npm run build:*)",
-      "Bash(npm start)"
+      "Bash(npm start)",
+      "Bash(docker ps:*)",
+      "Bash(docker compose:*)"
     ],
     "defaultMode": "acceptEdits"
   },
