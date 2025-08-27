@@ -140,17 +140,17 @@ class TestSimpleAuth:
         assert auth_result is not None
         assert auth_result["name"] == "José O'Brien-Smith 3rd"
     
-    def test_register_empty_name_uses_email_prefix(self):
-        """Test that empty name defaults to email prefix."""
+    def test_register_empty_name_fails(self):
+        """Test that empty name returns an error."""
         result = self.auth.register("emptyname@example.com", "password123", name=None)
-        assert result["success"] == True
-        assert result["user"]["name"] == "Emptyname"  # Should use email prefix
+        assert result["success"] == False
+        assert "name is required" in result["error"].lower()
     
-    def test_register_whitespace_only_name(self):
-        """Test that whitespace-only name is handled properly."""
+    def test_register_whitespace_only_name_fails(self):
+        """Test that whitespace-only name returns an error."""
         result = self.auth.register("whitespace@example.com", "password123", name="   ")
-        assert result["success"] == True
-        assert result["user"]["name"] == "Whitespace"  # Should fall back to email prefix
+        assert result["success"] == False
+        assert "name is required" in result["error"].lower()
     
     def test_register_very_long_inputs(self):
         """Test registration with very long email and name."""

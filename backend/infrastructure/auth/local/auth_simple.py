@@ -135,12 +135,16 @@ class SimpleLocalAuth(AuthInterface):
         self.user_counter += 1
         user_id = f"local_user_{self.user_counter}"
         
-        # Extract name from kwargs or use email prefix
+        # Extract name from kwargs - required field
         name = kwargs.get("name")
         if not name or (isinstance(name, str) and name.strip() == ""):
-            # Use email prefix if name is None or empty/whitespace
-            name = username.split("@")[0].title()
-        elif isinstance(name, str):
+            return {
+                "success": False,
+                "error": "Name is required",
+                "code": "NameRequired"
+            }
+        
+        if isinstance(name, str):
             name = name.strip()  # Remove leading/trailing whitespace
         
         # Create new user

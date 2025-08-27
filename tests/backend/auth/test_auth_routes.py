@@ -47,7 +47,7 @@ class TestAuthRoutes:
         assert data["user"]["name"] == "API Test User"
     
     def test_register_endpoint_missing_name(self):
-        """Test registration without name (should use email prefix)."""
+        """Test registration without name returns validation error."""
         response = client.post(
             "/api/auth/register",
             json={
@@ -55,11 +55,8 @@ class TestAuthRoutes:
                 "password": "password123"
             }
         )
-        assert response.status_code == 200
-        data = response.json()
-        assert data["success"] == True
-        assert data["user"]["email"] == "noname@example.com"
-        assert data["user"]["name"] == "Noname"  # Should default to email prefix
+        assert response.status_code == 422  # Pydantic validation error
+        assert "field required" in str(response.json()["detail"]).lower()
     
     def test_register_endpoint_duplicate(self):
         """Test duplicate registration via API."""

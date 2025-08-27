@@ -35,10 +35,10 @@ class LoginRequest(BaseModel):
 
 
 class RegisterRequest(BaseModel):
-    """Registration request with username (email), password, and optional name"""
+    """Registration request with username (email), password, and name"""
     username: EmailStr
     password: str
-    name: Optional[str] = None
+    name: str  # Required field
 
 
 class LoginResponse(BaseModel):
@@ -228,11 +228,11 @@ async def register(
     Uses the appropriate auth provider to create a new user account.
     For local development, creates user in memory (lost on restart).
     """
-    # Pass name as a keyword argument if provided
+    # Pass name as a keyword argument (required)
     result = auth.register(
         request.username, 
         request.password, 
-        name=request.name if request.name else None
+        name=request.name
     )
     
     if not result.get("success"):
