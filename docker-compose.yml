@@ -1,12 +1,14 @@
 services:
   db:
     image: postgres:16
+    env_file:
+      - ~/.config/wellversed/secrets.env
     environment:
-      POSTGRES_USER: ${DATABASE_USER}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
-      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER:-wellversed_user}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-wellversed_pass}
+      POSTGRES_DB: ${DATABASE_NAME:-wellversed_db}
     ports:
-      - "${DATABASE_PORT}:5432"
+      - "${DATABASE_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -18,20 +20,23 @@ services:
   backend:
     build: ./backend
     ports:
-      - "${API_PORT}:8000"
+      - "${API_PORT:-8000}:8000"
     depends_on:
       db:
         condition: service_healthy
+    env_file:
+      - ~/.config/wellversed/secrets.env
     environment:
       DATABASE_HOST: db
-      DATABASE_PORT: ${DATABASE_PORT}
-      DATABASE_NAME: ${DATABASE_NAME}
-      DATABASE_USER: ${DATABASE_USER}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_NAME: ${DATABASE_NAME:-wellversed_db}
+      DATABASE_USER: ${DATABASE_USER:-wellversed_user}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-wellversed_pass}
 
-      FRONTEND_URL: ${FRONTEND_URL}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
       API_BIBLE_KEY: ${API_BIBLE_KEY}
-      API_BIBLE_HOST: ${API_BIBLE_HOST}
+      API_BIBLE_HOST: ${API_BIBLE_HOST:-https://api.scripture.api.bible/v1}
+      DEFAULT_BIBLE_ID: ${DEFAULT_BIBLE_ID:-de4e12af7f28f599-02}
       MAPBOX_TOKEN: ${MAPBOX_TOKEN}
     volumes:
       - ./backend:/app

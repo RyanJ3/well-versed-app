@@ -11,7 +11,8 @@
  * - Automatic token refresh
  */
 
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
@@ -49,6 +50,7 @@ export class AuthService {
   private readonly API_URL = '/api/auth';  // Proxied to backend
   private readonly TOKEN_KEY = 'access_token';
   private readonly REFRESH_TOKEN_KEY = 'refresh_token';
+  private isBrowser: boolean;
   
   // Observable user state
   private currentUserSubject = new BehaviorSubject<UserInfo | null>(null);
@@ -60,8 +62,10 @@ export class AuthService {
   
   constructor(
     private http: HttpClient,
-    private router: Router
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
     // Check for existing token on service initialization
     this.checkAuthStatus();
   }
@@ -91,8 +95,10 @@ export class AuthService {
    */
   private clearAuthSilently(): void {
     // Clear tokens
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    if (this.isBrowser) {
+      localStorage.removeItem(this.TOKEN_KEY);
+      localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    }
     
     // Clear user state
     this.currentUserSubject.next(null);
@@ -215,6 +221,9 @@ export class AuthService {
    * Get the stored refresh token
    */
   private getRefreshToken(): string | null {
+    if (!this.isBrowser) {
+      return null;
+    }
     return localStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
   
@@ -222,6 +231,9 @@ export class AuthService {
    * Store the refresh token
    */
   private setRefreshToken(token: string): void {
+    if (!this.isBrowser) {
+      return;
+    }
     localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
   }
   
@@ -230,8 +242,10 @@ export class AuthService {
    */
   private clearAuth(): void {
     // Clear tokens
-    localStorage.removeItem(this.TOKEN_KEY);
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    if (this.isBrowser) {
+      localStorage.removeItem(this.TOKEN_KEY);
+      localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    }
     
     // Clear user state
     this.currentUserSubject.next(null);

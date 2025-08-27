@@ -19,6 +19,7 @@ export class VerseListComponent {
   @Input() layoutMode: 'grid' | 'single' = 'grid';
   @Input() verseReviewData: Record<string, { lastReviewed: number; strength: number }> = {};
   @Input() mode: 'memorization' | 'crossReferences' | 'topical' = 'memorization';
+  @Input() isRTL = false;
 
   @Output() verseClick = new EventEmitter<{ verse: WorkspaceVerse; event: MouseEvent; index: number }>();
   @Output() verseDoubleClick = new EventEmitter<WorkspaceVerse>();

@@ -52,7 +52,7 @@ export class WorkspaceCrossReferencesService {
     return this.crossReferenceState.value.count;
   }
 
-  async selectVerse(verse: any, userId: number): Promise<void> {
+  async selectVerse(verse: any, userId: number, bibleId?: string): Promise<void> {
     // Validate verse object
     if (!verse || verse.bookId === undefined || verse.chapter === undefined || verse.verse === undefined) {
       console.error('Invalid verse object passed to selectVerse:', verse);
@@ -65,7 +65,7 @@ export class WorkspaceCrossReferencesService {
     const verseCode = `${verse.bookId}-${verse.chapter}-${verse.verse}`;
     try {
       const verseTexts = await firstValueFrom(
-        this.bibleService.getVerseTexts(userId, [verseCode])
+        this.bibleService.getVerseTexts(userId, [verseCode], bibleId)
       );
       
       // Add the text to the selected verse object
@@ -79,10 +79,10 @@ export class WorkspaceCrossReferencesService {
     }
     
     // Load cross-references for this verse
-    await this.loadCrossReferences(verse.bookId, verse.chapter, verse.verse, userId);
+    await this.loadCrossReferences(verse.bookId, verse.chapter, verse.verse, userId, bibleId);
   }
 
-  async loadCrossReferences(bookId: number, chapter: number, verse: number, userId: number): Promise<void> {
+  async loadCrossReferences(bookId: number, chapter: number, verse: number, userId: number, bibleId?: string): Promise<void> {
     this.updateState({ loading: true, verses: [] });
     
     try {
@@ -104,7 +104,7 @@ export class WorkspaceCrossReferencesService {
       try {
         // Fetch verse texts from ESV API (only first verse of each range)
         const verseTexts = await firstValueFrom(
-          this.bibleService.getVerseTexts(userId, verseCodesToFetch)
+          this.bibleService.getVerseTexts(userId, verseCodesToFetch, bibleId)
         );
         
         // Convert cross-references to WorkspaceVerse format

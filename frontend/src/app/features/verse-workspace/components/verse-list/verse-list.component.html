@@ -27,7 +27,7 @@
     </div>
     
     <div class="verse-ref">{{ verse.reference }}</div>
-    <div class="verse-text" [class.full-text]="showFullText">
+    <div class="verse-text" [class.full-text]="showFullText" [dir]="isRTL ? 'rtl' : 'ltr'">
       {{ getVerseDisplay(verse) }}
     </div>
     
