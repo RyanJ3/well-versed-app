@@ -145,7 +145,7 @@ class APIBibleService:
         """Fetch a single verse"""
         try:
             reference = f"{book_code}.{chapter}.{verse}"
-            url = f"{self.BASE_URL}/v1/bibles/{bible_id}/verses/{reference}"
+            url = f"{self.BASE_URL}/bibles/{bible_id}/verses/{reference}"
             
             response = requests.get(url, headers=self.headers, params={
                 "content-type": "text",
@@ -192,7 +192,7 @@ class APIBibleService:
             
             # Fetch as passage
             passage_ref = f"{book_code}.{chapter}.{min_verse}-{book_code}.{chapter}.{max_verse}"
-            url = f"{self.BASE_URL}/v1/bibles/{bible_id}/passages/{passage_ref}"
+            url = f"{self.BASE_URL}/bibles/{bible_id}/passages/{passage_ref}"
             
             logger.info(f"Fetching passage: {passage_ref}")
             
@@ -253,7 +253,7 @@ class APIBibleService:
     def get_available_bibles(self, language: Optional[str] = None) -> List[Dict]:
         """Get list of available Bible translations"""
         try:
-            url = f"{self.BASE_URL}/v1/bibles"
+            url = f"{self.BASE_URL}/bibles"
             params = {}
             if language:
                 params['language'] = language  # 3-letter ISO 639-3 code

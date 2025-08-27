@@ -7,9 +7,6 @@ out-tsc/
 
 # Environment files
 src/environments/environment*.ts
-secrets.env
-.env.local
-*.env
 
 # IDE and editor settings
 .vscode/

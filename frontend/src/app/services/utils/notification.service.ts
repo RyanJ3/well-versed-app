@@ -35,21 +35,4 @@ export class NotificationService {
   error(text: string, duration?: number) {
     this.danger(text, duration); // Alias for danger
   }
-  
-  // Aliases for consistency with other parts of the app
-  showInfo(text: string, duration?: number) {
-    this.info(text, duration);
-  }
-  
-  showSuccess(text: string, duration?: number) {
-    this.success(text, duration);
-  }
-  
-  showWarning(text: string, duration?: number) {
-    this.warning(text, duration);
-  }
-  
-  showError(text: string, duration?: number) {
-    this.error(text, duration);
-  }
 }

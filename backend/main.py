@@ -2,7 +2,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import logging
-import os
 from contextlib import asynccontextmanager
 import psycopg2
 from psycopg2.pool import SimpleConnectionPool
@@ -39,25 +38,21 @@ async def lifespan(app: FastAPI):
         logger.error(f"Failed to create database pool: {e}")
         raise
 
-    # TODO undo this test skip
-    # Test API.Bible on startup (skip in local mode)
-    if os.getenv("ENVIRONMENT") != "local" and os.getenv("SKIP_API_BIBLE_CHECK") != "true":
-        try:
-            from services.api_bible import APIBibleService
-            logger.info("Testing API.Bible connection...")
-            service = APIBibleService(Config.API_BIBLE_KEY, Config.DEFAULT_BIBLE_ID)
-            bibles = service.get_available_bibles()
-            
-            if not bibles:
-                raise Exception("API.Bible returned no Bibles. Check your API key.")
-            
-            logger.info(f"✓ API.Bible connection successful: {len(bibles)} Bibles available")
-        except Exception as e:
-            logger.error(f"✗ API.Bible connection FAILED: {e}")
-            logger.error("Please check your API_BIBLE_KEY in .bashrc file")
-            raise Exception(f"API.Bible startup check failed: {e}")
-    else:
-        logger.info("Skipping API.Bible check in local mode")
+    # Test API.Bible on startup
+    try:
+        from services.api_bible import APIBibleService
+        logger.info("Testing API.Bible connection...")
+        service = APIBibleService(Config.API_BIBLE_KEY, Config.DEFAULT_BIBLE_ID)
+        bibles = service.get_available_bibles()
+        
+        if not bibles:
+            raise Exception("API.Bible returned no Bibles. Check your API key.")
+        
+        logger.info(f"✓ API.Bible connection successful: {len(bibles)} Bibles available")
+    except Exception as e:
+        logger.error(f"✗ API.Bible connection FAILED: {e}")
+        logger.error("Please check your API_BIBLE_KEY in .bashrc file")
+        raise Exception(f"API.Bible startup check failed: {e}")
 
     yield
 
@@ -71,52 +66,21 @@ async def lifespan(app: FastAPI):
 # Create FastAPI app
 app = FastAPI(title="Well Versed API", version="1.0.0", lifespan=lifespan)
 
-# Configure CORS with strict security settings
-allowed_origins = []
-
-# Add allowed origins based on environment
-if os.getenv("ENVIRONMENT") == "local":
-    # Local development origins
-    allowed_origins.extend([
-        "http://localhost:4200",
-        "http://127.0.0.1:4200",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000"
-    ])
-elif os.getenv("ENVIRONMENT") == "development":
-    allowed_origins.extend([
-        Config.FRONTEND_URL,
-        "http://localhost:4200"  # Allow local frontend to connect to dev backend
-    ])
-elif os.getenv("ENVIRONMENT") == "production":
-    # Only add specific production domains
-    production_origins = os.getenv("ALLOWED_ORIGINS", "").split(",")
-    allowed_origins.extend([origin.strip() for origin in production_origins if origin.strip()])
-    if not allowed_origins:
-        # Fallback to FRONTEND_URL if no specific origins configured
-        allowed_origins.append(Config.FRONTEND_URL)
-
-# Log configured origins for transparency
-logger.info(f"CORS allowed origins: {allowed_origins}")
-
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,  # Required for cookies/auth
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=["*"],  # Allow all headers including Authorization
-    expose_headers=["*"],  # Expose all headers to the client
-    max_age=3600,  # Cache preflight requests for 1 hour
+    allow_origins=[Config.FRONTEND_URL],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Import routers after app creation to avoid circular imports
 from api.routes import users, books, verses, cross_references, topical_verses
-from api.auth_routes import router as auth_router
 from routers import user_verses, atlas, config, bibles, monitoring
 from api.endpoints import decks as decks_api, feature_requests, courses as courses_api
 
 # Include routers
-app.include_router(auth_router, prefix="/api", tags=["authentication"])
 app.include_router(users.router, prefix="/api", tags=["users"])
 app.include_router(books.router, prefix="/api", tags=["books"])
 app.include_router(verses.router, prefix="/api", tags=["verses"])
