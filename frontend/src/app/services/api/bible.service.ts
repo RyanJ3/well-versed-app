@@ -1,7 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Observable, of, throwError, BehaviorSubject, Subject } from 'rxjs';
-import { tap, catchError, switchMap, mergeMap } from 'rxjs/operators';
+import { tap, catchError, switchMap, mergeMap, map } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { BibleData, UserVerseDetail, BibleBook } from '@models/bible';
 import { NotificationService } from '@services/utils/notification.service';
@@ -319,8 +319,8 @@ export class BibleService {
     }
 
     // Try to fetch the actual Bible information from the API
-    this.http.get<any>(`${this.apiUrl}/bibles/available`).pipe(
-      map(response => {
+    const bibleVersion$ = this.http.get<{bibles: any[]}>(`${this.apiUrl}/bibles/available`).pipe(
+      map((response: {bibles: any[]}): BibleVersion => {
         const bibles = response.bibles || [];
         
         // Find the Bible by abbreviation or abbreviationLocal
@@ -336,9 +336,9 @@ export class BibleService {
             name: bible.name,
             abbreviation: bible.abbreviation || bible.abbreviationLocal || abbreviation,
             // Don't make assumptions about copyright - let the API or metadata provide this
-            isPublicDomain: undefined,
-            copyright: undefined
-          } as BibleVersion;
+            isPublicDomain: false,
+            copyright: ''
+          };
         }
 
         // Fallback: create a basic version object if not found
@@ -346,22 +346,24 @@ export class BibleService {
           id: abbreviation.toLowerCase(),
           name: abbreviation, // Use abbreviation as name if not found
           abbreviation: abbreviation,
-          isPublicDomain: undefined,
-          copyright: undefined
-        } as BibleVersion;
+          isPublicDomain: false,
+          copyright: ''
+        };
       }),
-      catchError(error => {
+      catchError((error): Observable<BibleVersion> => {
         console.error('Error fetching Bible version info:', error);
         // On error, create a basic version object
         return of({
           id: abbreviation.toLowerCase(),
           name: abbreviation,
           abbreviation: abbreviation,
-          isPublicDomain: undefined,
-          copyright: undefined
-        } as BibleVersion);
+          isPublicDomain: false,
+          copyright: ''
+        });
       })
-    ).subscribe(version => {
+    );
+    
+    bibleVersion$.subscribe(version => {
       this.setCurrentBibleVersion(version);
     });
   }
