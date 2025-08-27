@@ -1,8 +1,9 @@
 // app.config.ts
 import { ApplicationConfig, isDevMode, provideAppInitializer, inject } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { authInterceptor } from './interceptors/auth.interceptor';
 import { bibleMemorizationReducer } from "./state/bible-tracker/reducers/bible-memorization.reducer";
 import { BibleMemorizationEffects } from "./state/bible-tracker/effects/bible-memorization.effects";
 import { provideClientHydration } from '@angular/platform-browser';
@@ -20,6 +21,7 @@ import { uiReducer } from './state/ui/ui.reducer';
 import { verseWorkspaceReducer } from './state/verse-workspace/reducers/verse-workspace.reducer';
 import { VerseWorkspaceEffects } from './state/verse-workspace/effects/verse-workspace.effects';
 import { authReducer } from './state/auth/reducers/auth.reducer';
+import { AuthEffects } from './state/auth/effects/auth.effects';
 import { courseReducer } from './state/courses/reducers/course.reducer';
 import { CourseEffects } from './state/courses/effects/course.effects';
 import { featureRequestReducer } from './state/feature-requests/reducers/feature-request.reducer';
@@ -28,11 +30,16 @@ import { atlasReducer } from './state/atlas/reducers/atlas.reducer';
 import { AtlasEffects } from './state/atlas/effects/atlas.effects';
 import { ConfigService } from '@services/config/config.service';
 import { UserService } from '@services/api/user.service';
+import { AuthService } from '@services/auth/auth.service';
+import { Store } from '@ngrx/store';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideHttpClient(withFetch()),
+    provideHttpClient(
+      withFetch(),
+      withInterceptors([authInterceptor])
+    ),
     provideAnimations(),
     provideClientHydration(),
     
@@ -42,11 +49,21 @@ export const appConfig: ApplicationConfig = {
       return configService.loadConfig();
     }),
     
-    // Initialize user data on app startup
+    // Initialize auth state on app startup
     provideAppInitializer(() => {
-      const userService = inject(UserService);
-      // Ensure user data (including ESV API token) is loaded from DB
-      return userService.fetchCurrentUser().toPromise();
+      const store = inject(Store);
+      const authService = inject(AuthService);
+      
+      // Check if user has a valid token and load their data
+      const token = authService.getToken();
+      if (token) {
+        // Import auth actions dynamically to avoid circular dependencies
+        import('./state/auth/actions/auth.actions').then(actions => {
+          store.dispatch(actions.loadCurrentUser());
+        });
+      }
+      
+      return Promise.resolve();
     }),
     
     // NgRx Store Configuration
@@ -78,6 +95,7 @@ export const appConfig: ApplicationConfig = {
 
     // NgRx Effects
     provideEffects([
+      AuthEffects,
       DeckEffects,
       BibleMemorizationEffects,
       PracticeSessionEffects,

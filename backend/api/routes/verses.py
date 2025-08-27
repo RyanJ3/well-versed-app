@@ -19,8 +19,72 @@ from domain.verses import (
 from domain.core.exceptions import ValidationError
 from core.dependencies import get_verse_service, get_db
 from database import DatabaseConnection
+import json
+from datetime import datetime, timedelta
+from typing import Optional
 
 logger = logging.getLogger(__name__)
+
+def resolve_bible_id(bible_identifier: str, db: DatabaseConnection) -> str:
+    """
+    Resolve a Bible identifier (ID or abbreviation) to an actual API.Bible ID.
+    Uses cached Bible data to find the correct ID.
+    
+    Args:
+        bible_identifier: Either a full Bible ID or an abbreviation (e.g., 'engKJV', 'KJV', 'ASV')
+        db: Database connection for accessing cached data
+        
+    Returns:
+        The actual API.Bible ID, or the original identifier if no match found
+    """
+    # If it looks like a full ID (contains hyphen), return as is
+    if '-' in bible_identifier:
+        return bible_identifier
+    
+    # Check cache for Bible data
+    cache_key = "bibles_available_all"
+    cache_query = """
+        SELECT cache_data 
+        FROM api_cache 
+        WHERE cache_key = %s 
+        AND created_at > %s
+    """
+    cache_expiry = datetime.now() - timedelta(days=29)
+    
+    cached = db.fetch_one(cache_query, (cache_key, cache_expiry))
+    
+    if not cached:
+        # Try language-specific cache
+        cache_key = "bibles_available_eng"  # Default to English
+        cached = db.fetch_one(cache_query, (cache_key, cache_expiry))
+    
+    if cached:
+        try:
+            data = json.loads(cached['cache_data'])
+            bibles = data.get('bibles', [])
+            
+            # Look for exact abbreviation match (case-insensitive)
+            bible_id_upper = bible_identifier.upper()
+            for bible in bibles:
+                # Check both abbreviation and abbreviationLocal
+                if (bible.get('abbreviation', '').upper() == bible_id_upper or 
+                    bible.get('abbreviationLocal', '').upper() == bible_id_upper):
+                    logger.info(f"Resolved Bible '{bible_identifier}' to ID: {bible['id']}")
+                    return bible['id']
+            
+            # If no exact match, try partial matching
+            for bible in bibles:
+                if (bible_identifier.lower() in bible.get('abbreviation', '').lower() or
+                    bible_identifier.lower() in bible.get('abbreviationLocal', '').lower() or
+                    bible_identifier.lower() in bible.get('name', '').lower()):
+                    logger.info(f"Resolved Bible '{bible_identifier}' to ID: {bible['id']} (partial match)")
+                    return bible['id']
+                    
+        except Exception as e:
+            logger.error(f"Error parsing cached Bible data: {e}")
+    
+    logger.warning(f"Could not resolve Bible identifier '{bible_identifier}', using as-is")
+    return bible_identifier
 
 router = APIRouter(prefix="/verses", tags=["verses"])
 
@@ -165,9 +229,13 @@ async def get_verse_texts(
     from config import Config
 
     verse_codes = request.verse_codes
-    bible_id = request.bible_id or Config.DEFAULT_BIBLE_ID
-
+    requested_bible = request.bible_id or Config.DEFAULT_BIBLE_ID
+    
+    # Resolve abbreviation to actual API.Bible ID dynamically
+    bible_id = resolve_bible_id(requested_bible, db)
+    
     logger.info(f"Getting texts for {len(verse_codes)} verses for user {user_id}")
+    logger.info(f"Bible ID requested: {requested_bible}, resolved to: {bible_id}")
 
     try:
         user_pref = db.fetch_one(

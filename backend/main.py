@@ -8,6 +8,7 @@ from psycopg2.pool import SimpleConnectionPool
 from database import DatabaseConnection
 from config import Config
 import db_pool
+from api.auth_routes import router as auth_router
 
 # Configure logging
 logging.basicConfig(
@@ -81,6 +82,9 @@ from routers import user_verses, atlas, config, bibles, monitoring
 from api.endpoints import decks as decks_api, feature_requests, courses as courses_api
 
 # Include routers
+# Include auth router first (no prefix needed, it has /api/auth built in)
+app.include_router(auth_router)
+
 app.include_router(users.router, prefix="/api", tags=["users"])
 app.include_router(books.router, prefix="/api", tags=["books"])
 app.include_router(verses.router, prefix="/api", tags=["verses"])

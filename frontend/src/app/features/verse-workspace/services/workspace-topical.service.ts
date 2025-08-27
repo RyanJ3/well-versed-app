@@ -76,13 +76,13 @@ export class WorkspaceTopicalService {
     }
   }
 
-  async selectTopic(topic: any, userId: number): Promise<void> {
+  async selectTopic(topic: any, userId: number, bibleId?: string): Promise<void> {
     this.updateState({ selectedTopic: topic });
     console.log('Selected topic:', topic);
-    await this.loadTopicalVerses(topic.topicId, userId);
+    await this.loadTopicalVerses(topic.topicId, userId, bibleId);
   }
 
-  async loadTopicalVerses(topicId: number, userId: number, limit: number = 100): Promise<void> {
+  async loadTopicalVerses(topicId: number, userId: number, bibleId?: string, limit: number = 100): Promise<void> {
     this.updateState({ loading: true, verses: [] });
     
     try {
@@ -99,7 +99,7 @@ export class WorkspaceTopicalService {
       try {
         // Fetch verse texts from ESV API
         const verseTexts = await firstValueFrom(
-          this.bibleService.getVerseTexts(userId, verseCodes)
+          this.bibleService.getVerseTexts(userId, verseCodes, bibleId)
         );
         
         // Transform to WorkspaceVerse format with actual verse texts

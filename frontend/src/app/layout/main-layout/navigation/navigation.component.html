@@ -40,9 +40,7 @@
           class="nav-link dropdown-toggle"
           [class.active]="memorizeMenuActive"
           [attr.title]="!hasTranslation() ? 
-            (currentUser?.preferredBible === 'ESV' ? 
-              'Please configure your ESV API token' : 
-              'Please select a Bible translation first') : 
+            'Please select a Bible translation first' : 
             null"
         >
           Memorize
@@ -150,9 +148,9 @@
           [class.active]="profileMenuActive"
         >
           <div class="user-avatar-small">
-            {{ getUserInitial() }}
+            {{ userInitial$ | async }}
           </div>
-          <span class="user-name-nav">{{ getUserDisplayName() }}</span>
+          <span class="user-name-nav">{{ userFullName$ | async }}</span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
@@ -175,10 +173,10 @@
         <!-- In the profile dropdown header -->
         <div class="user-info">
           <div class="user-full-name">
-            {{ getFullName() }}
+            {{ userFullName$ | async }}
           </div>
           <div class="user-email">
-            {{ currentUser?.email || "user@example.com" }}
+            {{ (currentUser$ | async)?.email || "user@example.com" }}
           </div>
         </div>
 

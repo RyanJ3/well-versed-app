@@ -146,6 +146,13 @@
     letter-spacing: normal;
     font-size: 0.875rem;
   }
+
+  // RTL text support for Hebrew and Arabic
+  &[dir="rtl"] {
+    text-align: right;
+    font-family: 'SBL Hebrew', 'Noto Sans Hebrew', 'Noto Sans Arabic', 'Arial Unicode MS', sans-serif;
+    letter-spacing: normal;
+  }
 }
 
 .saving-indicator {

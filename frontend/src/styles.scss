@@ -17,6 +17,20 @@ body {
   overflow: hidden;
 }
 
+/* RTL Support for Hebrew and Arabic Bibles */
+[dir="rtl"] {
+  text-align: right;
+  direction: rtl;
+}
+
+.verse-text[dir="rtl"],
+.card-text[dir="rtl"] {
+  font-family: 'SBL Hebrew', 'Noto Sans Hebrew', 'Noto Sans Arabic', 
+               'Traditional Arabic', 'Arial Unicode MS', 'Times New Roman', sans-serif;
+  font-size: 1.1em;
+  line-height: 1.8;
+}
+
 /* Utility classes */
 .p-4 {
   padding: 1rem;

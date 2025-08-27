@@ -1,9 +1,13 @@
 // frontend/src/app/layouts/components/main-layout/navigation/navigation.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import * as AuthActions from '../../../state/auth/actions/auth.actions';
+import { selectCurrentUser, selectUserInitial, selectUserFullName } from '../../../state/auth/selectors/auth.selectors';
 import { UserService } from '@services/api/user.service';
-import { User } from '@models/user';
 
 @Component({
   selector: 'app-navigation',
@@ -12,29 +16,34 @@ import { User } from '@models/user';
   templateUrl: './navigation.component.html',
   styleUrls: ['./navigation.component.scss']
 })
-export class NavigationComponent implements OnInit {
+export class NavigationComponent implements OnInit, OnDestroy {
   menuActive = false;
   memorizeMenuActive = false;
   learningMenuActive = false;
   profileMenuActive = false;
-  currentUser: User | null = null;
+  currentUser$: Observable<any>;
+  userInitial$: Observable<string>;
+  userFullName$: Observable<string>;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private router: Router,
+    private store: Store,
     private userService: UserService
-  ) { }
+  ) {
+    this.currentUser$ = this.store.select(selectCurrentUser);
+    this.userInitial$ = this.store.select(selectUserInitial);
+    this.userFullName$ = this.store.select(selectUserFullName);
+  }
 
   ngOnInit() {
-    // Ensure user data is loaded from DB on navigation init
-    this.userService.ensureUserLoaded().subscribe(() => {
-      // Subscribe to user changes after ensuring data is loaded
-      this.userService.currentUser$.subscribe((user: User | null) => {
-        this.currentUser = user;
-        if (user) {
-          console.log('Navigation: User loaded with ESV token present:', !!(user.esvApiToken));
-        }
-      });
-    });
+    // Dispatch action to load current user on navigation init
+    this.store.dispatch(AuthActions.loadCurrentUser());
+  }
+  
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   toggleMenu() {
@@ -84,52 +93,14 @@ export class NavigationComponent implements OnInit {
     this.profileMenuActive = false;
   }
 
-  getUserInitial(): string {
-    if (this.currentUser?.firstName) {
-      return this.currentUser.firstName.charAt(0).toUpperCase();
-    } else if (this.currentUser?.name) {
-      return this.currentUser.name.charAt(0).toUpperCase();
-    }
-    return 'U';
-  }
-
-  getUserDisplayName(): string {
-    const user = this.userService.getCurrentUser();
-    if (user?.firstName) {
-      return user.firstName;
-    } else if (user?.name) {
-      return user.name.split(' ')[0];
-    }
-    return '';
-  }
-
-  getFullName(): string {
-    if (this.currentUser?.firstName || this.currentUser?.lastName) {
-      return `${this.currentUser.firstName || ''} ${this.currentUser.lastName || ''}`.trim();
-    }
-    return this.currentUser?.name || 'User';
-  }
-
   hasTranslation(): boolean {
-    // Check basic translation
-    if (!this.currentUser?.preferredBible) {
-      return false;
-    }
-
-    // Check ESV token if ESV is selected
-    if (
-      this.currentUser.preferredBible === 'ESV' &&
-      (!this.currentUser.esvApiToken || this.currentUser.esvApiToken.trim() === '')
-    ) {
-      return false;
-    }
-
+    // For now, return true - this should be updated to check user preferences
+    // This would ideally be another selector
     return true;
   }
 
   logout() {
-    this.userService.logout();
     this.closeMenu();
-    this.router.navigate(['/']);
+    this.store.dispatch(AuthActions.logout());
   }
 }

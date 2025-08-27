@@ -166,6 +166,7 @@
       [layoutMode]="layoutMode"
       [verseReviewData]="verseReviewData"
       [mode]="mode"
+      [isRTL]="isRTL"
       (verseClick)="handleVerseClick($event.index, $event.event)"
       (verseDoubleClick)="handleVerseDoubleClick($event)"
       (verseContextMenu)="handleContextMenu($event.event, $event.verse)"
@@ -185,7 +186,7 @@
           <span class="card-label">Selected Verse</span>
           <span class="card-reference">{{ selectedCrossRefVerse.displayText }}</span>
         </div>
-        <div class="card-text">{{ selectedCrossRefVerse.text || 'Loading verse text...' }}</div>
+        <div class="card-text" [dir]="isRTL ? 'rtl' : 'ltr'">{{ selectedCrossRefVerse.text || 'Loading verse text...' }}</div>
       </div>
       
       <!-- Cross-Reference Cards -->
@@ -219,7 +220,7 @@
             ({{ verse.verseCount }} verses)
           </span>
         </div>
-        <div class="verse-text" [class.full-text]="showFullText">
+        <div class="verse-text" [class.full-text]="showFullText" [dir]="isRTL ? 'rtl' : 'ltr'">
           {{ verse.text }}
         </div>
         
@@ -285,7 +286,7 @@
           </div>
           
           <div class="verse-ref">{{ verse.fullReference }}</div>
-          <div class="verse-text" [class.full-text]="showFullText">
+          <div class="verse-text" [class.full-text]="showFullText" [dir]="isRTL ? 'rtl' : 'ltr'">
             {{ verse.text }}
           </div>
           

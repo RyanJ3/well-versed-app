@@ -284,9 +284,24 @@ export class BibleService {
   }
 
   /**
+   * Clears the verse text cache (useful when Bible translation changes)
+   */
+  clearVerseTextCache(): void {
+    const cacheSize = this.verseTextCache.size;
+    this.verseTextCache.clear();
+    console.log(`Verse text cache cleared (${cacheSize} entries removed)`);
+  }
+
+  /**
    * Updates the current Bible version (for citations)
    */
   setCurrentBibleVersion(version: BibleVersion | null): void {
+    // Clear cache when Bible version changes
+    const previousVersion = this.currentBibleVersionSubject.value;
+    if (previousVersion?.id !== version?.id) {
+      this.clearVerseTextCache();
+    }
+    
     this.currentBibleVersionSubject.next(version);
 
     // Store in localStorage - only if in the browser
@@ -303,30 +318,52 @@ export class BibleService {
       return;
     }
 
-    // Map common abbreviations to full names
-    const versionMap: Record<string, string> = {
-      'KJV': 'King James Version',
-      'NIV': 'New International Version',
-      'ESV': 'English Standard Version',
-      'NASB': 'New American Standard Bible',
-      'NLT': 'New Living Translation',
-      'BSB': 'Berean Standard Bible',
-      'CSB': 'Christian Standard Bible',
-      'NKJV': 'New King James Version',
-      'RSV': 'Revised Standard Version',
-      'MSG': 'The Message',
-      'AMP': 'Amplified Bible'
-    };
+    // Try to fetch the actual Bible information from the API
+    this.http.get<any>(`${this.apiUrl}/bibles/available`).pipe(
+      map(response => {
+        const bibles = response.bibles || [];
+        
+        // Find the Bible by abbreviation or abbreviationLocal
+        const bible = bibles.find((b: any) => 
+          b.abbreviation === abbreviation || 
+          b.abbreviationLocal === abbreviation ||
+          b.id === abbreviation
+        );
 
-    const version: BibleVersion = {
-      id: abbreviation.toLowerCase(),
-      name: versionMap[abbreviation] || abbreviation,
-      abbreviation: abbreviation,
-      isPublicDomain: !['NIV', 'ESV', 'NLT', 'MSG', 'AMP', 'CSB'].includes(abbreviation),
-      copyright: abbreviation === 'ESV' ? '© 2016 Crossway Bibles.' : undefined
-    };
+        if (bible) {
+          return {
+            id: bible.id,
+            name: bible.name,
+            abbreviation: bible.abbreviation || bible.abbreviationLocal || abbreviation,
+            // Don't make assumptions about copyright - let the API or metadata provide this
+            isPublicDomain: undefined,
+            copyright: undefined
+          } as BibleVersion;
+        }
 
-    this.setCurrentBibleVersion(version);
+        // Fallback: create a basic version object if not found
+        return {
+          id: abbreviation.toLowerCase(),
+          name: abbreviation, // Use abbreviation as name if not found
+          abbreviation: abbreviation,
+          isPublicDomain: undefined,
+          copyright: undefined
+        } as BibleVersion;
+      }),
+      catchError(error => {
+        console.error('Error fetching Bible version info:', error);
+        // On error, create a basic version object
+        return of({
+          id: abbreviation.toLowerCase(),
+          name: abbreviation,
+          abbreviation: abbreviation,
+          isPublicDomain: undefined,
+          copyright: undefined
+        } as BibleVersion);
+      })
+    ).subscribe(version => {
+      this.setCurrentBibleVersion(version);
+    });
   }
 
   // ----- Bible Tracker Progress Methods (stub implementations) -----

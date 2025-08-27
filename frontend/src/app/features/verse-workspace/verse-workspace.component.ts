@@ -102,8 +102,20 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   private saveQueue$ = new Subject<WorkspaceVerse>();
   private userId = 1;
   private progressLoaded = false;
+  private userPreferredBible: string | undefined;
+  private userPreferredLanguage: string | undefined;
 
   // Computed properties
+  get isRTL(): boolean {
+    // Check if the language is Hebrew or Arabic
+    return this.userPreferredLanguage === 'heb' || 
+           this.userPreferredLanguage === 'hbo' ||  // Ancient Hebrew
+           this.userPreferredLanguage === 'ara' ||
+           this.userPreferredLanguage === 'arb' ||  // Standard Arabic
+           this.userPreferredLanguage === 'hebrew' ||
+           this.userPreferredLanguage === 'arabic';
+  }
+
   get memorizedVersesCount(): number {
     return WorkspaceVerseUtils.getVerseCounts(this.verses).memorized;
   }
@@ -266,8 +278,26 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
           .subscribe(user => {
             if (user) {
               this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+              
+              // Detect Bible translation change
+              const previousBible = this.userPreferredBible;
+              const previousLanguage = this.userPreferredLanguage;
+              
+              this.userPreferredBible = user.preferredBible;
+              this.userPreferredLanguage = user.preferredLanguage;
+              
               console.log('User ID set:', this.userId);
+              console.log('User preferred Bible:', this.userPreferredBible);
+              console.log('User preferred Language:', this.userPreferredLanguage);
               console.log('ESV API Token present:', !!(user.esvApiToken));
+              
+              // If Bible translation changed and we have a current chapter loaded, reload it
+              if (previousBible && previousBible !== this.userPreferredBible && this.currentBook && this.currentChapter) {
+                console.log(`Bible translation changed from ${previousBible} to ${this.userPreferredBible}, reloading verses...`);
+                this.bibleService.clearVerseTextCache();
+                this.loadChapter(this.currentBook.id, this.currentChapter);
+              }
+              
               this.deckManagementService.loadUserDecks(this.userId);
             }
           });
@@ -352,9 +382,9 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
         `${bookId}-${chapterNum}-${i + 1}`
       );
 
-      // Get verse texts
+      // Get verse texts with user's preferred Bible translation
       const verseTexts = await firstValueFrom(
-        this.bibleService.getVerseTexts(this.userId, verseCodes)
+        this.bibleService.getVerseTexts(this.userId, verseCodes, this.userPreferredBible)
       );
 
       // Create verses array
@@ -763,11 +793,11 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   onCrossRefVerseSelected(verse: any) {
-    this.crossReferencesService.selectVerse(verse, this.userId);
+    this.crossReferencesService.selectVerse(verse, this.userId, this.userPreferredBible);
   }
 
   onTopicSelected(topic: any) {
-    this.topicalService.selectTopic(topic, this.userId);
+    this.topicalService.selectTopic(topic, this.userId, this.userPreferredBible);
   }
 
   // Cross-reference methods
