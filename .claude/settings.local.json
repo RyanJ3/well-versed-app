@@ -12,7 +12,8 @@
       "Bash(npx ng build:*)",
       "Bash(npm run build:*)",
       "Bash(npm start)",
-      "Bash(docker restart:*)"
+      "Bash(docker restart:*)",
+      "Bash(docker compose:*)"
     ],
     "defaultMode": "acceptEdits"
   },
