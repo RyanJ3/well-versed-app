@@ -5,30 +5,62 @@ export const selectAuthState = createFeatureSelector<AuthState>('auth');
 
 export const selectCurrentUser = createSelector(
   selectAuthState,
-  (state) => state.user
+  (state: AuthState) => state.user
 );
 
 export const selectIsAuthenticated = createSelector(
   selectAuthState,
-  (state) => state.isAuthenticated
+  (state: AuthState) => state.isAuthenticated
 );
 
 export const selectAuthLoading = createSelector(
   selectAuthState,
-  (state) => state.loading
+  (state: AuthState) => state.loading
 );
 
 export const selectAuthError = createSelector(
   selectAuthState,
-  (state) => state.error
+  (state: AuthState) => state.error
 );
 
 export const selectAuthToken = createSelector(
   selectAuthState,
-  (state) => state.token
+  (state: AuthState) => state.token
 );
 
-export const selectUserId = createSelector(
+export const selectUserEmail = createSelector(
   selectCurrentUser,
-  (user) => user?.id || null
+  (user) => user?.email || null
+);
+
+export const selectUserFullName = createSelector(
+  selectCurrentUser,
+  (user) => {
+    if (!user) return '';
+    if (user.firstName || user.lastName) {
+      return `${user.firstName || ''} ${user.lastName || ''}`.trim();
+    }
+    return user.username || user.email || '';
+  }
+);
+
+export const selectUserFirstName = createSelector(
+  selectCurrentUser,
+  (user) => user?.firstName || ''
+);
+
+export const selectUserInitial = createSelector(
+  selectCurrentUser,
+  (user) => {
+    if (user?.firstName) {
+      return user.firstName.charAt(0).toUpperCase();
+    }
+    if (user?.username) {
+      return user.username.charAt(0).toUpperCase();
+    }
+    if (user?.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
+  }
 );

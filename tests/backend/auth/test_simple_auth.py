@@ -125,6 +125,55 @@ class TestSimpleAuth:
         assert result["success"] == False
         assert "at least 6 characters" in result["error"].lower()
     
+    def test_register_with_special_characters_name(self):
+        """Test registration with special characters in name."""
+        result = self.auth.register(
+            "special@example.com", 
+            "password123", 
+            name="José O'Brien-Smith 3rd"
+        )
+        assert result["success"] == True
+        assert result["user"]["name"] == "José O'Brien-Smith 3rd"
+        
+        # Verify authentication works
+        auth_result = self.auth.authenticate("special@example.com", "password123")
+        assert auth_result is not None
+        assert auth_result["name"] == "José O'Brien-Smith 3rd"
+    
+    def test_register_empty_name_uses_email_prefix(self):
+        """Test that empty name defaults to email prefix."""
+        result = self.auth.register("emptyname@example.com", "password123", name=None)
+        assert result["success"] == True
+        assert result["user"]["name"] == "Emptyname"  # Should use email prefix
+    
+    def test_register_whitespace_only_name(self):
+        """Test that whitespace-only name is handled properly."""
+        result = self.auth.register("whitespace@example.com", "password123", name="   ")
+        assert result["success"] == True
+        assert result["user"]["name"] == "Whitespace"  # Should fall back to email prefix
+    
+    def test_register_very_long_inputs(self):
+        """Test registration with very long email and name."""
+        long_email = "a" * 50 + "@example.com"
+        long_name = "Very " * 100 + "Long Name"
+        
+        result = self.auth.register(long_email, "password123", name=long_name)
+        assert result["success"] == True
+        assert result["user"]["email"] == long_email.lower()
+        assert result["user"]["name"] == long_name
+    
+    def test_register_mixed_case_email(self):
+        """Test that email is case-insensitive."""
+        # Register with mixed case
+        result = self.auth.register("MiXeD@ExAmPlE.CoM", "password123", name="Mixed Case")
+        assert result["success"] == True
+        assert result["user"]["email"] == "mixed@example.com"  # Should be lowercase
+        
+        # Try to register same email with different case
+        result2 = self.auth.register("mixed@example.com", "password123")
+        assert result2["success"] == False
+        assert "already exists" in result2["error"].lower()
+    
     def test_forgot_password_not_implemented(self):
         """Test that forgot password returns not implemented."""
         result = self.auth.forgot_password("test@example.com")

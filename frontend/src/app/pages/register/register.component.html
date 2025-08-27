@@ -132,7 +132,7 @@
       </div>
       
       <!-- Error Message -->
-      <div class="alert alert-danger" *ngIf="error">
+      <div class="alert alert-danger" *ngIf="error$ | async as error">
         {{ error }}
       </div>
       
@@ -140,10 +140,10 @@
       <button 
         type="submit" 
         class="btn btn-primary btn-block"
-        [disabled]="loading"
+        [disabled]="loading$ | async"
       >
-        <span *ngIf="!loading">Create Account</span>
-        <span *ngIf="loading">Creating account...</span>
+        <span *ngIf="!(loading$ | async)">Create Account</span>
+        <span *ngIf="loading$ | async">Creating account...</span>
       </button>
       
       <!-- Login Link -->

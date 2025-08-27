@@ -71,7 +71,7 @@
       </div>
       
       <!-- Error Message -->
-      <div class="alert alert-danger" *ngIf="error">
+      <div class="alert alert-danger" *ngIf="error$ | async as error">
         {{ error }}
       </div>
       
@@ -79,10 +79,10 @@
       <button 
         type="submit" 
         class="btn btn-primary btn-block"
-        [disabled]="loading"
+        [disabled]="loading$ | async"
       >
-        <span *ngIf="!loading">Sign In</span>
-        <span *ngIf="loading">Signing in...</span>
+        <span *ngIf="!(loading$ | async)">Sign In</span>
+        <span *ngIf="loading$ | async">Signing in...</span>
       </button>
       
       <!-- Test Account Button (Local Development) -->

@@ -8,12 +8,15 @@
  * - Error handling
  */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AuthService } from '../../services/auth/auth.service';
-import { UserService } from '../../services/api/user.service';
+import { Store } from '@ngrx/store';
+import { Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import * as AuthActions from '../../state/auth/actions/auth.actions';
+import { selectAuthLoading, selectAuthError } from '../../state/auth/selectors/auth.selectors';
 
 @Component({
   selector: 'app-login',
@@ -22,12 +25,13 @@ import { UserService } from '../../services/api/user.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   loginForm!: FormGroup;
-  loading = false;
-  error = '';
+  loading$: Observable<boolean>;
+  error$: Observable<string | null>;
   returnUrl = '/';
   showPassword = false;
+  private destroy$ = new Subject<void>();
   
   // Test account credentials for local development
   readonly testEmail = 'test@example.com';
@@ -35,11 +39,13 @@ export class LoginComponent implements OnInit {
   
   constructor(
     private formBuilder: FormBuilder,
-    private authService: AuthService,
-    private userService: UserService,
+    private store: Store,
     private router: Router,
     private route: ActivatedRoute
-  ) {}
+  ) {
+    this.loading$ = this.store.select(selectAuthLoading);
+    this.error$ = this.store.select(selectAuthError);
+  }
   
   ngOnInit() {
     // Initialize the form
@@ -50,11 +56,11 @@ export class LoginComponent implements OnInit {
     
     // Get return URL from route parameters or default to '/'
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
-    
-    // Check if user is already logged in
-    if (this.authService.isAuthenticated()) {
-      this.router.navigate([this.returnUrl]);
-    }
+  }
+  
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
   
   // Getter for easy access to form fields
@@ -93,38 +99,11 @@ export class LoginComponent implements OnInit {
       return;
     }
     
-    this.loading = true;
-    this.error = '';
-    
     const email = this.f['email'].value;
     const password = this.f['password'].value;
     
-    // Attempt login
-    this.authService.login(email, password).subscribe({
-      next: (success) => {
-        if (success) {
-          // Fetch fresh user data after login to ensure navigation shows correct name
-          this.userService.fetchCurrentUser().subscribe({
-            next: () => {
-              // Navigate to return URL or home after user data is loaded
-              this.router.navigate([this.returnUrl]);
-            },
-            error: () => {
-              // Even if user fetch fails, still navigate
-              this.router.navigate([this.returnUrl]);
-            }
-          });
-        } else {
-          this.error = 'Invalid email or password';
-          this.loading = false;
-        }
-      },
-      error: (error) => {
-        console.error('Login error:', error);
-        this.error = error?.error?.detail || 'An error occurred during login';
-        this.loading = false;
-      }
-    });
+    // Dispatch login action to NgRx
+    this.store.dispatch(AuthActions.login({ email, password }));
   }
   
   /**

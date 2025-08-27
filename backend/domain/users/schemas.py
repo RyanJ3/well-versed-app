@@ -1,6 +1,6 @@
 """User Pydantic schemas for validation"""
 
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, field_serializer
 from typing import Optional, List, Dict
 from datetime import datetime
 
@@ -53,8 +53,12 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,
         populate_by_name=True,  # Allow both user_id and id
-        json_encoders={datetime: lambda v: v.isoformat()}
     )
+    
+    @field_serializer('created_at', 'updated_at')
+    def serialize_datetime(self, dt: datetime | None) -> str | None:
+        """Serialize datetime fields to ISO format string."""
+        return dt.isoformat() if dt else None
 
 
 class UserStats(BaseModel):

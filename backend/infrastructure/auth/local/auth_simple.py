@@ -136,7 +136,12 @@ class SimpleLocalAuth(AuthInterface):
         user_id = f"local_user_{self.user_counter}"
         
         # Extract name from kwargs or use email prefix
-        name = kwargs.get("name", username.split("@")[0].title())
+        name = kwargs.get("name")
+        if not name or (isinstance(name, str) and name.strip() == ""):
+            # Use email prefix if name is None or empty/whitespace
+            name = username.split("@")[0].title()
+        elif isinstance(name, str):
+            name = name.strip()  # Remove leading/trailing whitespace
         
         # Create new user
         new_user = {

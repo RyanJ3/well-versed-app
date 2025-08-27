@@ -1,9 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth/auth.service';
-import { UserService } from '../../services/api/user.service';
+import { Store } from '@ngrx/store';
+import { Observable, Subject } from 'rxjs';
+import * as AuthActions from '../../state/auth/actions/auth.actions';
+import { selectAuthLoading, selectAuthError } from '../../state/auth/selectors/auth.selectors';
 
 @Component({
   selector: 'app-register',
@@ -12,19 +14,22 @@ import { UserService } from '../../services/api/user.service';
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
-export class RegisterComponent implements OnInit {
+export class RegisterComponent implements OnInit, OnDestroy {
   registerForm!: FormGroup;
-  loading = false;
-  error = '';
+  loading$: Observable<boolean>;
+  error$: Observable<string | null>;
   showPassword = false;
   showConfirmPassword = false;
+  private destroy$ = new Subject<void>();
   
   constructor(
     private formBuilder: FormBuilder,
-    private authService: AuthService,
-    private userService: UserService,
+    private store: Store,
     private router: Router
-  ) {}
+  ) {
+    this.loading$ = this.store.select(selectAuthLoading);
+    this.error$ = this.store.select(selectAuthError);
+  }
   
   ngOnInit() {
     // Initialize the form with validation
@@ -36,6 +41,11 @@ export class RegisterComponent implements OnInit {
     }, {
       validators: this.passwordMatchValidator
     });
+  }
+  
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
   
   // Custom validator to check if passwords match
@@ -62,40 +72,10 @@ export class RegisterComponent implements OnInit {
       return;
     }
     
-    this.loading = true;
-    this.error = '';
-    
     const { name, email, password } = this.registerForm.value;
     
-    this.authService.register(email, password, name).subscribe({
-      next: (response) => {
-        console.log('Registration successful:', response);
-        // Auto-login after successful registration
-        this.authService.login(email, password).subscribe({
-          next: () => {
-            // Fetch fresh user data after login to ensure navigation shows correct name
-            this.userService.fetchCurrentUser().subscribe({
-              next: () => {
-                this.router.navigate(['/']);
-              },
-              error: () => {
-                // Even if user fetch fails, still navigate
-                this.router.navigate(['/']);
-              }
-            });
-          },
-          error: (error) => {
-            // Registration succeeded but login failed - redirect to login
-            this.router.navigate(['/login']);
-          }
-        });
-      },
-      error: (error) => {
-        this.loading = false;
-        this.error = error.error?.detail || error.error?.error || 'Registration failed. Please try again.';
-        console.error('Registration error:', error);
-      }
-    });
+    // Dispatch register action to NgRx
+    this.store.dispatch(AuthActions.register({ email, password, name }));
   }
   
   togglePasswordVisibility() {
