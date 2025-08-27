@@ -278,12 +278,26 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
           .subscribe(user => {
             if (user) {
               this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+              
+              // Detect Bible translation change
+              const previousBible = this.userPreferredBible;
+              const previousLanguage = this.userPreferredLanguage;
+              
               this.userPreferredBible = user.preferredBible;
               this.userPreferredLanguage = user.preferredLanguage;
+              
               console.log('User ID set:', this.userId);
               console.log('User preferred Bible:', this.userPreferredBible);
               console.log('User preferred Language:', this.userPreferredLanguage);
               console.log('ESV API Token present:', !!(user.esvApiToken));
+              
+              // If Bible translation changed and we have a current chapter loaded, reload it
+              if (previousBible && previousBible !== this.userPreferredBible && this.currentBook && this.currentChapter) {
+                console.log(`Bible translation changed from ${previousBible} to ${this.userPreferredBible}, reloading verses...`);
+                this.bibleService.clearVerseTextCache();
+                this.loadChapter(this.currentBook.id, this.currentChapter);
+              }
+              
               this.deckManagementService.loadUserDecks(this.userId);
             }
           });
