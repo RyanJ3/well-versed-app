@@ -13,7 +13,7 @@ TODO:
 import os
 from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
-from .auth_interface import AuthInterface
+from ..core.interface import AuthInterface
 
 # TODO: Uncomment when implementing actual Cognito
 # import boto3
@@ -50,7 +50,7 @@ class CognitoAuth(AuthInterface):
         
         TODO: Implement actual Cognito authentication
         - Use boto3 cognito-idp client
-        - Handle MFA challenges
+        - Handle auth challenges
         - Return user attributes from Cognito
         """
         raise NotImplementedError(

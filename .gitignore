@@ -18,6 +18,10 @@ src/environments/environment*.ts
 
 # Logs and debugging
 npm-debug.log*
+
+# Local development data
+backend/data/
+*.local.json
 yarn-debug.log*
 yarn-error.log*
 *.log

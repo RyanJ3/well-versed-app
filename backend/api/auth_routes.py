@@ -15,8 +15,8 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional, Dict, Any
 import logging
 
-from infrastructure.auth.auth_factory import AuthFactory
-from infrastructure.auth.auth_interface import AuthInterface
+from infrastructure.auth.core import AuthInterface
+from infrastructure.auth.core.factory import AuthFactory
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +114,18 @@ async def login(
             detail="Invalid credentials"
         )
     
+    # Handle errors and challenges
+    if "error" in user_data:
+        # Handle specific auth errors (unconfirmed, password reset required, etc.)
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": user_data["error"],
+                "code": user_data.get("code"),
+                "message": user_data.get("message", user_data["error"])
+            }
+        )
+    
     # Handle MFA or other challenges (Cognito specific)
     if "challenge" in user_data:
         raise HTTPException(
@@ -198,24 +210,25 @@ async def get_current_user_info(user: Dict[str, Any] = Depends(get_current_user)
     )
 
 
-@router.post("/register")
-async def register(
-    request: LoginRequest,
-    auth: AuthInterface = Depends(get_auth_provider)
-):
-    """
-    Register a new user.
-    
-    Uses the appropriate auth provider to create a new user account.
-    """
-    result = auth.register(request.username, request.password)
-    
-    if not result.get("success"):
-        raise HTTPException(
-            status_code=400,
-            detail=result.get("error", "Registration failed")
-        )
-    
-    logger.info(f"User registered: {request.username}")
-    
-    return result
+# TODO: Implement registration when frontend is ready
+# @router.post("/register")
+# async def register(
+#     request: LoginRequest,
+#     auth: AuthInterface = Depends(get_auth_provider)
+# ):
+#     """
+#     Register a new user.
+#     
+#     Uses the appropriate auth provider to create a new user account.
+#     """
+#     result = auth.register(request.username, request.password)
+#     
+#     if not result.get("success"):
+#         raise HTTPException(
+#             status_code=400,
+#             detail=result.get("error", "Registration failed")
+#         )
+#     
+#     logger.info(f"User registered: {request.username}")
+#     
+#     return result

@@ -1,6 +1,6 @@
 """User Pydantic schemas for validation"""
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from typing import Optional, List, Dict
 from datetime import datetime
 
@@ -49,13 +49,12 @@ class UserResponse(BaseModel):
     verses_memorized: Optional[int] = 0
     streak_days: Optional[int] = 0
     books_started: Optional[int] = 0
-
-    class Config:
-        from_attributes = True
-        populate_by_name = True  # Allow both user_id and id
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+    
+    model_config = ConfigDict(
+        from_attributes=True,
+        populate_by_name=True,  # Allow both user_id and id
+        json_encoders={datetime: lambda v: v.isoformat()}
+    )
 
 
 class UserStats(BaseModel):

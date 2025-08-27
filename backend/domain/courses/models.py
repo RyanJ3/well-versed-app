@@ -1,6 +1,6 @@
 # backend/domain/courses/models.py
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional, Dict
 from datetime import datetime
 
@@ -8,25 +8,23 @@ from datetime import datetime
 # ========== Course Models ==========
 
 class CourseCreate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    
     title: str = Field(alias="name")
     description: Optional[str] = None
     thumbnail_url: Optional[str] = None
     is_public: bool = False
     tags: List[str] = []
 
-    class Config:
-        populate_by_name = True
-
 
 class CourseUpdate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    
     title: Optional[str] = Field(default=None, alias="name")
     description: Optional[str] = None
     thumbnail_url: Optional[str] = None
     is_public: Optional[bool] = None
     tags: Optional[List[str]] = None
-
-    class Config:
-        populate_by_name = True
 
 
 class CourseResponse(BaseModel):

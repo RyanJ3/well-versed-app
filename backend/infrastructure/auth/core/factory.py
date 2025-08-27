@@ -7,9 +7,10 @@ provider based on environment configuration.
 
 import os
 from typing import Optional
-from .auth_interface import AuthInterface
-from .local_auth import LocalAuth
-from .cognito_auth import CognitoAuth
+from .interface import AuthInterface
+from .config import Environment, EnvVars, AuthMode
+from ..local.auth_simple import SimpleLocalAuth
+from ..cognito.auth import CognitoAuth
 
 
 class AuthFactory:
@@ -38,30 +39,33 @@ class AuthFactory:
         """
         Create the appropriate auth provider based on environment.
         """
-        environment = os.environ.get("ENVIRONMENT", "local")
-        auth_mode = os.environ.get("AUTH_MODE", "local").lower()
+        env_str = os.environ.get(EnvVars.ENVIRONMENT.value, "local")
+        auth_mode_str = os.environ.get(EnvVars.AUTH_MODE.value, "local")
         
-        print(f"Creating auth provider for environment: {environment}, mode: {auth_mode}")
+        environment = Environment.from_string(env_str)
+        auth_mode = AuthMode.from_string(auth_mode_str)
+        
+        print(f"Creating auth provider for environment: {environment.value}, mode: {auth_mode.value}")
         
         # Force local auth in local/development environments
-        if environment in ["local", "development", "test"] or auth_mode == "local":
-            print("Using LocalAuth provider (development mode)")
-            return LocalAuth()
+        if environment.is_local or auth_mode == AuthMode.LOCAL:
+            print("Using SimpleLocalAuth provider (development mode)")
+            return SimpleLocalAuth()
         
         # Use Cognito for production/staging
-        elif auth_mode == "cognito" or environment in ["production", "staging", "prod"]:
+        elif auth_mode == AuthMode.COGNITO or environment.is_production:
             print("Using CognitoAuth provider (production mode)")
             try:
                 return CognitoAuth()
             except ValueError as e:
                 print(f"Failed to initialize Cognito: {e}")
-                print("Falling back to LocalAuth")
-                return LocalAuth()
+                print("Falling back to SimpleLocalAuth")
+                return SimpleLocalAuth()
         
         # Default to local auth if unclear
         else:
-            print(f"Unknown auth mode '{auth_mode}', defaulting to LocalAuth")
-            return LocalAuth()
+            print(f"Unknown configuration, defaulting to SimpleLocalAuth")
+            return SimpleLocalAuth()
     
     @classmethod
     def reset(cls):

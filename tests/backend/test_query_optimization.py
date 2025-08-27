@@ -111,11 +111,6 @@ class TestQueryOptimization:
         assert stats["total_calls"] == 5
         assert stats["avg_queries_per_call"] == 2.0
 
-@pytest.mark.skip("Integration test placeholder")
-class TestQueryOptimizationIntegration:
-    def test_real_query_counts(self, db_connection):
-        pass
-
 def test_batch_loader_utilities():
     from utils.batch_loader import BatchLoader
     items = list(range(2500))
