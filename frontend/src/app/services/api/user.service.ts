@@ -2,10 +2,11 @@
 import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, map, tap, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { User, UserApiResponse, UserProfileUpdate } from '@models/user';
+import { AuthService } from '../auth/auth.service';
 
 declare const require: any;
 
@@ -21,6 +22,7 @@ export class UserService {
 
   constructor(
     private http: HttpClient,
+    private authService: AuthService,
     @Inject(PLATFORM_ID) platformId: Object
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -85,59 +87,79 @@ export class UserService {
   }
 
   fetchCurrentUser(): Observable<User | null> {
-    // For testing, we'll use user ID 1
-    return this.http.get<UserApiResponse>(`${this.apiUrl}/users/1`).pipe(
-      map(apiResponse => this.mapApiResponseToUser(apiResponse)),
-      tap(user => {
-        console.log('Fetched user from API:', user);
-        console.log('ESV API Token present:', !!(user?.esvApiToken));
-        this.currentUserSubject.next(user);
-
-        // Store preferences if in browser
-        if (user && this.isBrowser) {
-          const preferences = {
-            preferredBible: user.preferredBible,
-            preferredLanguage: user.preferredLanguage,
-            useEsvApi: user.useEsvApi,
-            esvApiToken: user.esvApiToken
-          };
-          console.log('Storing preferences to localStorage:', preferences);
-          localStorage.setItem('userPreferences', JSON.stringify(preferences));
-          this.syncBibleVersion(user);
-        }
-      }),
-      catchError(error => {
-        console.error('Error fetching user:', error);
+    // Get current user info from auth service
+    return this.authService.getCurrentUser().pipe(
+      map(authUser => {
+        // Create a User object from auth service data
+        const user: User = {
+          id: 1, // We don't have a numeric ID from auth, using 1 as placeholder
+          email: authUser.email,
+          name: authUser.name || authUser.email.split('@')[0],
+          firstName: authUser.name?.split(' ')[0] || '',
+          lastName: authUser.name?.split(' ').slice(1).join(' ') || '',
+          createdAt: new Date(),
+          
+          // Default preferences - these will be loaded from user preferences API later
+          preferredBible: '',
+          preferredLanguage: 'eng',
+          includeApocrypha: false,
+          useEsvApi: false,
+          esvApiToken: '',
+          denomination: '',
+          
+          // Stats
+          versesMemorized: 0,
+          streakDays: 0,
+          booksStarted: 0,
+          currentlyMemorizing: []
+        };
         
-        // Try to restore from localStorage on error
+        // Try to load saved preferences from localStorage
         if (this.isBrowser) {
           try {
             const stored = localStorage.getItem('userPreferences');
             if (stored) {
               const prefs = JSON.parse(stored);
-              console.log('Restoring user preferences from localStorage due to API error:', prefs);
-              // Create a minimal user object with cached preferences
-              const fallbackUser: Partial<User> = {
-                id: 1,
-                email: 'test@example.com',
-                name: 'Test User',
-                preferredBible: prefs.preferredBible,
-                preferredLanguage: prefs.preferredLanguage || 'eng',
-                useEsvApi: prefs.useEsvApi,
-                esvApiToken: prefs.esvApiToken,
-                includeApocrypha: false,
-                firstName: 'Test',
-                lastName: 'User',
-                createdAt: new Date()
-              };
-              this.currentUserSubject.next(fallbackUser as User);
-              return of(fallbackUser as User);
+              // Only use stored prefs if they match the current user's email
+              const storedEmail = localStorage.getItem('userEmail');
+              if (storedEmail === authUser.email) {
+                user.preferredBible = prefs.preferredBible || user.preferredBible;
+                user.preferredLanguage = prefs.preferredLanguage || user.preferredLanguage;
+                user.useEsvApi = prefs.useEsvApi || user.useEsvApi;
+                user.esvApiToken = prefs.esvApiToken || user.esvApiToken;
+                user.includeApocrypha = prefs.includeApocrypha || user.includeApocrypha;
+                user.denomination = prefs.denomination || user.denomination;
+              }
             }
           } catch (e) {
-            console.error('Error restoring from localStorage:', e);
+            console.error('Error loading preferences from localStorage:', e);
           }
         }
         
+        return user;
+      }),
+      tap(user => {
+        console.log('Fetched user from auth service:', user);
+        this.currentUserSubject.next(user);
+
+        // Store preferences and email if in browser
+        if (user && this.isBrowser) {
+          const preferences = {
+            preferredBible: user.preferredBible,
+            preferredLanguage: user.preferredLanguage,
+            useEsvApi: user.useEsvApi,
+            esvApiToken: user.esvApiToken,
+            includeApocrypha: user.includeApocrypha,
+            denomination: user.denomination
+          };
+          console.log('Storing preferences to localStorage:', preferences);
+          localStorage.setItem('userPreferences', JSON.stringify(preferences));
+          localStorage.setItem('userEmail', user.email);
+          this.syncBibleVersion(user);
+        }
+      }),
+      catchError(error => {
+        console.error('Error fetching user:', error);
         return of(null);
       })
     );
@@ -220,6 +242,8 @@ export class UserService {
 
     console.log('Converted to API format:', apiRequestData);
 
+    // For now, we'll still use user ID 1 for the update endpoint
+    // In a full implementation, this would be handled differently
     return this.http.put<UserApiResponse>(`${this.apiUrl}/users/1`, apiRequestData).pipe(
       map(apiResponse => this.mapApiResponseToUser(apiResponse)),
       tap(updatedUser => {

@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './pages/home/home.component';
 import { ProfileComponent } from './features/profile/profile.component';
 import { LoginComponent } from './pages/login/login.component';
+import { RegisterComponent } from './pages/register/register.component';
 import { AuthGuard } from './guards/auth.guard';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 import { AuthLayoutComponent } from './layout/auth-layout/auth-layout.component';
@@ -33,8 +34,14 @@ export const routes: Routes = [
       { path: '', component: LoginComponent },
     ]
   },
+  {
+    path: 'register',
+    component: AuthLayoutComponent,
+    children: [
+      { path: '', component: RegisterComponent },
+    ]
+  },
   // Future auth pages will go here with AuthLayout:
-  // { path: 'register', component: AuthLayoutComponent, children: [{ path: '', component: RegisterComponent }] },
   // { path: 'forgot-password', component: AuthLayoutComponent, children: [{ path: '', component: ForgotPasswordComponent }] },
   // { path: 'reset-password', component: AuthLayoutComponent, children: [{ path: '', component: ResetPasswordComponent }] },
   

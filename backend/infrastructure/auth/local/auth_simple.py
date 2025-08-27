@@ -48,7 +48,10 @@ class SimpleLocalAuth(AuthInterface):
         # In production, this would be Redis or a database
         self.blacklisted_tokens = set()
         
-        # Hardcoded test users for development
+        # User counter for generating IDs
+        self.user_counter = 1000
+        
+        # Start with default test users (mutable now for registration)
         self.test_users = {
             "test@example.com": {
                 "user_id": "local_test_user_001",
@@ -56,7 +59,8 @@ class SimpleLocalAuth(AuthInterface):
                 "name": "Test User",
                 "password": "password123",  # In plain text for simplicity
                 "groups": ["users"],
-                "enabled": True
+                "enabled": True,
+                "created_at": datetime.now(timezone.utc).isoformat()
             },
             "admin@example.com": {
                 "user_id": "local_admin_user_001", 
@@ -64,7 +68,8 @@ class SimpleLocalAuth(AuthInterface):
                 "name": "Admin User",
                 "password": "admin123",
                 "groups": ["users", "admins"],
-                "enabled": True
+                "enabled": True,
+                "created_at": datetime.now(timezone.utc).isoformat()
             }
         }
         
@@ -99,12 +104,65 @@ class SimpleLocalAuth(AuthInterface):
     
     def register(self, username: str, password: str, **kwargs) -> Dict[str, Any]:
         """
-        Registration not implemented for this version.
+        Register a new user in memory (lost on restart).
+        Perfect for local development and testing.
         """
+        # Check if user already exists
+        if username.lower() in self.test_users:
+            return {
+                "success": False,
+                "error": "User already exists",
+                "code": "UserAlreadyExists"
+            }
+        
+        # Validate email format (basic check)
+        if "@" not in username or "." not in username.split("@")[1]:
+            return {
+                "success": False,
+                "error": "Invalid email format",
+                "code": "InvalidEmail"
+            }
+        
+        # Validate password (minimum 6 characters)
+        if len(password) < 6:
+            return {
+                "success": False,
+                "error": "Password must be at least 6 characters",
+                "code": "PasswordTooShort"
+            }
+        
+        # Generate new user ID
+        self.user_counter += 1
+        user_id = f"local_user_{self.user_counter}"
+        
+        # Extract name from kwargs or use email prefix
+        name = kwargs.get("name", username.split("@")[0].title())
+        
+        # Create new user
+        new_user = {
+            "user_id": user_id,
+            "email": username.lower(),
+            "name": name,
+            "password": password,  # Plain text for local dev
+            "groups": ["users"],
+            "enabled": True,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Add to users dictionary
+        self.test_users[username.lower()] = new_user
+        
+        print(f"New user registered: {username}")
+        
+        # Return success with user info
         return {
-            "success": False,
-            "error": "Registration not available in development mode",
-            "code": "NotImplemented"
+            "success": True,
+            "user": {
+                "user_id": user_id,
+                "email": username.lower(),
+                "name": name
+            },
+            "message": "Registration successful"
         }
     
     def create_tokens(self, user_data: Dict[str, Any]) -> Dict[str, Any]:

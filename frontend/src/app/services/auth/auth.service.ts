@@ -23,6 +23,12 @@ interface LoginRequest {
   password: string;
 }
 
+interface RegisterRequest {
+  username: string;  // Email address
+  password: string;
+  name?: string;
+}
+
 interface LoginResponse {
   access_token: string;
   refresh_token: string;
@@ -146,10 +152,11 @@ export class AuthService {
   /**
    * Register a new user
    */
-  register(email: string, password: string): Observable<any> {
-    const registerRequest: LoginRequest = {
+  register(email: string, password: string, name?: string): Observable<any> {
+    const registerRequest: RegisterRequest = {
       username: email,
-      password: password
+      password: password,
+      name: name
     };
     
     return this.http.post(`${this.API_URL}/register`, registerRequest);

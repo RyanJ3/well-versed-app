@@ -1,0 +1,158 @@
+<div class="register-container">
+  <div class="register-card">
+    <!-- Logo and Title -->
+    <div class="register-header">
+      <h1 class="app-title">Well Versed</h1>
+      <p class="app-subtitle">Create Your Account</p>
+    </div>
+    
+    <!-- Register Form -->
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+      
+      <!-- Name Field -->
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input 
+          type="text" 
+          id="name"
+          name="name"
+          class="form-control"
+          formControlName="name"
+          placeholder="Enter your name"
+          [class.is-invalid]="hasError('name')"
+        />
+        <div class="invalid-feedback" *ngIf="hasError('name', 'required')">
+          Name is required
+        </div>
+        <div class="invalid-feedback" *ngIf="hasError('name', 'minlength')">
+          Name must be at least 2 characters
+        </div>
+      </div>
+      
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input 
+          type="email" 
+          id="email"
+          name="email"
+          class="form-control"
+          formControlName="email"
+          placeholder="Enter your email"
+          [class.is-invalid]="hasError('email')"
+        />
+        <div class="invalid-feedback" *ngIf="hasError('email', 'required')">
+          Email is required
+        </div>
+        <div class="invalid-feedback" *ngIf="hasError('email', 'email')">
+          Please enter a valid email
+        </div>
+      </div>
+      
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-input-group">
+          <input 
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            name="password"
+            class="form-control"
+            formControlName="password"
+            placeholder="Create a password"
+            [class.is-invalid]="hasError('password')"
+          />
+          <button 
+            type="button"
+            class="btn-toggle-password"
+            (click)="togglePasswordVisibility()"
+            tabindex="-1"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+          >
+            <!-- Eye icon when password is hidden -->
+            <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            
+            <!-- Eye with slash icon when password is shown -->
+            <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="invalid-feedback" *ngIf="hasError('password', 'required')">
+          Password is required
+        </div>
+        <div class="invalid-feedback" *ngIf="hasError('password', 'minlength')">
+          Password must be at least 6 characters
+        </div>
+      </div>
+      
+      <!-- Confirm Password Field -->
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <div class="password-input-group">
+          <input 
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            id="confirmPassword"
+            name="confirmPassword"
+            class="form-control"
+            formControlName="confirmPassword"
+            placeholder="Confirm your password"
+            [class.is-invalid]="hasError('confirmPassword')"
+          />
+          <button 
+            type="button"
+            class="btn-toggle-password"
+            (click)="toggleConfirmPasswordVisibility()"
+            tabindex="-1"
+            [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'"
+          >
+            <!-- Eye icon when password is hidden -->
+            <svg *ngIf="!showConfirmPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            
+            <!-- Eye with slash icon when password is shown -->
+            <svg *ngIf="showConfirmPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="invalid-feedback" *ngIf="hasError('confirmPassword', 'required')">
+          Please confirm your password
+        </div>
+        <div class="invalid-feedback" *ngIf="registerForm.get('confirmPassword')?.errors?.['passwordMismatch'] && registerForm.get('confirmPassword')?.touched">
+          Passwords do not match
+        </div>
+      </div>
+      
+      <!-- Error Message -->
+      <div class="alert alert-danger" *ngIf="error">
+        {{ error }}
+      </div>
+      
+      <!-- Submit Button -->
+      <button 
+        type="submit" 
+        class="btn btn-primary btn-block"
+        [disabled]="loading"
+      >
+        <span *ngIf="!loading">Create Account</span>
+        <span *ngIf="loading">Creating account...</span>
+      </button>
+      
+      <!-- Login Link -->
+      <div class="register-footer">
+        <p>
+          Already have an account? 
+          <a (click)="goToLogin()" class="link">Sign in</a>
+        </p>
+      </div>
+    </form>
+  </div>
+</div>

@@ -93,11 +93,37 @@ class TestSimpleAuth:
         assert "access_token" in new_tokens
         assert new_tokens["token_type"] == "Bearer"
     
-    def test_register_not_implemented(self):
-        """Test that registration returns not implemented."""
-        result = self.auth.register("new@example.com", "password123")
+    def test_register_new_user(self):
+        """Test that registration creates a new user."""
+        # Register a new user
+        result = self.auth.register("newuser@example.com", "password123", name="New User")
+        assert result["success"] == True
+        assert result["user"]["email"] == "newuser@example.com"
+        assert result["user"]["name"] == "New User"
+        
+        # Verify we can authenticate with the new user
+        auth_result = self.auth.authenticate("newuser@example.com", "password123")
+        assert auth_result is not None
+        assert auth_result["email"] == "newuser@example.com"
+    
+    def test_register_duplicate_user(self):
+        """Test that duplicate registration fails."""
+        # Try to register existing test user
+        result = self.auth.register("test@example.com", "somepassword")
         assert result["success"] == False
-        assert "not available" in result["error"].lower()
+        assert "already exists" in result["error"].lower()
+    
+    def test_register_invalid_email(self):
+        """Test that invalid email format fails."""
+        result = self.auth.register("notanemail", "password123")
+        assert result["success"] == False
+        assert "invalid email" in result["error"].lower()
+    
+    def test_register_short_password(self):
+        """Test that short password fails."""
+        result = self.auth.register("short@example.com", "123")
+        assert result["success"] == False
+        assert "at least 6 characters" in result["error"].lower()
     
     def test_forgot_password_not_implemented(self):
         """Test that forgot password returns not implemented."""

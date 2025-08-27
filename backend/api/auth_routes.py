@@ -34,6 +34,13 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class RegisterRequest(BaseModel):
+    """Registration request with username (email), password, and optional name"""
+    username: EmailStr
+    password: str
+    name: Optional[str] = None
+
+
 class LoginResponse(BaseModel):
     """Response after successful login"""
     access_token: str
@@ -210,25 +217,35 @@ async def get_current_user_info(user: Dict[str, Any] = Depends(get_current_user)
     )
 
 
-# TODO: Implement registration when frontend is ready
-# @router.post("/register")
-# async def register(
-#     request: LoginRequest,
-#     auth: AuthInterface = Depends(get_auth_provider)
-# ):
-#     """
-#     Register a new user.
-#     
-#     Uses the appropriate auth provider to create a new user account.
-#     """
-#     result = auth.register(request.username, request.password)
-#     
-#     if not result.get("success"):
-#         raise HTTPException(
-#             status_code=400,
-#             detail=result.get("error", "Registration failed")
-#         )
-#     
-#     logger.info(f"User registered: {request.username}")
-#     
-#     return result
+@router.post("/register")
+async def register(
+    request: RegisterRequest,
+    auth: AuthInterface = Depends(get_auth_provider)
+):
+    """
+    Register a new user.
+    
+    Uses the appropriate auth provider to create a new user account.
+    For local development, creates user in memory (lost on restart).
+    """
+    # Pass name as a keyword argument if provided
+    result = auth.register(
+        request.username, 
+        request.password, 
+        name=request.name if request.name else None
+    )
+    
+    if not result.get("success"):
+        raise HTTPException(
+            status_code=400,
+            detail=result.get("error", "Registration failed")
+        )
+    
+    logger.info(f"User registered: {request.username}")
+    
+    # Return user info and success message
+    return {
+        "success": True,
+        "user": result.get("user"),
+        "message": result.get("message", "Registration successful")
+    }

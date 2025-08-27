@@ -13,6 +13,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth/auth.service';
+import { UserService } from '../../services/api/user.service';
 
 @Component({
   selector: 'app-login',
@@ -35,6 +36,7 @@ export class LoginComponent implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
+    private userService: UserService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -101,8 +103,17 @@ export class LoginComponent implements OnInit {
     this.authService.login(email, password).subscribe({
       next: (success) => {
         if (success) {
-          // Navigate to return URL or home
-          this.router.navigate([this.returnUrl]);
+          // Fetch fresh user data after login to ensure navigation shows correct name
+          this.userService.fetchCurrentUser().subscribe({
+            next: () => {
+              // Navigate to return URL or home after user data is loaded
+              this.router.navigate([this.returnUrl]);
+            },
+            error: () => {
+              // Even if user fetch fails, still navigate
+              this.router.navigate([this.returnUrl]);
+            }
+          });
         } else {
           this.error = 'Invalid email or password';
           this.loading = false;
