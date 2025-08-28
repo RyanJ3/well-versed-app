@@ -11,9 +11,10 @@
  * - Background styling for auth pages
  */
 
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-auth-layout',
@@ -22,7 +23,28 @@ import { RouterOutlet } from '@angular/router';
   templateUrl: './auth-layout.component.html',
   styleUrls: ['./auth-layout.component.scss']
 })
-export class AuthLayoutComponent {
-  // This layout is intentionally minimal
-  // All auth-related pages will be rendered within this layout
+export class AuthLayoutComponent implements OnInit {
+  subtitle: string = 'Bible Memorization Platform';
+  
+  constructor(private router: Router) {}
+  
+  ngOnInit() {
+    // Update subtitle based on current route
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
+      this.updateSubtitle(event.url);
+    });
+    
+    // Set initial subtitle
+    this.updateSubtitle(this.router.url);
+  }
+  
+  private updateSubtitle(url: string) {
+    if (url.includes('register')) {
+      this.subtitle = 'Create Your Account';
+    } else {
+      this.subtitle = 'Bible Memorization Platform';
+    }
+  }
 }

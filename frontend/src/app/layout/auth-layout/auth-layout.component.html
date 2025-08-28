@@ -5,12 +5,20 @@
   </div>
   
   <div class="auth-content">
-    <!-- This is where auth pages (login, register, etc.) will be rendered -->
-    <router-outlet></router-outlet>
+    <div class="auth-card">
+      <!-- Common header for all auth pages -->
+      <div class="auth-header">
+        <h1 class="app-title">Well Versed</h1>
+        <p class="app-subtitle">{{ subtitle }}</p>
+      </div>
+      
+      <!-- This is where auth pages (login, register, etc.) will be rendered -->
+      <router-outlet></router-outlet>
+    </div>
   </div>
   
-  <!-- Optional: Simple footer for auth pages -->
+  <!-- Footer for auth pages -->
   <div class="auth-footer">
-    <p>&copy; 2025 Well Versed. All rights reserved.</p>
+    <p>2025 Well Versed. No reserved yet :)</p>
   </div>
 </div>
