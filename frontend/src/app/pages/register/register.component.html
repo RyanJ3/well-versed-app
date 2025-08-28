@@ -1,23 +1,46 @@
 <!-- Register Form -->
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
       
-      <!-- Name Field -->
-      <div class="form-group">
-        <label for="name">Name</label>
-        <input 
-          type="text" 
-          id="name"
-          name="name"
-          class="form-control"
-          formControlName="name"
-          placeholder="Enter your name"
-          [class.is-invalid]="hasError('name')"
-        />
-        <div class="invalid-feedback" *ngIf="hasError('name', 'required')">
-          Name is required
+      <!-- Name Fields Row -->
+      <div class="form-row">
+        <!-- First Name Field -->
+        <div class="form-group">
+          <label for="firstName">First Name</label>
+          <input 
+            type="text" 
+            id="firstName"
+            name="firstName"
+            class="form-control"
+            formControlName="firstName"
+            placeholder="First name"
+            [class.is-invalid]="hasError('firstName')"
+          />
+          <div class="invalid-feedback" *ngIf="hasError('firstName', 'required')">
+            First name is required
+          </div>
+          <div class="invalid-feedback" *ngIf="hasError('firstName', 'minlength')">
+            Must be at least 2 characters
+          </div>
         </div>
-        <div class="invalid-feedback" *ngIf="hasError('name', 'minlength')">
-          Name must be at least 2 characters
+        
+        <!-- Last Name Field -->
+        <div class="form-group">
+          <label for="lastName">Last Name</label>
+          <input 
+            type="text" 
+            id="lastName"
+            name="lastName"
+            class="form-control"
+            formControlName="lastName"
+            placeholder="Last name"
+            [class.is-invalid]="hasError('lastName')"
+          />
+          <div class="invalid-feedback" *ngIf="hasError('lastName', 'required')">
+            Last name is required
+          </div>
+          <div class="invalid-feedback" *ngIf="hasError('lastName', 'minlength')">
+            Must be at least 2 characters
+          </div>
         </div>
       </div>
       

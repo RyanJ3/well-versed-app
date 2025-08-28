@@ -70,8 +70,12 @@ export class AuthEffects {
   register$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AuthActions.register),
-      switchMap(({ email, password, name }) =>
-        this.authService.register(email, password, name).pipe(
+      switchMap(({ email, password, name }) => {
+        // Parse the combined name into first and last
+        const [firstName, ...lastNameParts] = (name || '').split(' ');
+        const lastName = lastNameParts.join(' ');
+        
+        return this.authService.register(email, password, firstName || '', lastName || '').pipe(
           switchMap(() => {
             // After successful registration, auto-login
             return this.authService.login(email, password).pipe(
@@ -108,8 +112,8 @@ export class AuthEffects {
               error: error?.error?.detail || error?.error?.error || 'Registration failed' 
             }))
           )
-        )
-      )
+        );
+      })
     )
   );
 

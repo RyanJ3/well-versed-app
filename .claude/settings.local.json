@@ -16,7 +16,10 @@
       "Bash(docker compose:*)",
       "Bash(npm test:*)",
       "Bash(npm run sync:tests:*)",
-      "Bash(npm run test:frontend:*)"
+      "Bash(npm run test:frontend:*)",
+      "Bash(npm run test:jest:*)",
+      "Bash(npx jest:*)",
+      "Bash(python3 -m pytest ../tests/backend -v)"
     ],
     "defaultMode": "acceptEdits"
   },

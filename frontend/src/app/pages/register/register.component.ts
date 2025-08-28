@@ -34,7 +34,8 @@ export class RegisterComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // Initialize the form with validation
     this.registerForm = this.formBuilder.group({
-      name: ['', [Validators.required, Validators.minLength(2)]],
+      firstName: ['', [Validators.required, Validators.minLength(2)]],
+      lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]]
@@ -72,7 +73,10 @@ export class RegisterComponent implements OnInit, OnDestroy {
       return;
     }
     
-    const { name, email, password } = this.registerForm.value;
+    const { firstName, lastName, email, password } = this.registerForm.value;
+    
+    // Combine first and last name for now (until backend is updated)
+    const name = `${firstName} ${lastName}`;
     
     // Dispatch register action to NgRx
     this.store.dispatch(AuthActions.register({ email, password, name }));

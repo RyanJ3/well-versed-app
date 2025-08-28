@@ -1,4 +1,13 @@
 .register-form {
+  .form-row {
+    display: flex;
+    gap: 12px;
+    
+    .form-group {
+      flex: 1;
+    }
+  }
+  
   .form-group {
     margin-bottom: 20px;
     
@@ -141,6 +150,16 @@
       &:hover {
         text-decoration: underline;
       }
+    }
+  }
+}
+
+// Responsive adjustments for name fields
+@media (max-width: 480px) {
+  .register-form {
+    .form-row {
+      flex-direction: column;
+      gap: 0;
     }
   }
 }
