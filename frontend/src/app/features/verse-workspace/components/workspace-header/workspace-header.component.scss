@@ -164,6 +164,7 @@
   gap: 12px;
   flex: 1;
   max-width: 200px;
+  margin-left: 8px;
 
   .progress-track {
     flex: 1;
@@ -279,22 +280,23 @@
 
 // Book dropdown specific styles
 .book-dropdown-menu {
-  // Testament filter inside dropdown
+  // Testament filter - sticky at top
   .dropdown-testament-filter {
+    position: sticky;
+    top: 0;
+    z-index: 11;
     display: flex;
     gap: 4px;
-    background: linear-gradient(135deg, rgba(241, 245, 249, 0.9), rgba(236, 241, 247, 0.9));
-    padding: 5px;
-    border-radius: 12px;
-    margin: 0 0 14px 0;
-    box-shadow:
-      inset 0 2px 4px rgba(0, 0, 0, 0.04),
-      inset 0 1px 2px rgba(0, 0, 0, 0.02);
+    background: #ffffff;
+    padding: 10px;
+    margin: -10px -10px 10px -10px; // Extend to edges
+    border-bottom: 1px solid rgba(203, 213, 225, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
 
     button {
       flex: 1;
       padding: 8px 12px;
-      background: transparent;
+      background: rgba(241, 245, 249, 0.5);
       border: none;
       border-radius: 8px;
       font-size: 12px;
@@ -304,46 +306,36 @@
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
       &:hover {
-        background: rgba(255, 255, 255, 0.6);
+        background: rgba(229, 231, 235, 0.6);
         color: #4b5563;
       }
 
       &.active {
-        background: linear-gradient(135deg, #fff, #f8fafc);
-        color: #6366f1;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
         box-shadow:
-          0 3px 6px rgba(99, 102, 241, 0.15),
-          0 1px 3px rgba(0, 0, 0, 0.04),
-          inset 0 1px 0 rgba(255, 255, 255, 1);
-        transform: scale(1.02);
+          0 2px 4px rgba(99, 102, 241, 0.2),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
         font-weight: 700;
       }
     }
   }
 
   .dropdown-header {
+    position: sticky;
+    top: 53px; // Height of filter container
+    z-index: 10;
     font-size: 11px;
     font-weight: 700;
-    background: linear-gradient(135deg, #64748b, #475569);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
     text-transform: uppercase;
     letter-spacing: 1px;
-    margin: 14px 14px 10px 14px;
-    padding: 0;
-    position: relative;
-
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: -4px;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.2), transparent);
-    }
+    padding: 14px 14px 10px 14px; // More top padding to cover text
+    margin: -4px -10px 0 -10px; // Negative top margin to overlap previous content
+    background: #ffffff;
+    border-bottom: 1px solid rgba(203, 213, 225, 0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
   }
+
 
   // Book dropdown items
   .book-dropdown-item {
