@@ -1,4 +1,15 @@
-<!-- Register Form -->
+<div class="register-container">
+  <!-- Animated Background -->
+  <app-login-background></app-login-background>
+
+  <!-- Register Card -->
+  <div class="register-card">
+    <div class="register-header">
+      <h1 class="register-title">Create Account</h1>
+      <p class="register-subtitle">Join Well Versed to start memorizing scripture</p>
+    </div>
+
+    <!-- Register Form -->
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
       
       <!-- Name Fields Row -->
@@ -169,3 +180,5 @@
         </p>
       </div>
     </form>
+  </div>
+</div>

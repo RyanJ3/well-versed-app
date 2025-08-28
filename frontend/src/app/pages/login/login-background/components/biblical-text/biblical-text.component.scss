@@ -1,0 +1,80 @@
+.biblical-text {
+  position: absolute;
+  font-size: 24px;
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.3s ease, z-index 0.3s ease;
+  pointer-events: auto;
+  cursor: pointer;
+  min-width: 200px;
+  text-align: center;
+  z-index: 10;
+  
+  &.visible {
+    opacity: 0.8;
+  }
+  
+  &:hover {
+    opacity: 1;
+    transform: scale(1.1);
+    z-index: 1000;
+  }
+  
+  .original-text,
+  .translation-text {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    transition: opacity 0.3s ease;
+  }
+  
+  .original-text {
+    color: #1e293b;
+  }
+  
+  .translation-text {
+    color: #6366f1;
+    font-weight: 500;
+    font-style: normal;
+    font-family: system-ui, -apple-system, sans-serif;
+    letter-spacing: 0.5px;
+  }
+  
+  &.hebrew {
+    .original-text {
+      font-family: 'Times New Roman', serif;
+      direction: rtl;
+    }
+  }
+  
+  &.greek {
+    .original-text {
+      font-family: 'Times New Roman', serif;
+      font-style: italic;
+    }
+  }
+  
+  &.translating {
+    .translation-text {
+      animation: typewriterCursor 0.5s step-end infinite;
+      
+      &::after {
+        content: '_';
+        opacity: 0.5;
+        animation: blink 1s step-end infinite;
+      }
+    }
+  }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 0.5; }
+  51%, 100% { opacity: 0; }
+}
+
+@media (max-width: 768px) {
+  .biblical-text {
+    font-size: 18px;
+  }
+}

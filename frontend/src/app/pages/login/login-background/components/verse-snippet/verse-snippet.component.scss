@@ -1,0 +1,64 @@
+.verse-snippet {
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.5s ease, z-index 0.3s ease;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 10;
+  
+  &.visible {
+    opacity: 1;
+  }
+  
+  .snippet-text {
+    display: inline-block;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    font-size: 13px;
+    color: #475569;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.1);
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  &:hover {
+    z-index: 1000;
+  }
+  
+  .word {
+    display: inline-block;
+  }
+  
+  .first-letter {
+    font-weight: 700;
+    color: #6366f1;
+    transition: color 0.3s ease;
+  }
+  
+  .rest-letters {
+    display: inline-block;
+    transition: opacity 0.3s ease, width 0.3s ease;
+    
+    &.hidden {
+      opacity: 0;
+      width: auto;
+      // Preserve width by making text transparent instead of display:none
+      color: transparent;
+      user-select: none;
+    }
+  }
+  
+  .space {
+    display: inline-block;
+    width: 0.25em;
+  }
+}

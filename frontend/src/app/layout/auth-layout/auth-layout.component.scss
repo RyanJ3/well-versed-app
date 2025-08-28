@@ -1,110 +1,26 @@
 .auth-layout {
   min-height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  position: relative;
-}
-
-.auth-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
-  
-  .auth-gradient {
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    opacity: 1;
-  }
-}
-
-.auth-content {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  z-index: 1;
-  width: 100%;
-}
-
-.auth-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  padding: 40px;
-  width: 100%;
-  max-width: 400px;
-}
-
-.auth-header {
-  text-align: center;
-  margin-bottom: 30px;
-  
-  .app-title {
-    font-size: 32px;
-    font-weight: 700;
-    color: #333;
-    margin: 0 0 8px 0;
-  }
-  
-  .app-subtitle {
-    font-size: 14px;
-    color: #666;
-    margin: 0;
-  }
 }
 
 .auth-footer {
-  padding: 20px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
   text-align: center;
-  background: rgba(0, 0, 0, 0.1);
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.8));
   backdrop-filter: blur(10px);
-  color: white;
-  font-size: 14px;
+  border-top: 1px solid rgba(203, 213, 225, 0.2);
+  z-index: 10;
   
   p {
-    margin: 0 0 8px 0;
-    opacity: 0.9;
-  }
-  
-  .footer-links {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-    
-    a {
-      color: white;
-      text-decoration: none;
-      opacity: 0.8;
-      transition: opacity 0.3s;
-      
-      &:hover {
-        opacity: 1;
-        text-decoration: underline;
-      }
-    }
-    
-    .separator {
-      opacity: 0.5;
-    }
-  }
-}
-
-// Responsive adjustments
-@media (max-width: 480px) {
-  .auth-card {
-    padding: 30px 20px;
-    max-width: 100%;
-  }
-  
-  .auth-header {
-    .app-title {
-      font-size: 28px;
-    }
+    margin: 0;
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
   }
 }

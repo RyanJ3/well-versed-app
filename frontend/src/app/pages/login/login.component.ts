@@ -17,11 +17,12 @@ import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import * as AuthActions from '../../state/auth/actions/auth.actions';
 import { selectAuthLoading, selectAuthError } from '../../state/auth/selectors/auth.selectors';
+import { LoginBackgroundComponent } from './login-background/login-background.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, LoginBackgroundComponent],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })

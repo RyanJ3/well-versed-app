@@ -1,0 +1,472 @@
+.map-container {
+  position: absolute;
+  width: 260px;
+  height: 200px;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.3s ease, z-index 0.3s ease;
+  animation: gentleFloat 14s ease-in-out infinite;
+  
+  &.visible {
+    opacity: 1;
+  }
+  
+  &:hover {
+    transform: scale(1.05);
+    z-index: 1000;
+  }
+  
+  .map-border {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+      rgba(253, 247, 237, 0.95) 0%, 
+      rgba(245, 235, 220, 0.95) 50%,
+      rgba(237, 224, 200, 0.9) 100%);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(139, 110, 71, 0.4);
+    border-radius: 16px;
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.12),
+      0 2px 8px rgba(139, 110, 71, 0.15),
+      inset 0 2px 4px rgba(255, 255, 255, 0.5),
+      inset 0 -2px 4px rgba(139, 110, 71, 0.1);
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 30%, 
+        rgba(255, 223, 186, 0.3) 0%, 
+        transparent 50%);
+      pointer-events: none;
+    }
+  }
+  
+  .map-header {
+    position: absolute;
+    top: 8px;
+    left: 12px;
+    right: 12px;
+    z-index: 5;
+    
+    .map-title {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #5d4e37;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
+    }
+    
+    .map-subtitle {
+      display: block;
+      font-size: 9px;
+      color: #8b7355;
+      font-style: italic;
+      margin-top: 2px;
+      transition: all 0.3s ease;
+    }
+  }
+  
+  .map-terrain {
+    position: absolute;
+    inset: 35px 10px 25px 10px;
+    pointer-events: none;
+    border: 1px solid rgba(139, 110, 71, 0.1);
+    border-radius: 8px;
+    background: linear-gradient(180deg,
+      rgba(255, 248, 220, 0.2) 0%,
+      rgba(255, 235, 205, 0.2) 100%);
+    
+    .map-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 19px,
+          rgba(139, 110, 71, 0.05) 19px,
+          rgba(139, 110, 71, 0.05) 20px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 19px,
+          rgba(139, 110, 71, 0.05) 19px,
+          rgba(139, 110, 71, 0.05) 20px
+        );
+    }
+    
+    .terrain-feature {
+      position: absolute;
+      
+      &.mountain {
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-color: transparent transparent rgba(134, 111, 83, 0.6) transparent;
+        border-width: 0 15px 20px 15px;
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.1));
+        
+        &.small {
+          border-width: 0 10px 14px 10px;
+        }
+        
+        .mountain-peak {
+          position: absolute;
+          top: -5px;
+          left: -3px;
+          width: 6px;
+          height: 6px;
+          background: rgba(255, 255, 255, 0.8);
+          border-radius: 50%;
+        }
+        
+        .mountain-shadow {
+          position: absolute;
+          width: 0;
+          height: 0;
+          left: 5px;
+          border-style: solid;
+          border-color: transparent transparent rgba(0, 0, 0, 0.1) transparent;
+          border-width: 0 10px 20px 0;
+        }
+      }
+      
+      &.river {
+        width: 70px;
+        height: 4px;
+        background: linear-gradient(90deg, 
+          transparent,
+          rgba(100, 180, 220, 0.4) 20%,
+          rgba(120, 200, 240, 0.5) 50%,
+          rgba(100, 180, 220, 0.4) 80%,
+          transparent
+        );
+        border-radius: 2px;
+        transform: rotate(35deg);
+        transform-origin: left center;
+        
+        &.branch {
+          width: 50px;
+          transform: rotate(-20deg);
+        }
+        
+        .river-flow {
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent
+          );
+          animation: riverFlow 3s linear infinite;
+        }
+      }
+      
+      &.forest {
+        display: flex;
+        gap: 2px;
+        
+        &.small {
+          .tree {
+            font-size: 10px;
+          }
+        }
+        
+        .tree {
+          font-size: 14px;
+          opacity: 0.7;
+          filter: hue-rotate(10deg) brightness(0.9);
+          animation: treesSway 4s ease-in-out infinite;
+          
+          &:nth-child(2) {
+            animation-delay: 0.5s;
+          }
+          
+          &:nth-child(3) {
+            animation-delay: 1s;
+          }
+        }
+      }
+      
+      &.desert {
+        display: flex;
+        gap: 5px;
+        
+        .dune {
+          width: 20px;
+          height: 8px;
+          background: linear-gradient(180deg,
+            rgba(238, 203, 173, 0.6),
+            rgba(222, 184, 135, 0.4)
+          );
+          border-radius: 50% 50% 0 0;
+          
+          &:nth-child(2) {
+            width: 15px;
+            height: 6px;
+            margin-top: 2px;
+          }
+        }
+      }
+    }
+    
+    .path-svg {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      
+      .main-path {
+        fill: none;
+        stroke: rgba(139, 110, 71, 0.3);
+        stroke-width: 2;
+        stroke-linecap: round;
+        animation: dashMove 20s linear infinite;
+      }
+    }
+  }
+  
+  .church-marker {
+    position: absolute;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 3;
+    pointer-events: auto;
+    
+    .church-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 32px;
+      height: 32px;
+      background: radial-gradient(circle, 
+        rgba(99, 164, 241, 0.2) 0%, 
+        transparent 70%);
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      pointer-events: none;
+      
+      .pulse-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        height: 100%;
+        border: 1px solid rgba(99, 164, 241, 0.4);
+        border-radius: 50%;
+        animation: pulse 2s ease-in-out infinite;
+      }
+    }
+    
+    .church-icon {
+      position: relative;
+      display: block;
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
+      transition: transform 0.3s ease;
+      z-index: 2;
+    }
+    
+    .church-name {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.95);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 600;
+      color: #5d4e37;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      
+      &.show {
+        opacity: 1;
+      }
+    }
+    
+    &.hovered {
+      .church-circle {
+        width: 45px;
+        height: 45px;
+        background: radial-gradient(circle, 
+          rgba(99, 164, 241, 0.4) 0%, 
+          rgba(99, 164, 241, 0.1) 50%,
+          transparent 70%);
+      }
+    }
+  }
+  
+  .journey-marker {
+    position: absolute;
+    pointer-events: none;
+    
+    .marker-icon {
+      font-size: 16px;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+    }
+    
+    .marker-label {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 8px;
+      color: #8b7355;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+    
+    &.start {
+      .marker-icon {
+        animation: bounce 2s ease-in-out infinite;
+      }
+    }
+    
+    &.end {
+      .marker-icon {
+        animation: sparkle 3s ease-in-out infinite;
+      }
+    }
+  }
+  
+  .footstep {
+    position: absolute;
+    font-size: 10px;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
+    transform-origin: center center;
+    color: rgba(139, 110, 71, 0.6);
+  }
+  
+  .compass {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(139, 110, 71, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    
+    .compass-needle {
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-color: #dc143c transparent transparent transparent;
+      border-width: 8px 3px 0 3px;
+      transform-origin: center 4px;
+      animation: compassWobble 10s ease-in-out infinite;
+    }
+    
+    .compass-n {
+      position: absolute;
+      top: 2px;
+      font-size: 6px;
+      font-weight: bold;
+      color: #5d4e37;
+    }
+  }
+  
+  .map-scale {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    
+    .scale-bar {
+      width: 30px;
+      height: 2px;
+      background: #8b7355;
+      border-left: 2px solid #5d4e37;
+      border-right: 2px solid #5d4e37;
+    }
+    
+    .scale-text {
+      font-size: 7px;
+      color: #8b7355;
+      font-weight: 600;
+    }
+  }
+}
+
+// Animations
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(1deg); }
+}
+
+@keyframes riverFlow {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+@keyframes treesSway {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(2deg); }
+}
+
+@keyframes dashMove {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 10; }
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+@keyframes sparkle {
+  0%, 100% { 
+    transform: scale(1) rotate(0deg);
+    opacity: 0.8;
+  }
+  50% { 
+    transform: scale(1.2) rotate(180deg);
+    opacity: 1;
+  }
+}
+
+@keyframes compassWobble {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}

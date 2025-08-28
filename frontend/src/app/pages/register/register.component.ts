@@ -6,11 +6,12 @@ import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
 import * as AuthActions from '../../state/auth/actions/auth.actions';
 import { selectAuthLoading, selectAuthError } from '../../state/auth/selectors/auth.selectors';
+import { LoginBackgroundComponent } from '../login/login-background/login-background.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, LoginBackgroundComponent],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })

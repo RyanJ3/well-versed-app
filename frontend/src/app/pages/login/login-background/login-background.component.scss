@@ -1,0 +1,92 @@
+.login-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  
+  // Ensure all child elements stay behind the form
+  > * {
+    z-index: 0;
+  }
+}
+
+// Gradient mesh background
+.gradient-mesh {
+  position: absolute;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 40% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 70% 40%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
+    linear-gradient(135deg, #f5f7ff 0%, #f0f4ff 100%);
+  animation: meshFloat 45s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+// Pattern overlay
+.pattern-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(99, 102, 241, 0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: patternDrift 90s linear infinite;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+// Particles
+.particles-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: contents;
+}
+
+.particle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 50%;
+  opacity: 0.2;
+  
+  @for $i from 1 through 10 {
+    &:nth-child(#{$i}) {
+      left: random(100) * 1%;
+      top: random(100) * 1%;
+      animation: 
+        particleFloat #{20 + random(10)}s ease-in-out infinite;
+      animation-delay: #{random(10)}s;
+    }
+  }
+}
+
+// Animations
+@keyframes meshFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, -20px) scale(1.01); }
+}
+
+@keyframes patternDrift {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(40px, 40px); }
+}
+
+@keyframes particleFloat {
+  0%, 100% { 
+    transform: translate(0, 0);
+    opacity: 0.2;
+  }
+  50% { 
+    transform: translate(15px, -15px);
+    opacity: 0.3;
+  }
+}

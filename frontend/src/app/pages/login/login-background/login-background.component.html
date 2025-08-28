@@ -1,0 +1,50 @@
+<div class="login-background">
+  <!-- Animated gradient mesh background -->
+  <div class="gradient-mesh"></div>
+  
+  <!-- Geometric pattern overlay -->
+  <div class="pattern-overlay"></div>
+
+  <!-- Floating flashcards using subcomponent -->
+  <app-floating-card
+    *ngFor="let card of floatingCards"
+    [card]="card"
+    (toggleCard)="toggleCard(card)">
+  </app-floating-card>
+
+  <!-- Progress rings using subcomponent -->
+  <app-progress-ring
+    *ngFor="let ring of progressRings"
+    [ring]="ring">
+  </app-progress-ring>
+
+  <!-- Progress bars using subcomponent -->
+  <app-progress-bar
+    *ngFor="let bar of progressBars"
+    [bar]="bar">
+  </app-progress-bar>
+
+  <!-- Verse snippets using subcomponent -->
+  <app-verse-snippet
+    *ngFor="let snippet of verseSnippets"
+    [snippet]="snippet">
+  </app-verse-snippet>
+
+  <!-- Biblical texts using subcomponent -->
+  <app-biblical-text
+    *ngFor="let text of biblicalTexts"
+    [text]="text">
+  </app-biblical-text>
+
+  <!-- Map container using subcomponent -->
+  <app-map-container
+    *ngFor="let map of mapContainers"
+    [map]="map"
+    [mapLabel]="'Journey Map'">
+  </app-map-container>
+
+  <!-- Floating particles/dots -->
+  <div class="particles-container">
+    <div class="particle" *ngFor="let i of [1,2,3,4,5,6,7,8,9,10]"></div>
+  </div>
+</div>
