@@ -1,7 +1,7 @@
 // @ts-nocheck
-import { bibleTrackerReducer, initialState } from './bible-tracker.reducer';
-import { BibleTrackerActions } from '../actions/bible-tracker.actions';
-import { BibleTrackerState } from '../models/bible-tracker.model';
+import { bibleTrackerReducer, initialState } from '@app/state/bible-tracker/reducers/bible-tracker.reducer';
+import { BibleTrackerActions } from '@app/state/bible-tracker/actions/bible-tracker.actions';
+import { BibleTrackerState } from '@app/state/bible-tracker/models/bible-tracker.model';
 
 describe('BibleTrackerReducer', () => {
   describe('unknown action', () => {

@@ -17,6 +17,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject, throwError, of } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { TokenResponse, RegisterResponse, RefreshTokenResponse, AuthHealthResponse, AuthUser } from '@models/auth.models';
 
 // Interfaces for type safety
 interface LoginRequest {
@@ -50,6 +51,7 @@ export class AuthService {
   private readonly API_URL = '/api/auth';  // Proxied to backend
   private readonly TOKEN_KEY = 'access_token';
   private readonly REFRESH_TOKEN_KEY = 'refresh_token';
+  private readonly TOKEN_EXPIRY_KEY = 'token_expiry';
   private isBrowser: boolean;
   
   // Observable user state
@@ -119,8 +121,8 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.API_URL}/login`, loginRequest)
       .pipe(
         tap(response => {
-          // Store tokens
-          this.setToken(response.access_token);
+          // Store tokens with expiry
+          this.setToken(response.access_token, response.expires_in);
           this.setRefreshToken(response.refresh_token);
           
           // Update auth state
@@ -158,14 +160,14 @@ export class AuthService {
   /**
    * Register a new user
    */
-  register(email: string, password: string, name?: string): Observable<any> {
+  register(email: string, password: string, name?: string): Observable<RegisterResponse> {
     const registerRequest: RegisterRequest = {
       username: email,
       password: password,
       name: name
     };
     
-    return this.http.post(`${this.API_URL}/register`, registerRequest);
+    return this.http.post<RegisterResponse>(`${this.API_URL}/register`, registerRequest);
   }
   
   /**
@@ -188,11 +190,11 @@ export class AuthService {
       'Authorization': `Bearer ${refreshToken}`
     });
     
-    return this.http.post<any>(`${this.API_URL}/refresh`, {}, { headers })
+    return this.http.post<RefreshTokenResponse>(`${this.API_URL}/refresh`, {}, { headers })
       .pipe(
         tap(response => {
           if (response.access_token) {
-            this.setToken(response.access_token);
+            this.setToken(response.access_token, response.expires_in);
           }
         }),
         map(() => true),
@@ -213,8 +215,12 @@ export class AuthService {
   /**
    * Store the access token
    */
-  private setToken(token: string): void {
+  private setToken(token: string, expiresIn?: number): void {
     localStorage.setItem(this.TOKEN_KEY, token);
+    if (expiresIn) {
+      const expiryTime = new Date().getTime() + (expiresIn * 1000);
+      localStorage.setItem(this.TOKEN_EXPIRY_KEY, expiryTime.toString());
+    }
   }
   
   /**
@@ -272,7 +278,7 @@ export class AuthService {
   /**
    * Handle API health check
    */
-  checkAuthHealth(): Observable<any> {
-    return this.http.get(`${this.API_URL}/health`);
+  checkAuthHealth(): Observable<AuthHealthResponse> {
+    return this.http.get<AuthHealthResponse>(`${this.API_URL}/health`);
   }
 }

@@ -4,10 +4,10 @@
   "description": "Well Versed Application - Full Stack",
   "private": true,
   "scripts": {
-    "test": "npm run test:backend",
+    "test": "npm run test:all",
     "test:all": "npm run test:backend && npm run test:frontend",
     "test:backend": "cd backend && ./venv/bin/python -m pytest ../tests/backend -v",
-    "test:frontend": "cd frontend && npm test -- --watch=false --browsers=ChromeHeadlessNoSandbox",
+    "test:frontend": "jest",
     "test:auth": "cd backend && ./venv/bin/python -m pytest ../tests/backend/auth -v",
     "test:coverage": "cd backend && ./venv/bin/python -m pytest ../tests/backend --cov=. --cov-report=html",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
@@ -24,7 +24,13 @@
     "install:all": "npm install && cd frontend && npm install && cd ../backend && pip install -r requirements.txt"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@angular/compiler": "^20.2.2",
+    "@angular/core": "^20.2.2",
+    "@types/jest": "^30.0.0",
+    "concurrently": "^8.2.2",
+    "jest": "^30.1.1",
+    "ts-jest": "^29.4.1",
+    "typescript": "^5.9.2"
   },
   "repository": {
     "type": "git",

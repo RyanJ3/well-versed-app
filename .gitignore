@@ -97,3 +97,5 @@ frontend/kendo-ui-license.txt
 frontend/src/environments.docker.ts
 frontend/src/environments/environment.prod.ts
 frontend/src/environments/environment.ts
+# Synced test files (source of truth is in /tests)
+frontend/src/tests/

@@ -1,0 +1,12 @@
+{
+  "extends": "./frontend/tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "types": ["jest", "node"]
+  },
+  "include": [
+    "tests/frontend/**/*.ts",
+    "frontend/src/**/*.ts"
+  ]
+}

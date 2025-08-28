@@ -5,26 +5,26 @@ import { Store, StoreModule } from '@ngrx/store';
 import { ReplaySubject } from 'rxjs';
 import { take } from 'rxjs/operators';
 
-import { AppState } from '../app.state';
-import { bibleTrackerReducer } from '../bible-tracker/reducers/bible-tracker.reducer';
-import { decksReducer } from '../decks/reducers/deck.reducer';
-import { BibleTrackerActions } from '../bible-tracker/actions/bible-tracker.actions';
-import { DeckActions } from '../decks/actions/deck.actions';
-import { selectSelectedBook } from '../bible-tracker/selectors/bible-tracker.selectors';
+import { AppState } from '@app/state/app.state';
+import { bibleTrackerReducer } from '@app/state/bible-tracker/reducers/bible-tracker.reducer';
+import { decksReducer } from '@app/state/decks/reducers/deck.reducer';
+import { BibleTrackerActions } from '@app/state/bible-tracker/actions/bible-tracker.actions';
+import { DeckActions } from '@app/state/decks/actions/deck.actions';
+import { selectSelectedBook } from '@app/state/bible-tracker/selectors/bible-tracker.selectors';
 import { combineLatest } from 'rxjs';
-import { DeckCategory } from '../decks/models/deck.model';
-import { CardActions } from '../decks/actions/deck.actions';
+import { DeckCategory } from '@app/state/decks/models/deck.model';
+import { CardActions } from '@app/state/decks/actions/deck.actions';
 import { 
   selectIsAnyLoading, 
   selectAllBooks, 
   selectTodaysProgress,
   selectSelectedBookDetails 
-} from '../bible-tracker/selectors/bible-tracker.selectors';
+} from '@app/state/bible-tracker/selectors/bible-tracker.selectors';
 import { 
   selectFilteredDecks, 
   selectDeckStatistics 
-} from '../decks/selectors/deck.selectors';
-import { BibleBook } from '../../models/bible';
+} from '@app/state/decks/selectors/deck.selectors';
+import { BibleBook } from '@models/bible';
 
 describe('State Integration Tests', () => {
   let store: Store<AppState>;

@@ -4,10 +4,10 @@ import { Observable, of, throwError, ReplaySubject } from 'rxjs';
 import { Store, StoreModule } from '@ngrx/store';
 import { HttpErrorResponse } from '@angular/common/http';
 
-import { DeckEffects } from './deck.effects';
-import { DeckActions, CardActions } from '../actions/deck.actions';
-import { decksReducer } from '../reducers/deck.reducer';
-import { Deck, Card, DeckCategory } from '../models/deck.model';
+import { DeckEffects } from '@app/state/decks/effects/deck.effects';
+import { DeckActions, CardActions } from '@app/state/decks/actions/deck.actions';
+import { decksReducer } from '@app/state/decks/reducers/deck.reducer';
+import { Deck, Card, DeckCategory } from '@app/state/decks/models/deck.model';
 import { DeckResponse, DeckService } from '@services/api/deck.service';
 import { NotificationService } from '@services/utils/notification.service';
 

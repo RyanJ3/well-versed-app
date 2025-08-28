@@ -8,8 +8,8 @@ import {
   selectSelectedDeckId,
   selectFilteredDecks,
   selectDeckStatistics
-} from './deck.selectors';
-import { DecksState, Deck, DeckCategory } from '../models/deck.model';
+} from '@app/state/decks/selectors/deck.selectors';
+import { DecksState, Deck, DeckCategory } from '@app/state/decks/models/deck.model';
 
 describe('DeckSelectors', () => {
   const mockDecks: Deck[] = [

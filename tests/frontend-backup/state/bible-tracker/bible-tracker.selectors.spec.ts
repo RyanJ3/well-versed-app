@@ -12,8 +12,8 @@ import {
     selectStatisticsOverview,
     selectIsAnyLoading,
     selectFilteredBooks
-} from './bible-tracker.selectors';
-import { BibleTrackerState } from '../models/bible-tracker.model';
+} from '@app/state/bible-tracker/selectors/bible-tracker.selectors';
+import { BibleTrackerState } from '@app/state/bible-tracker/models/bible-tracker.model';
 
 describe('BibleTrackerSelectors', () => {
     const mockState: BibleTrackerState = {

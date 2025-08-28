@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-import { FlowParsingService } from '@services/utils/flow-parsing.service';
+import { WorkspaceParsingService } from '@services/utils/workspace-parsing.service';
 
-describe('FlowParsingService', () => {
-  let service: FlowParsingService;
+describe('WorkspaceParsingService', () => {
+  let service: WorkspaceParsingService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(FlowParsingService);
+    service = TestBed.inject(WorkspaceParsingService);
   });
 
   it('should be created', () => {

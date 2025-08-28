@@ -6,9 +6,9 @@ import { Store, StoreModule } from '@ngrx/store';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestScheduler } from 'rxjs/testing';
 
-import { BibleTrackerEffects } from './bible-tracker.effects';
-import { BibleTrackerActions } from '../actions/bible-tracker.actions';
-import { bibleTrackerReducer } from '../reducers/bible-tracker.reducer';
+import { BibleTrackerEffects } from '@app/state/bible-tracker/effects/bible-tracker.effects';
+import { BibleTrackerActions } from '@app/state/bible-tracker/actions/bible-tracker.actions';
+import { bibleTrackerReducer } from '@app/state/bible-tracker/reducers/bible-tracker.reducer';
 import { BibleBook } from '@models/bible';
 import { BibleService } from '@services/api/bible.service';
 
