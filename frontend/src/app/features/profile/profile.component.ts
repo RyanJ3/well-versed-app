@@ -9,6 +9,7 @@ import { ProfileStudySectionComponent } from './components/study-section/study-s
 import { ProfileDisplaySectionComponent } from './components/display-section/display-section.component';
 import { ClearDataModalComponent } from './components/clear-data-modal/clear-data-modal.component';
 import { ModalService } from '@services/utils/modal.service';
+import { NotificationService } from '@services/utils/notification.service';
 import { User } from '@models/user';
 import { UserService } from '@services/api/user.service';
 import { BibleService } from '@services/api/bible.service';
@@ -65,7 +66,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
   // User and loading states
   user: User | null = null;
   isLoading = true;
-  showSuccess = false;
   isSaving = false;
   loadingBibles = false;
   isInitialLoad = true;
@@ -117,7 +117,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
   private sectionChanges = new Set<ProfileSection['id']>();
 
   isSetupMode = false;
-  showSetupBanner = false;
 
   private isBrowser: boolean;
 
@@ -161,6 +160,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     private bibleService: BibleService,
     private router: Router,
     private modalService: ModalService,
+    private notificationService: NotificationService,
     private http: HttpClient,
     private route: ActivatedRoute,
     @Inject(PLATFORM_ID) private platformId: Object
@@ -183,7 +183,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe(params => {
       if (params['setup'] === 'bible') {
         this.isSetupMode = true;
-        this.showSetupBanner = true;
+        this.notificationService.info('Welcome to Well Versed! Please select a Bible translation below to access memorization features.');
         this.activeSection = 'bible';
         this.saveSectionToLocalStorage('bible');
 
@@ -464,6 +464,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
       // Clear token if not ESV
       if (!this.isEsvSelected) {
         this.profileForm.esvApiToken = '';
+      } else if (this.isEsvSelected && !this.profileForm.esvApiToken) {
+        // Show warning for ESV without token
+        this.notificationService.warning('Please enter your ESV API token to use the ESV translation.', 7000);
       }
     }
     
@@ -563,13 +566,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
       next: () => {
         this.showClearDataModal = false;
         this.isClearing = false;
-        this.modalService.success('Data Cleared', 'All memorization data has been removed.');
+        this.notificationService.success('All memorization data has been removed.', 5000);
         this.router.navigate(['/']);
       },
       error: (error: any) => {
         console.error('Error clearing data:', error);
         this.isClearing = false;
-        this.modalService.alert('Error', 'Failed to clear data. Please try again.', 'danger');
+        this.notificationService.danger('Failed to clear data. Please try again.', 5000);
       }
     });
   }
@@ -661,17 +664,20 @@ export class ProfileComponent implements OnInit, OnDestroy {
         }
 
         // Show success message
-        this.showSuccess = true;
-        setTimeout(() => {
-          this.dismissSuccess();
-        }, 5000);
+        let successMessage = 'Profile updated successfully.';
+        if (this.profileForm.includeApocrypha) {
+          successMessage += ' Apocryphal books are now visible.';
+        } else if (this.originalFormData?.includeApocrypha && !this.profileForm.includeApocrypha) {
+          successMessage += ' Apocryphal books are now hidden.';
+        }
+        this.notificationService.success(successMessage, 5000);
 
         this.isSaving = false;
       },
       error: (error: any) => {
         console.error('Error updating profile:', error);
         this.isSaving = false;
-        this.modalService.alert('Error', 'Failed to update profile. Please try again.', 'danger');
+        this.notificationService.danger('Failed to update profile. Please try again.', 5000);
       }
     });
   }
@@ -696,13 +702,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
   }
 
-  dismissSuccess(): void {
-    this.showSuccess = false;
-  }
-
-  dismissSetupBanner(): void {
-    this.showSetupBanner = false;
-  }
 
   hasUnsavedChanges(): boolean {
     if (!this.user || !this.originalFormData) return false;

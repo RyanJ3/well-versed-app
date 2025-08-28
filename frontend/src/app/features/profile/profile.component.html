@@ -101,38 +101,6 @@
 
       <!-- Main Content Area -->
       <div class="profile-content">
-        <!-- Success Alert -->
-        <div class="alert alert-success" *ngIf="showSuccess">
-          <div class="alert-content">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="alert-icon">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div class="alert-text">
-              <strong>Success!</strong> Profile updated successfully.
-              <span *ngIf="profileForm.includeApocrypha"> Apocryphal books are now visible.</span>
-              <span *ngIf="!profileForm.includeApocrypha"> Apocryphal books are now hidden.</span>
-            </div>
-            <button class="alert-close" (click)="dismissSuccess()">×</button>
-          </div>
-        </div>
-
-        <!-- Setup Mode Banner -->
-        <div class="alert alert-info setup-banner" *ngIf="showSetupBanner">
-          <div class="alert-content">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="alert-icon">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div class="alert-text">
-              <strong>Welcome to Well Versed!</strong>
-              <span *ngIf="!profileForm.preferredBible">Please select a Bible translation below to access memorization features.</span>
-              <span *ngIf="profileForm.preferredBible === 'ESV' && !profileForm.esvApiToken">Please enter your ESV API token to use the ESV translation.</span>
-            </div>
-            <button class="alert-close" (click)="dismissSetupBanner()">×</button>
-          </div>
-        </div>
-
         <!-- Section Content -->
         <div class="section-wrapper">
           <!-- Personal Information Section -->
