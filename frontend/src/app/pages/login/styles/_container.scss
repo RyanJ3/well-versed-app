@@ -1,0 +1,10 @@
+.login-container {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  padding-bottom: 80px; // Space for footer
+  overflow: hidden;
+}

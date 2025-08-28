@@ -1,6 +1,9 @@
 .login-background {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 60px; // Stop before footer area
   overflow: hidden;
   z-index: 0;
   will-change: transform;

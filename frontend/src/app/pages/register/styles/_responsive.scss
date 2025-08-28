@@ -1,0 +1,41 @@
+// Responsive adjustments
+@media (max-width: 640px) {
+  .register-card {
+    padding: 30px 24px;
+  }
+  
+  .register-header {
+    .register-title {
+      font-size: 28px;
+    }
+  }
+  
+  .register-form {
+    .form-row {
+      flex-direction: column;
+      gap: 0;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .register-container {
+    padding: 16px;
+  }
+  
+  .register-card {
+    padding: 24px 20px;
+  }
+  
+  .register-header {
+    margin-bottom: 24px;
+    
+    .register-title {
+      font-size: 24px;
+    }
+    
+    .register-subtitle {
+      font-size: 13px;
+    }
+  }
+}

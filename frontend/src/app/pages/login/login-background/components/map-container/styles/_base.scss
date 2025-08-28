@@ -1,0 +1,77 @@
+.map-container {
+  position: absolute;
+  width: 260px;
+  height: 200px;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.3s ease, z-index 0.3s ease;
+  animation: gentleFloat 14s ease-in-out infinite;
+  
+  &.visible {
+    opacity: 1;
+  }
+  
+  &:hover {
+    transform: scale(1.05);
+    z-index: 1000;
+  }
+  
+  .map-border {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+      rgba(253, 247, 237, 0.95) 0%, 
+      rgba(245, 235, 220, 0.95) 50%,
+      rgba(237, 224, 200, 0.9) 100%);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(139, 110, 71, 0.4);
+    border-radius: 16px;
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.12),
+      0 2px 8px rgba(139, 110, 71, 0.15),
+      inset 0 2px 4px rgba(255, 255, 255, 0.5),
+      inset 0 -2px 4px rgba(139, 110, 71, 0.1);
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 30%, 
+        rgba(255, 223, 186, 0.3) 0%, 
+        transparent 50%);
+      pointer-events: none;
+    }
+  }
+  
+  &.church-finder-mode {
+    .map-border {
+      background: linear-gradient(135deg, 
+        rgba(248, 250, 252, 0.98) 0%, 
+        rgba(241, 245, 249, 0.95) 100%);
+      border-color: rgba(59, 130, 246, 0.3);
+      
+      &::before {
+        display: none; // Remove overlay for cleaner look
+      }
+    }
+    
+    .church-marker.modern {
+      .church-circle {
+        background: radial-gradient(circle, 
+          rgba(59, 130, 246, 0.3) 0%, 
+          transparent 70%);
+      }
+      
+      .church-name {
+        opacity: 0.8;
+        background: rgba(255, 255, 255, 0.98);
+        border: 1px solid rgba(59, 130, 246, 0.2);
+      }
+    }
+  }
+}

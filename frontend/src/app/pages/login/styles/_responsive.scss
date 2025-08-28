@@ -1,0 +1,12 @@
+// Responsive adjustments
+@media (max-width: 480px) {
+  .login-card {
+    padding: 30px 24px;
+  }
+  
+  .login-header {
+    .login-title {
+      font-size: 28px;
+    }
+  }
+}

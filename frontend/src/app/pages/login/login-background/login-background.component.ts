@@ -47,6 +47,8 @@ export class LoginBackgroundComponent implements OnInit, OnDestroy {
   verseSnippets: VerseSnippet[] = [];
   biblicalTexts: BiblicalText[] = [];
   mapContainers: MapContainer[] = [];
+  
+  private mapCycleCount = -1; // Start at -1 so first relocation is 0 (journey)
 
   constructor(
     private router: Router,
@@ -239,8 +241,20 @@ export class LoginBackgroundComponent implements OnInit, OnDestroy {
 
   private relocateMap(map: MapContainer): void {
     const newPos = this.gridService.getRandomPosition();
+    
+    // Increment counter and alternate between modes
+    this.mapCycleCount++;
+    const newMode = this.mapCycleCount % 2 === 0 ? 'journey' : 'church-finder';
+    
+    // Update the map object
     map.x = newPos.x;
     map.y = newPos.y;
+    map.mode = newMode;
+    
+    console.log('Map relocated with mode:', newMode, 'Cycle count:', this.mapCycleCount);
+    
+    // Force Angular to detect changes by reassigning the array
+    this.mapContainers = [...this.mapContainers];
   }
 
   // ============================================================================

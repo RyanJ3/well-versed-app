@@ -17,9 +17,12 @@ export class ConfigService {
   async loadConfig(): Promise<void> {
     try {
       // Adjust the URL based on your setup
-      const baseUrl = window.location.origin.includes('localhost') 
-        ? 'http://localhost:8000' 
-        : '';
+      let baseUrl = '';
+      if (window.location.origin.includes('localhost')) {
+        baseUrl = 'http://localhost:8000';
+      } else if (window.location.origin.includes('dev.wellversed.io')) {
+        baseUrl = 'https://dev.wellversed.io';
+      }
       
       this.config = await firstValueFrom(
         this.http.get<AppConfig>(`${baseUrl}/api/config/frontend`)

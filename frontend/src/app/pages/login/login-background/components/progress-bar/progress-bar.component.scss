@@ -45,6 +45,7 @@
     top: 4px;
     left: 4px;
     bottom: 4px;
+    max-width: calc(100% - 8px); // Account for left (4px) and right (4px) padding
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     border-radius: 8px;
     transition: width 0.5s ease;

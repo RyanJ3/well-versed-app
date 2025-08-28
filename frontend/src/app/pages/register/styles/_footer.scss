@@ -1,0 +1,23 @@
+.register-footer {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e9ecef;
+  
+  p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .link {
+    color: #667eea;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 500;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

@@ -1,0 +1,160 @@
+<div 
+  class="map-container"
+  [class.visible]="map.visible || map.isHovered"
+  [class.church-finder-mode]="currentMode === 'church-finder'"
+  [style.left.%]="map.x"
+  [style.top.%]="map.y"
+  (mouseenter)="onMouseEnter()"
+  (mouseleave)="onMouseLeave()"
+  (mousemove)="onMouseMove($event)"
+  (click)="toggleMode()">
+  <div class="map-border">
+    <div class="map-header">
+      <span class="map-title">{{ currentMode === 'church-finder' ? 'Church Finder' : mapLabel }}</span>
+      <span class="map-subtitle">{{ currentMode === 'church-finder' ? 'Churches Near You' : currentLocation }}</span>
+    </div>
+    
+    <div class="map-terrain" [class.church-finder-terrain]="currentMode === 'church-finder'">
+      <!-- Grid lines for map feel -->
+      <div class="map-grid" *ngIf="currentMode === 'journey'"></div>
+      
+      <!-- Sea of Galilee -->
+      <div *ngIf="currentMode === 'journey'" class="terrain-feature sea-of-galilee" style="left: 55%; top: 25%; width: 35px; height: 45px;">
+        <div class="water-body">
+          <div class="water-shimmer"></div>
+        </div>
+      </div>
+      
+      <!-- Biblical terrain features (only in journey mode) -->
+      <ng-container *ngIf="currentMode === 'journey'">
+        <!-- Mountains around Sea of Galilee -->
+        <div class="terrain-feature mountain" style="left: 48%; top: 20%;">
+          <span class="mountain-peak"></span>
+          <span class="mountain-shadow"></span>
+        </div>
+        <div class="terrain-feature mountain small" style="left: 65%; top: 18%;">
+          <span class="mountain-peak"></span>
+        </div>
+        <div class="terrain-feature mountain" style="left: 62%; top: 35%;">
+          <span class="mountain-peak"></span>
+        </div>
+        
+        <!-- Jordan River flowing into Sea of Galilee -->
+        <div class="terrain-feature river" style="left: 52%; top: 10%; transform: rotate(15deg);">
+          <div class="river-flow"></div>
+        </div>
+        <div class="terrain-feature river branch" style="left: 58%; top: 45%; transform: rotate(-10deg);">
+          <div class="river-flow"></div>
+        </div>
+        
+        <!-- Mount Hermon region (north) -->
+        <div class="terrain-feature mountain large" style="left: 45%; top: 5%;">
+          <span class="mountain-peak"></span>
+          <span class="mountain-shadow"></span>
+        </div>
+        
+        <!-- Forests in Galilee region -->
+        <div class="terrain-feature forest" style="left: 35%; top: 30%;">
+          <span class="tree">🌲</span>
+          <span class="tree">🌲</span>
+          <span class="tree">🌳</span>
+        </div>
+        <div class="terrain-feature forest small" style="left: 70%; top: 40%;">
+          <span class="tree">🌳</span>
+          <span class="tree">🌲</span>
+        </div>
+        
+        <!-- Judean Desert area (south) -->
+        <div class="terrain-feature desert" style="left: 25%; top: 65%;">
+          <span class="dune"></span>
+          <span class="dune"></span>
+        </div>
+        <div class="terrain-feature desert" style="left: 40%; top: 70%;">
+          <span class="dune"></span>
+        </div>
+      </ng-container>
+    </div>
+    
+    <!-- Churches with names (Journey mode) -->
+    <ng-container *ngIf="currentMode === 'journey'">
+      <div 
+        *ngFor="let church of churches"
+      class="church-marker"
+      [class.hovered]="church.isHovered"
+      [style.left.%]="church.x"
+      [style.top.%]="church.y"
+      [style.transform]="'scale(' + (church.scale || 1) + ')'"
+      (mouseenter)="onChurchHover(church, true)"
+      (mouseleave)="onChurchHover(church, false)">
+      <div class="church-circle">
+        <div class="pulse-ring"></div>
+      </div>
+      <span class="church-icon">
+        <ng-container [ngSwitch]="church.name">
+          <span *ngSwitchCase="'Bethlehem'">⭐</span>
+          <span *ngSwitchCase="'Jerusalem'">🛖</span>
+          <span *ngSwitchCase="'Nazareth'">🏘️</span>
+          <span *ngSwitchCase="'Jericho'">🧱</span>
+          <span *ngSwitchCase="'Capernaum'">🎣</span>
+          <span *ngSwitchDefault>📍</span>
+        </ng-container>
+      </span>
+      <span class="church-name" [class.show]="church.isHovered">{{ church.name }}</span>
+    </div>
+    </ng-container>
+    
+    <!-- Churches for Church Finder mode -->
+    <ng-container *ngIf="currentMode === 'church-finder'">
+      <div 
+        *ngFor="let church of nearbyChurches"
+      class="church-marker modern"
+      [class.hovered]="church.isHovered"
+      [style.left.%]="church.x"
+      [style.top.%]="church.y"
+      [style.transform]="'scale(' + (church.scale || 1) + ')'"
+      (mouseenter)="onChurchHover(church, true)"
+      (mouseleave)="onChurchHover(church, false)">
+      <div class="church-circle">
+        <div class="pulse-ring"></div>
+      </div>
+      <span class="church-icon">⛪</span>
+      <span class="church-name" [class.show]="church.isHovered || currentMode === 'church-finder'">{{ church.name }}</span>
+    </div>
+    </ng-container>
+    
+    <!-- Home marker for Church Finder mode -->
+    <div 
+      *ngIf="currentMode === 'church-finder'"
+      class="home-marker" 
+      style="left: 50%; top: calc(50% - 15px);">
+      <span class="home-icon">🏠</span>
+      <span class="home-label">Home</span>
+    </div>
+    
+    
+    <!-- Footsteps that follow mouse with rotation -->
+    <div 
+      *ngFor="let footstep of footsteps"
+      class="footstep"
+      [class.left-foot]="footstep.isLeft"
+      [class.right-foot]="!footstep.isLeft"
+      [style.left.px]="footstep.x"
+      [style.top.px]="footstep.y"
+      [style.opacity]="footstep.opacity"
+      [style.transform]="'rotate(' + footstep.rotation + 'deg) translateX(' + (footstep.isLeft ? -3 : 3) + 'px)'">
+      👣
+    </div>
+    
+    <!-- Compass -->
+    <div class="compass">
+      <div class="compass-needle"></div>
+      <span class="compass-n">N</span>
+    </div>
+    
+    <!-- Scale indicator -->
+    <div class="map-scale">
+      <div class="scale-bar"></div>
+      <span class="scale-text">5 miles</span>
+    </div>
+  </div>
+</div>

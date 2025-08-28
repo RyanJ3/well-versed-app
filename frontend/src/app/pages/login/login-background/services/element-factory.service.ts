@@ -116,7 +116,8 @@ export class ElementFactoryService {
     return Array.from({ length: count }, (_, index) => ({
       id: index + 1,
       ...getPosition(),
-      visible: false
+      visible: false,
+      mode: 'journey' as const  // Start with journey mode
     }));
   }
 

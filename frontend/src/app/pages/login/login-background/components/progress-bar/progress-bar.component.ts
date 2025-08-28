@@ -62,12 +62,12 @@ export class ProgressBarComponent {
   private startProgressAnimation() {
     this.animationInterval = setInterval(() => {
       if (this.bar.progress < this.bar.targetProgress) {
-        this.bar.progress += 1; // Slower increment for smoother animation to 100
+        this.bar.progress += 2; // Faster increment
         if (this.bar.progress > this.bar.targetProgress) {
           this.bar.progress = this.bar.targetProgress;
         }
       }
-    }, 30); // Faster interval but smaller increments
+    }, 10); // Faster animation
   }
 
   private stopProgressAnimation() {

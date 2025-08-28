@@ -1,0 +1,56 @@
+.compass {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(139, 110, 71, 0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  
+  .compass-needle {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-color: #dc143c transparent transparent transparent;
+    border-width: 8px 3px 0 3px;
+    transform-origin: center 4px;
+    animation: compassWobble 10s ease-in-out infinite;
+  }
+  
+  .compass-n {
+    position: absolute;
+    top: 2px;
+    font-size: 6px;
+    font-weight: bold;
+    color: #5d4e37;
+  }
+}
+
+.map-scale {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
+  .scale-bar {
+    width: 30px;
+    height: 2px;
+    background: #8b7355;
+    border-left: 2px solid #5d4e37;
+    border-right: 2px solid #5d4e37;
+  }
+  
+  .scale-text {
+    font-size: 7px;
+    color: #8b7355;
+    font-weight: 600;
+  }
+}

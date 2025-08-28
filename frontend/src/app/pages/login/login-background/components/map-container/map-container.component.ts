@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, HostListener } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 interface Church {
@@ -25,133 +25,17 @@ export interface MapContainer {
   y: number;
   visible: boolean;
   isHovered?: boolean;
+  mode?: 'journey' | 'church-finder';
 }
 
 @Component({
   selector: 'app-map-container',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div 
-      class="map-container"
-      [class.visible]="map.visible || map.isHovered"
-      [style.left.%]="map.x"
-      [style.top.%]="map.y"
-      (mouseenter)="onMouseEnter()"
-      (mouseleave)="onMouseLeave()"
-      (mousemove)="onMouseMove($event)">
-      <div class="map-border">
-        <div class="map-header">
-          <span class="map-title">{{ mapLabel }}</span>
-          <span class="map-subtitle">{{ currentLocation }}</span>
-        </div>
-        
-        <div class="map-terrain">
-          <!-- Grid lines for map feel -->
-          <div class="map-grid"></div>
-          
-          <!-- Terrain features -->
-          <div class="terrain-feature mountain" style="left: 15%; top: 15%;">
-            <span class="mountain-peak"></span>
-            <span class="mountain-shadow"></span>
-          </div>
-          <div class="terrain-feature mountain small" style="left: 25%; top: 22%;">
-            <span class="mountain-peak"></span>
-          </div>
-          
-          <!-- Rivers with animation -->
-          <div class="terrain-feature river" style="left: 35%; top: 10%;">
-            <div class="river-flow"></div>
-          </div>
-          <div class="terrain-feature river branch" style="left: 55%; top: 40%;">
-            <div class="river-flow"></div>
-          </div>
-          
-          <!-- Forests -->
-          <div class="terrain-feature forest" style="left: 70%; top: 25%;">
-            <span class="tree">🌲</span>
-            <span class="tree">🌲</span>
-            <span class="tree">🌳</span>
-          </div>
-          <div class="terrain-feature forest small" style="left: 10%; top: 60%;">
-            <span class="tree">🌳</span>
-            <span class="tree">🌲</span>
-          </div>
-          
-          <!-- Desert area -->
-          <div class="terrain-feature desert" style="left: 50%; top: 65%;">
-            <span class="dune"></span>
-            <span class="dune"></span>
-          </div>
-          
-          <!-- Main road/path -->
-          <svg class="path-svg">
-            <path
-              d="M 20 80 Q 50 60, 80 50 T 160 30"
-              class="main-path"
-              stroke-dasharray="5,5"
-            />
-          </svg>
-        </div>
-        
-        <!-- Churches with names -->
-        <div 
-          *ngFor="let church of churches"
-          class="church-marker"
-          [class.hovered]="church.isHovered"
-          [style.left.%]="church.x"
-          [style.top.%]="church.y"
-          [style.transform]="'scale(' + (church.scale || 1) + ')'"
-          (mouseenter)="onChurchHover(church, true)"
-          (mouseleave)="onChurchHover(church, false)">
-          <div class="church-circle">
-            <div class="pulse-ring"></div>
-          </div>
-          <span class="church-icon">⛪</span>
-          <span class="church-name" [class.show]="church.isHovered">{{ church.name }}</span>
-        </div>
-        
-        <!-- Journey markers -->
-        <div class="journey-marker start" style="left: 15%; top: 75%;">
-          <span class="marker-icon">🏠</span>
-          <span class="marker-label">Start</span>
-        </div>
-        
-        <div class="journey-marker end" style="left: 85%; top: 20%;">
-          <span class="marker-icon">✨</span>
-          <span class="marker-label">Goal</span>
-        </div>
-        
-        <!-- Footsteps that follow mouse with rotation -->
-        <div 
-          *ngFor="let footstep of footsteps"
-          class="footstep"
-          [class.left-foot]="footstep.isLeft"
-          [class.right-foot]="!footstep.isLeft"
-          [style.left.px]="footstep.x"
-          [style.top.px]="footstep.y"
-          [style.opacity]="footstep.opacity"
-          [style.transform]="'rotate(' + footstep.rotation + 'deg) translateX(' + (footstep.isLeft ? -3 : 3) + 'px)'">
-          👣
-        </div>
-        
-        <!-- Compass -->
-        <div class="compass">
-          <div class="compass-needle"></div>
-          <span class="compass-n">N</span>
-        </div>
-        
-        <!-- Scale indicator -->
-        <div class="map-scale">
-          <div class="scale-bar"></div>
-          <span class="scale-text">5 miles</span>
-        </div>
-      </div>
-    </div>
-  `,
+  templateUrl: './map-container.component.html',
   styleUrls: ['./map-container.component.scss']
 })
-export class MapContainerComponent implements OnInit {
+export class MapContainerComponent implements OnInit, OnChanges {
   @Input() map!: MapContainer;
   @Input() mapLabel: string = 'Journey Map';
   
@@ -166,25 +50,75 @@ export class MapContainerComponent implements OnInit {
     'Harbor of Hope'
   ];
   
+  private _currentMode: 'journey' | 'church-finder' = 'journey';
+  
+  get currentMode(): 'journey' | 'church-finder' {
+    // Always return the mode from the map object if it exists
+    return this.map?.mode || this._currentMode;
+  }
+  
+  set currentMode(value: 'journey' | 'church-finder') {
+    this._currentMode = value;
+  }
   churches: Church[] = [];
+  nearbyChurches: Church[] = [];
   footsteps: Footstep[] = [];
   private footstepId = 0;
   private lastFootstepTime = 0;
   private lastMouseX = 0;
   private lastMouseY = 0;
   private isLeftFoot = true;
+  
+  constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.initializeChurches();
+    this.initializeNearbyChurches();
+    // Always use the mode from the map object which gets updated in the parent
+    this.currentMode = this.map.mode || 'journey';
+    console.log('Map component initialized with mode:', this.currentMode);
+  }
+  
+  ngOnChanges(changes: SimpleChanges) {
+    // Update the current mode when the map input changes
+    if (changes['map']) {
+      const currentMap = changes['map'].currentValue;
+      if (currentMap) {
+        this.currentMode = currentMap.mode || 'journey';
+        console.log('Map component received new input, mode:', this.currentMode, 'Full map:', currentMap);
+        // Force change detection
+        this.cdr.detectChanges();
+      }
+    }
   }
 
   private initializeChurches() {
+    // Biblical locations with various emojis
     this.churches = [
-      { id: 1, x: 20, y: 30, name: 'Bethlehem', scale: 1 },
-      { id: 2, x: 70, y: 45, name: 'Jerusalem', scale: 1.2 },
-      { id: 3, x: 45, y: 65, name: 'Nazareth', scale: 1 },
-      { id: 4, x: 55, y: 25, name: 'Capernaum', scale: 0.9 }
+      { id: 1, x: 35, y: 65, name: 'Bethlehem', scale: 1.2 },
+      { id: 2, x: 25, y: 40, name: 'Jerusalem', scale: 1 },
+      { id: 3, x: 60, y: 30, name: 'Nazareth', scale: 0.9 },
+      { id: 4, x: 45, y: 75, name: 'Jericho', scale: 0.8 },
+      { id: 5, x: 70, y: 55, name: 'Capernaum', scale: 0.9 }
     ];
+  }
+  
+  private initializeNearbyChurches() {
+    // Only 3 modern churches for Church Finder mode
+    this.nearbyChurches = [
+      { id: 1, x: 25, y: 30, name: 'Grace Church', scale: 1 },
+      { id: 2, x: 70, y: 25, name: 'First Baptist', scale: 1 },
+      { id: 3, x: 45, y: 70, name: 'Community Chapel', scale: 1 }
+    ];
+  }
+  
+  
+  toggleMode() {
+    const newMode = this.currentMode === 'journey' ? 'church-finder' : 'journey';
+    this.currentMode = newMode;
+    this.map.mode = newMode;
+    console.log('Mode toggled to:', newMode);
+    this.cdr.detectChanges();
   }
 
   onMouseEnter() {
@@ -193,9 +127,11 @@ export class MapContainerComponent implements OnInit {
     this.lastMouseX = 0;
     this.lastMouseY = 0;
     
-    // Cycle through locations
-    this.locationIndex = (this.locationIndex + 1) % this.locations.length;
-    this.currentLocation = this.locations[this.locationIndex];
+    // Cycle through locations (only in journey mode)
+    if (this.currentMode === 'journey') {
+      this.locationIndex = (this.locationIndex + 1) % this.locations.length;
+      this.currentLocation = this.locations[this.locationIndex];
+    }
   }
 
   onMouseLeave() {
@@ -274,7 +210,9 @@ export class MapContainerComponent implements OnInit {
     church.isHovered = isHovered;
     if (isHovered) {
       church.scale = 1.3;
-      this.currentLocation = `Near ${church.name}`;
+      if (this.currentMode === 'journey') {
+        this.currentLocation = `Near ${church.name}`;
+      }
     } else {
       church.scale = 1;
     }

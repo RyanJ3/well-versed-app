@@ -91,7 +91,7 @@ export class ProgressRingComponent {
   private startProgressAnimation() {
     this.animationInterval = setInterval(() => {
       if (this.ring.progress < this.ring.targetProgress) {
-        this.ring.progress += 1; // Slower increment for smoother animation to 100
+        this.ring.progress += 2; // Slower increment for smoother animation to 100
         if (this.ring.progress > this.ring.targetProgress) {
           this.ring.progress = this.ring.targetProgress;
         }

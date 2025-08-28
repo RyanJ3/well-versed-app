@@ -1,0 +1,208 @@
+.map-terrain {
+  position: absolute;
+  inset: 35px 10px 25px 10px;
+  pointer-events: none;
+  border: 1px solid rgba(139, 110, 71, 0.1);
+  border-radius: 8px;
+  background: linear-gradient(180deg,
+    rgba(255, 248, 220, 0.2) 0%,
+    rgba(255, 235, 205, 0.2) 100%);
+  
+  &.church-finder-terrain {
+    background: linear-gradient(180deg,
+      rgba(248, 250, 252, 0.5) 0%,
+      rgba(241, 245, 249, 0.3) 100%);
+    border-color: rgba(59, 130, 246, 0.1);
+  }
+  
+  .map-grid {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 19px,
+        rgba(139, 110, 71, 0.05) 19px,
+        rgba(139, 110, 71, 0.05) 20px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 19px,
+        rgba(139, 110, 71, 0.05) 19px,
+        rgba(139, 110, 71, 0.05) 20px
+      );
+  }
+  
+  .terrain-feature {
+    position: absolute;
+    
+    &.mountain {
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-color: transparent transparent rgba(134, 111, 83, 0.6) transparent;
+      border-width: 0 15px 20px 15px;
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.1));
+      
+      &.small {
+        border-width: 0 10px 14px 10px;
+      }
+      
+      &.large {
+        border-width: 0 18px 25px 18px;
+        border-color: transparent transparent rgba(134, 111, 83, 0.7) transparent;
+      }
+      
+      .mountain-peak {
+        position: absolute;
+        top: -5px;
+        left: -3px;
+        width: 6px;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+      }
+      
+      .mountain-shadow {
+        position: absolute;
+        width: 0;
+        height: 0;
+        left: 5px;
+        border-style: solid;
+        border-color: transparent transparent rgba(0, 0, 0, 0.1) transparent;
+        border-width: 0 10px 20px 0;
+      }
+    }
+    
+    &.river {
+      width: 70px;
+      height: 4px;
+      background: linear-gradient(90deg, 
+        transparent,
+        rgba(100, 180, 220, 0.4) 20%,
+        rgba(120, 200, 240, 0.5) 50%,
+        rgba(100, 180, 220, 0.4) 80%,
+        transparent
+      );
+      border-radius: 2px;
+      transform: rotate(35deg);
+      transform-origin: left center;
+      
+      &.branch {
+        width: 50px;
+        transform: rotate(-20deg);
+      }
+      
+      .river-flow {
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg,
+          transparent,
+          rgba(255, 255, 255, 0.4),
+          transparent
+        );
+        animation: riverFlow 3s linear infinite;
+      }
+    }
+    
+    &.forest {
+      display: flex;
+      gap: 2px;
+      
+      &.small {
+        .tree {
+          font-size: 10px;
+        }
+      }
+      
+      .tree {
+        font-size: 14px;
+        opacity: 0.7;
+        filter: hue-rotate(10deg) brightness(0.9);
+        animation: treesSway 4s ease-in-out infinite;
+        
+        &:nth-child(2) {
+          animation-delay: 0.5s;
+        }
+        
+        &:nth-child(3) {
+          animation-delay: 1s;
+        }
+      }
+    }
+    
+    &.desert {
+      display: flex;
+      gap: 5px;
+      
+      .dune {
+        width: 20px;
+        height: 8px;
+        background: linear-gradient(180deg,
+          rgba(238, 203, 173, 0.6),
+          rgba(222, 184, 135, 0.4)
+        );
+        border-radius: 50% 50% 0 0;
+        
+        &:nth-child(2) {
+          width: 15px;
+          height: 6px;
+          margin-top: 2px;
+        }
+      }
+    }
+    
+    &.sea-of-galilee {
+      .water-body {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg,
+          rgba(64, 156, 255, 0.35) 0%,
+          rgba(100, 180, 220, 0.4) 50%,
+          rgba(64, 156, 255, 0.3) 100%
+        );
+        border-radius: 45% 55% 60% 40% / 55% 45% 55% 45%;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 
+          inset 0 2px 4px rgba(0, 80, 160, 0.2),
+          0 1px 2px rgba(255, 255, 255, 0.3);
+        
+        .water-shimmer {
+          position: absolute;
+          top: 20%;
+          left: 10%;
+          width: 80%;
+          height: 60%;
+          background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3) 45%,
+            rgba(255, 255, 255, 0.5) 50%,
+            rgba(255, 255, 255, 0.3) 55%,
+            transparent
+          );
+          animation: shimmer 4s linear infinite;
+        }
+      }
+    }
+  }
+  
+  .path-svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    
+    .main-path {
+      fill: none;
+      stroke: rgba(139, 110, 71, 0.3);
+      stroke-width: 2;
+      stroke-linecap: round;
+      animation: dashMove 20s linear infinite;
+    }
+  }
+}
