@@ -174,6 +174,43 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     return this.selectedVerseIsMemorized;
   }
 
+  get shouldShowJumpToChapter(): boolean {
+    // Don't show in memorization mode (already showing chapter)
+    if (this.mode === 'memorization') return false;
+    
+    // Don't show if no verses are selected
+    if (this.selectionService.selectedVerses.size === 0) return false;
+    
+    const verses = this.getCurrentVerses();
+    const selectedVerseCodes = Array.from(this.selectionService.selectedVerses);
+    
+    // Get all selected verses
+    const selectedVerses = selectedVerseCodes
+      .map(code => verses.find(v => v.verseCode === code))
+      .filter(v => v !== undefined) as WorkspaceVerse[];
+    
+    if (selectedVerses.length === 0) return false;
+    
+    // Check if all selected verses are from the same chapter
+    const firstVerse = selectedVerses[0];
+    const [firstBookId, firstChapter] = this.workspaceParsingService.parseVerseCode(firstVerse.verseCode);
+    
+    const allSameChapter = selectedVerses.every(verse => {
+      const [bookId, chapter] = this.workspaceParsingService.parseVerseCode(verse.verseCode);
+      return bookId === firstBookId && chapter === firstChapter;
+    });
+    
+    // Only show if all verses are from the same chapter
+    if (!allSameChapter) return false;
+    
+    // Don't show if already viewing this chapter in memorization mode
+    if (this.currentBook?.id === firstBookId && this.currentChapter === firstChapter) {
+      return false;
+    }
+    
+    return true;
+  }
+
   // Public getters for template
   get showFullText(): boolean { return this.uiStateService.currentState.showFullText; }
   get fontSize(): number { return this.uiStateService.currentState.fontSize; }
@@ -980,5 +1017,91 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
   isMilestoneAchieved(milestone: number): boolean {
     return WorkspaceVerseUtils.isMilestoneAchieved(this.progressPercentage, milestone);
+  }
+
+  copyVerseText() {
+    this.uiStateService.hideContextMenu();
+    
+    let versesToCopy: WorkspaceVerse[] = [];
+    
+    if (this.selectionService.selectedVerses.size > 0) {
+      // Copy selected verses
+      const selectedCodes = Array.from(this.selectionService.selectedVerses);
+      versesToCopy = this.getCurrentVerses()
+        .filter(v => selectedCodes.includes(v.verseCode))
+        .sort((a, b) => {
+          const [aBook, aChap, aVerse] = this.workspaceParsingService.parseVerseCode(a.verseCode);
+          const [bBook, bChap, bVerse] = this.workspaceParsingService.parseVerseCode(b.verseCode);
+          return aBook - bBook || aChap - bChap || aVerse - bVerse;
+        });
+    } else if (this.contextMenu.verseId) {
+      // Copy single verse from context menu
+      const verse = this.getCurrentVerses().find(v => v.verseCode === this.contextMenu.verseId);
+      if (verse) {
+        versesToCopy = [verse];
+      }
+    }
+    
+    if (versesToCopy.length === 0) {
+      this.notificationService.warning('No verses selected to copy');
+      return;
+    }
+    
+    // Format text with references
+    const textToCopy = versesToCopy
+      .map(v => {
+        const [bookId, chapter, verseNum] = this.workspaceParsingService.parseVerseCode(v.verseCode);
+        const reference = `${v.bookName || this.currentBook?.name || ''} ${chapter}:${verseNum}`;
+        return `${reference} - ${v.text}`;
+      })
+      .join('\n\n');
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      const verseCount = versesToCopy.length;
+      this.notificationService.success(
+        verseCount === 1 ? 'Verse copied to clipboard' : `${verseCount} verses copied to clipboard`,
+        3000
+      );
+    }).catch(err => {
+      console.error('Failed to copy text:', err);
+      this.notificationService.error('Failed to copy text to clipboard');
+    });
+  }
+
+  jumpToFullChapter() {
+    this.uiStateService.hideContextMenu();
+    
+    // Get the first selected verse
+    if (this.selectionService.selectedVerses.size === 0) {
+      this.notificationService.error('No verse selected');
+      return;
+    }
+    
+    const selectedVerseCode = Array.from(this.selectionService.selectedVerses)[0];
+    const targetVerse = this.getCurrentVerses().find(v => v.verseCode === selectedVerseCode);
+    
+    if (!targetVerse) {
+      this.notificationService.error('No verse selected');
+      return;
+    }
+    
+    const [bookId, chapter, verseNum] = this.workspaceParsingService.parseVerseCode(targetVerse.verseCode);
+    
+    // Clear selection before navigation
+    this.selectionService.clearSelection();
+    
+    // Set mode back to memorization if not already
+    if (this.mode !== 'memorization') {
+      this.uiStateService.setMode('memorization');
+    }
+    
+    // Navigate to the chapter within the workspace
+    this.router.navigate([], {
+      queryParams: { bookId, chapter },
+      queryParamsHandling: 'merge'
+    }).then(() => {
+      this.notificationService.info(`Viewing full chapter: ${targetVerse.bookName || ''} ${chapter}`, 3000);
+    });
   }
 }

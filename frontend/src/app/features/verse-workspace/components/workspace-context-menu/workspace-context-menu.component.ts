@@ -16,12 +16,15 @@ export class WorkspaceContextMenuComponent {
   @Input() selectedVerseIsMemorized = false;
   @Input() shouldShowMarkAsMemorized = false;
   @Input() shouldShowMarkAsUnmemorized = false;
+  @Input() shouldShowJumpToChapter = false;
 
   @Output() markAsMemorized = new EventEmitter<void>();
   @Output() markAsUnmemorized = new EventEmitter<void>();
   @Output() addToDeck = new EventEmitter<string>();
   @Output() createDeck = new EventEmitter<void>();
   @Output() jumpToCrossReferences = new EventEmitter<void>();
+  @Output() copyText = new EventEmitter<void>();
+  @Output() jumpToChapter = new EventEmitter<void>();
 
   // Deck dropdown state
   showDeckDropdown = false;

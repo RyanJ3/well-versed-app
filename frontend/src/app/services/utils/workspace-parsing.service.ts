@@ -125,4 +125,18 @@ export class WorkspaceParsingService {
     return Array(Math.min(wordCount, maxDots)).fill('•').join(' ') + 
            (wordCount > maxDots ? '...' : '');
   }
+
+  /**
+   * Parses a verse code string into its components.
+   * 
+   * @param verseCode The verse code string (e.g., "1-1-1" for Genesis 1:1)
+   * @returns A tuple of [bookId, chapter, verseNum] as numbers
+   */
+  parseVerseCode(verseCode: string): [number, number, number] {
+    const parts = verseCode.split('-');
+    const bookId = parseInt(parts[0] || '0', 10);
+    const chapter = parseInt(parts[1] || '0', 10);
+    const verseNum = parseInt(parts[2] || '0', 10);
+    return [bookId, chapter, verseNum];
+  }
 }

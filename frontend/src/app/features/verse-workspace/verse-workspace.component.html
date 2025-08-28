@@ -329,11 +329,14 @@
     [selectedVerseIsMemorized]="selectedVerseIsMemorized"
     [shouldShowMarkAsMemorized]="shouldShowMarkAsMemorized"
     [shouldShowMarkAsUnmemorized]="shouldShowMarkAsUnmemorized"
+    [shouldShowJumpToChapter]="shouldShowJumpToChapter"
     (markAsMemorized)="markSelectedAsMemorized()"
     (markAsUnmemorized)="markSelectedAsUnmemorized()"
     (addToDeck)="addToFlashcardDeck($event)"
     (createDeck)="openCreateDeckModal()"
     (jumpToCrossReferences)="jumpToCrossReferencesFromContextMenu()"
+    (copyText)="copyVerseText()"
+    (jumpToChapter)="jumpToFullChapter()"
   ></app-workspace-context-menu>
 
   <!-- Memorization Modal -->
