@@ -14,12 +14,15 @@
     [mode]="mode"
     [selectedVerseNumber]="selectedCrossRefVerse?.verse || 1"
     [availableVerseNumbers]="currentBibleChapter ? getVerseNumbersArray() : []"
+    [memorizedVerses]="getMemorizedVerseNumbers()"
+    [hasApocrypha]="hasApocrypha"
     (toggleTextMode)="toggleTextMode()"
     (startFullChapter)="startFullChapter()"
     (startStudySession)="startStudySession()"
     (changeChapter)="changeChapter($event)"
     (changeBook)="changeBook($event)"
     (verseNumberChange)="onCrossRefVerseChange($event)"
+    (modeChange)="onModeChange($event)"
   >
     <!-- Topic Picker for Topical Mode (included via ng-content) -->
     <app-topic-picker
@@ -33,16 +36,14 @@
   <div class="main-layout">
     <!-- Left Sidebar -->
     <div class="sidebar">
-      <!-- Quick Filters with Mode Toggle -->
+      <!-- Quick Filters -->
       <app-workspace-filters
         [activeFilter]="activeFilter"
         [totalVerses]="mode === 'memorization' ? verses.length : (mode === 'crossReferences' ? crossReferenceVerses.length : (mode === 'topical' ? topicalVerses.length : 0))"
         [unmemorizedCount]="mode === 'memorization' ? unmemorizedVersesCount : (mode === 'crossReferences' ? getUnmemorizedCrossRefCount() : (mode === 'topical' ? getUnmemorizedTopicalCount() : 0))"
         [needsReviewCount]="needsReviewCount"
-        [mode]="mode"
         [showReviewFilter]="mode === 'memorization'"
         (filterChange)="uiStateService.setActiveFilter($event)"
-        (modeChange)="onModeChange($event)"
       ></app-workspace-filters>
 
       <!-- Chapter Actions Section (only in memorization mode) -->

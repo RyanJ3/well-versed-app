@@ -2,6 +2,42 @@
 @use './styles/expanded';
 @use './styles/responsive';
 
+// Header container layout
+.header-glass-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  padding: 12px 20px;
+  min-height: 60px;
+}
+
+// Mode selector positioned on the left
+.mode-selector-section {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
+
+// Content selectors centered over workspace body
+.content-selectors-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  // Offset slightly to the right to center over workspace body (accounting for sidebar)
+  margin-left: 120px; // Adjust based on your sidebar width
+}
+
+// Group selectors together
+.selector-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
 // Mode indicators
 .mode-indicator {
   display: flex;
@@ -47,9 +83,10 @@
 
 // Topic picker container
 .topic-picker-container {
-  flex: 1;
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 // Action buttons

@@ -79,6 +79,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
   // Core data
   verses: WorkspaceVerse[] = [];
+  hasApocrypha = false; // TODO: Get from user settings
   
   // Bible models
   bibleData: BibleData | null = null;
@@ -849,6 +850,13 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   getVerseNumbersArray(): number[] {
     if (!this.currentBibleChapter) return [];
     return Array.from({ length: this.currentBibleChapter.totalVerses }, (_, i) => i + 1);
+  }
+
+  getMemorizedVerseNumbers(): number[] {
+    // Return array of verse numbers that are memorized in the current chapter
+    return this.verses
+      .filter(v => v.isMemorized)
+      .map(v => v.verse);
   }
 
   onTopicSelected(topic: any) {

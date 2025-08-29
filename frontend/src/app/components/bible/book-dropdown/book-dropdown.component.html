@@ -1,4 +1,6 @@
-<div class="book-selector-wrapper">
+<div class="book-selector-wrapper" 
+     (mouseenter)="onMouseEnter()" 
+     (mouseleave)="onMouseLeave()">
   <button class="selector-btn book-selector" (click)="toggleDropdown($event)">
     <span class="selector-text">{{ currentBook?.name || 'Genesis' }}</span>
     <span class="selector-arrow" [class.open]="showDropdown">▼</span>

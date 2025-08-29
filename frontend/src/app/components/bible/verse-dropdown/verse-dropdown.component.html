@@ -1,4 +1,6 @@
-<div class="verse-selector-wrapper">
+<div class="verse-selector-wrapper"
+     (mouseenter)="onMouseEnter()"
+     (mouseleave)="onMouseLeave()">
   <button class="selector-btn verse-selector" (click)="toggleDropdown($event)">
     <span class="selector-text">Verse {{ selectedVerseNumber || 1 }}</span>
     <span class="selector-arrow" [class.open]="showDropdown">▼</span>

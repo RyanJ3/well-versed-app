@@ -1,0 +1,52 @@
+<div class="mode-selector-wrapper">
+  <button class="mode-selector-btn" (click)="toggleDropdown($event)">
+    <div class="mode-display" [ngSwitch]="mode">
+      <!-- Verse-by-verse mode -->
+      <div *ngSwitchCase="'memorization'" class="mode-indicator memorization">
+        <span class="mode-icon">📖</span>
+        <span>Verse-by-Verse</span>
+        <span class="mode-arrow" [class.open]="showDropdown">▼</span>
+      </div>
+      
+      <!-- Cross References mode -->
+      <div *ngSwitchCase="'crossReferences'" class="mode-indicator cross-ref">
+        <span class="mode-icon">🔗</span>
+        <span>Cross References</span>
+        <span class="mode-arrow" [class.open]="showDropdown">▼</span>
+      </div>
+      
+      <!-- Topical mode -->
+      <div *ngSwitchCase="'topical'" class="mode-indicator topical">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>Topical Study</span>
+        <span class="mode-arrow" [class.open]="showDropdown">▼</span>
+      </div>
+    </div>
+  </button>
+  
+  <!-- Mode dropdown menu -->
+  <div class="mode-dropdown-menu" *ngIf="showDropdown">
+    <button class="mode-option" (click)="selectMode('memorization')">
+      <div class="mode-indicator memorization">
+        <span class="mode-icon">📖</span>
+        <span>Verse-by-Verse</span>
+      </div>
+    </button>
+    <button class="mode-option" (click)="selectMode('crossReferences')">
+      <div class="mode-indicator cross-ref">
+        <span class="mode-icon">🔗</span>
+        <span>Cross References</span>
+      </div>
+    </button>
+    <button class="mode-option" (click)="selectMode('topical')">
+      <div class="mode-indicator topical">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span>Topical Study</span>
+      </div>
+    </button>
+  </div>
+</div>

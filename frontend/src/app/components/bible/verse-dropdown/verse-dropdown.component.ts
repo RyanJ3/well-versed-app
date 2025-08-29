@@ -19,6 +19,7 @@ export class VerseDropdownComponent implements OnInit, OnDestroy {
   showDropdown = false;
   private subscription?: Subscription;
   private dropdownId = 'verse-dropdown';
+  private closeTimeout?: any;
 
   constructor(
     private elementRef: ElementRef,
@@ -51,6 +52,22 @@ export class VerseDropdownComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     this.showDropdown = !this.showDropdown;
     this.dropdownState.setActiveDropdown(this.showDropdown ? this.dropdownId : null);
+  }
+
+  onMouseEnter(): void {
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+      this.closeTimeout = null;
+    }
+    this.showDropdown = true;
+    this.dropdownState.setActiveDropdown(this.dropdownId);
+  }
+
+  onMouseLeave(): void {
+    this.closeTimeout = setTimeout(() => {
+      this.showDropdown = false;
+      this.dropdownState.setActiveDropdown(null);
+    }, 300);
   }
 
   onVerseClick(verseNumber: number): void {

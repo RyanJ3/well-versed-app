@@ -7,89 +7,78 @@
 
   <!-- Main header content -->
   <div class="header-glass-container">
+    <!-- Mode selector positioned on the left -->
+    <div class="mode-selector-section">
+      <app-mode-selector
+        [mode]="mode"
+        (modeChange)="onModeChange($event)">
+      </app-mode-selector>
+    </div>
 
-    <!-- Header Bar - Always visible, no collapse -->
-    <div class="header-bar">
+    <!-- Content selectors centered over workspace body -->
+    <div class="content-selectors-section">
       <!-- Mode-specific content -->
       <ng-container [ngSwitch]="mode">
         
         <!-- Verse-by-verse Mode (memorization) -->
         <ng-container *ngSwitchCase="'memorization'">
-          <!-- Book Selector -->
-          <app-book-dropdown
-            [currentBook]="currentBook"
-            [allBooks]="allBooks"
-            [hasApocrypha]="hasApocrypha"
-            (bookSelect)="onBookSelect($event)">
-          </app-book-dropdown>
+          <div class="selector-group">
+            <!-- Book Selector -->
+            <app-book-dropdown
+              [currentBook]="currentBook"
+              [allBooks]="allBooks"
+              [hasApocrypha]="hasApocrypha"
+              (bookSelect)="onBookSelect($event)">
+            </app-book-dropdown>
 
-          <!-- Chapter Selector -->
-          <app-chapter-dropdown
-            [currentChapter]="currentChapter"
-            [availableChapters]="availableChapters"
-            (chapterSelect)="onChapterClick($event)">
-          </app-chapter-dropdown>
-
+            <!-- Chapter Selector -->
+            <app-chapter-dropdown
+              [currentChapter]="currentChapter"
+              [availableChapters]="availableChapters"
+              (chapterSelect)="onChapterClick($event)">
+            </app-chapter-dropdown>
+          </div>
         </ng-container>
 
         <!-- Cross References Mode -->
         <ng-container *ngSwitchCase="'crossReferences'">
-          <!-- Mode Indicator -->
-          <div class="mode-indicator cross-ref">
-            <span class="mode-icon">🔗</span>
-            <span>Cross References</span>
+          <div class="selector-group">
+            <!-- Book Selector -->
+            <app-book-dropdown
+              [currentBook]="currentBook"
+              [allBooks]="allBooks"
+              [hasApocrypha]="hasApocrypha"
+              (bookSelect)="onBookSelect($event)">
+            </app-book-dropdown>
+
+            <!-- Chapter Selector -->
+            <app-chapter-dropdown
+              [currentChapter]="currentChapter"
+              [availableChapters]="availableChapters"
+              (chapterSelect)="onChapterClick($event)">
+            </app-chapter-dropdown>
+            
+            <!-- Verse Selector -->
+            <app-verse-dropdown
+              [selectedVerseNumber]="selectedVerseNumber"
+              [availableVerseNumbers]="availableVerseNumbers"
+              [memorizedVerses]="memorizedVerses"
+              (verseSelect)="onVerseClick($event)">
+            </app-verse-dropdown>
           </div>
-
-          <!-- Book Selector -->
-          <app-book-dropdown
-            [currentBook]="currentBook"
-            [allBooks]="allBooks"
-            [hasApocrypha]="hasApocrypha"
-            (bookSelect)="onBookSelect($event)">
-          </app-book-dropdown>
-
-          <!-- Chapter Selector -->
-          <app-chapter-dropdown
-            [currentChapter]="currentChapter"
-            [availableChapters]="availableChapters"
-            (chapterSelect)="onChapterClick($event)">
-          </app-chapter-dropdown>
-          
-          <!-- Verse Selector -->
-          <app-verse-dropdown
-            [selectedVerseNumber]="selectedVerseNumber"
-            [availableVerseNumbers]="availableVerseNumbers"
-            [memorizedVerses]="memorizedVerses"
-            (verseSelect)="onVerseClick($event)">
-          </app-verse-dropdown>
-          
         </ng-container>
 
         <!-- Topical Mode -->
         <ng-container *ngSwitchCase="'topical'">
-          <!-- Mode Indicator -->
-          <div class="mode-indicator topical">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-            </svg>
-            <span>Topical Study</span>
-          </div>
-
           <!-- Topic Picker (included via ng-content) -->
           <div class="topic-picker-container">
             <ng-content></ng-content>
           </div>
         </ng-container>
       </ng-container>
-      
-      <!-- Empty action buttons for memorization mode - moved to sidebar -->
-      
-      <!-- Empty action buttons for cross-references mode -->
-      
-      <!-- Empty action buttons for topical mode -->
     </div>
-
-    <!-- Verse Picker for Cross References Mode -->
-    <ng-content select="app-verse-picker"></ng-content>
   </div>
+
+  <!-- Verse Picker for Cross References Mode -->
+  <ng-content select="app-verse-picker"></ng-content>
 </div>

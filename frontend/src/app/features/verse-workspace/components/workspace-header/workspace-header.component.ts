@@ -5,6 +5,7 @@ import { BibleBook, BibleChapter } from '@models/bible';
 import { BookDropdownComponent } from '@components/bible/book-dropdown/book-dropdown.component';
 import { ChapterDropdownComponent } from '@components/bible/chapter-dropdown/chapter-dropdown.component';
 import { VerseDropdownComponent } from '@components/bible/verse-dropdown/verse-dropdown.component';
+import { ModeSelectorComponent } from '@components/bible/mode-selector/mode-selector.component';
 
 @Component({
   selector: 'app-workspace-header',
@@ -14,7 +15,8 @@ import { VerseDropdownComponent } from '@components/bible/verse-dropdown/verse-d
     FormsModule,
     BookDropdownComponent,
     ChapterDropdownComponent,
-    VerseDropdownComponent
+    VerseDropdownComponent,
+    ModeSelectorComponent
   ],
   templateUrl: './workspace-header.component.html',
   styleUrls: ['./workspace-header.component.scss']
@@ -38,6 +40,7 @@ export class WorkspaceHeaderComponent implements OnInit {
   @Output() startStudySession = new EventEmitter<void>();
   @Output() changeChapter = new EventEmitter<number>();
   @Output() changeBook = new EventEmitter<number>();
+  @Output() modeChange = new EventEmitter<'memorization' | 'crossReferences' | 'topical'>();
 
   // Component state
   activeChapterFilter: 'all' | 'inProgress' | 'completed' = 'all';
@@ -209,6 +212,10 @@ export class WorkspaceHeaderComponent implements OnInit {
     const id = typeof bookId === 'string' ? parseInt(bookId, 10) : bookId;
     console.log('Book selected:', id);
     this.changeBook.emit(id);
+  }
+
+  onModeChange(newMode: 'memorization' | 'crossReferences' | 'topical'): void {
+    this.modeChange.emit(newMode);
   }
 
   onStartButtonClick(): void {

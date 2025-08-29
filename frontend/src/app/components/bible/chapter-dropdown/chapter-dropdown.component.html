@@ -1,4 +1,6 @@
-<div class="chapter-selector-wrapper">
+<div class="chapter-selector-wrapper"
+     (mouseenter)="onMouseEnter()"
+     (mouseleave)="onMouseLeave()">
   <button class="selector-btn chapter-selector" (click)="toggleDropdown($event)">
     <span class="selector-text">Chapter {{ currentChapter }}</span>
     <span class="selector-arrow" [class.open]="showDropdown">▼</span>

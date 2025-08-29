@@ -21,6 +21,7 @@ export class BookDropdownComponent implements OnInit, OnDestroy {
   testamentFilter: 'ALL' | 'OT' | 'NT' | 'APO' = 'ALL';
   private subscription?: Subscription;
   private dropdownId = 'book-dropdown';
+  private closeTimeout?: any;
 
   constructor(
     private elementRef: ElementRef,
@@ -53,6 +54,22 @@ export class BookDropdownComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     this.showDropdown = !this.showDropdown;
     this.dropdownState.setActiveDropdown(this.showDropdown ? this.dropdownId : null);
+  }
+
+  onMouseEnter(): void {
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+      this.closeTimeout = null;
+    }
+    this.showDropdown = true;
+    this.dropdownState.setActiveDropdown(this.dropdownId);
+  }
+
+  onMouseLeave(): void {
+    this.closeTimeout = setTimeout(() => {
+      this.showDropdown = false;
+      this.dropdownState.setActiveDropdown(null);
+    }, 300); // Small delay to allow moving to dropdown
   }
 
   setTestamentFilter(filter: 'ALL' | 'OT' | 'NT' | 'APO'): void {

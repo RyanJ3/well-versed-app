@@ -1,28 +1,4 @@
 <div class="filters-bar">
-  <!-- Mode Toggle -->
-  <div class="mode-toggle">
-    <button 
-      class="mode-btn" 
-      [class.active]="mode === 'memorization'"
-      (click)="setMode('memorization')">
-      📖 Verse-by-verse
-    </button>
-    <button 
-      class="mode-btn" 
-      [class.active]="mode === 'crossReferences'"
-      (click)="setMode('crossReferences')">
-      🔗 Cross References
-    </button>
-    <button 
-      class="mode-btn" 
-      [class.active]="mode === 'topical'"
-      (click)="setMode('topical')">
-      🏷️ Topical Verses
-    </button>
-  </div>
-  
-  <div class="divider"></div>
-  
   <div class="filters-section">
     <span class="filters-label">Quick Filters</span>
   <button
