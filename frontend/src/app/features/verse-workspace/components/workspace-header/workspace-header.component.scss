@@ -24,49 +24,48 @@
   padding: 10px;
 }
 
-// Chapter selector in collapsed style
+// Chapter selector wrapper and styling
 .chapter-selector-wrapper {
   position: relative;
   z-index: 1000;
+  flex-shrink: 0;
+}
 
-  .chapter-selector {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.3s;
-    border: 1px solid rgba(102, 126, 234, 0.2);
-    min-width: 70px;
-    flex-shrink: 0;
+.chapter-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  min-width: 80px;
+  flex-shrink: 0;
 
-    &:hover {
-      background: rgba(255, 255, 255, 0.95);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
-    }
-
-    .chapter-text {
-      font-size: 13px;
-      font-weight: 600;
-      color: #374151;
-    }
-
-    .dropdown-arrow {
-      font-size: 10px;
-      color: #6b7280;
-      transition: transform 0.3s;
-
-      &.open {
-        transform: rotate(180deg);
-      }
-    }
+  &:hover {
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
   }
 
-  // Chapter dropdown styles moved to main dropdown styles above
+  .chapter-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .dropdown-arrow {
+    font-size: 10px;
+    color: #6b7280;
+    transition: transform 0.3s;
+
+    &.open {
+      transform: rotate(180deg);
+    }
+  }
 }
 
 // Chapter dropdown items
@@ -190,24 +189,56 @@
   }
 }
 
-// Mode indicator for topical mode
+// Mode indicator - consistent styling for all modes
 .mode-indicator {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.05));
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  padding: 8px 14px;
   border-radius: 10px;
-  color: #7c3aed;
-  font-size: 0.875rem;
+  font-size: 13px;
   font-weight: 600;
+  transition: all 0.3s;
+  flex-shrink: 0;
+
+  .mode-icon {
+    font-size: 16px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  }
 
   svg {
     width: 16px;
     height: 16px;
-    color: #8b5cf6;
   }
+
+  // Cross-reference mode indicator
+  &.cross-ref {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.05));
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    color: #7c3aed;
+
+    svg, .mode-icon {
+      color: #8b5cf6;
+    }
+  }
+
+  // Topical mode indicator
+  &.topical {
+    background: linear-gradient(135deg, rgba(246, 173, 92, 0.1), rgba(237, 137, 58, 0.05));
+    border: 1px solid rgba(246, 173, 92, 0.2);
+    color: #ea580c;
+
+    svg {
+      color: #f97316;
+    }
+  }
+}
+
+// Topic picker container for topical mode
+.topic-picker-container {
+  flex: 1;
+  max-width: 400px;
+  margin-left: 12px;
 }
 
 // Action buttons in collapsed style

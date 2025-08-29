@@ -16,7 +16,11 @@
   overflow: visible !important;
   z-index: 999;
 
-  // Cross-reference mode styling
+  // Mode-specific styling
+  &.memorization-mode {
+    // Default styling is already set above
+  }
+
   &.cross-ref-mode {
     background: linear-gradient(135deg, rgba(250, 245, 255, 0.9) 0%, rgba(243, 232, 255, 0.9) 100%);
     border-bottom: 1px solid rgba(167, 139, 250, 0.3);
@@ -24,6 +28,16 @@
 
     .animated-mesh {
       background: radial-gradient(circle, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+    }
+  }
+
+  &.topical-mode {
+    background: linear-gradient(135deg, rgba(255, 250, 245, 0.9) 0%, rgba(255, 243, 232, 0.9) 100%);
+    border-bottom: 1px solid rgba(250, 202, 139, 0.3);
+    box-shadow: 0 8px 32px rgba(246, 173, 92, 0.12);
+
+    .animated-mesh {
+      background: radial-gradient(circle, rgba(246, 173, 92, 0.03) 1px, transparent 1px);
     }
   }
 
@@ -125,315 +139,127 @@
   }
 }
 
-// Header Bar - Collapsed style design
+// Header Bar - Consistent design for all modes
 .header-bar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0;
+  justify-content: flex-start;
+  gap: 12px;
   position: relative;
   z-index: 2;
   padding: 16px 20px;
   width: 100%;
+  min-height: 72px;
 
   // Book selector wrapper
   .book-selector-wrapper {
     position: relative;
     z-index: 1002;
     flex-shrink: 0;
+  }
 
-    // Chapter selector wrapper
-    .chapter-selector-wrapper {
-      position: relative;
-      z-index: 1002;
+  // Book selector - consistent style
+  .book-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    min-width: 150px;
+    flex-shrink: 0;
 
-      // Book selector - collapsed style
-      .book-selector {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 12px;
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(10px);
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.3s;
-        border: 1px solid rgba(102, 126, 234, 0.2);
-        min-width: 150px;
-        flex-shrink: 0;
-
-        &:hover {
-          background: rgba(255, 255, 255, 0.95);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
-        }
-
-        .book-icon {
-          font-size: 16px;
-          filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-        }
-
-        .book-name {
-          font-size: 13px;
-          font-weight: 600;
-          color: #374151;
-          flex: 1;
-        }
-
-        .dropdown-arrow {
-          font-size: 10px;
-          color: #6b7280;
-          transition: transform 0.3s;
-
-          &.open {
-            transform: rotate(180deg);
-          }
-        }
-      }
-
-      // Book dropdown menu removed - moved outside container
+    &:hover {
+      background: rgba(255, 255, 255, 0.95);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
     }
 
-    // Chapter selector wrapper for proper dropdown positioning
-    .chapter-selector-wrapper {
-      position: relative;
+    .book-icon {
+      font-size: 16px;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
     }
 
-    // Chapter selector in collapsed state
-    .collapsed-chapter-selector {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 12px;
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(10px);
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.3s;
-      border: 1px solid rgba(102, 126, 234, 0.2);
-      min-width: 70px;
-      flex-shrink: 0;
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.95);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
-      }
-
-      .chapter-text {
-        font-size: 13px;
-        font-weight: 600;
-        color: #374151;
-      }
-
-      .dropdown-arrow {
-        font-size: 10px;
-        color: #6b7280;
-        transition: transform 0.3s;
-
-        &.open {
-          transform: rotate(180deg);
-        }
-      }
-    }
-
-    // Chapter dropdown menu
-    .chapter-dropdown-menu {
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 0;
-      min-width: 180px;
-      max-height: 300px;
-      overflow-y: auto;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
-      border: 1px solid rgba(229, 231, 235, 0.6);
-      z-index: 10001;
-      animation: slideDown 0.2s ease;
-      padding: 4px;
-
-      .chapter-dropdown-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 12px;
-        font-size: 13px;
-        color: #374151;
-        cursor: pointer;
-        border-radius: 8px;
-        transition: all 0.2s;
-
-        &:hover {
-          background: #f3f4f6;
-        }
-
-        &.current {
-          background: linear-gradient(135deg, #eff6ff, #dbeafe);
-          color: #2563eb;
-          font-weight: 600;
-        }
-
-        .chapter-progress-badge {
-          font-size: 11px;
-          color: #9ca3af;
-          font-weight: 500;
-          margin-left: 8px; // Add space between chapter text and percentage
-        }
-      }
-
-      &::-webkit-scrollbar {
-        width: 6px;
-      }
-
-      &::-webkit-scrollbar-track {
-        background: #f3f4f6;
-        border-radius: 3px;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: #d1d5db;
-        border-radius: 3px;
-
-        &:hover {
-          background: #9ca3af;
-        }
-      }
-    }
-
-    // Progress bar in collapsed state - with right-aligned percentage
-    .collapsed-progress-bar {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    .book-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
       flex: 1;
-      max-width: 200px;
-
-      .progress-track {
-        flex: 1;
-        height: 8px;
-        background: rgba(229, 231, 235, 0.5);
-        border-radius: 4px;
-        overflow: hidden;
-
-        .progress-fill {
-          height: 100%;
-          background: linear-gradient(90deg, #667eea, #764ba2);
-          border-radius: 4px;
-          transition: width 0.5s ease;
-        }
-      }
-
-      .progress-text {
-        font-size: 12px;
-        font-weight: 600;
-        color: #374151;
-        min-width: 40px;
-        text-align: right; // Right-align the percentage
-      }
     }
 
-    // Action button in collapsed state
-    .btn-glass-action {
-      &.primary {
-        padding: 8px 16px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        border: 1px solid transparent;
-        border-radius: 10px;
-        color: white;
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        flex-shrink: 0;
-        margin-left: auto;
+    .dropdown-arrow {
+      font-size: 10px;
+      color: #6b7280;
+      transition: transform 0.3s;
 
-        &:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 8px 20px rgba(102, 126, 234, 0.25);
-        }
-
-        svg {
-          width: 16px;
-          height: 16px;
-        }
+      &.open {
+        transform: rotate(180deg);
       }
     }
   }
 
-  // Responsive adjustments
-  @media (max-width: 1024px) {
-    .collapsed-bar {
-      gap: 12px;
+}
 
-      .collapsed-book-selector {
-        min-width: 140px;
+// Responsive adjustments
+@media (max-width: 1024px) {
+  .header-bar {
+    gap: 10px;
+    padding: 14px 18px;
+  }
 
-        .book-name {
-          font-size: 12px;
-        }
-      }
+  .book-selector {
+    min-width: 140px;
 
-      .collapsed-progress-bar {
-        max-width: 160px;
-      }
+    .book-name {
+      font-size: 12px;
     }
   }
 
-  @media (max-width: 768px) {
-    .flow-header-glass {
-      &.collapsed {
-        padding: 0;
-        min-height: auto;
-      }
-    }
+  .header-progress-bar {
+    max-width: 160px;
+  }
+}
 
-    .collapsed-bar {
-      gap: 8px;
-      flex-wrap: wrap;
-      padding: 12px 50px 12px 16px;
+@media (max-width: 768px) {
+  .flow-header-glass {
+    min-height: auto;
+    padding: 0;
+  }
 
-      .collapsed-book-selector {
-        min-width: 130px;
-        padding: 6px 10px;
-      }
+  .header-bar {
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+  }
 
-      .collapsed-chapter-selector {
-        min-width: 60px;
-        padding: 6px 10px;
-      }
+  .book-selector {
+    min-width: 130px;
+    padding: 6px 10px;
+  }
 
-      .collapsed-progress-bar {
-        width: 100%;
-        max-width: none;
-        order: 3;
-        margin-top: 4px;
-      }
+  .chapter-selector {
+    min-width: 60px;
+    padding: 6px 10px;
+  }
 
-      .btn-glass-action.primary {
-        padding: 6px 12px;
-        font-size: 12px;
+  .header-progress-bar {
+    width: 100%;
+    max-width: none;
+    order: 3;
+    margin-top: 4px;
+  }
 
-        svg {
-          width: 14px;
-          height: 14px;
-        }
-      }
-    }
+  .mode-indicator {
+    padding: 6px 10px;
+    font-size: 12px;
 
-    .collapse-toggle {
-      width: 32px;
-      height: 32px;
-      right: 12px;
-
-      svg {
-        width: 18px;
-        height: 18px;
-      }
+    svg, .mode-icon {
+      width: 14px;
+      height: 14px;
     }
   }
 }
