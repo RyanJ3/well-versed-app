@@ -5,7 +5,8 @@
 // Dropdowns positioned outside the header container to prevent expanding it
 // These are at root level, not inside .flow-header-glass
 .book-dropdown-menu,
-.chapter-dropdown-menu {
+.chapter-dropdown-menu,
+.verse-dropdown-menu {
   position: fixed; // Will be positioned dynamically via JS
   min-width: 280px;
   max-height: 450px;
@@ -22,6 +23,12 @@
   z-index: 99999;
   animation: dropdownFadeSlide 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 10px;
+}
+
+// Verse dropdown specific styling
+.verse-dropdown-menu {
+  min-width: 150px;
+  max-height: 300px;
 }
 
 // Chapter selector wrapper and styling
@@ -65,6 +72,79 @@
     &.open {
       transform: rotate(180deg);
     }
+  }
+}
+
+// Verse selector wrapper and styling
+.verse-selector-wrapper {
+  position: relative;
+  z-index: 1000;
+  flex-shrink: 0;
+}
+
+.verse-selector {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  min-width: 90px;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+  }
+
+  .verse-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .dropdown-arrow {
+    font-size: 10px;
+    color: #6b7280;
+    transition: transform 0.3s;
+
+    &.open {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+// Verse dropdown items
+.verse-dropdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  margin: 2px 4px;
+  font-size: 13px;
+  color: #334155;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.05));
+    transform: translateX(2px);
+    color: #1e293b;
+  }
+
+  &.current {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    font-weight: 600;
+    box-shadow:
+      0 4px 12px rgba(99, 102, 241, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
 }
 
@@ -239,6 +319,21 @@
   flex: 1;
   display: flex;
   align-items: center;
+}
+
+// Reference count badge for cross-references mode
+.reference-count-badge {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.05));
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 8px;
+  color: #7c3aed;
+  font-size: 12px;
+  font-weight: 600;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 // Action buttons in collapsed style

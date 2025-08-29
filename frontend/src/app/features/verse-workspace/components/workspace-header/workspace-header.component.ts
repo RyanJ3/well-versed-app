@@ -41,6 +41,16 @@ export class WorkspaceHeaderComponent implements OnInit {
   
   // Mode - includes memorization, cross-references, and topical
   @Input() mode: 'memorization' | 'crossReferences' | 'topical' = 'memorization';
+  
+  // Cross-reference specific inputs
+  @Input() selectedVerseNumber = 1;
+  @Input() availableVerseNumbers: number[] = [];
+  
+  // Cross-reference specific outputs
+  @Output() verseNumberChange = new EventEmitter<number>();
+  
+  // Verse dropdown state
+  showVerseDropdown = false;
 
   constructor(private elementRef: ElementRef) {}
 
@@ -55,6 +65,7 @@ export class WorkspaceHeaderComponent implements OnInit {
     if (!this.elementRef.nativeElement.contains(event.target)) {
       this.showBookDropdown = false;
       this.showChapterDropdown = false;
+      this.showVerseDropdown = false;
     }
   }
 
@@ -115,7 +126,7 @@ export class WorkspaceHeaderComponent implements OnInit {
     // Calculate positions
     const viewportWidth = window.innerWidth;
     let leftPos = rect.left;
-    let topPos = rect.bottom + 2; // Small gap below button
+    let topPos = rect.bottom; // No gap - position directly below button
     
     // Adjust horizontal position if dropdown would go off-screen
     if (leftPos + dropdownWidth > viewportWidth - 10) {
@@ -360,6 +371,77 @@ export class WorkspaceHeaderComponent implements OnInit {
   onChapterClick(chapterNumber: number): void {
     if (chapterNumber !== this.currentChapter) {
       this.changeChapter.emit(chapterNumber);
+    }
+  }
+  
+  toggleVerseDropdown(event: MouseEvent): void {
+    event.stopPropagation();
+    const target = event.currentTarget as HTMLElement;
+    
+    if (!target) {
+      console.error('No target element found for verse dropdown');
+      return;
+    }
+    
+    const rect = target.getBoundingClientRect();
+    this.showVerseDropdown = !this.showVerseDropdown;
+    this.showBookDropdown = false;
+    this.showChapterDropdown = false;
+    
+    if (this.showVerseDropdown) {
+      requestAnimationFrame(() => {
+        this.positionVerseDropdown(rect);
+      });
+    }
+  }
+  
+  private positionVerseDropdown(rect: DOMRect): void {
+    const dropdown = document.querySelector('.verse-dropdown-menu') as HTMLElement;
+    
+    if (!dropdown) {
+      console.error('Verse dropdown element not found');
+      return;
+    }
+    
+    // Clear any existing inline styles first
+    dropdown.style.cssText = '';
+    
+    // Force recalculation of dropdown dimensions
+    dropdown.style.visibility = 'hidden';
+    dropdown.style.display = 'block';
+    
+    // Get actual dropdown dimensions
+    const dropdownRect = dropdown.getBoundingClientRect();
+    const dropdownWidth = dropdownRect.width || 120; // Fallback to min-width
+    
+    // Calculate positions
+    const viewportWidth = window.innerWidth;
+    let leftPos = rect.left;
+    let topPos = rect.bottom; // No gap - position directly below button
+    
+    // Adjust horizontal position if dropdown would go off-screen
+    if (leftPos + dropdownWidth > viewportWidth - 10) {
+      leftPos = Math.max(10, rect.right - dropdownWidth);
+    }
+    
+    // Ensure dropdown doesn't go off the left edge
+    leftPos = Math.max(10, leftPos);
+    
+    // Apply final positioning
+    dropdown.style.cssText = `
+      position: fixed !important;
+      top: ${topPos}px !important;
+      left: ${leftPos}px !important;
+      z-index: 99999 !important;
+      visibility: visible !important;
+      display: block !important;
+    `;
+  }
+  
+  onVerseClick(verseNumber: number): void {
+    if (verseNumber !== this.selectedVerseNumber) {
+      this.verseNumberChange.emit(verseNumber);
+      this.showVerseDropdown = false;
     }
   }
 

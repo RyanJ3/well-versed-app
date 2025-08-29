@@ -65,6 +65,15 @@
               <span class="dropdown-arrow" [class.open]="showChapterDropdown">▼</span>
             </div>
           </div>
+          
+          <!-- Verse Selector -->
+          <div class="verse-selector-wrapper">
+            <div class="verse-selector" (click)="toggleVerseDropdown($event)">
+              <span class="verse-text">Verse {{ selectedVerseNumber || 1 }}</span>
+              <span class="dropdown-arrow" [class.open]="showVerseDropdown">▼</span>
+            </div>
+          </div>
+          
         </ng-container>
 
         <!-- Topical Mode -->
@@ -154,6 +163,16 @@
       <span class="chapter-progress-badge">
         {{ getChapterProgress(ch) }}%
       </span>
+    </div>
+  </div>
+  
+  <!-- Verse dropdown menu -->
+  <div class="verse-dropdown-menu" *ngIf="showVerseDropdown" (click)="$event.stopPropagation()">
+    <div *ngFor="let verseNum of availableVerseNumbers"
+      class="verse-dropdown-item"
+      [class.current]="verseNum === selectedVerseNumber"
+      (click)="onVerseClick(verseNum); $event.stopPropagation()">
+      <span>Verse {{ verseNum }}</span>
     </div>
   </div>
 </div>

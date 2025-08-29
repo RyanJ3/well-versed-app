@@ -12,11 +12,14 @@
     [availableChapters]="availableChapters"
     [allBooks]="allBooks"
     [mode]="mode"
+    [selectedVerseNumber]="selectedCrossRefVerse?.verse || 1"
+    [availableVerseNumbers]="currentBibleChapter ? getVerseNumbersArray() : []"
     (toggleTextMode)="toggleTextMode()"
     (startFullChapter)="startFullChapter()"
     (startStudySession)="startStudySession()"
     (changeChapter)="changeChapter($event)"
     (changeBook)="changeBook($event)"
+    (verseNumberChange)="onCrossRefVerseChange($event)"
   >
     <!-- Topic Picker for Topical Mode (included via ng-content) -->
     <app-topic-picker

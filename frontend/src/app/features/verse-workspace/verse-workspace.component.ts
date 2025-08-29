@@ -832,6 +832,24 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   onCrossRefVerseSelected(verse: any) {
     this.crossReferencesService.selectVerse(verse, this.userId, this.userPreferredBible);
   }
+  
+  onCrossRefVerseChange(verseNumber: number) {
+    // Update the selected verse when user changes it in the dropdown
+    const verse = {
+      bookId: this.currentBook?.id,
+      bookName: this.currentBook?.name,
+      chapter: this.currentChapter,
+      verse: verseNumber,
+      verseCode: `${this.currentBook?.id}-${this.currentChapter}-${verseNumber}`,
+      displayText: `${this.currentBook?.name} ${this.currentChapter}:${verseNumber}`
+    };
+    this.onCrossRefVerseSelected(verse);
+  }
+  
+  getVerseNumbersArray(): number[] {
+    if (!this.currentBibleChapter) return [];
+    return Array.from({ length: this.currentBibleChapter.totalVerses }, (_, i) => i + 1);
+  }
 
   onTopicSelected(topic: any) {
     this.topicalService.selectTopic(topic, this.userId, this.userPreferredBible);
@@ -985,17 +1003,38 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     
     const [bookId, chapter, verseNum] = targetVerse.verseCode.split('-').map(Number);
     
-    const crossRefSelection = {
-      bookId: bookId,
-      bookName: targetVerse.bookName || this.currentBook?.name || '',
-      chapter: chapter,
-      verse: verseNum,
-      verseCode: targetVerse.verseCode,
-      displayText: `${targetVerse.bookName || this.currentBook?.name} ${chapter}:${verseNum}`
-    };
+    // Update the current book and chapter if different
+    if (bookId !== this.currentBook?.id || chapter !== this.currentChapter) {
+      const targetBook = this.allBooks.find(b => b.id === bookId);
+      if (targetBook) {
+        this.currentBook = targetBook;
+        this.currentChapter = chapter;
+        // Load the chapter to update available verses
+        this.loadChapter(bookId, chapter).then(() => {
+          const crossRefSelection = {
+            bookId: bookId,
+            bookName: targetVerse.bookName || this.currentBook?.name || '',
+            chapter: chapter,
+            verse: verseNum,
+            verseCode: targetVerse.verseCode,
+            displayText: `${targetVerse.bookName || this.currentBook?.name} ${chapter}:${verseNum}`
+          };
+          this.onCrossRefVerseSelected(crossRefSelection);
+        });
+      }
+    } else {
+      const crossRefSelection = {
+        bookId: bookId,
+        bookName: targetVerse.bookName || this.currentBook?.name || '',
+        chapter: chapter,
+        verse: verseNum,
+        verseCode: targetVerse.verseCode,
+        displayText: `${targetVerse.bookName || this.currentBook?.name} ${chapter}:${verseNum}`
+      };
+      this.onCrossRefVerseSelected(crossRefSelection);
+    }
     
-    this.onCrossRefVerseSelected(crossRefSelection);
-    this.notificationService.info(`Jumped to cross-references for ${crossRefSelection.displayText}`);
+    this.notificationService.info(`Jumped to cross-references for ${targetVerse.bookName || this.currentBook?.name} ${chapter}:${verseNum}`);
   }
 
   // Utility methods
