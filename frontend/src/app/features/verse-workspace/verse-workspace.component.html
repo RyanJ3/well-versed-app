@@ -26,7 +26,7 @@
   >
     <!-- Topic Picker for Topical Mode (included via ng-content) -->
     <app-topic-picker
-      *ngIf="mode === 'topical'"
+      *ngIf="mode === WorkspaceMode.TOPICAL"
       [selectedTopicId]="selectedTopic?.topicId"
       (topicSelected)="onTopicSelected($event)"
     ></app-topic-picker>
@@ -39,15 +39,15 @@
       <!-- Quick Filters -->
       <app-workspace-filters
         [activeFilter]="activeFilter"
-        [totalVerses]="mode === 'memorization' ? verses.length : (mode === 'crossReferences' ? crossReferenceVerses.length : (mode === 'topical' ? topicalVerses.length : 0))"
-        [unmemorizedCount]="mode === 'memorization' ? unmemorizedVersesCount : (mode === 'crossReferences' ? getUnmemorizedCrossRefCount() : (mode === 'topical' ? getUnmemorizedTopicalCount() : 0))"
+        [totalVerses]="mode === WorkspaceMode.MEMORIZATION ? verses.length : (mode === WorkspaceMode.CROSS_REFERENCES ? crossReferenceVerses.length : (mode === WorkspaceMode.TOPICAL ? topicalVerses.length : 0))"
+        [unmemorizedCount]="mode === WorkspaceMode.MEMORIZATION ? unmemorizedVersesCount : (mode === WorkspaceMode.CROSS_REFERENCES ? getUnmemorizedCrossRefCount() : (mode === WorkspaceMode.TOPICAL ? getUnmemorizedTopicalCount() : 0))"
         [needsReviewCount]="needsReviewCount"
-        [showReviewFilter]="mode === 'memorization'"
+        [showReviewFilter]="mode === WorkspaceMode.MEMORIZATION"
         (filterChange)="uiStateService.setActiveFilter($event)"
       ></app-workspace-filters>
 
       <!-- Chapter Actions Section (only in memorization mode) -->
-      <div class="chapter-actions-section" *ngIf="mode === 'memorization'">
+      <div class="chapter-actions-section" *ngIf="mode === WorkspaceMode.MEMORIZATION">
         <h3 class="section-title">Actions</h3>
         
         <!-- Start Chapter Button -->
@@ -60,7 +60,7 @@
       </div>
 
       <!-- Selection Info (only in memorization mode) -->
-      <div class="selection-info" *ngIf="mode === 'memorization'">
+      <div class="selection-info" *ngIf="mode === WorkspaceMode.MEMORIZATION">
         <div class="selection-text">
           <span>{{ selectionService.selectedVerses.size }} verses selected</span>
           <small>Shift+Click for range • Ctrl/Cmd+A for all</small>
@@ -159,7 +159,7 @@
 
     <!-- Regular Grid View (only in memorization mode) -->
     <app-verse-list
-      *ngIf="mode === 'memorization' && !isLoading && verses.length > 0"
+      *ngIf="mode === WorkspaceMode.MEMORIZATION && !isLoading && verses.length > 0"
       [verses]="verses"
       [filteredVerses]="getFilteredVerses()"
       [selectedVerses]="selectionService.selectedVerses"
@@ -178,7 +178,7 @@
     ></app-verse-list>
     
     <!-- Cross-References View (replaces all verses when in this mode) -->
-    <div *ngIf="mode === 'crossReferences'" class="cross-references-container">
+    <div *ngIf="mode === WorkspaceMode.CROSS_REFERENCES" class="cross-references-container">
       
       <!-- Cross-references grid -->
       <div *ngIf="!loadingCrossReferences && crossReferenceVerses.length > 0" class="verses-grid cross-references-grid">
@@ -258,7 +258,7 @@
     </div>
 
     <!-- Topical Verses View -->
-    <div *ngIf="mode === 'topical'" class="topical-verses-container">
+    <div *ngIf="mode === WorkspaceMode.TOPICAL" class="topical-verses-container">
       
       
       <!-- Topical verses grid -->

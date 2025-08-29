@@ -18,6 +18,7 @@ import { WorkspaceCrossReferencesService } from './services/workspace-cross-refe
 import { WorkspaceTopicalService } from './services/workspace-topical.service';
 import { WorkspaceDeckManagementService } from './services/workspace-deck-management.service';
 import { WorkspaceUIStateService } from './services/workspace-ui-state.service';
+import { WorkspaceVerseFacade } from './services/workspace-verse.facade';
 
 // Components
 import { MemorizationModalComponent } from './memorization/memorization-modal.component';
@@ -31,6 +32,7 @@ import { VerseListComponent } from './components/verse-list/verse-list.component
 // Models
 import { BibleBook, BibleChapter, BibleData } from '@models/bible';
 import { WorkspaceVerse, ModalVerse } from './models/workspace.models';
+import { WorkspaceMode } from './models/workspace-mode.enum';
 import { DeckCreate } from '@services/api/deck.service';
 
 // Utils
@@ -76,6 +78,9 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   @ViewChild('versesContainer') versesContainer!: ElementRef;
 
   private workspaceParsingService = inject(WorkspaceParsingService);
+  
+  // Expose enum to template
+  readonly WorkspaceMode = WorkspaceMode;
 
   // Core data
   verses: WorkspaceVerse[] = [];
@@ -177,7 +182,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
   get shouldShowJumpToChapter(): boolean {
     // Don't show in memorization mode (already showing chapter)
-    if (this.mode === 'memorization') return false;
+    if (this.mode === WorkspaceMode.MEMORIZATION) return false;
     
     // Don't show if no verses are selected
     if (this.selectionService.selectedVerses.size === 0) return false;
@@ -221,7 +226,15 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   get isGearSpinning(): boolean { return this.uiStateService.currentState.isGearSpinning; }
   get showEncouragement(): string { return this.uiStateService.currentState.showEncouragement; }
   get isLoading(): boolean { return this.uiStateService.currentState.isLoading; }
-  get mode(): 'memorization' | 'crossReferences' | 'topical' { return this.uiStateService.currentState.mode as 'memorization' | 'crossReferences' | 'topical'; }
+  get mode(): WorkspaceMode { 
+    const modeString = this.uiStateService.currentState.mode;
+    // Map string values to enum
+    switch(modeString) {
+      case 'crossReferences': return WorkspaceMode.CROSS_REFERENCES;
+      case 'topical': return WorkspaceMode.TOPICAL;
+      default: return WorkspaceMode.MEMORIZATION;
+    }
+  }
   get contextMenu(): any { return this.uiStateService.currentState.contextMenu; }
   get showModal(): boolean { return this.uiStateService.currentState.showModal; }
   get modalChapterName(): string { return this.uiStateService.currentState.modalChapterName; }
@@ -257,7 +270,8 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     private crossReferencesService: WorkspaceCrossReferencesService,
     private topicalService: WorkspaceTopicalService,
     private deckManagementService: WorkspaceDeckManagementService,
-    public uiStateService: WorkspaceUIStateService
+    public uiStateService: WorkspaceUIStateService,
+    private verseFacade: WorkspaceVerseFacade  // Injected but not used yet
   ) {}
 
   ngOnInit() {
@@ -526,8 +540,8 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   private handleEnterKey() {
-    const mode = this.uiStateService.currentState.mode;
-    if (mode === 'crossReferences' && this.selectionService.selectedVerses.size === 1) {
+    const mode = this.mode; // Use the getter that returns enum
+    if (mode === WorkspaceMode.CROSS_REFERENCES && this.selectionService.selectedVerses.size === 1) {
       const selectedCode = Array.from(this.selectionService.selectedVerses)[0];
       const selectedVerse = this.crossReferenceVerses.find(v => v.verseCode === selectedCode);
       if (selectedVerse) {
@@ -539,8 +553,8 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   private toggleCrossReferencesMode() {
-    const currentMode = this.uiStateService.currentState.mode;
-    const newMode = currentMode === 'memorization' ? 'crossReferences' : 'memorization';
+    const currentMode = this.mode; // Use the getter that returns enum
+    const newMode = currentMode === WorkspaceMode.MEMORIZATION ? 'crossReferences' : 'memorization';
     this.uiStateService.setMode(newMode);
     this.onModeChange(newMode);
   }
