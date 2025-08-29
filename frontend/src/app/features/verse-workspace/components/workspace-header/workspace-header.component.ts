@@ -1,12 +1,21 @@
-import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BibleBook, BibleChapter } from '@models/bible';
+import { BookDropdownComponent } from '@components/bible/book-dropdown/book-dropdown.component';
+import { ChapterDropdownComponent } from '@components/bible/chapter-dropdown/chapter-dropdown.component';
+import { VerseDropdownComponent } from '@components/bible/verse-dropdown/verse-dropdown.component';
 
 @Component({
   selector: 'app-workspace-header',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule, 
+    FormsModule,
+    BookDropdownComponent,
+    ChapterDropdownComponent,
+    VerseDropdownComponent
+  ],
   templateUrl: './workspace-header.component.html',
   styleUrls: ['./workspace-header.component.scss']
 })
@@ -32,13 +41,7 @@ export class WorkspaceHeaderComponent implements OnInit {
 
   // Component state
   activeChapterFilter: 'all' | 'inProgress' | 'completed' = 'all';
-  testamentFilter: 'ALL' | 'OT' | 'NT' | 'APO' = 'ALL';
   chapterViewMode: 'grid' | 'row' | 'list' = 'grid';
-  showBookDropdown = false;
-  showChapterDropdown = false;
-  
-  // Browser check
-  private readonly isBrowser = typeof window !== 'undefined';
   
   // Mode - includes memorization, cross-references, and topical
   @Input() mode: 'memorization' | 'crossReferences' | 'topical' = 'memorization';
@@ -46,14 +49,13 @@ export class WorkspaceHeaderComponent implements OnInit {
   // Cross-reference specific inputs
   @Input() selectedVerseNumber = 1;
   @Input() availableVerseNumbers: number[] = [];
+  @Input() memorizedVerses: number[] = [];
+  @Input() hasApocrypha = false;
   
   // Cross-reference specific outputs
   @Output() verseNumberChange = new EventEmitter<number>();
   
-  // Verse dropdown state
-  showVerseDropdown = false;
-
-  constructor(private elementRef: ElementRef) {}
+  constructor() {}
   
   // Getters for ngModel binding
   get currentBookId(): number {
@@ -70,24 +72,9 @@ export class WorkspaceHeaderComponent implements OnInit {
     console.log('Available chapters:', this.availableChapters.length);
   }
 
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent) {
-    if (!this.elementRef.nativeElement.contains(event.target)) {
-      this.showBookDropdown = false;
-      this.showChapterDropdown = false;
-      this.showVerseDropdown = false;
-    }
-  }
 
 
 
-  // Toggle chapter dropdown
-  toggleChapterDropdown(event: MouseEvent): void {
-    event.stopPropagation();
-    this.showChapterDropdown = !this.showChapterDropdown;
-    this.showBookDropdown = false;
-    this.showVerseDropdown = false;
-  }
   
 
 
@@ -163,59 +150,6 @@ export class WorkspaceHeaderComponent implements OnInit {
     return this.filteredChapters;
   }
 
-  // Filter books by testament
-  get filteredBooks(): BibleBook[] {
-    if (!this.allBooks || this.allBooks.length === 0) {
-      return [];
-    }
-    
-    if (this.testamentFilter === 'ALL') {
-      return this.allBooks;
-    }
-    
-    return this.allBooks.filter(book => {
-      const testament = this.getBookTestament(book);
-      return testament === this.testamentFilter;
-    });
-  }
-
-  // Get books grouped by testament for dropdown
-  get booksByTestament() {
-    if (!this.allBooks || this.allBooks.length === 0) {
-      console.warn('No books available for dropdown');
-      return { OT: [], NT: [], APO: [] };
-    }
-    
-    // Apply testament filter
-    let filteredBooks = this.allBooks;
-    if (this.testamentFilter !== 'ALL') {
-      filteredBooks = this.filteredBooks;
-    }
-    
-    const otBooks = filteredBooks.filter(b => this.getBookTestament(b) === 'OT');
-    const ntBooks = filteredBooks.filter(b => this.getBookTestament(b) === 'NT');
-    const apoBooks = filteredBooks.filter(b => this.getBookTestament(b) === 'APO');
-    
-    return {
-      OT: otBooks,
-      NT: ntBooks,
-      APO: apoBooks
-    };
-  }
-
-  // Helper to determine testament based on book ID
-  private getBookTestament(book: BibleBook): 'OT' | 'NT' | 'APO' {
-    // ID-based detection
-    // Standard Protestant Bible: OT (1-39), NT (40-66)
-    // Books after 66 are Apocrypha/Deuterocanonical
-    if (book.id <= 39) {
-      return 'OT';
-    } else if (book.id <= 66) {
-      return 'NT';
-    } else {
-      return 'APO';
-    }
-  }
 
   // Calculate pie chart values for chapter cards
   getChapterPieCircumference(): number {
@@ -233,11 +167,6 @@ export class WorkspaceHeaderComponent implements OnInit {
     return Math.round((chapter.memorizedVerses / chapter.totalVerses) * 100);
   }
 
-  // Get book progress percentage
-  getBookProgress(book: BibleBook): number {
-    if (!book || book.totalVerses === 0) return 0;
-    return Math.round((book.memorizedVerses / book.totalVerses) * 100);
-  }
 
   // Check if chapter is current
   isCurrentChapter(chapter: BibleChapter): boolean {
@@ -253,9 +182,6 @@ export class WorkspaceHeaderComponent implements OnInit {
     this.activeChapterFilter = filter;
   }
 
-  setTestamentFilter(filter: 'ALL' | 'OT' | 'NT' | 'APO'): void {
-    this.testamentFilter = filter;
-  }
 
   toggleChapterView(): void {
     const modes: ('grid' | 'row' | 'list')[] = ['grid', 'row', 'list'];
@@ -263,12 +189,6 @@ export class WorkspaceHeaderComponent implements OnInit {
     this.chapterViewMode = modes[(currentIndex + 1) % 3];
   }
 
-  toggleBookDropdown(event: MouseEvent): void {
-    event.stopPropagation();
-    this.showBookDropdown = !this.showBookDropdown;
-    this.showChapterDropdown = false;
-    this.showVerseDropdown = false;
-  }
 
   onChapterClick(chapterNumber: number | string): void {
     const num = typeof chapterNumber === 'string' ? parseInt(chapterNumber, 10) : chapterNumber;
@@ -277,12 +197,6 @@ export class WorkspaceHeaderComponent implements OnInit {
     }
   }
   
-  toggleVerseDropdown(event: MouseEvent): void {
-    event.stopPropagation();
-    this.showVerseDropdown = !this.showVerseDropdown;
-    this.showBookDropdown = false;
-    this.showChapterDropdown = false;
-  }
   
   onVerseClick(verseNumber: number | string): void {
     const num = typeof verseNumber === 'string' ? parseInt(verseNumber, 10) : verseNumber;

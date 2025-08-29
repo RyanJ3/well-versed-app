@@ -1,0 +1,21 @@
+@import '../dropdown-shared-styles';
+
+.verse-selector {
+  min-width: 110px;
+}
+
+.verse-dropdown {
+  min-width: 120px;
+  max-height: 300px;
+  
+  .dropdown-item {
+    &.memorized {
+      .checkmark {
+        color: #10b981;
+        font-weight: bold;
+        margin-left: auto;
+        padding-left: 8px;
+      }
+    }
+  }
+}

@@ -1,0 +1,67 @@
+@import '../dropdown-shared-styles';
+
+.book-selector {
+  min-width: 180px;
+  gap: 4px; // Reduce gap since no icon
+  
+  .selector-text {
+    margin-left: 0; // Ensure no extra left margin
+  }
+}
+
+.book-dropdown {
+  min-width: 280px;
+}
+
+// Testament filter
+.testament-filter {
+  display: flex;
+  gap: 2px;
+  background: rgba(243, 244, 246, 0.8);
+  padding: 2px;
+  border-radius: 8px;
+  margin: 4px 4px 8px 4px;
+  
+  .filter-btn {
+    flex: 1;
+    padding: 6px 8px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+    
+    &.active {
+      background: white;
+      color: #667eea;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+  }
+}
+
+// Dropdown sections
+.dropdown-section {
+  &:not(:last-child) {
+    border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+  }
+}
+
+// Dropdown headers
+.dropdown-header {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 6px 8px 4px;
+  margin: 0;
+}

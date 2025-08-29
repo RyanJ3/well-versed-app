@@ -1,0 +1,69 @@
+<div class="book-selector-wrapper">
+  <button class="selector-btn book-selector" (click)="toggleDropdown($event)">
+    <span class="selector-text">{{ currentBook?.name || 'Genesis' }}</span>
+    <span class="selector-arrow" [class.open]="showDropdown">▼</span>
+  </button>
+  
+  <!-- Book Dropdown -->
+  <div class="dropdown-menu book-dropdown" *ngIf="showDropdown">
+    <!-- Testament filter -->
+    <div class="testament-filter">
+      <button 
+        class="filter-btn" 
+        [class.active]="testamentFilter === 'ALL'"
+        (click)="setTestamentFilter('ALL')">
+        ALL
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="testamentFilter === 'OT'"
+        (click)="setTestamentFilter('OT')">
+        OT
+      </button>
+      <button 
+        class="filter-btn" 
+        [class.active]="testamentFilter === 'NT'"
+        (click)="setTestamentFilter('NT')">
+        NT
+      </button>
+      <button 
+        *ngIf="hasApocrypha"
+        class="filter-btn" 
+        [class.active]="testamentFilter === 'APO'"
+        (click)="setTestamentFilter('APO')">
+        APO
+      </button>
+    </div>
+    
+    <div class="dropdown-section" *ngIf="booksByTestament.OT.length > 0">
+      <div class="dropdown-header">Old Testament</div>
+      <button *ngFor="let book of booksByTestament.OT" 
+              class="dropdown-item"
+              [class.current]="book.id === currentBook?.id"
+              (click)="onBookSelect(book.id)">
+        {{ book.name }}
+        <span class="item-badge">{{ getBookProgress(book) }}%</span>
+      </button>
+    </div>
+    <div class="dropdown-section" *ngIf="booksByTestament.NT.length > 0">
+      <div class="dropdown-header">New Testament</div>
+      <button *ngFor="let book of booksByTestament.NT"
+              class="dropdown-item"
+              [class.current]="book.id === currentBook?.id"
+              (click)="onBookSelect(book.id)">
+        {{ book.name }}
+        <span class="item-badge">{{ getBookProgress(book) }}%</span>
+      </button>
+    </div>
+    <div class="dropdown-section" *ngIf="booksByTestament.APO.length > 0">
+      <div class="dropdown-header">Apocrypha</div>
+      <button *ngFor="let book of booksByTestament.APO"
+              class="dropdown-item"
+              [class.current]="book.id === currentBook?.id"
+              (click)="onBookSelect(book.id)">
+        {{ book.name }}
+        <span class="item-badge">{{ getBookProgress(book) }}%</span>
+      </button>
+    </div>
+  </div>
+</div>

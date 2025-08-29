@@ -1,0 +1,17 @@
+<div class="chapter-selector-wrapper">
+  <button class="selector-btn chapter-selector" (click)="toggleDropdown($event)">
+    <span class="selector-text">Chapter {{ currentChapter }}</span>
+    <span class="selector-arrow" [class.open]="showDropdown">▼</span>
+  </button>
+  
+  <!-- Chapter Dropdown -->
+  <div class="dropdown-menu chapter-dropdown" *ngIf="showDropdown">
+    <button *ngFor="let ch of availableChapters"
+            class="dropdown-item"
+            [class.current]="ch.chapterNumber === currentChapter"
+            (click)="onChapterClick(ch.chapterNumber)">
+      Chapter {{ ch.chapterNumber }}
+      <span class="item-badge">{{ getChapterProgress(ch) }}%</span>
+    </button>
+  </div>
+</div>

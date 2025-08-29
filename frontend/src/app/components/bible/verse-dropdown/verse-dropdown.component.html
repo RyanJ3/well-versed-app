@@ -1,0 +1,18 @@
+<div class="verse-selector-wrapper">
+  <button class="selector-btn verse-selector" (click)="toggleDropdown($event)">
+    <span class="selector-text">Verse {{ selectedVerseNumber || 1 }}</span>
+    <span class="selector-arrow" [class.open]="showDropdown">▼</span>
+  </button>
+  
+  <!-- Verse Dropdown -->
+  <div class="dropdown-menu verse-dropdown" *ngIf="showDropdown">
+    <button *ngFor="let verseNum of availableVerseNumbers"
+            class="dropdown-item"
+            [class.current]="verseNum === selectedVerseNumber"
+            [class.memorized]="isVerseMemorized(verseNum)"
+            (click)="onVerseClick(verseNum)">
+      Verse {{ verseNum }}
+      <span class="checkmark" *ngIf="isVerseMemorized(verseNum)">✓</span>
+    </button>
+  </div>
+</div>
