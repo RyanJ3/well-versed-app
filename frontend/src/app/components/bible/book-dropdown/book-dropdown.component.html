@@ -8,64 +8,67 @@
   
   <!-- Book Dropdown -->
   <div class="dropdown-menu book-dropdown" *ngIf="showDropdown">
-    <!-- Testament filter -->
-    <div class="testament-filter">
+    <!-- Testament filter (sticky) -->
+    <div class="testament-filter sticky-filter">
       <button 
         class="filter-btn" 
         [class.active]="testamentFilter === 'ALL'"
-        (click)="setTestamentFilter('ALL')">
+        (click)="setTestamentFilter('ALL', $event)">
         ALL
       </button>
       <button 
         class="filter-btn" 
         [class.active]="testamentFilter === 'OT'"
-        (click)="setTestamentFilter('OT')">
+        (click)="setTestamentFilter('OT', $event)">
         OT
       </button>
       <button 
         class="filter-btn" 
         [class.active]="testamentFilter === 'NT'"
-        (click)="setTestamentFilter('NT')">
+        (click)="setTestamentFilter('NT', $event)">
         NT
       </button>
       <button 
         *ngIf="hasApocrypha"
         class="filter-btn" 
         [class.active]="testamentFilter === 'APO'"
-        (click)="setTestamentFilter('APO')">
+        (click)="setTestamentFilter('APO', $event)">
         APO
       </button>
     </div>
     
-    <div class="dropdown-section" *ngIf="booksByTestament.OT.length > 0">
-      <div class="dropdown-header">Old Testament</div>
-      <button *ngFor="let book of booksByTestament.OT" 
-              class="dropdown-item"
-              [class.current]="book.id === currentBook?.id"
-              (click)="onBookSelect(book.id)">
-        {{ book.name }}
-        <span class="item-badge">{{ getBookProgress(book) }}%</span>
-      </button>
-    </div>
-    <div class="dropdown-section" *ngIf="booksByTestament.NT.length > 0">
-      <div class="dropdown-header">New Testament</div>
-      <button *ngFor="let book of booksByTestament.NT"
-              class="dropdown-item"
-              [class.current]="book.id === currentBook?.id"
-              (click)="onBookSelect(book.id)">
-        {{ book.name }}
-        <span class="item-badge">{{ getBookProgress(book) }}%</span>
-      </button>
-    </div>
-    <div class="dropdown-section" *ngIf="booksByTestament.APO.length > 0">
-      <div class="dropdown-header">Apocrypha</div>
-      <button *ngFor="let book of booksByTestament.APO"
-              class="dropdown-item"
-              [class.current]="book.id === currentBook?.id"
-              (click)="onBookSelect(book.id)">
-        {{ book.name }}
-        <span class="item-badge">{{ getBookProgress(book) }}%</span>
-      </button>
+    <!-- Scrollable content area -->
+    <div class="dropdown-content">
+      <div class="dropdown-section" *ngIf="booksByTestament.OT.length > 0">
+        <div class="dropdown-header sticky-header">Old Testament</div>
+        <button *ngFor="let book of booksByTestament.OT" 
+                class="dropdown-item"
+                [class.current]="book.id === currentBook?.id"
+                (click)="onBookSelect(book.id)">
+          {{ book.name }}
+          <span class="item-badge">{{ getBookProgress(book) }}%</span>
+        </button>
+      </div>
+      <div class="dropdown-section" *ngIf="booksByTestament.NT.length > 0">
+        <div class="dropdown-header sticky-header">New Testament</div>
+        <button *ngFor="let book of booksByTestament.NT"
+                class="dropdown-item"
+                [class.current]="book.id === currentBook?.id"
+                (click)="onBookSelect(book.id)">
+          {{ book.name }}
+          <span class="item-badge">{{ getBookProgress(book) }}%</span>
+        </button>
+      </div>
+      <div class="dropdown-section" *ngIf="booksByTestament.APO.length > 0">
+        <div class="dropdown-header sticky-header">Apocrypha</div>
+        <button *ngFor="let book of booksByTestament.APO"
+                class="dropdown-item"
+                [class.current]="book.id === currentBook?.id"
+                (click)="onBookSelect(book.id)">
+          {{ book.name }}
+          <span class="item-badge">{{ getBookProgress(book) }}%</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>

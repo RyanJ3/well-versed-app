@@ -79,7 +79,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
   // Core data
   verses: WorkspaceVerse[] = [];
-  hasApocrypha = false; // TODO: Get from user settings
+  hasApocrypha = false;
   
   // Bible models
   bibleData: BibleData | null = null;
@@ -268,6 +268,13 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
     // Initialize user
     this.initializeUser();
+    
+    // Subscribe to Bible preferences
+    this.bibleService.preferences$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(prefs => {
+        this.hasApocrypha = prefs.includeApocrypha;
+      });
 
     // Setup save queue
     this.setupSaveQueue();
@@ -316,6 +323,12 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
           .subscribe(user => {
             if (user) {
               this.userId = typeof user.id === 'string' ? parseInt(user.id) : user.id;
+              
+              // Update user settings
+              this.hasApocrypha = user.includeApocrypha === true;
+              
+              // Update Bible service preferences
+              this.bibleService.updateUserPreferences(this.hasApocrypha);
               
               // Detect Bible translation change
               const previousBible = this.userPreferredBible;

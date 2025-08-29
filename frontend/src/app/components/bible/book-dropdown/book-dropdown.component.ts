@@ -72,7 +72,10 @@ export class BookDropdownComponent implements OnInit, OnDestroy {
     }, 300); // Small delay to allow moving to dropdown
   }
 
-  setTestamentFilter(filter: 'ALL' | 'OT' | 'NT' | 'APO'): void {
+  setTestamentFilter(filter: 'ALL' | 'OT' | 'NT' | 'APO', event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
     this.testamentFilter = filter;
   }
 
