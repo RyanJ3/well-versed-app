@@ -1,11 +1,12 @@
 import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { BibleBook, BibleChapter } from '@models/bible';
 
 @Component({
   selector: 'app-workspace-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './workspace-header.component.html',
   styleUrls: ['./workspace-header.component.scss']
 })
@@ -53,6 +54,15 @@ export class WorkspaceHeaderComponent implements OnInit {
   showVerseDropdown = false;
 
   constructor(private elementRef: ElementRef) {}
+  
+  // Getters for ngModel binding
+  get currentBookId(): number {
+    return this.currentBook?.id || 1;
+  }
+  
+  set currentBookId(value: number) {
+    // This setter is needed for two-way binding but actual change is handled by onBookSelect
+  }
 
   ngOnInit() {
     // Initialize component
@@ -74,97 +84,11 @@ export class WorkspaceHeaderComponent implements OnInit {
   // Toggle chapter dropdown
   toggleChapterDropdown(event: MouseEvent): void {
     event.stopPropagation();
-    const target = event.currentTarget as HTMLElement;
-    
-    // Ensure we have the button element
-    if (!target) {
-      console.error('No target element found for chapter dropdown');
-      return;
-    }
-    
-    const rect = target.getBoundingClientRect();
-    console.log('Chapter button clicked:', target, 'Rect:', rect);
-    
     this.showChapterDropdown = !this.showChapterDropdown;
-    this.showBookDropdown = false; // Close book dropdown if open
-    
-    if (this.showChapterDropdown) {
-      // Use requestAnimationFrame instead of setTimeout for better timing
-      requestAnimationFrame(() => {
-        this.positionDropdownWithRect('chapter', rect);
-      });
-    }
+    this.showBookDropdown = false;
+    this.showVerseDropdown = false;
   }
   
-  private positionDropdown(type: 'book' | 'chapter', event: MouseEvent): void {
-    const target = event.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    this.positionDropdownWithRect(type, rect);
-  }
-  
-  private positionDropdownWithRect(type: 'book' | 'chapter', rect: DOMRect): void {
-    const dropdown = type === 'book' 
-      ? document.querySelector('.book-dropdown-menu') as HTMLElement
-      : document.querySelector('.chapter-dropdown-menu') as HTMLElement;
-    
-    if (!dropdown) {
-      console.error(`${type} dropdown element not found`);
-      return;
-    }
-    
-    // Clear any existing inline styles first
-    dropdown.style.cssText = '';
-    
-    // Force recalculation of dropdown dimensions
-    dropdown.style.visibility = 'hidden';
-    dropdown.style.display = 'block';
-    
-    // Get actual dropdown dimensions
-    const dropdownRect = dropdown.getBoundingClientRect();
-    const dropdownWidth = dropdownRect.width || 280; // Fallback to min-width
-    
-    // Calculate positions
-    const viewportWidth = window.innerWidth;
-    let leftPos = rect.left;
-    let topPos = rect.bottom; // No gap - position directly below button
-    
-    // Adjust horizontal position if dropdown would go off-screen
-    if (leftPos + dropdownWidth > viewportWidth - 10) {
-      // Align to right edge of button if it would overflow
-      leftPos = Math.max(10, rect.right - dropdownWidth);
-    }
-    
-    // Ensure dropdown doesn't go off the left edge
-    leftPos = Math.max(10, leftPos);
-    
-    // Apply final positioning
-    dropdown.style.cssText = `
-      position: fixed !important;
-      top: ${topPos}px !important;
-      left: ${leftPos}px !important;
-      z-index: 99999 !important;
-      visibility: visible !important;
-      display: block !important;
-    `;
-    
-    // Log for debugging
-    console.log(`${type} dropdown positioned:`, {
-      buttonRect: {
-        top: rect.top,
-        bottom: rect.bottom,
-        left: rect.left,
-        right: rect.right,
-        width: rect.width,
-        height: rect.height
-      },
-      dropdownPosition: {
-        top: topPos,
-        left: leftPos,
-        width: dropdownWidth
-      },
-      dropdown: dropdown
-    });
-  }
 
 
   // Progress ring calculations for expanded view (larger ring)
@@ -339,116 +263,38 @@ export class WorkspaceHeaderComponent implements OnInit {
     this.chapterViewMode = modes[(currentIndex + 1) % 3];
   }
 
-  toggleBookDropdown(event?: MouseEvent): void {
-    if (event) {
-      event.stopPropagation();
-      const target = event.currentTarget as HTMLElement;
-      
-      // Ensure we have the button element
-      if (!target) {
-        console.error('No target element found for book dropdown');
-        return;
-      }
-      
-      const rect = target.getBoundingClientRect();
-      console.log('Book button clicked:', target, 'Rect:', rect);
-      
-      this.showBookDropdown = !this.showBookDropdown;
-      this.showChapterDropdown = false; // Close chapter dropdown if open
-      
-      if (this.showBookDropdown) {
-        // Use requestAnimationFrame instead of setTimeout for better timing
-        requestAnimationFrame(() => {
-          this.positionDropdownWithRect('book', rect);
-        });
-      }
-    } else {
-      this.showBookDropdown = !this.showBookDropdown;
-      this.showChapterDropdown = false;
-    }
+  toggleBookDropdown(event: MouseEvent): void {
+    event.stopPropagation();
+    this.showBookDropdown = !this.showBookDropdown;
+    this.showChapterDropdown = false;
+    this.showVerseDropdown = false;
   }
 
-  onChapterClick(chapterNumber: number): void {
-    if (chapterNumber !== this.currentChapter) {
-      this.changeChapter.emit(chapterNumber);
+  onChapterClick(chapterNumber: number | string): void {
+    const num = typeof chapterNumber === 'string' ? parseInt(chapterNumber, 10) : chapterNumber;
+    if (num !== this.currentChapter) {
+      this.changeChapter.emit(num);
     }
   }
   
   toggleVerseDropdown(event: MouseEvent): void {
     event.stopPropagation();
-    const target = event.currentTarget as HTMLElement;
-    
-    if (!target) {
-      console.error('No target element found for verse dropdown');
-      return;
-    }
-    
-    const rect = target.getBoundingClientRect();
     this.showVerseDropdown = !this.showVerseDropdown;
     this.showBookDropdown = false;
     this.showChapterDropdown = false;
-    
-    if (this.showVerseDropdown) {
-      requestAnimationFrame(() => {
-        this.positionVerseDropdown(rect);
-      });
-    }
   }
   
-  private positionVerseDropdown(rect: DOMRect): void {
-    const dropdown = document.querySelector('.verse-dropdown-menu') as HTMLElement;
-    
-    if (!dropdown) {
-      console.error('Verse dropdown element not found');
-      return;
-    }
-    
-    // Clear any existing inline styles first
-    dropdown.style.cssText = '';
-    
-    // Force recalculation of dropdown dimensions
-    dropdown.style.visibility = 'hidden';
-    dropdown.style.display = 'block';
-    
-    // Get actual dropdown dimensions
-    const dropdownRect = dropdown.getBoundingClientRect();
-    const dropdownWidth = dropdownRect.width || 120; // Fallback to min-width
-    
-    // Calculate positions
-    const viewportWidth = window.innerWidth;
-    let leftPos = rect.left;
-    let topPos = rect.bottom; // No gap - position directly below button
-    
-    // Adjust horizontal position if dropdown would go off-screen
-    if (leftPos + dropdownWidth > viewportWidth - 10) {
-      leftPos = Math.max(10, rect.right - dropdownWidth);
-    }
-    
-    // Ensure dropdown doesn't go off the left edge
-    leftPos = Math.max(10, leftPos);
-    
-    // Apply final positioning
-    dropdown.style.cssText = `
-      position: fixed !important;
-      top: ${topPos}px !important;
-      left: ${leftPos}px !important;
-      z-index: 99999 !important;
-      visibility: visible !important;
-      display: block !important;
-    `;
-  }
-  
-  onVerseClick(verseNumber: number): void {
-    if (verseNumber !== this.selectedVerseNumber) {
-      this.verseNumberChange.emit(verseNumber);
-      this.showVerseDropdown = false;
+  onVerseClick(verseNumber: number | string): void {
+    const num = typeof verseNumber === 'string' ? parseInt(verseNumber, 10) : verseNumber;
+    if (num !== this.selectedVerseNumber) {
+      this.verseNumberChange.emit(num);
     }
   }
 
-  onBookSelect(bookId: number): void {
-    console.log('Book selected:', bookId);
-    this.changeBook.emit(bookId);
-    this.showBookDropdown = false;
+  onBookSelect(bookId: number | string): void {
+    const id = typeof bookId === 'string' ? parseInt(bookId, 10) : bookId;
+    console.log('Book selected:', id);
+    this.changeBook.emit(id);
   }
 
   onStartButtonClick(): void {

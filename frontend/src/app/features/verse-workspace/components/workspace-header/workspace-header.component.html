@@ -17,28 +17,93 @@
         <ng-container *ngSwitchCase="'memorization'">
           <!-- Book Selector -->
           <div class="book-selector-wrapper">
-            <div class="book-selector" (click)="toggleBookDropdown($event)">
-              <span class="book-icon">📖</span>
-              <span class="book-name">{{ currentBook?.name || 'Genesis' }}</span>
-              <span class="dropdown-arrow" [class.open]="showBookDropdown">▼</span>
+            <button class="selector-btn book-selector" (click)="toggleBookDropdown($event)">
+              <span class="selector-text">{{ currentBook?.name || 'Genesis' }}</span>
+              <span class="selector-arrow" [class.open]="showBookDropdown">▼</span>
+            </button>
+            
+            <!-- Book Dropdown -->
+            <div class="dropdown-menu book-dropdown" *ngIf="showBookDropdown">
+              <!-- Testament filter -->
+              <div class="testament-filter">
+                <button 
+                  class="filter-btn" 
+                  [class.active]="testamentFilter === 'ALL'"
+                  (click)="setTestamentFilter('ALL')">
+                  ALL
+                </button>
+                <button 
+                  class="filter-btn" 
+                  [class.active]="testamentFilter === 'OT'"
+                  (click)="setTestamentFilter('OT')">
+                  OT
+                </button>
+                <button 
+                  class="filter-btn" 
+                  [class.active]="testamentFilter === 'NT'"
+                  (click)="setTestamentFilter('NT')">
+                  NT
+                </button>
+                <button 
+                  class="filter-btn" 
+                  [class.active]="testamentFilter === 'APO'"
+                  (click)="setTestamentFilter('APO')">
+                  APO
+                </button>
+              </div>
+              
+              <div class="dropdown-section" *ngIf="booksByTestament.OT.length > 0">
+                <div class="dropdown-header">Old Testament</div>
+                <button *ngFor="let book of booksByTestament.OT" 
+                        class="dropdown-item"
+                        [class.current]="book.id === currentBook?.id"
+                        (click)="onBookSelect(book.id)">
+                  {{ book.name }}
+                  <span class="item-badge">{{ getBookProgress(book) }}%</span>
+                </button>
+              </div>
+              <div class="dropdown-section" *ngIf="booksByTestament.NT.length > 0">
+                <div class="dropdown-header">New Testament</div>
+                <button *ngFor="let book of booksByTestament.NT"
+                        class="dropdown-item"
+                        [class.current]="book.id === currentBook?.id"
+                        (click)="onBookSelect(book.id)">
+                  {{ book.name }}
+                  <span class="item-badge">{{ getBookProgress(book) }}%</span>
+                </button>
+              </div>
+              <div class="dropdown-section" *ngIf="booksByTestament.APO.length > 0">
+                <div class="dropdown-header">Apocrypha</div>
+                <button *ngFor="let book of booksByTestament.APO"
+                        class="dropdown-item"
+                        [class.current]="book.id === currentBook?.id"
+                        (click)="onBookSelect(book.id)">
+                  {{ book.name }}
+                  <span class="item-badge">{{ getBookProgress(book) }}%</span>
+                </button>
+              </div>
             </div>
           </div>
 
           <!-- Chapter Selector -->
           <div class="chapter-selector-wrapper">
-            <div class="chapter-selector" (click)="toggleChapterDropdown($event)">
-              <span class="chapter-text">Ch {{ currentChapter }}</span>
-              <span class="dropdown-arrow" [class.open]="showChapterDropdown">▼</span>
+            <button class="selector-btn chapter-selector" (click)="toggleChapterDropdown($event)">
+              <span class="selector-text">Chapter {{ currentChapter }}</span>
+              <span class="selector-arrow" [class.open]="showChapterDropdown">▼</span>
+            </button>
+            
+            <!-- Chapter Dropdown -->
+            <div class="dropdown-menu chapter-dropdown" *ngIf="showChapterDropdown">
+              <button *ngFor="let ch of availableChapters"
+                      class="dropdown-item"
+                      [class.current]="ch.chapterNumber === currentChapter"
+                      (click)="onChapterClick(ch.chapterNumber)">
+                Chapter {{ ch.chapterNumber }}
+                <span class="item-badge">{{ getChapterProgress(ch) }}%</span>
+              </button>
             </div>
           </div>
 
-          <!-- Chapter Progress Bar -->
-          <div class="header-progress-bar">
-            <div class="progress-track">
-              <div class="progress-fill" [style.width.%]="chapterProgressPercentage"></div>
-            </div>
-            <span class="progress-text">{{ chapterProgressPercentage }}%</span>
-          </div>
         </ng-container>
 
         <!-- Cross References Mode -->
@@ -51,26 +116,108 @@
 
           <!-- Book Selector -->
           <div class="book-selector-wrapper">
-            <div class="book-selector" (click)="toggleBookDropdown($event)">
-              <span class="book-icon">📖</span>
-              <span class="book-name">{{ currentBook?.name || 'Genesis' }}</span>
-              <span class="dropdown-arrow" [class.open]="showBookDropdown">▼</span>
+            <button class="selector-btn book-selector" (click)="toggleBookDropdown($event)">
+              <span class="selector-text">{{ currentBook?.name || 'Genesis' }}</span>
+              <span class="selector-arrow" [class.open]="showBookDropdown">▼</span>
+            </button>
+            
+            <!-- Book Dropdown -->
+            <div class="dropdown-menu book-dropdown" *ngIf="showBookDropdown">
+              <!-- Testament filter -->
+              <div class="testament-filter">
+                <button 
+                  class="filter-btn" 
+                  [class.active]="testamentFilter === 'ALL'"
+                  (click)="setTestamentFilter('ALL')">
+                  ALL
+                </button>
+                <button 
+                  class="filter-btn" 
+                  [class.active]="testamentFilter === 'OT'"
+                  (click)="setTestamentFilter('OT')">
+                  OT
+                </button>
+                <button 
+                  class="filter-btn" 
+                  [class.active]="testamentFilter === 'NT'"
+                  (click)="setTestamentFilter('NT')">
+                  NT
+                </button>
+                <button 
+                  class="filter-btn" 
+                  [class.active]="testamentFilter === 'APO'"
+                  (click)="setTestamentFilter('APO')">
+                  APO
+                </button>
+              </div>
+              
+              <div class="dropdown-section" *ngIf="booksByTestament.OT.length > 0">
+                <div class="dropdown-header">Old Testament</div>
+                <button *ngFor="let book of booksByTestament.OT" 
+                        class="dropdown-item"
+                        [class.current]="book.id === currentBook?.id"
+                        (click)="onBookSelect(book.id)">
+                  {{ book.name }}
+                  <span class="item-badge">{{ getBookProgress(book) }}%</span>
+                </button>
+              </div>
+              <div class="dropdown-section" *ngIf="booksByTestament.NT.length > 0">
+                <div class="dropdown-header">New Testament</div>
+                <button *ngFor="let book of booksByTestament.NT"
+                        class="dropdown-item"
+                        [class.current]="book.id === currentBook?.id"
+                        (click)="onBookSelect(book.id)">
+                  {{ book.name }}
+                  <span class="item-badge">{{ getBookProgress(book) }}%</span>
+                </button>
+              </div>
+              <div class="dropdown-section" *ngIf="booksByTestament.APO.length > 0">
+                <div class="dropdown-header">Apocrypha</div>
+                <button *ngFor="let book of booksByTestament.APO"
+                        class="dropdown-item"
+                        [class.current]="book.id === currentBook?.id"
+                        (click)="onBookSelect(book.id)">
+                  {{ book.name }}
+                  <span class="item-badge">{{ getBookProgress(book) }}%</span>
+                </button>
+              </div>
             </div>
           </div>
 
           <!-- Chapter Selector -->
           <div class="chapter-selector-wrapper">
-            <div class="chapter-selector" (click)="toggleChapterDropdown($event)">
-              <span class="chapter-text">Ch {{ currentChapter }}</span>
-              <span class="dropdown-arrow" [class.open]="showChapterDropdown">▼</span>
+            <button class="selector-btn chapter-selector" (click)="toggleChapterDropdown($event)">
+              <span class="selector-text">Chapter {{ currentChapter }}</span>
+              <span class="selector-arrow" [class.open]="showChapterDropdown">▼</span>
+            </button>
+            
+            <!-- Chapter Dropdown -->
+            <div class="dropdown-menu chapter-dropdown" *ngIf="showChapterDropdown">
+              <button *ngFor="let ch of availableChapters"
+                      class="dropdown-item"
+                      [class.current]="ch.chapterNumber === currentChapter"
+                      (click)="onChapterClick(ch.chapterNumber)">
+                Chapter {{ ch.chapterNumber }}
+                <span class="item-badge">{{ getChapterProgress(ch) }}%</span>
+              </button>
             </div>
           </div>
           
           <!-- Verse Selector -->
           <div class="verse-selector-wrapper">
-            <div class="verse-selector" (click)="toggleVerseDropdown($event)">
-              <span class="verse-text">Verse {{ selectedVerseNumber || 1 }}</span>
-              <span class="dropdown-arrow" [class.open]="showVerseDropdown">▼</span>
+            <button class="selector-btn verse-selector" (click)="toggleVerseDropdown($event)">
+              <span class="selector-text">Verse {{ selectedVerseNumber || 1 }}</span>
+              <span class="selector-arrow" [class.open]="showVerseDropdown">▼</span>
+            </button>
+            
+            <!-- Verse Dropdown -->
+            <div class="dropdown-menu verse-dropdown" *ngIf="showVerseDropdown">
+              <button *ngFor="let verseNum of availableVerseNumbers"
+                      class="dropdown-item"
+                      [class.current]="verseNum === selectedVerseNumber"
+                      (click)="onVerseClick(verseNum)">
+                Verse {{ verseNum }}
+              </button>
             </div>
           </div>
           
@@ -102,77 +249,5 @@
 
     <!-- Verse Picker for Cross References Mode -->
     <ng-content select="app-verse-picker"></ng-content>
-  </div>
-  
-  <!-- Dropdowns positioned outside main container -->
-  <!-- Book dropdown menu -->
-  <div class="book-dropdown-menu" *ngIf="showBookDropdown" (click)="$event.stopPropagation()">
-    <!-- Testament filter inside dropdown -->
-    <div class="dropdown-testament-filter">
-      <button [class.active]="testamentFilter === 'ALL'"
-        (click)="setTestamentFilter('ALL'); $event.stopPropagation()">ALL</button>
-      <button [class.active]="testamentFilter === 'OT'"
-        (click)="setTestamentFilter('OT'); $event.stopPropagation()">OT</button>
-      <button [class.active]="testamentFilter === 'NT'"
-        (click)="setTestamentFilter('NT'); $event.stopPropagation()">NT</button>
-      <button [class.active]="testamentFilter === 'APO'"
-        (click)="setTestamentFilter('APO'); $event.stopPropagation()">APO</button>
-    </div>
-    
-    <!-- Old Testament Books -->
-    <div *ngIf="booksByTestament.OT.length > 0">
-      <div class="dropdown-header">Old Testament</div>
-      <div *ngFor="let book of booksByTestament.OT" class="book-dropdown-item"
-        [class.current]="book.id === currentBook?.id"
-        (click)="onBookSelect(book.id); showBookDropdown = false; $event.stopPropagation()">
-        <span>{{ book.name }}</span>
-        <span class="book-progress-badge">{{ getBookProgress(book) }}%</span>
-      </div>
-    </div>
-
-    <!-- New Testament Books -->
-    <div *ngIf="booksByTestament.NT.length > 0">
-      <div class="dropdown-header">New Testament</div>
-      <div *ngFor="let book of booksByTestament.NT" class="book-dropdown-item"
-        [class.current]="book.id === currentBook?.id"
-        (click)="onBookSelect(book.id); showBookDropdown = false; $event.stopPropagation()">
-        <span>{{ book.name }}</span>
-        <span class="book-progress-badge">{{ getBookProgress(book) }}%</span>
-      </div>
-    </div>
-
-    <!-- Apocrypha Books -->
-    <div *ngIf="booksByTestament.APO.length > 0">
-      <div class="dropdown-header">Apocrypha</div>
-      <div *ngFor="let book of booksByTestament.APO" class="book-dropdown-item"
-        [class.current]="book.id === currentBook?.id"
-        (click)="onBookSelect(book.id); showBookDropdown = false; $event.stopPropagation()">
-        <span>{{ book.name }}</span>
-        <span class="book-progress-badge">{{ getBookProgress(book) }}%</span>
-      </div>
-    </div>
-  </div>
-  
-  <!-- Chapter dropdown menu -->
-  <div class="chapter-dropdown-menu" *ngIf="showChapterDropdown" (click)="$event.stopPropagation()">
-    <div *ngFor="let ch of availableChapters"
-      class="chapter-dropdown-item"
-      [class.current]="ch.chapterNumber === currentChapter"
-      (click)="onChapterClick(ch.chapterNumber); showChapterDropdown = false; $event.stopPropagation()">
-      <span>Chapter {{ ch.chapterNumber }}</span>
-      <span class="chapter-progress-badge">
-        {{ getChapterProgress(ch) }}%
-      </span>
-    </div>
-  </div>
-  
-  <!-- Verse dropdown menu -->
-  <div class="verse-dropdown-menu" *ngIf="showVerseDropdown" (click)="$event.stopPropagation()">
-    <div *ngFor="let verseNum of availableVerseNumbers"
-      class="verse-dropdown-item"
-      [class.current]="verseNum === selectedVerseNumber"
-      (click)="onVerseClick(verseNum); $event.stopPropagation()">
-      <span>Verse {{ verseNum }}</span>
-    </div>
   </div>
 </div>
