@@ -1,19 +1,9 @@
-.topic-picker-compact {
-  padding: 12px 20px;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(229, 231, 235, 0.3);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-  position: relative;
-  z-index: 9998; // Ensure picker component has high z-index
-}
-
+// Topic controls - now the root element
 .topic-controls {
   display: flex;
   align-items: center;
   gap: 12px;
-  max-width: 600px;  // Limit width
-  margin: 0 auto;    // Center it
+  flex: 1;
 }
 
 .topic-label {
@@ -163,20 +153,9 @@
   white-space: nowrap;
 }
 
-.loading-indicator {
-  color: #9ca3af;
-  font-size: 0.75rem;
-  font-style: italic;
-  text-align: center;
-  margin-top: 4px;
-}
 
 // Responsive adjustments
 @media (max-width: 768px) {
-  .topic-picker-compact {
-    padding: 10px;
-  }
-
   .topic-controls {
     flex-wrap: wrap;
     gap: 8px;

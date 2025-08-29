@@ -237,8 +237,8 @@
 // Topic picker container for topical mode
 .topic-picker-container {
   flex: 1;
-  max-width: 400px;
-  margin-left: 12px;
+  display: flex;
+  align-items: center;
 }
 
 // Action buttons in collapsed style

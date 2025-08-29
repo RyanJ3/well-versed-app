@@ -1,7 +1,6 @@
 <div class="verse-workspace-container" (mouseup)="handleMouseUp()">
   <!-- NEW Glassmorphism Header Component (includes chapter navigation) -->
   <app-workspace-header
-    *ngIf="mode !== 'topical'"
     [currentBook]="currentBook"
     [currentChapter]="currentChapter"
     [totalChapters]="currentBook?.totalChapters || 50"
@@ -12,21 +11,20 @@
     [showFullText]="showFullText"
     [availableChapters]="availableChapters"
     [allBooks]="allBooks"
+    [mode]="mode"
     (toggleTextMode)="toggleTextMode()"
     (startFullChapter)="startFullChapter()"
     (startStudySession)="startStudySession()"
     (changeChapter)="changeChapter($event)"
     (changeBook)="changeBook($event)"
-    [class.cross-ref-mode]="mode === 'crossReferences'"
   >
+    <!-- Topic Picker for Topical Mode (included via ng-content) -->
+    <app-topic-picker
+      *ngIf="mode === 'topical'"
+      [selectedTopicId]="selectedTopic?.topicId"
+      (topicSelected)="onTopicSelected($event)"
+    ></app-topic-picker>
   </app-workspace-header>
-
-  <!-- Topic Picker for Topical Mode (moved outside header for better visibility) -->
-  <app-topic-picker
-    *ngIf="mode === 'topical'"
-    [selectedTopicId]="selectedTopic?.topicId"
-    (topicSelected)="onTopicSelected($event)"
-  ></app-topic-picker>
 
   <!-- Main Layout with Sidebar -->
   <div class="main-layout">

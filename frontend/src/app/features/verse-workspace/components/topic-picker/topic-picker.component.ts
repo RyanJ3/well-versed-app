@@ -18,8 +18,7 @@ interface Topic {
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="topic-picker-compact">
-      <div class="topic-controls">
+    <div class="topic-controls">
         <label class="topic-label">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -35,7 +34,7 @@ interface Topic {
               (focus)="onFocus()"
               (blur)="onBlur()"
               (input)="onSearchInput()"
-              [placeholder]="'Search ' + topics.length + ' topics...'"
+              [placeholder]="isLoading ? 'Loading topics...' : 'Search ' + topics.length + ' topics...'"
               [disabled]="isLoading"
             />
             <svg 
@@ -77,9 +76,6 @@ interface Topic {
           {{ selectedTopic.passage_count || selectedTopic.verse_count }} passages
         </div>
       </div>
-      
-      <div class="loading-indicator" *ngIf="isLoading">Loading...</div>
-    </div>
   `,
   styleUrls: ['./topic-picker.component.scss']
 })
