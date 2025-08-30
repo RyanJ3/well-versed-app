@@ -1,10 +1,10 @@
 <div class="mode-selector-wrapper">
   <button class="mode-selector-btn" (click)="toggleDropdown($event)">
     <div class="mode-display" [ngSwitch]="mode">
-      <!-- Verse-by-verse mode -->
-      <div *ngSwitchCase="'memorization'" class="mode-indicator memorization">
+      <!-- Chapter mode -->
+      <div *ngSwitchCase="'chapter'" class="mode-indicator chapter">
         <span class="mode-icon">📖</span>
-        <span>Verse-by-Verse</span>
+        <span>Chapter</span>
         <span class="mode-arrow" [class.open]="showDropdown">▼</span>
       </div>
       
@@ -28,10 +28,10 @@
   
   <!-- Mode dropdown menu -->
   <div class="mode-dropdown-menu" *ngIf="showDropdown">
-    <button class="mode-option" (click)="selectMode('memorization')">
-      <div class="mode-indicator memorization">
+    <button class="mode-option" (click)="selectMode('chapter')">
+      <div class="mode-indicator chapter">
         <span class="mode-icon">📖</span>
-        <span>Verse-by-Verse</span>
+        <span>Chapter</span>
       </div>
     </button>
     <button class="mode-option" (click)="selectMode('crossReferences')">

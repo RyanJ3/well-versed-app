@@ -40,14 +40,14 @@ export class WorkspaceHeaderComponent implements OnInit {
   @Output() startStudySession = new EventEmitter<void>();
   @Output() changeChapter = new EventEmitter<number>();
   @Output() changeBook = new EventEmitter<number>();
-  @Output() modeChange = new EventEmitter<'memorization' | 'crossReferences' | 'topical'>();
+  @Output() modeChange = new EventEmitter<'chapter' | 'crossReferences' | 'topical'>();
 
   // Component state
   activeChapterFilter: 'all' | 'inProgress' | 'completed' = 'all';
   chapterViewMode: 'grid' | 'row' | 'list' = 'grid';
   
-  // Mode - includes memorization, cross-references, and topical
-  @Input() mode: 'memorization' | 'crossReferences' | 'topical' = 'memorization';
+  // Mode - includes chapter, cross-references, and topical
+  @Input() mode: 'chapter' | 'crossReferences' | 'topical' = 'chapter';
   
   // Cross-reference specific inputs
   @Input() selectedVerseNumber = 1;
@@ -214,7 +214,7 @@ export class WorkspaceHeaderComponent implements OnInit {
     this.changeBook.emit(id);
   }
 
-  onModeChange(newMode: 'memorization' | 'crossReferences' | 'topical'): void {
+  onModeChange(newMode: 'chapter' | 'crossReferences' | 'topical'): void {
     this.modeChange.emit(newMode);
   }
 

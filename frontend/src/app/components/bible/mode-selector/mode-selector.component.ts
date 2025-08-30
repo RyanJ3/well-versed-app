@@ -9,8 +9,8 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./mode-selector.component.scss']
 })
 export class ModeSelectorComponent {
-  @Input() mode: 'memorization' | 'crossReferences' | 'topical' = 'memorization';
-  @Output() modeChange = new EventEmitter<'memorization' | 'crossReferences' | 'topical'>();
+  @Input() mode: 'chapter' | 'crossReferences' | 'topical' = 'chapter';
+  @Output() modeChange = new EventEmitter<'chapter' | 'crossReferences' | 'topical'>();
   
   showDropdown = false;
 
@@ -28,7 +28,7 @@ export class ModeSelectorComponent {
     this.showDropdown = !this.showDropdown;
   }
 
-  selectMode(newMode: 'memorization' | 'crossReferences' | 'topical'): void {
+  selectMode(newMode: 'chapter' | 'crossReferences' | 'topical'): void {
     this.modeChange.emit(newMode);
     this.showDropdown = false;
   }

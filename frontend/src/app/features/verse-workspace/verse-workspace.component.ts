@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil, debounceTime, firstValueFrom } from 'rxjs';
+import { Subject, Observable, takeUntil, debounceTime, firstValueFrom } from 'rxjs';
 import { trigger, transition, style, animate } from '@angular/animations';
 
 // Services
@@ -18,7 +18,17 @@ import { WorkspaceCrossReferencesService } from './services/workspace-cross-refe
 import { WorkspaceTopicalService } from './services/workspace-topical.service';
 import { WorkspaceDeckManagementService } from './services/workspace-deck-management.service';
 import { WorkspaceUIStateService } from './services/workspace-ui-state.service';
+
+// Facades
 import { WorkspaceVerseFacade } from './services/workspace-verse.facade';
+import { WorkspaceNavigationFacade } from './services/workspace-navigation.facade';
+import { WorkspaceMemorizationFacade } from './services/workspace-memorization.facade';
+import { WorkspaceBibleDataFacade } from './services/workspace-bible-data.facade';
+import { WorkspaceOrchestratorFacade } from './services/workspace-orchestrator.facade';
+import { WorkspaceContextMenuFacade } from './services/workspace-context-menu.facade';
+import { WorkspaceSettingsFacade } from './services/workspace-settings.facade';
+import { WorkspaceStudySessionFacade } from './services/workspace-study-session.facade';
+import { WorkspaceKeyboardFacade } from './services/workspace-keyboard.facade';
 
 // Components
 import { MemorizationModalComponent } from './memorization/memorization-modal.component';
@@ -58,7 +68,12 @@ import { WorkspaceVerseUtils } from './utils/workspace-verse.utils';
     WorkspaceCrossReferencesService,
     WorkspaceTopicalService,
     WorkspaceDeckManagementService,
-    WorkspaceUIStateService
+    WorkspaceUIStateService,
+    WorkspaceOrchestratorFacade,
+    WorkspaceContextMenuFacade,
+    WorkspaceSettingsFacade,
+    WorkspaceStudySessionFacade,
+    WorkspaceKeyboardFacade
   ],
   templateUrl: './verse-workspace.component.html',
   styleUrls: ['./verse-workspace.component.scss'],
@@ -79,14 +94,30 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
   private workspaceParsingService = inject(WorkspaceParsingService);
   
-  // Expose enum to template
+  // Expose enum to template for comparisons
   readonly WorkspaceMode = WorkspaceMode;
 
-  // Core data
+  // Main view model from orchestrator
+  viewModel$!: Observable<any>;
+  filteredVerses$!: Observable<WorkspaceVerse[]>;
+  
+  // Individual observables for template compatibility
+  verses$!: Observable<WorkspaceVerse[]>;
+  selectedVerses$!: Observable<Set<string>>;
+  hasSelection$!: Observable<boolean>;
+  currentBook$!: Observable<BibleBook | null>;
+  currentChapter$!: Observable<number>;
+  mode$!: Observable<WorkspaceMode>;
+  hasNextChapter$!: Observable<boolean>;
+  hasPreviousChapter$!: Observable<boolean>;
+  allBooks$!: Observable<BibleBook[]>;
+  hasApocrypha$!: Observable<boolean>;
+  isSaving$!: Observable<boolean>;
+  pendingSaveCount$!: Observable<number>;
+
+  // Local state (will be gradually replaced)
   verses: WorkspaceVerse[] = [];
   hasApocrypha = false;
-  
-  // Bible models
   bibleData: BibleData | null = null;
   currentBook: BibleBook | null = null;
   currentChapter = 1;
@@ -97,8 +128,8 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   // Review data
   verseReviewData: Record<string, { lastReviewed: number; strength: number }> = {};
 
-  // Modal
-  modalVerses: ModalVerse[] = [];
+  // Modal (kept for template compatibility)
+  get modalVerses(): ModalVerse[] { return this.studySessionFacade.modalVerses; }
 
   // Expose utilities to template
   Math = Math;
@@ -111,7 +142,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   private userPreferredBible: string | undefined;
   private userPreferredLanguage: string | undefined;
 
-  // Computed properties
+  // Computed properties delegated to facades
   get isRTL(): boolean {
     // Check if the language is Hebrew or Arabic
     return this.userPreferredLanguage === 'heb' || 
@@ -147,15 +178,16 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     return WorkspaceVerseUtils.calculateProgress(this.memorizedVersesCount, this.verses.length);
   }
 
+  // Context menu computed properties delegated to facade
   get selectedVerseIsMemorized(): boolean {
-    const contextMenu = this.uiStateService.currentState.contextMenu;
+    const contextMenu = this.contextMenuFacade.contextMenu;
     if (!contextMenu.verseId) return false;
     const verse = this.verses.find(v => v.verseCode === contextMenu.verseId);
     return verse?.isMemorized || false;
   }
 
   get shouldShowMarkAsMemorized(): boolean {
-    const contextMenu = this.uiStateService.currentState.contextMenu;
+    const contextMenu = this.contextMenuFacade.contextMenu;
     if (contextMenu.selectedCount > 0) {
       const selectedVerses = Array.from(this.selectionService.selectedVerses);
       const verses = this.getCurrentVerses();
@@ -168,7 +200,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   get shouldShowMarkAsUnmemorized(): boolean {
-    const contextMenu = this.uiStateService.currentState.contextMenu;
+    const contextMenu = this.contextMenuFacade.contextMenu;
     if (contextMenu.selectedCount > 0) {
       const selectedVerses = Array.from(this.selectionService.selectedVerses);
       const verses = this.getCurrentVerses();
@@ -181,8 +213,8 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   get shouldShowJumpToChapter(): boolean {
-    // Don't show in memorization mode (already showing chapter)
-    if (this.mode === WorkspaceMode.MEMORIZATION) return false;
+    // Don't show in chapter mode (already showing chapter)
+    if (this.mode === WorkspaceMode.CHAPTER) return false;
     
     // Don't show if no verses are selected
     if (this.selectionService.selectedVerses.size === 0) return false;
@@ -217,27 +249,27 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     return true;
   }
 
-  // Public getters for template
-  get showFullText(): boolean { return this.uiStateService.currentState.showFullText; }
-  get fontSize(): number { return this.uiStateService.currentState.fontSize; }
-  get layoutMode(): 'grid' | 'single' { return this.uiStateService.currentState.layoutMode; }
-  get activeFilter(): 'all' | 'unmemorized' | 'needsReview' { return this.uiStateService.currentState.activeFilter as 'all' | 'unmemorized' | 'needsReview'; }
-  get showSettings(): boolean { return this.uiStateService.currentState.showSettings; }
-  get isGearSpinning(): boolean { return this.uiStateService.currentState.isGearSpinning; }
-  get showEncouragement(): string { return this.uiStateService.currentState.showEncouragement; }
-  get isLoading(): boolean { return this.uiStateService.currentState.isLoading; }
+  // Public getters for template - delegated to settings facade
+  get showFullText(): boolean { return this.settingsFacade.showFullText; }
+  get fontSize(): number { return this.settingsFacade.fontSize; }
+  get layoutMode(): 'grid' | 'single' { return this.settingsFacade.layoutMode; }
+  get activeFilter(): 'all' | 'unmemorized' | 'needsReview' { return this.settingsFacade.activeFilter; }
+  get showSettings(): boolean { return this.settingsFacade.showSettings; }
+  get isGearSpinning(): boolean { return this.settingsFacade.isGearSpinning; }
+  get showEncouragement(): string { return this.settingsFacade.showEncouragement; }
+  get isLoading(): boolean { return this.settingsFacade.isLoading; }
   get mode(): WorkspaceMode { 
-    const modeString = this.uiStateService.currentState.mode;
-    // Map string values to enum
-    switch(modeString) {
-      case 'crossReferences': return WorkspaceMode.CROSS_REFERENCES;
-      case 'topical': return WorkspaceMode.TOPICAL;
-      default: return WorkspaceMode.MEMORIZATION;
-    }
+    return this.navigationFacade.getCurrentMode();
   }
-  get contextMenu(): any { return this.uiStateService.currentState.contextMenu; }
-  get showModal(): boolean { return this.uiStateService.currentState.showModal; }
-  get modalChapterName(): string { return this.uiStateService.currentState.modalChapterName; }
+  
+  get modeString(): 'chapter' | 'crossReferences' | 'topical' {
+    const currentMode = this.navigationFacade.getCurrentMode();
+    return currentMode === WorkspaceMode.CROSS_REFERENCES ? 'crossReferences' :
+           currentMode === WorkspaceMode.TOPICAL ? 'topical' : 'chapter';
+  }
+  get contextMenu(): any { return this.contextMenuFacade.contextMenu; }
+  get showModal(): boolean { return this.studySessionFacade.showModal; }
+  get modalChapterName(): string { return this.studySessionFacade.modalChapterName; }
 
   // Cross-references getters
   get crossReferenceVerses(): WorkspaceVerse[] { return this.crossReferencesService.verses; }
@@ -271,8 +303,38 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     private topicalService: WorkspaceTopicalService,
     private deckManagementService: WorkspaceDeckManagementService,
     public uiStateService: WorkspaceUIStateService,
-    private verseFacade: WorkspaceVerseFacade  // Injected but not used yet
-  ) {}
+    // Facades
+    private verseFacade: WorkspaceVerseFacade,
+    private navigationFacade: WorkspaceNavigationFacade,
+    private memorizationFacade: WorkspaceMemorizationFacade,
+    private bibleDataFacade: WorkspaceBibleDataFacade,
+    private orchestrator: WorkspaceOrchestratorFacade,
+    private contextMenuFacade: WorkspaceContextMenuFacade,
+    private settingsFacade: WorkspaceSettingsFacade,
+    private studySessionFacade: WorkspaceStudySessionFacade,
+    private keyboardFacade: WorkspaceKeyboardFacade
+  ) {
+    // Initialize observables from orchestrator and facades
+    this.viewModel$ = this.orchestrator.viewModel$;
+    this.filteredVerses$ = this.orchestrator.filteredVerses$;
+    
+    // Initialize individual observables from facades
+    this.verses$ = this.verseFacade.verses$;
+    this.selectedVerses$ = this.verseFacade.selectedVerses$;
+    this.hasSelection$ = this.verseFacade.hasSelection$;
+    
+    this.currentBook$ = this.navigationFacade.currentBook$;
+    this.currentChapter$ = this.navigationFacade.currentChapter$;
+    this.mode$ = this.navigationFacade.mode$;
+    this.hasNextChapter$ = this.navigationFacade.hasNextChapter$;
+    this.hasPreviousChapter$ = this.navigationFacade.hasPreviousChapter$;
+    
+    this.allBooks$ = this.bibleDataFacade.allBooks$;
+    this.hasApocrypha$ = this.bibleDataFacade.hasApocrypha$;
+    
+    this.isSaving$ = this.memorizationFacade.isSaving$;
+    this.pendingSaveCount$ = this.memorizationFacade.pendingSaveCount$;
+  }
 
   ngOnInit() {
     console.log('VerseWorkspaceComponent initializing...');
@@ -308,24 +370,12 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
   @HostListener('document:click')
   onDocumentClick() {
-    this.uiStateService.hideContextMenu();
-    this.uiStateService.closeSettings();
+    this.keyboardFacade.handleDocumentClick();
   }
 
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      this.selectionService.clearSelection();
-      this.uiStateService.hideContextMenu();
-    } else if (event.key === 'Enter') {
-      this.handleEnterKey();
-    } else if ((event.ctrlKey || event.metaKey) && event.key === 'a') {
-      event.preventDefault();
-      this.selectAll();
-    } else if ((event.ctrlKey || event.metaKey) && event.key === 'x') {
-      event.preventDefault();
-      this.toggleCrossReferencesMode();
-    }
+    this.keyboardFacade.handleKeyDown(event, this.verses, this.currentBook, this.currentChapter);
   }
 
   private initializeUser() {
@@ -370,10 +420,17 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   private subscribeToSaveNotifications() {
+    // Subscribe to both the old service and new facade
     this.workspaceMemorizationService.savedNotification$
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.uiStateService.showEncouragement('Progress saved!', 2000);
+      });
+    
+    this.memorizationFacade.savedNotification$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        console.log('Save completed via facade');
       });
   }
 
@@ -396,9 +453,11 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   private loadBibleData() {
-    this.bibleData = this.bibleService.getBibleData();
-    if (this.bibleData) {
-      this.allBooks = this.bibleData.books;
+    // Now handled by BibleDataFacade
+    const bibleData = this.bibleDataFacade.getBibleData();
+    if (bibleData) {
+      this.bibleData = bibleData;
+      this.allBooks = bibleData.books;
       console.log('Loaded Bible books:', this.allBooks.length);
     } else {
       console.error('Failed to load Bible data');
@@ -422,85 +481,30 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     try {
       await this.ensureProgressLoaded();
       
-      this.uiStateService.setLoading(true);
-      this.currentChapter = chapterNum;
-
-      if (!this.bibleData) {
-        this.loadBibleData();
-      }
-
-      this.currentBook = this.bibleData?.getBookById(bookId) || null;
-      if (!this.currentBook) {
-        console.error('Book not found:', bookId);
-        this.uiStateService.setLoading(false);
-        return;
-      }
-
-      this.currentBibleChapter = this.currentBook.getChapter(chapterNum);
-      this.availableChapters = this.currentBook.chapters;
-
-      console.log('Loading chapter:', this.currentBook.name, chapterNum);
-
-      // Generate verse codes
-      const totalVerses = this.currentBibleChapter.totalVerses;
-      const verseCodes: string[] = Array.from({ length: totalVerses }, (_, i) =>
-        `${bookId}-${chapterNum}-${i + 1}`
-      );
-
-      // Get verse texts with user's preferred Bible translation
-      const verseTexts = await firstValueFrom(
-        this.bibleService.getVerseTexts(this.userId, verseCodes, this.userPreferredBible)
-      );
-
-      // Create verses array
-      this.verses = verseCodes.map((code, index) => {
-        const [, , verseNum] = code.split('-').map(Number);
-        const text = verseTexts[code] || '';
-        const bibleVerse = this.currentBibleChapter?.verses[verseNum - 1];
-        const isMemorized = bibleVerse?.memorized || false;
-
-        return {
-          verseCode: code,
-          reference: this.currentBook!.chapters.length === 1 ? `v${verseNum}` : `${chapterNum}:${verseNum}`,
-          fullReference: `${this.currentBook!.name} ${chapterNum}:${verseNum}`,
-          text: text,
-          firstLetters: this.workspaceParsingService.extractFirstLetters(text),
-          isMemorized: isMemorized,
-          isFifth: (index + 1) % 5 === 0,
-          bookName: this.currentBook!.name,
-          chapter: chapterNum,
-          verse: verseNum,
-          verseNumber: verseNum,
-          isSaving: false
-        } as WorkspaceVerse;
-      });
-
-      // Initialize review data for memorized verses
-      this.initializeReviewData();
+      // Use orchestrator to load chapter
+      await this.orchestrator.loadChapter(bookId, chapterNum, this.userId, this.userPreferredBible);
       
-      this.uiStateService.setLoading(false);
-      console.log('Verses loaded with memorization data:', this.verses.length);
+      // Update local state for backward compatibility
+      this.currentBook = this.bibleDataFacade.getBookById(bookId);
+      this.currentChapter = chapterNum;
+      if (this.currentBook) {
+        this.currentBibleChapter = this.currentBook.getChapter(chapterNum);
+        this.availableChapters = this.currentBook.chapters;
+        this.verses = this.orchestrator.getCurrentVerses();
+      }
       
       // Handle scrolling to target verse
       this.handleTargetVerseScroll();
       
     } catch (error) {
       console.error('Error loading chapter:', error);
-      this.uiStateService.setLoading(false);
       this.notificationService.error('Failed to load chapter data');
     }
   }
 
   private initializeReviewData() {
-    this.verses.forEach(verse => {
-      if (verse.isMemorized) {
-        const daysSinceMemorized = Math.floor(Math.random() * 10) + 1;
-        this.verseReviewData[verse.verseCode] = {
-          lastReviewed: Date.now() - daysSinceMemorized * 24 * 60 * 60 * 1000,
-          strength: Math.max(50, 100 - daysSinceMemorized * 5)
-        };
-      }
-    });
+    // Now handled by memorizationFacade.initializeReviewData()
+    this.verseReviewData = this.memorizationFacade.getReviewData();
   }
 
   private handleTargetVerseScroll() {
@@ -532,32 +536,16 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   private setupSaveQueue() {
+    // Save queue is now handled by memorizationFacade
     this.saveQueue$
       .pipe(debounceTime(300), takeUntil(this.destroy$))
       .subscribe(verse => {
+        this.memorizationFacade.queueVerseSave(verse);
         this.workspaceMemorizationService.queueVerseSave(verse, this.userId);
       });
   }
 
-  private handleEnterKey() {
-    const mode = this.mode; // Use the getter that returns enum
-    if (mode === WorkspaceMode.CROSS_REFERENCES && this.selectionService.selectedVerses.size === 1) {
-      const selectedCode = Array.from(this.selectionService.selectedVerses)[0];
-      const selectedVerse = this.crossReferenceVerses.find(v => v.verseCode === selectedCode);
-      if (selectedVerse) {
-        this.navigateToVerse(selectedVerse);
-      }
-    } else if (this.selectionService.selectedVerses.size > 0) {
-      this.startStudySession();
-    }
-  }
-
-  private toggleCrossReferencesMode() {
-    const currentMode = this.mode; // Use the getter that returns enum
-    const newMode = currentMode === WorkspaceMode.MEMORIZATION ? 'crossReferences' : 'memorization';
-    this.uiStateService.setMode(newMode);
-    this.onModeChange(newMode);
-  }
+  // Keyboard methods are now handled by keyboardFacade
 
   private getCurrentVerses(): WorkspaceVerse[] {
     switch (this.uiStateService.currentState.mode) {
@@ -583,19 +571,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   handleContextMenu(event: MouseEvent, verse: WorkspaceVerse) {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    if (!this.selectionService.isVerseSelected(verse)) {
-      this.selectionService.selectedVerses.add(verse.verseCode);
-    }
-    
-    this.uiStateService.showContextMenu(
-      event.clientX,
-      event.clientY,
-      verse.verseCode,
-      this.selectionService.selectedVerses.size
-    );
+    this.contextMenuFacade.showContextMenu(event, verse);
   }
 
   handleMouseDown(index: number) {
@@ -622,6 +598,10 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
   toggleMemorized(verse: WorkspaceVerse) {
     const wasMemorized = verse.isMemorized;
+    // Use orchestrator to handle toggle
+    this.orchestrator.toggleVerseMemorized(verse);
+    
+    // Update local state and queue for backward compatibility
     verse.isMemorized = !verse.isMemorized;
     verse.isSaving = true;
     this.saveQueue$.next(verse);
@@ -642,18 +622,13 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   markSelectedAsMemorized() {
-    let changedCount = 0;
-    const verses = this.getCurrentVerses();
-    this.selectionService.selectedVerses.forEach(verseCode => {
-      const verse = verses.find(v => v.verseCode === verseCode);
-      if (verse && !verse.isMemorized) {
-        this.toggleMemorized(verse);
-        changedCount++;
-      }
-    });
-    if (changedCount > 0) {
+    // Use orchestrator to mark selected verses
+    this.orchestrator.markSelectedAsMemorized(true);
+    
+    const selectedCount = this.verseFacade.getSelectedVerses().size;
+    if (selectedCount > 0) {
       this.uiStateService.showEncouragement(
-        `${changedCount} verse${changedCount > 1 ? 's' : ''} marked as memorized!`
+        `${selectedCount} verse${selectedCount > 1 ? 's' : ''} marked as memorized!`
       );
     }
     this.uiStateService.hideContextMenu();
@@ -678,34 +653,29 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   selectAll() {
+    this.orchestrator.selectAll();
+    // Keep backward compatibility
     this.selectionService.selectAll(this.verses);
   }
 
   // Navigation
   changeChapter(chapter: number) {
-    if (chapter !== this.currentChapter && this.currentBook) {
-      this.router.navigate([], {
-        queryParams: { bookId: this.currentBook.id, chapter },
-        queryParamsHandling: 'merge'
-      });
+    const currentState = this.navigationFacade.getCurrentState();
+    if (chapter !== currentState.currentChapter && currentState.currentBook) {
+      this.orchestrator.navigateToChapter(currentState.currentBook.id, chapter);
     }
   }
 
   goToPreviousChapter() {
-    if (this.currentChapter > 1) {
-      this.changeChapter(this.currentChapter - 1);
-    }
+    this.orchestrator.goToPreviousChapter();
   }
 
   goToNextChapter() {
-    if (this.currentBook && this.currentChapter < this.currentBook.totalChapters) {
-      this.changeChapter(this.currentChapter + 1);
-    }
+    this.orchestrator.goToNextChapter();
   }
 
   hasNextChapter(): boolean {
-    if (!this.currentBook) return false;
-    return this.currentChapter < this.currentBook.totalChapters;
+    return this.navigationFacade.hasNextChapter();
   }
 
   changeBook(bookId: number) {
@@ -718,24 +688,23 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
   // Settings
   toggleSettings(event: MouseEvent) {
-    event.stopPropagation();
-    this.uiStateService.toggleSettings();
+    this.settingsFacade.toggleSettings(event);
   }
 
   increaseFontSize() {
-    this.uiStateService.increaseFontSize();
+    this.settingsFacade.increaseFontSize();
   }
 
   decreaseFontSize() {
-    this.uiStateService.decreaseFontSize();
+    this.settingsFacade.decreaseFontSize();
   }
 
   setLayoutMode(mode: 'grid' | 'single') {
-    this.uiStateService.setLayoutMode(mode);
+    this.settingsFacade.setLayoutMode(mode);
   }
 
   toggleTextMode() {
-    this.uiStateService.toggleTextMode();
+    this.settingsFacade.toggleTextMode();
   }
 
   // Filtering
@@ -748,7 +717,11 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   needsReview(verseCode: string): boolean {
-    return WorkspaceVerseUtils.needsReview(verseCode, this.verseReviewData);
+    return this.memorizationFacade.needsReview(verseCode);
+  }
+  
+  isVerseSelected(verse: WorkspaceVerse): boolean {
+    return this.selectionService.isVerseSelected(verse);
   }
 
   getVerseDisplay(verse: WorkspaceVerse): string {
@@ -757,69 +730,45 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
   // Study session
   startStudySession() {
-    const selectedVerseObjects = this.verses.filter(v =>
-      this.selectionService.selectedVerses.has(v.verseCode)
-    );
-    this.modalVerses = selectedVerseObjects.map(v => ({
-      code: v.verseCode,
-      text: v.text.replace(/¶\s*/g, ''),
-      reference: v.reference,
-      bookId: this.currentBook?.id || 0,
-      chapter: v.chapter,
-      verse: v.verse
-    }));
-    this.uiStateService.setModalState(true, `${this.currentBook?.name} ${this.currentChapter}`);
+    this.studySessionFacade.startStudySession(this.verses, this.currentBook, this.currentChapter);
   }
 
   startFullChapter() {
-    this.modalVerses = this.verses.map(v => ({
-      code: v.verseCode,
-      text: v.text.replace(/¶\s*/g, ''),
-      reference: v.reference,
-      bookId: this.currentBook?.id || 0,
-      chapter: v.chapter,
-      verse: v.verse
-    }));
-    this.uiStateService.setModalState(true, `${this.currentBook?.name} ${this.currentChapter}`);
+    this.studySessionFacade.startFullChapterSession(this.verses, this.currentBook, this.currentChapter);
   }
 
   onModalCompleted(event: { memorized: boolean }) {
-    this.uiStateService.setModalState(false);
-    if (event.memorized && this.currentBook) {
-      this.loadChapter(this.currentBook.id, this.currentChapter);
+    const result = this.studySessionFacade.onModalCompleted(event);
+    if (result.shouldReload && result.bookId && result.chapter) {
+      this.loadChapter(result.bookId, result.chapter);
     }
   }
 
   // Deck management
   openCreateDeckModal() {
-    const versesToAdd = this.contextMenu.selectedCount > 0
-      ? Array.from(this.selectionService.selectedVerses)
-      : [this.contextMenu.verseId!];
-    
-    this.deckManagementService.openCreateDeckModal(versesToAdd);
-    this.uiStateService.hideContextMenu();
+    this.contextMenuFacade.openCreateDeckModal();
   }
 
   closeCreateDeckModal() {
-    this.deckManagementService.closeCreateDeckModal();
+    this.contextMenuFacade.closeCreateDeckModal();
   }
 
   handleCreateDeck(deckData: DeckCreate) {
-    this.deckManagementService.createDeck(deckData, this.verses, this.currentBook, this.userId);
+    this.contextMenuFacade.handleCreateDeck(deckData, this.verses, this.currentBook, this.userId);
   }
 
   addToFlashcardDeck(deckName: string) {
-    const versesToAdd = this.contextMenu.selectedCount > 0
-      ? Array.from(this.selectionService.selectedVerses)
-      : [this.contextMenu.verseId!];
-    
-    this.deckManagementService.addVersesToDeck(deckName, versesToAdd, this.verses, this.currentBook);
-    this.uiStateService.hideContextMenu();
+    this.contextMenuFacade.addToFlashcardDeck(deckName, this.verses, this.currentBook);
   }
 
   // Mode switching
-  onModeChange(newMode: 'memorization' | 'crossReferences' | 'topical') {
-    this.uiStateService.setMode(newMode);
+  onModeChange(newMode: 'chapter' | 'crossReferences' | 'topical') {
+    // Convert string to enum
+    const mode = newMode === 'crossReferences' ? WorkspaceMode.CROSS_REFERENCES :
+                  newMode === 'topical' ? WorkspaceMode.TOPICAL :
+                  WorkspaceMode.CHAPTER;
+    
+    this.orchestrator.setMode(mode);
     this.selectionService.clearSelection();
     
     if (newMode === 'crossReferences') {
@@ -902,15 +851,10 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   handleCrossRefClick(verse: WorkspaceVerse, event: MouseEvent) {
-    if (event.ctrlKey || event.metaKey) {
-      if (this.isVerseSelected(verse)) {
-        this.selectionService.removeFromSelection(verse);
-      } else {
-        this.selectionService.addToSelection(verse);
-      }
-    } else if (!this.selectionService.isDragging) {
-      this.selectionService.clearSelection();
-      this.selectionService.addToSelection(verse);
+    // Find the index of this verse in the cross-reference list
+    const index = this.crossReferenceVerses.findIndex(v => v.verseCode === verse.verseCode);
+    if (index >= 0) {
+      this.selectionService.handleVerseClick(index, event, this.crossReferenceVerses);
     }
   }
 
@@ -936,7 +880,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     const [bookId, chapter, verseNum] = verse.verseCode.split('-').map(Number);
     
     this.uiStateService.setTargetVerse(verseNum);
-    this.uiStateService.setMode('memorization');
+    this.uiStateService.setMode('chapter');
     this.selectionService.clearSelection();
     
     this.loadChapter(bookId, chapter);
@@ -951,7 +895,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
   changeToVerse(verseRef: any) {
     this.uiStateService.setTargetVerse(verseRef.verse);
-    this.uiStateService.setMode('memorization');
+    this.uiStateService.setMode('chapter');
     this.selectionService.clearSelection();
     this.loadChapter(verseRef.bookId, verseRef.chapter);
     
@@ -962,7 +906,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   returnFromCrossReferences() {
-    this.uiStateService.setMode('memorization');
+    this.uiStateService.setMode('chapter');
     this.selectionService.clearSelection();
     this.crossReferencesService.clearState();
     this.notificationService.info('Returned to memorization mode');
@@ -980,15 +924,10 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   handleTopicalClick(verse: WorkspaceVerse, event: MouseEvent) {
-    if (event.ctrlKey || event.metaKey) {
-      if (this.isVerseSelected(verse)) {
-        this.selectionService.removeFromSelection(verse);
-      } else {
-        this.selectionService.addToSelection(verse);
-      }
-    } else if (!this.selectionService.isDragging) {
-      this.selectionService.clearSelection();
-      this.selectionService.addToSelection(verse);
+    // Find the index of this verse in the topical list
+    const index = this.topicalVerses.findIndex(v => v.verseCode === verse.verseCode);
+    if (index >= 0) {
+      this.selectionService.handleVerseClick(index, event, this.topicalVerses);
     }
   }
 
@@ -1073,9 +1012,6 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   // Utility methods
-  isVerseSelected(verse: WorkspaceVerse): boolean {
-    return this.selectionService.isVerseSelected(verse);
-  }
 
   isNewParagraph(verse: WorkspaceVerse): boolean {
     return WorkspaceVerseUtils.isNewParagraph(verse);
@@ -1094,53 +1030,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   copyVerseText() {
-    this.uiStateService.hideContextMenu();
-    
-    let versesToCopy: WorkspaceVerse[] = [];
-    
-    if (this.selectionService.selectedVerses.size > 0) {
-      // Copy selected verses
-      const selectedCodes = Array.from(this.selectionService.selectedVerses);
-      versesToCopy = this.getCurrentVerses()
-        .filter(v => selectedCodes.includes(v.verseCode))
-        .sort((a, b) => {
-          const [aBook, aChap, aVerse] = this.workspaceParsingService.parseVerseCode(a.verseCode);
-          const [bBook, bChap, bVerse] = this.workspaceParsingService.parseVerseCode(b.verseCode);
-          return aBook - bBook || aChap - bChap || aVerse - bVerse;
-        });
-    } else if (this.contextMenu.verseId) {
-      // Copy single verse from context menu
-      const verse = this.getCurrentVerses().find(v => v.verseCode === this.contextMenu.verseId);
-      if (verse) {
-        versesToCopy = [verse];
-      }
-    }
-    
-    if (versesToCopy.length === 0) {
-      this.notificationService.warning('No verses selected to copy');
-      return;
-    }
-    
-    // Format text with references
-    const textToCopy = versesToCopy
-      .map(v => {
-        const [bookId, chapter, verseNum] = this.workspaceParsingService.parseVerseCode(v.verseCode);
-        const reference = `${v.bookName || this.currentBook?.name || ''} ${chapter}:${verseNum}`;
-        return `${reference} - ${v.text}`;
-      })
-      .join('\n\n');
-    
-    // Copy to clipboard
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      const verseCount = versesToCopy.length;
-      this.notificationService.success(
-        verseCount === 1 ? 'Verse copied to clipboard' : `${verseCount} verses copied to clipboard`,
-        3000
-      );
-    }).catch(err => {
-      console.error('Failed to copy text:', err);
-      this.notificationService.error('Failed to copy text to clipboard');
-    });
+    this.contextMenuFacade.copyVerseText(this.getCurrentVerses(), this.currentBook?.name);
   }
 
   jumpToFullChapter() {
@@ -1165,9 +1055,9 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     // Clear selection before navigation
     this.selectionService.clearSelection();
     
-    // Set mode back to memorization if not already
-    if (this.mode !== 'memorization') {
-      this.uiStateService.setMode('memorization');
+    // Set mode back to chapter view if not already
+    if (this.mode !== WorkspaceMode.CHAPTER) {
+      this.uiStateService.setMode('chapter');
     }
     
     // Navigate to the chapter within the workspace

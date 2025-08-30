@@ -3,7 +3,7 @@
  * instead of using string literals throughout the codebase
  */
 export enum WorkspaceMode {
-  MEMORIZATION = 'memorization',
+  CHAPTER = 'chapter',
   CROSS_REFERENCES = 'crossReferences',
   TOPICAL = 'topical'
 }

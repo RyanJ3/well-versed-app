@@ -1,7 +1,7 @@
 <div class="flow-header-glass" 
      [class.cross-ref-mode]="mode === 'crossReferences'"
      [class.topical-mode]="mode === 'topical'"
-     [class.memorization-mode]="mode === 'memorization'">
+     [class.chapter-mode]="mode === 'chapter'">
   <!-- Subtle animated mesh background -->
   <div class="animated-mesh"></div>
 
@@ -20,8 +20,8 @@
       <!-- Mode-specific content -->
       <ng-container [ngSwitch]="mode">
         
-        <!-- Verse-by-verse Mode (memorization) -->
-        <ng-container *ngSwitchCase="'memorization'">
+        <!-- Chapter Mode (verse-by-verse) -->
+        <ng-container *ngSwitchCase="'chapter'">
           <div class="selector-group">
             <!-- Book Selector -->
             <app-book-dropdown

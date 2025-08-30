@@ -12,7 +12,7 @@ export interface UIState {
   isGearSpinning: boolean;
   showEncouragement: string;
   isLoading: boolean;
-  mode: 'memorization' | 'crossReferences' | 'topical';
+  mode: 'chapter' | 'crossReferences' | 'topical';
   contextMenu: ContextMenuData;
   showModal: boolean;
   modalChapterName: string;
@@ -30,7 +30,7 @@ export class WorkspaceUIStateService {
     isGearSpinning: false,
     showEncouragement: '',
     isLoading: false,
-    mode: 'memorization',
+    mode: 'chapter',
     contextMenu: {
       visible: false,
       x: 0,
@@ -100,7 +100,7 @@ export class WorkspaceUIStateService {
   }
 
   // Mode management
-  setMode(mode: 'memorization' | 'crossReferences' | 'topical'): void {
+  setMode(mode: 'chapter' | 'crossReferences' | 'topical'): void {
     this.updateState({ 
       mode: mode,
       // Reset filter when changing modes
@@ -219,7 +219,7 @@ export class WorkspaceUIStateService {
       showSettings: false,
       isGearSpinning: false,
       showEncouragement: '',
-      mode: 'memorization'
+      mode: 'chapter'
     });
     this.saveState();
   }

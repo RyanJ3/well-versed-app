@@ -20,7 +20,7 @@ import { WorkspaceVerse } from '../models/workspace.models';
 export class WorkspaceVerseFacade {
   // State (will be replaced with Store selectors)
   private versesSubject = new BehaviorSubject<WorkspaceVerse[]>([]);
-  private selectedVersesSubject = new BehaviorSubject<Set<number>>(new Set());
+  private selectedVersesSubject = new BehaviorSubject<Set<string>>(new Set());
   private isSelectingMultipleSubject = new BehaviorSubject<boolean>(false);
 
   // Public observables (will be replaced with store.select())
@@ -46,19 +46,19 @@ export class WorkspaceVerseFacade {
     this.versesSubject.next(verses);
   }
 
-  selectVerse(index: number, multiSelect: boolean = false): void {
-    // Future: this.store.dispatch(selectVerse({ index, multiSelect }));
+  selectVerse(verseCode: string, multiSelect: boolean = false): void {
+    // Future: this.store.dispatch(selectVerse({ verseCode, multiSelect }));
     const currentSelection = new Set(this.selectedVersesSubject.value);
     
     if (multiSelect) {
-      if (currentSelection.has(index)) {
-        currentSelection.delete(index);
+      if (currentSelection.has(verseCode)) {
+        currentSelection.delete(verseCode);
       } else {
-        currentSelection.add(index);
+        currentSelection.add(verseCode);
       }
     } else {
       currentSelection.clear();
-      currentSelection.add(index);
+      currentSelection.add(verseCode);
     }
     
     this.selectedVersesSubject.next(currentSelection);
@@ -66,12 +66,15 @@ export class WorkspaceVerseFacade {
 
   selectRange(startIndex: number, endIndex: number): void {
     // Future: this.store.dispatch(selectRange({ startIndex, endIndex }));
-    const selection = new Set<number>();
+    const verses = this.versesSubject.value;
+    const selection = new Set<string>();
     const min = Math.min(startIndex, endIndex);
     const max = Math.max(startIndex, endIndex);
     
     for (let i = min; i <= max; i++) {
-      selection.add(i);
+      if (verses[i]) {
+        selection.add(verses[i].verseCode);
+      }
     }
     
     this.selectedVersesSubject.next(selection);
@@ -87,9 +90,9 @@ export class WorkspaceVerseFacade {
   selectAll(): void {
     // Future: this.store.dispatch(selectAll());
     const verses = this.versesSubject.value;
-    const selection = new Set<number>();
+    const selection = new Set<string>();
     
-    verses.forEach((_, index) => selection.add(index));
+    verses.forEach(verse => selection.add(verse.verseCode));
     this.selectedVersesSubject.next(selection);
   }
 
@@ -112,8 +115,9 @@ export class WorkspaceVerseFacade {
     const verses = [...this.versesSubject.value];
     const selection = this.selectedVersesSubject.value;
     
-    selection.forEach(index => {
-      if (verses[index]) {
+    selection.forEach(verseCode => {
+      const index = verses.findIndex(v => v.verseCode === verseCode);
+      if (index !== -1) {
         verses[index] = {
           ...verses[index],
           isMemorized: memorized
@@ -130,11 +134,19 @@ export class WorkspaceVerseFacade {
     return this.versesSubject.value;
   }
 
-  getSelectedVerses(): Set<number> {
+  getSelectedVerses(): Set<string> {
     return this.selectedVersesSubject.value;
   }
 
-  isVerseSelected(index: number): boolean {
-    return this.selectedVersesSubject.value.has(index);
+  isVerseSelected(verseCode: string): boolean {
+    return this.selectedVersesSubject.value.has(verseCode);
+  }
+  
+  isVerseSelectedByIndex(index: number): boolean {
+    const verses = this.versesSubject.value;
+    if (verses[index]) {
+      return this.selectedVersesSubject.value.has(verses[index].verseCode);
+    }
+    return false;
   }
 }
