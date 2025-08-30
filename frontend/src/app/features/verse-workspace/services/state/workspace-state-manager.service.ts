@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, combineLatest } from 'rxjs';
 import { map, distinctUntilChanged } from 'rxjs/operators';
+import { CrossReferenceVerse } from '../../models/workspace-interfaces';
+import { WorkspaceVerse } from '../../models/workspace-verse.model';
+import { DeckResponse } from '@services/api/deck-api.service';
 
 // State interfaces
 export interface FlowUIState {
@@ -47,15 +50,15 @@ export interface FlowDataState {
   memorizedVerses: Set<string>;
   
   // Cross references
-  crossReferenceVerses: any[];
-  selectedCrossRefVerse: any | null;
+  crossReferenceVerses: CrossReferenceVerse[];
+  selectedCrossRefVerse: CrossReferenceVerse | null;
   
   // Topical
-  topicalVerses: any[];
+  topicalVerses: WorkspaceVerse[];
   currentTopic: string | null;
   
   // Decks
-  flashcardDecks: any[];
+  flashcardDecks: DeckResponse[];
   activeDeckId: string | null;
   
   // Session data
@@ -249,11 +252,11 @@ export class WorkspaceStateManagerService {
     this.updateDataState({ memorizedVerses });
   }
 
-  setCrossReferenceVerses(verses: any[]): void {
+  setCrossReferenceVerses(verses: CrossReferenceVerse[]): void {
     this.updateDataState({ crossReferenceVerses: verses });
   }
 
-  setTopicalVerses(verses: any[], topic: string): void {
+  setTopicalVerses(verses: WorkspaceVerse[], topic: string): void {
     this.updateDataState({ 
       topicalVerses: verses,
       currentTopic: topic
@@ -354,7 +357,7 @@ export class WorkspaceStateManagerService {
     }
   }
 
-  private saveToLocalStorage(key: string, value: any): void {
+  private saveToLocalStorage(key: string, value: unknown): void {
     localStorage.setItem(`flow_${key}`, JSON.stringify(value));
   }
 

@@ -8,6 +8,7 @@ import { WorkspaceNavigationFacade } from './workspace-navigation.facade';
 import { WorkspaceVerse } from '../../models/workspace.models';
 import { WorkspaceMode } from '../../models/workspace-mode.enum';
 import { WorkspaceFilterMode } from '../../models/workspace-filter-mode.enum';
+import { BibleBook } from '@models/bible';
 import { Router } from '@angular/router';
 import { NotificationService } from '@services/utils/notification.service';
 
@@ -24,7 +25,7 @@ export class WorkspaceKeyboardFacade {
     private notificationService: NotificationService
   ) {}
 
-  handleKeyDown(event: KeyboardEvent, currentVerses: WorkspaceVerse[], currentBook: any, currentChapter: number) {
+  handleKeyDown(event: KeyboardEvent, currentVerses: WorkspaceVerse[], currentBook: BibleBook | null, currentChapter: number) {
     if (event.key === 'Escape') {
       this.handleEscapeKey();
     } else if (event.key === 'Enter') {
@@ -48,7 +49,7 @@ export class WorkspaceKeyboardFacade {
     this.uiStateService.hideContextMenu();
   }
 
-  private handleEnterKey(currentVerses: WorkspaceVerse[], currentBook: any, currentChapter: number) {
+  private handleEnterKey(currentVerses: WorkspaceVerse[], currentBook: BibleBook | null, currentChapter: number) {
     const mode = this.navigationFacade.getCurrentMode();
     
     if (mode === WorkspaceMode.CROSS_REFERENCES && this.selectionService.selectedVerses.size === 1) {
@@ -85,7 +86,7 @@ export class WorkspaceKeyboardFacade {
     const [bookId, chapter, verseNum] = verse.verseCode.split('-').map(Number);
     
     this.uiStateService.setTargetVerse(verseNum);
-    this.uiStateService.setMode('chapter');
+    this.uiStateService.setMode(WorkspaceMode.CHAPTER);
     this.selectionService.clearSelection();
     
     this.router.navigate([], {

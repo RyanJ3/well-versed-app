@@ -199,11 +199,7 @@ export class WorkspaceOrchestratorFacade {
    */
   setMode(mode: WorkspaceMode): void {
     this.navigationFacade.setMode(mode);
-    
-    // Update UI state service (for backward compatibility)
-    const modeString = mode === WorkspaceMode.CROSS_REFERENCES ? 'crossReferences' :
-                       mode === WorkspaceMode.TOPICAL ? 'topical' : 'chapter';
-    this.uiStateService.setMode(modeString as any);
+    this.uiStateService.setMode(mode);
     
     // Clear selections when changing modes
     this.verseFacade.clearSelection();

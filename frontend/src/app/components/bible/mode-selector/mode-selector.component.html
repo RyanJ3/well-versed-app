@@ -2,21 +2,21 @@
   <button class="mode-selector-btn" (click)="toggleDropdown($event)">
     <div class="mode-display" [ngSwitch]="mode">
       <!-- Chapter mode -->
-      <div *ngSwitchCase="'chapter'" class="mode-indicator chapter">
+      <div *ngSwitchCase="WorkspaceMode.CHAPTER" class="mode-indicator chapter">
         <span class="mode-icon">📖</span>
         <span>Chapter</span>
         <span class="mode-arrow" [class.open]="showDropdown">▼</span>
       </div>
       
       <!-- Cross References mode -->
-      <div *ngSwitchCase="'crossReferences'" class="mode-indicator cross-ref">
+      <div *ngSwitchCase="WorkspaceMode.CROSS_REFERENCES" class="mode-indicator cross-ref">
         <span class="mode-icon">🔗</span>
         <span>Cross References</span>
         <span class="mode-arrow" [class.open]="showDropdown">▼</span>
       </div>
       
       <!-- Topical mode -->
-      <div *ngSwitchCase="'topical'" class="mode-indicator topical">
+      <div *ngSwitchCase="WorkspaceMode.TOPICAL" class="mode-indicator topical">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
         </svg>
@@ -28,19 +28,19 @@
   
   <!-- Mode dropdown menu -->
   <div class="mode-dropdown-menu" *ngIf="showDropdown">
-    <button class="mode-option" (click)="selectMode('chapter')">
+    <button class="mode-option" (click)="selectMode(WorkspaceMode.CHAPTER)">
       <div class="mode-indicator chapter">
         <span class="mode-icon">📖</span>
         <span>Chapter</span>
       </div>
     </button>
-    <button class="mode-option" (click)="selectMode('crossReferences')">
+    <button class="mode-option" (click)="selectMode(WorkspaceMode.CROSS_REFERENCES)">
       <div class="mode-indicator cross-ref">
         <span class="mode-icon">🔗</span>
         <span>Cross References</span>
       </div>
     </button>
-    <button class="mode-option" (click)="selectMode('topical')">
+    <button class="mode-option" (click)="selectMode(WorkspaceMode.TOPICAL)">
       <div class="mode-indicator topical">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>

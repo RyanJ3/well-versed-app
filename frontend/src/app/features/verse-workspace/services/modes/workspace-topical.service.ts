@@ -7,11 +7,12 @@ import { NotificationService } from '@services/utils/notification.service';
 import { WorkspaceParsingService } from '@services/utils/workspace-parsing.service';
 import { WorkspaceVerse } from '../../models/workspace.models';
 import { WorkspaceFilterMode } from '../../models/workspace-filter-mode.enum';
+import { Topic } from '../../models/workspace-interfaces';
 
 export interface TopicalState {
   verses: WorkspaceVerse[];
-  selectedTopic: any;
-  availableTopics: any[];
+  selectedTopic: Topic | null;
+  availableTopics: Topic[];
   count: number;
   loading: boolean;
   loadingTopics: boolean;
@@ -44,11 +45,11 @@ export class WorkspaceTopicalService {
     return this.topicalState.value.verses;
   }
 
-  get selectedTopic(): any {
+  get selectedTopic(): Topic | null {
     return this.topicalState.value.selectedTopic;
   }
 
-  get availableTopics(): any[] {
+  get availableTopics(): Topic[] {
     return this.topicalState.value.availableTopics;
   }
 
@@ -77,7 +78,7 @@ export class WorkspaceTopicalService {
     }
   }
 
-  async selectTopic(topic: any, userId: number, bibleId?: string): Promise<void> {
+  async selectTopic(topic: Topic, userId: number, bibleId?: string): Promise<void> {
     this.updateState({ selectedTopic: topic });
     console.log('Selected topic:', topic);
     await this.loadTopicalVerses(topic.topicId, userId, bibleId);
@@ -163,7 +164,22 @@ export class WorkspaceTopicalService {
     }
   }
 
-  private createFallbackVerse(verse: any, index: number): WorkspaceVerse {
+  private createFallbackVerse(verse: Partial<WorkspaceVerse> & {
+    verse_id?: number;
+    verse_code?: string;
+    verse_number?: number;
+    display_reference?: string;
+    book_name?: string;
+    chapter?: number;
+    is_memorized?: boolean;
+    topic_relevance?: number;
+    topic_name?: string;
+    practice_count?: number;
+    confidence_score?: number;
+    is_range?: boolean;
+    end_verse_number?: number;
+    end_chapter?: number;
+  }, index: number): WorkspaceVerse {
     const reference = verse.display_reference || `${verse.book_name} ${verse.chapter}:${verse.verse_number}`;
     
     return {
@@ -192,7 +208,7 @@ export class WorkspaceTopicalService {
       verseCount: verse.is_range ? 
         (verse.end_chapter && verse.end_chapter !== verse.chapter ? 
           999 : 
-          (verse.end_verse_number - verse.verse_number + 1)) : 1
+          ((verse.end_verse_number ?? 0) - (verse.verse_number ?? 0) + 1)) : 1
     } as WorkspaceVerse;
   }
 

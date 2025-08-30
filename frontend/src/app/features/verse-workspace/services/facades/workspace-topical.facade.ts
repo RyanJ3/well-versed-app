@@ -6,6 +6,8 @@ import { NotificationService } from '@services/utils/notification.service';
 import { Router } from '@angular/router';
 import { WorkspaceVerse } from '../../models/workspace.models';
 import { WorkspaceFilterMode } from '../../models/workspace-filter-mode.enum';
+import { Topic } from '../../models/workspace-interfaces';
+import { WorkspaceMode } from '../../models/workspace-mode.enum';
 
 @Injectable()
 export class WorkspaceTopicalFacade {
@@ -22,7 +24,7 @@ export class WorkspaceTopicalFacade {
     return this.topicalService.verses;
   }
 
-  get selectedTopic(): any {
+  get selectedTopic(): Topic | null {
     return this.topicalService.selectedTopic;
   }
 
@@ -34,7 +36,7 @@ export class WorkspaceTopicalFacade {
     return this.topicalService.isLoading;
   }
 
-  get availableTopics(): any[] {
+  get availableTopics(): Topic[] {
     return this.topicalService.availableTopics;
   }
 
@@ -46,7 +48,7 @@ export class WorkspaceTopicalFacade {
     return this.topicalService.getUnmemorizedCount();
   }
 
-  selectTopic(topic: any, userId: number, preferredBible?: string) {
+  selectTopic(topic: Topic, userId: number, preferredBible?: string) {
     this.topicalService.selectTopic(topic, userId, preferredBible);
   }
 
@@ -88,7 +90,7 @@ export class WorkspaceTopicalFacade {
     const [bookId, chapter, verseNum] = verse.verseCode.split('-').map(Number);
     
     this.uiStateService.setTargetVerse(verseNum);
-    this.uiStateService.setMode('chapter');
+    this.uiStateService.setMode(WorkspaceMode.CHAPTER);
     this.selectionService.clearSelection();
     
     this.router.navigate([], {

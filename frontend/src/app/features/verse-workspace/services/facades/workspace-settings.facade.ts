@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { WorkspaceUIStateService } from '../state/workspace-ui-state.service';
 import { WorkspaceFilterMode } from '../../models/workspace-filter-mode.enum';
+import { LayoutMode } from '../../models/layout-mode.enum';
 
 @Injectable()
 export class WorkspaceSettingsFacade {
@@ -16,7 +17,7 @@ export class WorkspaceSettingsFacade {
     return this.uiStateService.state$.pipe(map(state => state.fontSize));
   }
 
-  get layoutMode$(): Observable<'grid' | 'single'> {
+  get layoutMode$(): Observable<LayoutMode> {
     return this.uiStateService.state$.pipe(map(state => state.layoutMode));
   }
 
@@ -48,7 +49,7 @@ export class WorkspaceSettingsFacade {
     return this.uiStateService.currentState.fontSize;
   }
 
-  get layoutMode(): 'grid' | 'single' {
+  get layoutMode(): LayoutMode {
     return this.uiStateService.currentState.layoutMode;
   }
 
@@ -91,7 +92,7 @@ export class WorkspaceSettingsFacade {
     this.uiStateService.decreaseFontSize();
   }
 
-  setLayoutMode(mode: 'grid' | 'single') {
+  setLayoutMode(mode: LayoutMode) {
     this.uiStateService.setLayoutMode(mode);
   }
 

@@ -8,10 +8,11 @@ import { NotificationService } from '@services/utils/notification.service';
 import { WorkspaceParsingService } from '@services/utils/workspace-parsing.service';
 import { WorkspaceVerse } from '../../models/workspace.models';
 import { WorkspaceFilterMode } from '../../models/workspace-filter-mode.enum';
+import { CrossReferenceVerse } from '../../models/workspace-interfaces';
 
 export interface CrossReferenceState {
   verses: WorkspaceVerse[];
-  selectedVerse: any;
+  selectedVerse: CrossReferenceVerse | null;
   count: number;
   loading: boolean;
 }
@@ -41,7 +42,7 @@ export class WorkspaceCrossReferencesService {
     return this.crossReferenceState.value.verses;
   }
 
-  get selectedVerse(): any {
+  get selectedVerse(): CrossReferenceVerse | null {
     return this.crossReferenceState.value.selectedVerse;
   }
 
@@ -53,7 +54,7 @@ export class WorkspaceCrossReferencesService {
     return this.crossReferenceState.value.count;
   }
 
-  async selectVerse(verse: any, userId: number, bibleId?: string): Promise<void> {
+  async selectVerse(verse: CrossReferenceVerse, userId: number, bibleId?: string): Promise<void> {
     // Validate verse object
     if (!verse || verse.bookId === undefined || verse.chapter === undefined || verse.verse === undefined) {
       console.error('Invalid verse object passed to selectVerse:', verse);
@@ -167,7 +168,22 @@ export class WorkspaceCrossReferencesService {
     }
   }
 
-  private createFallbackVerse(ref: any, index: number): WorkspaceVerse {
+  private createFallbackVerse(ref: Partial<WorkspaceVerse> & {
+    verse_id?: number;
+    verse_code?: string;
+    verse_number?: number;
+    display_reference?: string;
+    book_name?: string;
+    chapter?: number;
+    is_memorized?: boolean;
+    practice_count?: number;
+    confidence_score?: number;
+    cross_ref_confidence?: number;
+    direction?: string;
+    is_range?: boolean;
+    end_verse_number?: number;
+    end_chapter?: number;
+  }, index: number): WorkspaceVerse {
     const reference = ref.display_reference || `${ref.book_name} ${ref.chapter}:${ref.verse_number}`;
     
     return {
@@ -197,7 +213,7 @@ export class WorkspaceCrossReferencesService {
       verseCount: ref.is_range ? 
         (ref.end_chapter && ref.end_chapter !== ref.chapter ? 
           999 : 
-          (ref.end_verse_number - ref.verse_number + 1)) : 1
+          ((ref.end_verse_number ?? 0) - (ref.verse_number ?? 0) + 1)) : 1
     } as WorkspaceVerse;
   }
 

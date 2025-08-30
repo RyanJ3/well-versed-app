@@ -11,7 +11,7 @@
     [showFullText]="showFullText"
     [availableChapters]="availableChapters"
     [allBooks]="allBooks"
-    [mode]="modeString"
+    [mode]="mode"
     [selectedVerseNumber]="selectedCrossRefVerse?.verse || 1"
     [availableVerseNumbers]="currentBibleChapter ? getVerseNumbersArray() : []"
     [memorizedVerses]="getMemorizedVerseNumbers()"
@@ -27,7 +27,7 @@
     <!-- Topic Picker for Topical Mode (included via ng-content) -->
     <app-topic-picker
       *ngIf="mode === WorkspaceMode.TOPICAL"
-      [selectedTopicId]="selectedTopic?.topicId"
+      [selectedTopicId]="selectedTopic?.topicId || null"
       (topicSelected)="onTopicSelected($event)"
     ></app-topic-picker>
   </app-workspace-header>
@@ -167,7 +167,7 @@
       [fontSize]="fontSize"
       [layoutMode]="layoutMode"
       [verseReviewData]="verseReviewData"
-      [mode]="modeString"
+      [mode]="mode"
       [isRTL]="isRTL"
       (verseClick)="handleVerseClick($event.index, $event.event)"
       (verseDoubleClick)="handleVerseDoubleClick($event)"
@@ -310,7 +310,7 @@
       <!-- Empty State for No Verses Found -->
       <div *ngIf="!loadingTopicalVerses && selectedTopic && topicalVerses.length === 0" class="empty-state">
         <div class="empty-icon">🔍</div>
-        <p>No verses found for "{{ selectedTopic?.topicName }}"</p>
+        <p>No verses found for "{{ selectedTopic.topicName }}"</p>
       </div>
       
       <!-- Loading state -->

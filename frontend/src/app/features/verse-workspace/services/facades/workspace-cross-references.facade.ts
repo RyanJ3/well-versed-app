@@ -7,6 +7,8 @@ import { Router } from '@angular/router';
 import { WorkspaceVerse } from '../../models/workspace.models';
 import { BibleBook } from '@models/bible';
 import { WorkspaceFilterMode } from '../../models/workspace-filter-mode.enum';
+import { CrossReferenceVerse } from '../../models/workspace-interfaces';
+import { WorkspaceMode } from '../../models/workspace-mode.enum';
 
 @Injectable()
 export class WorkspaceCrossReferencesFacade {
@@ -23,7 +25,7 @@ export class WorkspaceCrossReferencesFacade {
     return this.crossReferencesService.verses;
   }
 
-  get selectedVerse(): any {
+  get selectedVerse(): CrossReferenceVerse | null {
     return this.crossReferencesService.selectedVerse;
   }
 
@@ -43,7 +45,7 @@ export class WorkspaceCrossReferencesFacade {
     return this.crossReferencesService.getUnmemorizedCount();
   }
 
-  selectVerse(verse: any, userId: number, preferredBible?: string) {
+  selectVerse(verse: CrossReferenceVerse, userId: number, preferredBible?: string) {
     this.crossReferencesService.selectVerse(verse, userId, preferredBible);
   }
 
@@ -81,7 +83,7 @@ export class WorkspaceCrossReferencesFacade {
     const [bookId, chapter, verseNum] = verse.verseCode.split('-').map(Number);
     
     this.uiStateService.setTargetVerse(verseNum);
-    this.uiStateService.setMode('chapter');
+    this.uiStateService.setMode(WorkspaceMode.CHAPTER);
     this.selectionService.clearSelection();
     
     this.router.navigate([], {
@@ -92,7 +94,7 @@ export class WorkspaceCrossReferencesFacade {
     this.notificationService.info(`Navigating to ${verse.fullReference}`);
   }
 
-  createDefaultCrossRefVerse(currentBook: BibleBook | null, currentChapter: number, verses: WorkspaceVerse[]): any {
+  createDefaultCrossRefVerse(currentBook: BibleBook | null, currentChapter: number, verses: WorkspaceVerse[]): CrossReferenceVerse {
     const bookId = currentBook?.id || 1;
     const bookName = currentBook?.name || 'Genesis';
     const chapter = currentChapter || 1;
@@ -112,7 +114,7 @@ export class WorkspaceCrossReferencesFacade {
   }
 
   returnToChapterMode() {
-    this.uiStateService.setMode('chapter');
+    this.uiStateService.setMode(WorkspaceMode.CHAPTER);
     this.selectionService.clearSelection();
     this.clearState();
     this.notificationService.info('Returned to chapter mode');

@@ -1,5 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Subject, Observable, filter, map, shareReplay, buffer, debounceTime } from 'rxjs';
+import { StudySessionMode } from '../../models/study-session-mode.enum';
+import { NavigationType } from '../../models/navigation-type.enum';
+import { LayoutMode } from '../../models/layout-mode.enum';
+import { WorkspaceMode } from '../../models/workspace-mode.enum';
+import { WorkspaceVerse } from '../../models/workspace.models';
 
 // Event types enum for type safety
 export enum FlowEventType {
@@ -47,12 +52,12 @@ export enum FlowEventType {
 }
 
 // Base event interface
-export interface FlowEvent<T = any> {
+export interface FlowEvent<T = unknown> {
   type: FlowEventType;
   payload: T;
   timestamp: number;
   source?: string; // Component/service that triggered the event
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Specific event payload interfaces
@@ -82,7 +87,7 @@ export interface VerseMemorizedPayload {
 
 export interface StudySessionPayload {
   verseCodes: string[];
-  mode: 'learn' | 'review' | 'test';
+  mode: StudySessionMode;
   sessionId: string;
 }
 
@@ -134,16 +139,16 @@ export class WorkspaceEventBusService {
   
   public readonly chapterChanged$ = this.createEventStream<NavigationPayload>(FlowEventType.CHAPTER_CHANGED);
   public readonly bookChanged$ = this.createEventStream<NavigationPayload>(FlowEventType.BOOK_CHANGED);
-  public readonly modeChanged$ = this.createEventStream<string>(FlowEventType.MODE_CHANGED);
+  public readonly modeChanged$ = this.createEventStream<WorkspaceMode>(FlowEventType.MODE_CHANGED);
   
   public readonly filterChanged$ = this.createEventStream<FilterChangedPayload>(FlowEventType.FILTER_CHANGED);
   public readonly searchTermChanged$ = this.createEventStream<string>(FlowEventType.SEARCH_TERM_CHANGED);
   
   public readonly fontSizeChanged$ = this.createEventStream<number>(FlowEventType.FONT_SIZE_CHANGED);
-  public readonly layoutModeChanged$ = this.createEventStream<'grid' | 'single'>(FlowEventType.LAYOUT_MODE_CHANGED);
+  public readonly layoutModeChanged$ = this.createEventStream<LayoutMode>(FlowEventType.LAYOUT_MODE_CHANGED);
   
   public readonly versesLoading$ = this.createEventStream<boolean>(FlowEventType.VERSES_LOADING);
-  public readonly versesLoaded$ = this.createEventStream<any[]>(FlowEventType.VERSES_LOADED);
+  public readonly versesLoaded$ = this.createEventStream<WorkspaceVerse[]>(FlowEventType.VERSES_LOADED);
   public readonly errorOccurred$ = this.createEventStream<ErrorPayload>(FlowEventType.ERROR_OCCURRED);
   
   // Aggregated event streams
@@ -228,7 +233,7 @@ export class WorkspaceEventBusService {
   /**
    * Emit a study session started event
    */
-  emitStudySessionStarted(verseCodes: string[], mode: 'learn' | 'review' | 'test', source?: string): void {
+  emitStudySessionStarted(verseCodes: string[], mode: StudySessionMode, source?: string): void {
     const sessionId = this.generateSessionId();
     this.emit<StudySessionPayload>(
       FlowEventType.STUDY_SESSION_STARTED,
@@ -240,9 +245,9 @@ export class WorkspaceEventBusService {
   /**
    * Emit a navigation event
    */
-  emitNavigation(type: 'chapter' | 'book', current: number, previous?: number, source?: string): void {
-    const eventType = type === 'chapter' ? FlowEventType.CHAPTER_CHANGED : FlowEventType.BOOK_CHANGED;
-    const payload: NavigationPayload = type === 'chapter' 
+  emitNavigation(type: NavigationType, current: number, previous?: number, source?: string): void {
+    const eventType = type === NavigationType.CHAPTER ? FlowEventType.CHAPTER_CHANGED : FlowEventType.BOOK_CHANGED;
+    const payload: NavigationPayload = type === NavigationType.CHAPTER 
       ? { chapter: current, previousChapter: previous }
       : { bookId: current, previousBookId: previous };
     

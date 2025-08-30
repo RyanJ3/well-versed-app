@@ -1,9 +1,9 @@
 // Import all register style partials
-@import 'styles/container';
-@import 'styles/card';
-@import 'styles/header';
-@import 'styles/form';
-@import 'styles/buttons';
-@import 'styles/footer';
-@import 'styles/animations';
-@import 'styles/responsive';
+@use 'styles/container';
+@use 'styles/card';
+@use 'styles/header';
+@use 'styles/form';
+@use 'styles/buttons';
+@use 'styles/footer';
+@use 'styles/animations';
+@use 'styles/responsive';

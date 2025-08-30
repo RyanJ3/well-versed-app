@@ -3,17 +3,19 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { WorkspaceStateService } from './workspace-state.service';
 import { ContextMenuData } from '../../models/context-menu-data.model';
 import { WorkspaceFilterMode } from '../../models/workspace-filter-mode.enum';
+import { WorkspaceMode } from '../../models/workspace-mode.enum';
+import { LayoutMode } from '../../models/layout-mode.enum';
 
 export interface UIState {
   showFullText: boolean;
   fontSize: number;
-  layoutMode: 'grid' | 'single';
+  layoutMode: LayoutMode;
   activeFilter: WorkspaceFilterMode;
   showSettings: boolean;
   isGearSpinning: boolean;
   showEncouragement: string;
   isLoading: boolean;
-  mode: 'chapter' | 'crossReferences' | 'topical';
+  mode: WorkspaceMode;
   contextMenu: ContextMenuData;
   showModal: boolean;
   modalChapterName: string;
@@ -25,13 +27,13 @@ export class WorkspaceUIStateService {
   private uiState = new BehaviorSubject<UIState>({
     showFullText: false,
     fontSize: 16,
-    layoutMode: 'grid',
+    layoutMode: LayoutMode.GRID,
     activeFilter: WorkspaceFilterMode.ALL,
     showSettings: false,
     isGearSpinning: false,
     showEncouragement: '',
     isLoading: false,
-    mode: 'chapter',
+    mode: WorkspaceMode.CHAPTER,
     contextMenu: {
       visible: false,
       x: 0,
@@ -79,7 +81,7 @@ export class WorkspaceUIStateService {
   }
 
   // Layout mode
-  setLayoutMode(mode: 'grid' | 'single'): void {
+  setLayoutMode(mode: LayoutMode): void {
     this.updateState({ layoutMode: mode });
     this.saveState();
   }
@@ -101,7 +103,7 @@ export class WorkspaceUIStateService {
   }
 
   // Mode management
-  setMode(mode: 'chapter' | 'crossReferences' | 'topical'): void {
+  setMode(mode: WorkspaceMode): void {
     this.updateState({ 
       mode: mode,
       // Reset filter when changing modes
@@ -196,7 +198,7 @@ export class WorkspaceUIStateService {
     const savedState = this.flowStateService.getState();
     this.updateState({
       fontSize: savedState.fontSize || 16,
-      layoutMode: savedState.layoutMode || 'grid',
+      layoutMode: savedState.layoutMode as LayoutMode || LayoutMode.GRID,
       showFullText: savedState.isTextMode || false
     });
   }
@@ -215,12 +217,12 @@ export class WorkspaceUIStateService {
     this.updateState({
       showFullText: false,
       fontSize: 16,
-      layoutMode: 'grid',
+      layoutMode: LayoutMode.GRID,
       activeFilter: WorkspaceFilterMode.ALL,
       showSettings: false,
       isGearSpinning: false,
       showEncouragement: '',
-      mode: 'chapter'
+      mode: WorkspaceMode.CHAPTER
     });
     this.saveState();
   }

@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { WorkspaceMode } from '@features/verse-workspace/models/workspace-mode.enum';
 
 @Component({
   selector: 'app-mode-selector',
@@ -9,10 +10,13 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./mode-selector.component.scss']
 })
 export class ModeSelectorComponent {
-  @Input() mode: 'chapter' | 'crossReferences' | 'topical' = 'chapter';
-  @Output() modeChange = new EventEmitter<'chapter' | 'crossReferences' | 'topical'>();
+  @Input() mode: WorkspaceMode = WorkspaceMode.CHAPTER;
+  @Output() modeChange = new EventEmitter<WorkspaceMode>();
   
   showDropdown = false;
+  
+  // Expose enum to template
+  WorkspaceMode = WorkspaceMode;
 
   constructor(private elementRef: ElementRef) {}
 
@@ -28,7 +32,7 @@ export class ModeSelectorComponent {
     this.showDropdown = !this.showDropdown;
   }
 
-  selectMode(newMode: 'chapter' | 'crossReferences' | 'topical'): void {
+  selectMode(newMode: WorkspaceMode): void {
     this.modeChange.emit(newMode);
     this.showDropdown = false;
   }

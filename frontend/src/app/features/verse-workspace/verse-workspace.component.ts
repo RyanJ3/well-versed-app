@@ -47,7 +47,9 @@ import { BibleBook, BibleChapter, BibleData } from '@models/bible';
 import { WorkspaceVerse, ModalVerse } from './models/workspace.models';
 import { WorkspaceMode } from './models/workspace-mode.enum';
 import { WorkspaceFilterMode } from './models/workspace-filter-mode.enum';
-import { DeckCreate } from '@services/api/deck.service';
+import { LayoutMode } from './models/layout-mode.enum';
+import { CrossReferenceVerse, Topic, ContextMenu } from './models/workspace-interfaces';
+import { DeckCreate, DeckResponse } from '@services/api/deck.service';
 
 // Utils
 import { WorkspaceVerseUtils } from './utils/workspace-verse.utils';
@@ -259,7 +261,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   // Public getters for template - delegated to settings facade
   get showFullText(): boolean { return this.settingsFacade.showFullText; }
   get fontSize(): number { return this.settingsFacade.fontSize; }
-  get layoutMode(): 'grid' | 'single' { return this.settingsFacade.layoutMode; }
+  get layoutMode(): LayoutMode { return this.settingsFacade.layoutMode; }
   get activeFilter(): WorkspaceFilterMode { return this.settingsFacade.activeFilter; }
   get showSettings(): boolean { return this.settingsFacade.showSettings; }
   get isGearSpinning(): boolean { return this.settingsFacade.isGearSpinning; }
@@ -268,31 +270,25 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   get mode(): WorkspaceMode { 
     return this.navigationFacade.getCurrentMode();
   }
-  
-  get modeString(): 'chapter' | 'crossReferences' | 'topical' {
-    const currentMode = this.navigationFacade.getCurrentMode();
-    return currentMode === WorkspaceMode.CROSS_REFERENCES ? 'crossReferences' :
-           currentMode === WorkspaceMode.TOPICAL ? 'topical' : 'chapter';
-  }
-  get contextMenu(): any { return this.contextMenuFacade.contextMenu; }
+  get contextMenu(): ContextMenu { return this.contextMenuFacade.contextMenu; }
   get showModal(): boolean { return this.studySessionFacade.showModal; }
   get modalChapterName(): string { return this.studySessionFacade.modalChapterName; }
 
   // Cross-references getters
   get crossReferenceVerses(): WorkspaceVerse[] { return this.crossRefFacade.verses; }
-  get selectedCrossRefVerse(): any { return this.crossRefFacade.selectedVerse; }
+  get selectedCrossRefVerse(): CrossReferenceVerse | null { return this.crossRefFacade.selectedVerse; }
   get crossReferenceCount(): number { return this.crossRefFacade.count; }
   get loadingCrossReferences(): boolean { return this.crossRefFacade.isLoading; }
 
   // Topical getters
   get topicalVerses(): WorkspaceVerse[] { return this.topicalFacade.verses; }
-  get selectedTopic(): any { return this.topicalFacade.selectedTopic; }
+  get selectedTopic(): Topic | null { return this.topicalFacade.selectedTopic; }
   get topicalVerseCount(): number { return this.topicalFacade.count; }
   get loadingTopicalVerses(): boolean { return this.topicalFacade.isLoading; }
-  get availableTopics(): any[] { return this.topicalFacade.availableTopics; }
+  get availableTopics(): Topic[] { return this.topicalFacade.availableTopics; }
 
   // Deck management getters
-  get flashcardDecks(): any[] { return this.deckManagementService.decks; }
+  get flashcardDecks(): DeckResponse[] { return this.deckManagementService.decks; }
   get flashcardDeckNames(): string[] { return this.deckManagementService.deckNames; }
   get showCreateDeckModal(): boolean { return this.deckManagementService.currentState.showCreateModal; }
   get createDeckLoading(): boolean { return this.deckManagementService.currentState.createLoading; }
@@ -557,8 +553,8 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
   private getCurrentVerses(): WorkspaceVerse[] {
     const mode = this.uiStateService.currentState.mode;
-    return mode === 'crossReferences' ? this.crossReferenceVerses :
-           mode === 'topical' ? this.topicalVerses : this.verses;
+    return mode === WorkspaceMode.CROSS_REFERENCES ? this.crossReferenceVerses :
+           mode === WorkspaceMode.TOPICAL ? this.topicalVerses : this.verses;
   }
 
   // Public methods for template
@@ -702,7 +698,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     this.settingsFacade.decreaseFontSize();
   }
 
-  setLayoutMode(mode: 'grid' | 'single') {
+  setLayoutMode(mode: LayoutMode) {
     this.settingsFacade.setLayoutMode(mode);
   }
 
@@ -765,22 +761,17 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   // Mode switching
-  onModeChange(newMode: 'chapter' | 'crossReferences' | 'topical') {
-    // Convert string to enum
-    const mode = newMode === 'crossReferences' ? WorkspaceMode.CROSS_REFERENCES :
-                  newMode === 'topical' ? WorkspaceMode.TOPICAL :
-                  WorkspaceMode.CHAPTER;
-    
-    this.orchestrator.setMode(mode);
+  onModeChange(newMode: WorkspaceMode) {
+    this.orchestrator.setMode(newMode);
     this.selectionService.clearSelection();
     
-    if (newMode === 'crossReferences') {
+    if (newMode === WorkspaceMode.CROSS_REFERENCES) {
       this.uiStateService.setActiveFilter(WorkspaceFilterMode.ALL);
       if (!this.selectedCrossRefVerse) {
         const defaultVerse = this.crossRefFacade.createDefaultCrossRefVerse(this.currentBook, this.currentChapter, this.verses);
         this.onCrossRefVerseSelected(defaultVerse);
       }
-    } else if (newMode === 'topical') {
+    } else if (newMode === WorkspaceMode.TOPICAL) {
       this.uiStateService.setActiveFilter(WorkspaceFilterMode.ALL);
       this.crossRefFacade.clearState();
       this.topicalFacade.clearState();
@@ -791,19 +782,22 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
 
-  onCrossRefVerseSelected(verse: any) {
+  onCrossRefVerseSelected(verse: CrossReferenceVerse) {
     this.crossRefFacade.selectVerse(verse, this.userId, this.userPreferredBible);
   }
   
   onCrossRefVerseChange(verseNumber: number) {
     // Update the selected verse when user changes it in the dropdown
-    const verse = {
-      bookId: this.currentBook?.id,
-      bookName: this.currentBook?.name,
+    if (!this.currentBook?.id || !this.currentBook?.name) {
+      return;
+    }
+    const verse: CrossReferenceVerse = {
+      bookId: this.currentBook.id,
+      bookName: this.currentBook.name,
       chapter: this.currentChapter,
       verse: verseNumber,
-      verseCode: `${this.currentBook?.id}-${this.currentChapter}-${verseNumber}`,
-      displayText: `${this.currentBook?.name} ${this.currentChapter}:${verseNumber}`
+      verseCode: `${this.currentBook.id}-${this.currentChapter}-${verseNumber}`,
+      displayText: `${this.currentBook.name} ${this.currentChapter}:${verseNumber}`
     };
     this.onCrossRefVerseSelected(verse);
   }
@@ -816,7 +810,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     return this.verses.filter(v => v.isMemorized).map(v => v.verse);
   }
 
-  onTopicSelected(topic: any) {
+  onTopicSelected(topic: Topic) {
     this.topicalFacade.selectTopic(topic, this.userId, this.userPreferredBible);
   }
 
@@ -847,7 +841,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     const [bookId, chapter, verseNum] = verse.verseCode.split('-').map(Number);
     
     this.uiStateService.setTargetVerse(verseNum);
-    this.uiStateService.setMode('chapter');
+    this.uiStateService.setMode(WorkspaceMode.CHAPTER);
     this.selectionService.clearSelection();
     
     this.loadChapter(bookId, chapter);
@@ -898,7 +892,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     }
     
     const [bookId, chapter, verseNum] = targetVerse.verseCode.split('-').map(Number);
-    this.uiStateService.setMode('crossReferences');
+    this.uiStateService.setMode(WorkspaceMode.CROSS_REFERENCES);
     this.selectionService.clearSelection();
     
     if (bookId !== this.currentBook?.id || chapter !== this.currentChapter) {
@@ -922,7 +916,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  private createCrossRefSelection(verse: WorkspaceVerse, bookId: number, chapter: number, verseNum: number): any {
+  private createCrossRefSelection(verse: WorkspaceVerse, bookId: number, chapter: number, verseNum: number): CrossReferenceVerse {
     return {
       bookId,
       bookName: verse.bookName || this.currentBook?.name || '',
@@ -974,7 +968,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     this.selectionService.clearSelection();
     
     if (this.mode !== WorkspaceMode.CHAPTER) {
-      this.uiStateService.setMode('chapter');
+      this.uiStateService.setMode(WorkspaceMode.CHAPTER);
     }
     
     this.router.navigate([], {

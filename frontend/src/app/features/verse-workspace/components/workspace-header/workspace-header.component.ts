@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BibleBook, BibleChapter } from '@models/bible';
+import { WorkspaceMode } from '../../models/workspace-mode.enum';
 import { BookDropdownComponent } from '@components/bible/book-dropdown/book-dropdown.component';
 import { ChapterDropdownComponent } from '@components/bible/chapter-dropdown/chapter-dropdown.component';
 import { VerseDropdownComponent } from '@components/bible/verse-dropdown/verse-dropdown.component';
@@ -40,14 +41,14 @@ export class WorkspaceHeaderComponent implements OnInit {
   @Output() startStudySession = new EventEmitter<void>();
   @Output() changeChapter = new EventEmitter<number>();
   @Output() changeBook = new EventEmitter<number>();
-  @Output() modeChange = new EventEmitter<'chapter' | 'crossReferences' | 'topical'>();
+  @Output() modeChange = new EventEmitter<WorkspaceMode>();
 
   // Component state
   activeChapterFilter: 'all' | 'inProgress' | 'completed' = 'all';
   chapterViewMode: 'grid' | 'row' | 'list' = 'grid';
   
   // Mode - includes chapter, cross-references, and topical
-  @Input() mode: 'chapter' | 'crossReferences' | 'topical' = 'chapter';
+  @Input() mode: WorkspaceMode = WorkspaceMode.CHAPTER;
   
   // Cross-reference specific inputs
   @Input() selectedVerseNumber = 1;
@@ -214,7 +215,7 @@ export class WorkspaceHeaderComponent implements OnInit {
     this.changeBook.emit(id);
   }
 
-  onModeChange(newMode: 'chapter' | 'crossReferences' | 'topical'): void {
+  onModeChange(newMode: WorkspaceMode): void {
     this.modeChange.emit(newMode);
   }
 
