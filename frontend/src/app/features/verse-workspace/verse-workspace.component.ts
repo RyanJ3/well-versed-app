@@ -8,27 +8,30 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { BibleService } from '@services/api/bible.service';
 import { UserService } from '@services/api/user.service';
 import { NotificationService } from '@services/utils/notification.service';
-import { WorkspaceStateService } from './services/workspace-state.service';
-import { WorkspaceMemorizationService } from './services/workspace-memorization.service';
-import { WorkspaceSelectionService } from './services/workspace-selection.service';
+import { WorkspaceStateService } from './services/state/workspace-state.service';
+import { WorkspaceMemorizationService } from './services/modes/workspace-memorization.service';
+import { WorkspaceSelectionService } from './services/state/workspace-selection.service';
 import { WorkspaceParsingService } from '@services/utils/workspace-parsing.service';
 
 // New Services
-import { WorkspaceCrossReferencesService } from './services/workspace-cross-references.service';
-import { WorkspaceTopicalService } from './services/workspace-topical.service';
-import { WorkspaceDeckManagementService } from './services/workspace-deck-management.service';
-import { WorkspaceUIStateService } from './services/workspace-ui-state.service';
+import { WorkspaceDeckManagementService } from './services/core/workspace-deck-management.service';
+import { WorkspaceUIStateService } from './services/state/workspace-ui-state.service';
+import { WorkspaceCrossReferencesService } from './services/modes/workspace-cross-references.service';
+import { WorkspaceTopicalService } from './services/modes/workspace-topical.service';
 
 // Facades
-import { WorkspaceVerseFacade } from './services/workspace-verse.facade';
-import { WorkspaceNavigationFacade } from './services/workspace-navigation.facade';
-import { WorkspaceMemorizationFacade } from './services/workspace-memorization.facade';
-import { WorkspaceBibleDataFacade } from './services/workspace-bible-data.facade';
-import { WorkspaceOrchestratorFacade } from './services/workspace-orchestrator.facade';
-import { WorkspaceContextMenuFacade } from './services/workspace-context-menu.facade';
-import { WorkspaceSettingsFacade } from './services/workspace-settings.facade';
-import { WorkspaceStudySessionFacade } from './services/workspace-study-session.facade';
-import { WorkspaceKeyboardFacade } from './services/workspace-keyboard.facade';
+import { WorkspaceVerseFacade } from './services/facades/workspace-verse.facade';
+import { WorkspaceNavigationFacade } from './services/facades/workspace-navigation.facade';
+import { WorkspaceMemorizationFacade } from './services/facades/workspace-memorization.facade';
+import { WorkspaceBibleDataFacade } from './services/facades/workspace-bible-data.facade';
+import { WorkspaceOrchestratorFacade } from './services/facades/workspace-orchestrator.facade';
+import { WorkspaceContextMenuFacade } from './services/facades/workspace-context-menu.facade';
+import { WorkspaceSettingsFacade } from './services/facades/workspace-settings.facade';
+import { WorkspaceStudySessionFacade } from './services/facades/workspace-study-session.facade';
+import { WorkspaceKeyboardFacade } from './services/facades/workspace-keyboard.facade';
+import { WorkspaceCrossReferencesFacade } from './services/facades/workspace-cross-references.facade';
+import { WorkspaceTopicalFacade } from './services/facades/workspace-topical.facade';
+import { WorkspaceFilteringService } from './services/core/workspace-filtering.service';
 
 // Components
 import { MemorizationModalComponent } from './memorization/memorization-modal.component';
@@ -43,6 +46,7 @@ import { VerseListComponent } from './components/verse-list/verse-list.component
 import { BibleBook, BibleChapter, BibleData } from '@models/bible';
 import { WorkspaceVerse, ModalVerse } from './models/workspace.models';
 import { WorkspaceMode } from './models/workspace-mode.enum';
+import { WorkspaceFilterMode } from './models/workspace-filter-mode.enum';
 import { DeckCreate } from '@services/api/deck.service';
 
 // Utils
@@ -73,7 +77,10 @@ import { WorkspaceVerseUtils } from './utils/workspace-verse.utils';
     WorkspaceContextMenuFacade,
     WorkspaceSettingsFacade,
     WorkspaceStudySessionFacade,
-    WorkspaceKeyboardFacade
+    WorkspaceKeyboardFacade,
+    WorkspaceCrossReferencesFacade,
+    WorkspaceTopicalFacade,
+    WorkspaceFilteringService
   ],
   templateUrl: './verse-workspace.component.html',
   styleUrls: ['./verse-workspace.component.scss'],
@@ -253,7 +260,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   get showFullText(): boolean { return this.settingsFacade.showFullText; }
   get fontSize(): number { return this.settingsFacade.fontSize; }
   get layoutMode(): 'grid' | 'single' { return this.settingsFacade.layoutMode; }
-  get activeFilter(): 'all' | 'unmemorized' | 'needsReview' { return this.settingsFacade.activeFilter; }
+  get activeFilter(): WorkspaceFilterMode { return this.settingsFacade.activeFilter; }
   get showSettings(): boolean { return this.settingsFacade.showSettings; }
   get isGearSpinning(): boolean { return this.settingsFacade.isGearSpinning; }
   get showEncouragement(): string { return this.settingsFacade.showEncouragement; }
@@ -272,17 +279,17 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   get modalChapterName(): string { return this.studySessionFacade.modalChapterName; }
 
   // Cross-references getters
-  get crossReferenceVerses(): WorkspaceVerse[] { return this.crossReferencesService.verses; }
-  get selectedCrossRefVerse(): any { return this.crossReferencesService.selectedVerse; }
-  get crossReferenceCount(): number { return this.crossReferencesService.count; }
-  get loadingCrossReferences(): boolean { return this.crossReferencesService.isLoading; }
+  get crossReferenceVerses(): WorkspaceVerse[] { return this.crossRefFacade.verses; }
+  get selectedCrossRefVerse(): any { return this.crossRefFacade.selectedVerse; }
+  get crossReferenceCount(): number { return this.crossRefFacade.count; }
+  get loadingCrossReferences(): boolean { return this.crossRefFacade.isLoading; }
 
   // Topical getters
-  get topicalVerses(): WorkspaceVerse[] { return this.topicalService.verses; }
-  get selectedTopic(): any { return this.topicalService.selectedTopic; }
-  get topicalVerseCount(): number { return this.topicalService.count; }
-  get loadingTopicalVerses(): boolean { return this.topicalService.isLoading; }
-  get availableTopics(): any[] { return this.topicalService.availableTopics; }
+  get topicalVerses(): WorkspaceVerse[] { return this.topicalFacade.verses; }
+  get selectedTopic(): any { return this.topicalFacade.selectedTopic; }
+  get topicalVerseCount(): number { return this.topicalFacade.count; }
+  get loadingTopicalVerses(): boolean { return this.topicalFacade.isLoading; }
+  get availableTopics(): any[] { return this.topicalFacade.availableTopics; }
 
   // Deck management getters
   get flashcardDecks(): any[] { return this.deckManagementService.decks; }
@@ -299,8 +306,6 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     private workspaceMemorizationService: WorkspaceMemorizationService,
     private notificationService: NotificationService,
     public selectionService: WorkspaceSelectionService,
-    private crossReferencesService: WorkspaceCrossReferencesService,
-    private topicalService: WorkspaceTopicalService,
     private deckManagementService: WorkspaceDeckManagementService,
     public uiStateService: WorkspaceUIStateService,
     // Facades
@@ -312,7 +317,10 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     private contextMenuFacade: WorkspaceContextMenuFacade,
     private settingsFacade: WorkspaceSettingsFacade,
     private studySessionFacade: WorkspaceStudySessionFacade,
-    private keyboardFacade: WorkspaceKeyboardFacade
+    private keyboardFacade: WorkspaceKeyboardFacade,
+    private crossRefFacade: WorkspaceCrossReferencesFacade,
+    private topicalFacade: WorkspaceTopicalFacade,
+    private filteringService: WorkspaceFilteringService
   ) {
     // Initialize observables from orchestrator and facades
     this.viewModel$ = this.orchestrator.viewModel$;
@@ -548,14 +556,9 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   // Keyboard methods are now handled by keyboardFacade
 
   private getCurrentVerses(): WorkspaceVerse[] {
-    switch (this.uiStateService.currentState.mode) {
-      case 'crossReferences':
-        return this.crossReferenceVerses;
-      case 'topical':
-        return this.topicalVerses;
-      default:
-        return this.verses;
-    }
+    const mode = this.uiStateService.currentState.mode;
+    return mode === 'crossReferences' ? this.crossReferenceVerses :
+           mode === 'topical' ? this.topicalVerses : this.verses;
   }
 
   // Public methods for template
@@ -589,7 +592,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   private getActualIndex(filteredIndex: number): number {
-    return WorkspaceVerseUtils.getActualIndex(
+    return this.filteringService.getActualIndex(
       filteredIndex,
       this.getFilteredVerses(),
       this.verses
@@ -709,7 +712,7 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
 
   // Filtering
   getFilteredVerses(): WorkspaceVerse[] {
-    return WorkspaceVerseUtils.filterVerses(
+    return this.filteringService.filterVerses(
       this.verses,
       this.uiStateService.currentState.activeFilter,
       this.verseReviewData
@@ -772,42 +775,24 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     this.selectionService.clearSelection();
     
     if (newMode === 'crossReferences') {
-      this.uiStateService.setActiveFilter('all');
+      this.uiStateService.setActiveFilter(WorkspaceFilterMode.ALL);
       if (!this.selectedCrossRefVerse) {
-        const defaultVerse = this.createDefaultCrossRefVerse();
+        const defaultVerse = this.crossRefFacade.createDefaultCrossRefVerse(this.currentBook, this.currentChapter, this.verses);
         this.onCrossRefVerseSelected(defaultVerse);
       }
     } else if (newMode === 'topical') {
-      this.uiStateService.setActiveFilter('all');
-      this.crossReferencesService.clearState();
-      this.topicalService.clearState();
-      this.topicalService.loadAvailableTopics();
+      this.uiStateService.setActiveFilter(WorkspaceFilterMode.ALL);
+      this.crossRefFacade.clearState();
+      this.topicalFacade.clearState();
+      this.topicalFacade.loadAvailableTopics();
     } else {
-      this.crossReferencesService.clearState();
+      this.crossRefFacade.clearState();
     }
   }
 
-  private createDefaultCrossRefVerse() {
-    const bookId = this.currentBook?.id || 1;
-    const bookName = this.currentBook?.name || 'Genesis';
-    const chapter = this.currentChapter || 1;
-    const verseNum = this.verses.length > 0 ? this.verses[0].verse : 1;
-    const verseCode = this.verses.length > 0 
-      ? this.verses[0].verseCode 
-      : `${bookId}-${chapter}-1`;
-    
-    return {
-      bookId,
-      bookName,
-      chapter,
-      verse: verseNum,
-      verseCode,
-      displayText: `${bookName} ${chapter}:${verseNum}`
-    };
-  }
 
   onCrossRefVerseSelected(verse: any) {
-    this.crossReferencesService.selectVerse(verse, this.userId, this.userPreferredBible);
+    this.crossRefFacade.selectVerse(verse, this.userId, this.userPreferredBible);
   }
   
   onCrossRefVerseChange(verseNumber: number) {
@@ -824,56 +809,38 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
   
   getVerseNumbersArray(): number[] {
-    if (!this.currentBibleChapter) return [];
-    return Array.from({ length: this.currentBibleChapter.totalVerses }, (_, i) => i + 1);
+    return this.currentBibleChapter ? Array.from({ length: this.currentBibleChapter.totalVerses }, (_, i) => i + 1) : [];
   }
 
   getMemorizedVerseNumbers(): number[] {
-    // Return array of verse numbers that are memorized in the current chapter
-    return this.verses
-      .filter(v => v.isMemorized)
-      .map(v => v.verse);
+    return this.verses.filter(v => v.isMemorized).map(v => v.verse);
   }
 
   onTopicSelected(topic: any) {
-    this.topicalService.selectTopic(topic, this.userId, this.userPreferredBible);
+    this.topicalFacade.selectTopic(topic, this.userId, this.userPreferredBible);
   }
 
   // Cross-reference methods
   getFilteredCrossReferences(): WorkspaceVerse[] {
-    return this.crossReferencesService.getFilteredVerses(
-      this.uiStateService.currentState.activeFilter as 'all' | 'unmemorized'
+    return this.crossRefFacade.getFilteredVerses(
+      this.uiStateService.currentState.activeFilter
     );
   }
 
   getUnmemorizedCrossRefCount(): number {
-    return this.crossReferencesService.getUnmemorizedCount();
+    return this.crossRefFacade.getUnmemorizedCount();
   }
 
   handleCrossRefClick(verse: WorkspaceVerse, event: MouseEvent) {
-    // Find the index of this verse in the cross-reference list
-    const index = this.crossReferenceVerses.findIndex(v => v.verseCode === verse.verseCode);
-    if (index >= 0) {
-      this.selectionService.handleVerseClick(index, event, this.crossReferenceVerses);
-    }
+    this.crossRefFacade.handleClick(verse, event);
   }
 
   handleCrossRefMouseDown(index: number) {
-    const filteredVerses = this.getFilteredCrossReferences();
-    if (index >= 0 && index < filteredVerses.length) {
-      const verse = filteredVerses[index];
-      const actualIndex = this.crossReferenceVerses.findIndex(v => v.verseCode === verse.verseCode);
-      this.selectionService.handleMouseDown(actualIndex);
-    }
+    this.crossRefFacade.handleMouseDown(index);
   }
 
   handleCrossRefMouseEnter(index: number) {
-    const filteredVerses = this.getFilteredCrossReferences();
-    if (index >= 0 && index < filteredVerses.length && this.selectionService.isDragging) {
-      const verse = filteredVerses[index];
-      const actualIndex = this.crossReferenceVerses.findIndex(v => v.verseCode === verse.verseCode);
-      this.selectionService.handleMouseMove(actualIndex, this.crossReferenceVerses, filteredVerses);
-    }
+    this.crossRefFacade.handleMouseEnter(index);
   }
 
   navigateToVerse(verse: WorkspaceVerse) {
@@ -893,122 +860,77 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
     this.notificationService.info(`Navigating to ${verse.fullReference}`);
   }
 
-  changeToVerse(verseRef: any) {
-    this.uiStateService.setTargetVerse(verseRef.verse);
-    this.uiStateService.setMode('chapter');
-    this.selectionService.clearSelection();
-    this.loadChapter(verseRef.bookId, verseRef.chapter);
-    
-    const targetBook = this.allBooks.find(b => b.id === verseRef.bookId);
-    if (targetBook && targetBook.id !== this.currentBook?.id) {
-      this.currentBook = targetBook;
-    }
-  }
 
   returnFromCrossReferences() {
-    this.uiStateService.setMode('chapter');
-    this.selectionService.clearSelection();
-    this.crossReferencesService.clearState();
-    this.notificationService.info('Returned to memorization mode');
+    this.crossRefFacade.returnToChapterMode();
   }
 
   // Topical methods
   getFilteredTopicalVerses(): WorkspaceVerse[] {
-    return this.topicalService.getFilteredVerses(
-      this.uiStateService.currentState.activeFilter as 'all' | 'unmemorized'
+    return this.topicalFacade.getFilteredVerses(
+      this.uiStateService.currentState.activeFilter
     );
   }
 
   getUnmemorizedTopicalCount(): number {
-    return this.topicalService.getUnmemorizedCount();
+    return this.topicalFacade.getUnmemorizedCount();
   }
 
   handleTopicalClick(verse: WorkspaceVerse, event: MouseEvent) {
-    // Find the index of this verse in the topical list
-    const index = this.topicalVerses.findIndex(v => v.verseCode === verse.verseCode);
-    if (index >= 0) {
-      this.selectionService.handleVerseClick(index, event, this.topicalVerses);
-    }
+    this.topicalFacade.handleClick(verse, event);
   }
 
   handleTopicalMouseDown(index: number) {
-    const filteredVerses = this.getFilteredTopicalVerses();
-    if (index >= 0 && index < filteredVerses.length) {
-      const verse = filteredVerses[index];
-      const actualIndex = this.topicalVerses.findIndex(v => v.verseCode === verse.verseCode);
-      this.selectionService.handleMouseDown(actualIndex);
-    }
+    this.topicalFacade.handleMouseDown(index);
   }
 
   handleTopicalMouseEnter(index: number) {
-    const filteredVerses = this.getFilteredTopicalVerses();
-    if (index >= 0 && index < filteredVerses.length && this.selectionService.isDragging) {
-      const verse = filteredVerses[index];
-      const actualIndex = this.topicalVerses.findIndex(v => v.verseCode === verse.verseCode);
-      this.selectionService.handleMouseMove(actualIndex, this.topicalVerses, filteredVerses);
-    }
+    this.topicalFacade.handleMouseEnter(index);
   }
 
   jumpToCrossReferencesFromContextMenu() {
-    this.uiStateService.hideContextMenu();
-    
-    let targetVerse: WorkspaceVerse | null = null;
-    
-    if (this.selectionService.selectedVerses.size === 1) {
-      const selectedVerseCode = Array.from(this.selectionService.selectedVerses)[0];
-      targetVerse = this.verses.find(v => v.verseCode === selectedVerseCode) ||
-                   this.crossReferenceVerses.find(v => v.verseCode === selectedVerseCode) ||
-                   this.topicalVerses.find(v => v.verseCode === selectedVerseCode) ||
-                   null;
-    } else if (this.contextMenu.verseId) {
-      targetVerse = this.verses.find(v => v.verseCode === this.contextMenu.verseId) ||
-                   this.crossReferenceVerses.find(v => v.verseCode === this.contextMenu.verseId) ||
-                   this.topicalVerses.find(v => v.verseCode === this.contextMenu.verseId) ||
-                   null;
-    }
+    this.contextMenuFacade.hideContextMenu();
+    const targetVerse = this.findSelectedVerseForCrossRef();
     
     if (!targetVerse) {
       this.notificationService.error('No verse selected for cross-references');
       return;
     }
     
+    const [bookId, chapter, verseNum] = targetVerse.verseCode.split('-').map(Number);
     this.uiStateService.setMode('crossReferences');
     this.selectionService.clearSelection();
     
-    const [bookId, chapter, verseNum] = targetVerse.verseCode.split('-').map(Number);
-    
-    // Update the current book and chapter if different
     if (bookId !== this.currentBook?.id || chapter !== this.currentChapter) {
-      const targetBook = this.allBooks.find(b => b.id === bookId);
-      if (targetBook) {
-        this.currentBook = targetBook;
-        this.currentChapter = chapter;
-        // Load the chapter to update available verses
-        this.loadChapter(bookId, chapter).then(() => {
-          const crossRefSelection = {
-            bookId: bookId,
-            bookName: targetVerse.bookName || this.currentBook?.name || '',
-            chapter: chapter,
-            verse: verseNum,
-            verseCode: targetVerse.verseCode,
-            displayText: `${targetVerse.bookName || this.currentBook?.name} ${chapter}:${verseNum}`
-          };
-          this.onCrossRefVerseSelected(crossRefSelection);
-        });
-      }
+      this.loadChapter(bookId, chapter).then(() => {
+        const crossRefSelection = this.createCrossRefSelection(targetVerse, bookId, chapter, verseNum);
+        this.onCrossRefVerseSelected(crossRefSelection);
+      });
     } else {
-      const crossRefSelection = {
-        bookId: bookId,
-        bookName: targetVerse.bookName || this.currentBook?.name || '',
-        chapter: chapter,
-        verse: verseNum,
-        verseCode: targetVerse.verseCode,
-        displayText: `${targetVerse.bookName || this.currentBook?.name} ${chapter}:${verseNum}`
-      };
+      const crossRefSelection = this.createCrossRefSelection(targetVerse, bookId, chapter, verseNum);
       this.onCrossRefVerseSelected(crossRefSelection);
     }
-    
-    this.notificationService.info(`Jumped to cross-references for ${targetVerse.bookName || this.currentBook?.name} ${chapter}:${verseNum}`);
+  }
+
+  private findSelectedVerseForCrossRef(): WorkspaceVerse | null {
+    if (this.selectionService.selectedVerses.size === 1) {
+      const code = Array.from(this.selectionService.selectedVerses)[0];
+      return this.getCurrentVerses().find(v => v.verseCode === code) || null;
+    } else if (this.contextMenu.verseId) {
+      return this.getCurrentVerses().find(v => v.verseCode === this.contextMenu.verseId) || null;
+    }
+    return null;
+  }
+
+  private createCrossRefSelection(verse: WorkspaceVerse, bookId: number, chapter: number, verseNum: number): any {
+    return {
+      bookId,
+      bookName: verse.bookName || this.currentBook?.name || '',
+      chapter,
+      verse: verseNum,
+      verseCode: verse.verseCode,
+      displayText: `${verse.bookName || this.currentBook?.name} ${chapter}:${verseNum}`
+    };
   }
 
   // Utility methods
@@ -1034,38 +956,32 @@ export class VerseWorkspaceComponent implements OnInit, OnDestroy {
   }
 
   jumpToFullChapter() {
-    this.uiStateService.hideContextMenu();
-    
-    // Get the first selected verse
-    if (this.selectionService.selectedVerses.size === 0) {
-      this.notificationService.error('No verse selected');
-      return;
-    }
-    
-    const selectedVerseCode = Array.from(this.selectionService.selectedVerses)[0];
-    const targetVerse = this.getCurrentVerses().find(v => v.verseCode === selectedVerseCode);
+    this.contextMenuFacade.hideContextMenu();
+    const targetVerse = Array.from(this.selectionService.selectedVerses)[0];
     
     if (!targetVerse) {
       this.notificationService.error('No verse selected');
       return;
     }
     
-    const [bookId, chapter, verseNum] = this.workspaceParsingService.parseVerseCode(targetVerse.verseCode);
+    const verse = this.getCurrentVerses().find(v => v.verseCode === targetVerse);
+    if (!verse) {
+      this.notificationService.error('No verse selected');
+      return;
+    }
     
-    // Clear selection before navigation
+    const [bookId, chapter] = this.workspaceParsingService.parseVerseCode(verse.verseCode);
     this.selectionService.clearSelection();
     
-    // Set mode back to chapter view if not already
     if (this.mode !== WorkspaceMode.CHAPTER) {
       this.uiStateService.setMode('chapter');
     }
     
-    // Navigate to the chapter within the workspace
     this.router.navigate([], {
       queryParams: { bookId, chapter },
       queryParamsHandling: 'merge'
     }).then(() => {
-      this.notificationService.info(`Viewing full chapter: ${targetVerse.bookName || ''} ${chapter}`, 3000);
+      this.notificationService.info(`Viewing full chapter: ${verse.bookName || ''} ${chapter}`, 3000);
     });
   }
 }

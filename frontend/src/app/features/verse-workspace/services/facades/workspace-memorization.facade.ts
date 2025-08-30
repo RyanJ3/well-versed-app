@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject, BehaviorSubject, Observable } from 'rxjs';
 import { debounceTime, filter } from 'rxjs/operators';
-import { WorkspaceVerse } from '../models/workspace.models';
+import { WorkspaceVerse } from '../../models/workspace.models';
 
 export interface MemorizationState {
   saveQueue: Set<string>;

@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { WorkspaceFilterMode } from '../../models/workspace-filter-mode.enum';
 
 @Component({
   selector: 'app-workspace-filters',
@@ -9,15 +10,18 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./workspace-filters.component.scss']
 })
 export class WorkspaceFiltersComponent {
-  @Input() activeFilter: 'all' | 'unmemorized' | 'needsReview' = 'all';
+  @Input() activeFilter: WorkspaceFilterMode = WorkspaceFilterMode.ALL;
   @Input() totalVerses = 0;
   @Input() unmemorizedCount = 0;
   @Input() needsReviewCount = 0;
   @Input() showReviewFilter = true;
 
-  @Output() filterChange = new EventEmitter<'all' | 'unmemorized' | 'needsReview'>();
+  @Output() filterChange = new EventEmitter<WorkspaceFilterMode>();
 
-  setFilter(filter: 'all' | 'unmemorized' | 'needsReview') {
+  setFilter(filter: WorkspaceFilterMode) {
     this.filterChange.emit(filter);
   }
+
+  // Expose enum to template
+  WorkspaceFilterMode = WorkspaceFilterMode;
 }

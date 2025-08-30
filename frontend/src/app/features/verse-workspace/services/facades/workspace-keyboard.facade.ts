@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
-import { WorkspaceSelectionService } from './workspace-selection.service';
-import { WorkspaceUIStateService } from './workspace-ui-state.service';
+import { WorkspaceSelectionService } from '../state/workspace-selection.service';
+import { WorkspaceUIStateService } from '../state/workspace-ui-state.service';
 import { WorkspaceOrchestratorFacade } from './workspace-orchestrator.facade';
 import { WorkspaceStudySessionFacade } from './workspace-study-session.facade';
-import { WorkspaceCrossReferencesService } from './workspace-cross-references.service';
+import { WorkspaceCrossReferencesService } from '../modes/workspace-cross-references.service';
 import { WorkspaceNavigationFacade } from './workspace-navigation.facade';
-import { WorkspaceVerse } from '../models/workspace.models';
-import { WorkspaceMode } from '../models/workspace-mode.enum';
+import { WorkspaceVerse } from '../../models/workspace.models';
+import { WorkspaceMode } from '../../models/workspace-mode.enum';
+import { WorkspaceFilterMode } from '../../models/workspace-filter-mode.enum';
 import { Router } from '@angular/router';
 import { NotificationService } from '@services/utils/notification.service';
 
@@ -76,7 +77,7 @@ export class WorkspaceKeyboardFacade {
     this.orchestrator.setMode(newMode);
     
     if (newMode === WorkspaceMode.CROSS_REFERENCES) {
-      this.uiStateService.setActiveFilter('all');
+      this.uiStateService.setActiveFilter(WorkspaceFilterMode.ALL);
     }
   }
 

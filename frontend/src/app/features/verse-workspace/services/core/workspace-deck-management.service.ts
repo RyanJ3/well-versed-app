@@ -5,7 +5,7 @@ import { takeUntil } from 'rxjs/operators';
 import { DeckService, DeckResponse, DeckCreate } from '@services/api/deck.service';
 import { NotificationService } from '@services/utils/notification.service';
 import { Router } from '@angular/router';
-import { WorkspaceVerse } from '../models/workspace.models';
+import { WorkspaceVerse } from '../../models/workspace.models';
 import { BibleBook } from '@models/bible';
 
 export interface DeckManagementState {

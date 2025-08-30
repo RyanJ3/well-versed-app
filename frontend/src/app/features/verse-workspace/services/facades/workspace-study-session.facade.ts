@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { WorkspaceUIStateService } from './workspace-ui-state.service';
-import { WorkspaceSelectionService } from './workspace-selection.service';
-import { WorkspaceVerse, ModalVerse } from '../models/workspace.models';
+import { WorkspaceUIStateService } from '../state/workspace-ui-state.service';
+import { WorkspaceSelectionService } from '../state/workspace-selection.service';
+import { WorkspaceVerse, ModalVerse } from '../../models/workspace.models';
 import { BibleBook } from '@models/bible';
 
 @Injectable()

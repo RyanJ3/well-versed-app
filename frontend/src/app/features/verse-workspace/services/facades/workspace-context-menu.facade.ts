@@ -1,15 +1,15 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { WorkspaceUIStateService } from './workspace-ui-state.service';
-import { WorkspaceSelectionService } from './workspace-selection.service';
+import { WorkspaceUIStateService } from '../state/workspace-ui-state.service';
+import { WorkspaceSelectionService } from '../state/workspace-selection.service';
 import { WorkspaceVerseFacade } from './workspace-verse.facade';
 import { WorkspaceNavigationFacade } from './workspace-navigation.facade';
-import { WorkspaceDeckManagementService } from './workspace-deck-management.service';
+import { WorkspaceDeckManagementService } from '../core/workspace-deck-management.service';
 import { NotificationService } from '@services/utils/notification.service';
 import { WorkspaceParsingService } from '@services/utils/workspace-parsing.service';
-import { WorkspaceVerse } from '../models/workspace.models';
-import { WorkspaceMode } from '../models/workspace-mode.enum';
+import { WorkspaceVerse } from '../../models/workspace.models';
+import { WorkspaceMode } from '../../models/workspace-mode.enum';
 import { DeckCreate } from '@services/api/deck.service';
 
 @Injectable()

@@ -1,5 +1,6 @@
 import { WorkspaceVerse, ModalVerse } from '@features/verse-workspace/models/workspace.models';
 import { BibleBook, BibleChapter } from '@models/bible';
+import { WorkspaceFilterMode } from '@features/verse-workspace/models/workspace-filter-mode.enum';
 
 export interface VerseWorkspaceState {
   // Current context
@@ -48,7 +49,7 @@ export interface VerseWorkspaceState {
     showFullText: boolean;
     fontSize: number;
     layoutMode: 'grid' | 'single';
-    activeFilter: 'all' | 'unmemorized' | 'needsReview';
+    activeFilter: WorkspaceFilterMode;
     showSettings: boolean;
     showModal: boolean;
     modalChapterName: string;
@@ -146,7 +147,7 @@ export const initialVerseWorkspaceState: VerseWorkspaceState = {
     showFullText: false,
     fontSize: 16,
     layoutMode: 'grid',
-    activeFilter: 'all',
+    activeFilter: WorkspaceFilterMode.ALL,
     showSettings: false,
     showModal: false,
     modalChapterName: '',

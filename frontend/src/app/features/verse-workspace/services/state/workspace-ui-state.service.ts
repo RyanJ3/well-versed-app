@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { WorkspaceStateService } from './workspace-state.service';
-import { ContextMenuData } from '../models/context-menu-data.model';
+import { ContextMenuData } from '../../models/context-menu-data.model';
+import { WorkspaceFilterMode } from '../../models/workspace-filter-mode.enum';
 
 export interface UIState {
   showFullText: boolean;
   fontSize: number;
   layoutMode: 'grid' | 'single';
-  activeFilter: 'all' | 'unmemorized' | 'needsReview';
+  activeFilter: WorkspaceFilterMode;
   showSettings: boolean;
   isGearSpinning: boolean;
   showEncouragement: string;
@@ -25,7 +26,7 @@ export class WorkspaceUIStateService {
     showFullText: false,
     fontSize: 16,
     layoutMode: 'grid',
-    activeFilter: 'all',
+    activeFilter: WorkspaceFilterMode.ALL,
     showSettings: false,
     isGearSpinning: false,
     showEncouragement: '',
@@ -95,7 +96,7 @@ export class WorkspaceUIStateService {
   }
 
   // Filter management
-  setActiveFilter(filter: 'all' | 'unmemorized' | 'needsReview'): void {
+  setActiveFilter(filter: WorkspaceFilterMode): void {
     this.updateState({ activeFilter: filter });
   }
 
@@ -104,7 +105,7 @@ export class WorkspaceUIStateService {
     this.updateState({ 
       mode: mode,
       // Reset filter when changing modes
-      activeFilter: 'all'
+      activeFilter: WorkspaceFilterMode.ALL
     });
   }
 
@@ -215,7 +216,7 @@ export class WorkspaceUIStateService {
       showFullText: false,
       fontSize: 16,
       layoutMode: 'grid',
-      activeFilter: 'all',
+      activeFilter: WorkspaceFilterMode.ALL,
       showSettings: false,
       isGearSpinning: false,
       showEncouragement: '',

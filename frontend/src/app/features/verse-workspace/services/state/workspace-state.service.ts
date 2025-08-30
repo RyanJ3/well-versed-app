@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { WorkspaceState, WorkspaceViewSettings } from '../models/workspace.models';
+import { WorkspaceState, WorkspaceViewSettings } from '../../models/workspace.models';
 
 @Injectable()
 export class WorkspaceStateService {

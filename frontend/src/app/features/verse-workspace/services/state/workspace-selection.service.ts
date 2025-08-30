@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { WorkspaceVerse } from '../models/workspace.models';
-import { VerseSection } from '../models/verse-section.model';
+import { WorkspaceVerse } from '../../models/workspace.models';
+import { VerseSection } from '../../models/verse-section.model';
 
 @Injectable()
 export class WorkspaceSelectionService {

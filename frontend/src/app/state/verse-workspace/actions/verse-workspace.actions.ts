@@ -1,6 +1,7 @@
 import { createAction, props } from '@ngrx/store';
 import { WorkspaceVerse, ModalVerse } from '@features/verse-workspace/models/workspace.models';
 import { BibleBook, BibleChapter } from '@models/bible';
+import { WorkspaceFilterMode } from '@features/verse-workspace/models/workspace-filter-mode.enum';
 import { CrossReferenceSelection, Topic, ReviewData, ContextMenuState } from '../models/verse-workspace.state';
 
 // Load Chapter Actions
@@ -137,7 +138,7 @@ export const setLayoutMode = createAction(
 
 export const setActiveFilter = createAction(
   '[Verse Workspace] Set Active Filter',
-  props<{ filter: 'all' | 'unmemorized' | 'needsReview' }>()
+  props<{ filter: WorkspaceFilterMode }>()
 );
 
 export const toggleSettings = createAction(

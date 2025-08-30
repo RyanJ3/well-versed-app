@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Subject, debounceTime } from 'rxjs';
 import { BibleService } from '@services/api/bible.service';
-import { WorkspaceVerse } from '../models/workspace.models';
+import { WorkspaceVerse } from '../../models/workspace.models';
 
 @Injectable()
 export class WorkspaceMemorizationService {

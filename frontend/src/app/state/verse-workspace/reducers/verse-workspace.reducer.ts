@@ -2,6 +2,7 @@ import { createReducer, on } from '@ngrx/store';
 import { initialVerseWorkspaceState, VerseWorkspaceState } from '../models/verse-workspace.state';
 import * as VerseWorkspaceActions from '../actions/verse-workspace.actions';
 import { WorkspaceVerseUtils } from '@features/verse-workspace/utils/workspace-verse.utils';
+import { WorkspaceFilterMode } from '@features/verse-workspace/models/workspace-filter-mode.enum';
 
 export const verseWorkspaceReducer = createReducer(
   initialVerseWorkspaceState,
@@ -335,15 +336,15 @@ export const verseWorkspaceReducer = createReducer(
 // Helper functions
 function applyCurrentFilter(
   verses: any[],
-  filter: 'all' | 'unmemorized' | 'needsReview',
+  filter: WorkspaceFilterMode,
   reviewData: Record<string, any>
 ): any[] {
   if (!verses || verses.length === 0) return [];
   
   switch (filter) {
-    case 'unmemorized':
+    case WorkspaceFilterMode.UNMEMORIZED:
       return verses.filter(v => !v.isMemorized);
-    case 'needsReview':
+    case WorkspaceFilterMode.NEEDS_REVIEW:
       return verses.filter(v => {
         if (!v.isMemorized) return false;
         return WorkspaceVerseUtils.needsReview(v.verseCode, reviewData);

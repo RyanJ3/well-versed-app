@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { WorkspaceUIStateService } from './workspace-ui-state.service';
+import { WorkspaceUIStateService } from '../state/workspace-ui-state.service';
+import { WorkspaceFilterMode } from '../../models/workspace-filter-mode.enum';
 
 @Injectable()
 export class WorkspaceSettingsFacade {
@@ -19,8 +20,8 @@ export class WorkspaceSettingsFacade {
     return this.uiStateService.state$.pipe(map(state => state.layoutMode));
   }
 
-  get activeFilter$(): Observable<'all' | 'unmemorized' | 'needsReview'> {
-    return this.uiStateService.state$.pipe(map(state => state.activeFilter as 'all' | 'unmemorized' | 'needsReview'));
+  get activeFilter$(): Observable<WorkspaceFilterMode> {
+    return this.uiStateService.state$.pipe(map(state => state.activeFilter));
   }
 
   get showSettings$(): Observable<boolean> {
@@ -51,8 +52,8 @@ export class WorkspaceSettingsFacade {
     return this.uiStateService.currentState.layoutMode;
   }
 
-  get activeFilter(): 'all' | 'unmemorized' | 'needsReview' {
-    return this.uiStateService.currentState.activeFilter as 'all' | 'unmemorized' | 'needsReview';
+  get activeFilter(): WorkspaceFilterMode {
+    return this.uiStateService.currentState.activeFilter;
   }
 
   get showSettings(): boolean {
@@ -98,7 +99,7 @@ export class WorkspaceSettingsFacade {
     this.uiStateService.toggleTextMode();
   }
 
-  setActiveFilter(filter: 'all' | 'unmemorized' | 'needsReview') {
+  setActiveFilter(filter: WorkspaceFilterMode) {
     this.uiStateService.setActiveFilter(filter);
   }
 

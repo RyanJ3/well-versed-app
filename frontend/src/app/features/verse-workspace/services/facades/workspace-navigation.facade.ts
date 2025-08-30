@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { BibleBook, BibleChapter } from '@models/bible';
-import { WorkspaceMode } from '../models/workspace-mode.enum';
+import { WorkspaceMode } from '../../models/workspace-mode.enum';
 
 export interface NavigationState {
   currentBook: BibleBook | null;

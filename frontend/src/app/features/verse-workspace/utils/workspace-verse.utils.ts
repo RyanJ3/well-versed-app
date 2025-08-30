@@ -1,4 +1,5 @@
 import { WorkspaceVerse } from '../models/workspace.models';
+import { WorkspaceFilterMode } from '../models/workspace-filter-mode.enum';
 
 export class WorkspaceVerseUtils {
   /**
@@ -70,7 +71,7 @@ export class WorkspaceVerseUtils {
    */
   static filterVerses(
     verses: WorkspaceVerse[],
-    filter: 'all' | 'unmemorized' | 'needsReview',
+    filter: WorkspaceFilterMode,
     reviewData?: Record<string, { lastReviewed: number; strength: number }>
   ): WorkspaceVerse[] {
     if (!verses || verses.length === 0) {
@@ -78,9 +79,9 @@ export class WorkspaceVerseUtils {
     }
 
     switch (filter) {
-      case 'unmemorized':
+      case WorkspaceFilterMode.UNMEMORIZED:
         return verses.filter(v => !v.isMemorized);
-      case 'needsReview':
+      case WorkspaceFilterMode.NEEDS_REVIEW:
         if (!reviewData) return [];
         return verses.filter(v => this.needsReview(v.verseCode, reviewData));
       default:

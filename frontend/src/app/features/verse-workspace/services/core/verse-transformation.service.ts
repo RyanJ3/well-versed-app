@@ -7,7 +7,7 @@ import {
   createMemorizationVerse,
   createCrossReferenceVerse,
   createTopicalVerse
-} from '../models/verse-types.model';
+} from '../../models/verse-types.model';
 import { BibleService } from '../../../services/bible.service';
 
 @Injectable({
